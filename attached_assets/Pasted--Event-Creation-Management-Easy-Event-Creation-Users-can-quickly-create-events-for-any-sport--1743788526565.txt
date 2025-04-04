@@ -1,0 +1,40 @@
+• Event Creation & Management:
+• Easy Event Creation: Users can quickly create events for any sport or activity with a few taps.
+• Public or Private: Events can be public (open to anyone nearby) or private (invite-only).
+• Invitations: Users can invite friends or open the event to the public.
+• RSVP System: Attendees can RSVP with "Approve," "Deny," or "Maybe," with "Maybe" options including a deadline for a definitive answer.
+• Event Details: Includes information like event name, type, photo (optional), organizer, location, time, date, and cost (free or paid).
+• Payment: Allows for direct payment for paid events through the app.
+• Automated Teams: When events are full, admins can create teams and potentially assign captains.
+
+• User Profiles:
+• Personalized Profiles: Users can showcase their sports interests, skill levels, and experience.
+• Rating & Reviews: Users can rate and review each other after events, contributing to a ranking system.
+• Activity History: Users can see their past events and the reviews they've received.
+• Media Upload: Users can add photos and videos to their profiles.
+• Privacy Settings: Profile can be set as public or private
+• Social Connections: User profile is connected to other social media and sports pages
+• Stats Integration: User profile is connected to external sports platforms to show stats.
+
+• Team Features:
+• Dedicated Team Pages: Teams have a dedicated space to promote events, engage fans, and communicate.
+• Admin Controls: Team admins can manage members, schedule events, and share updates.
+• Team Communication: Team members can interact in a team feed.
+• Event Invitations: Team members are sent automatic invites to team events.
+• Member Tracking: Admins can record player positions, stats, and information.
+• Subscription Fee: Teams with more than 20 members will need to subscribe.
+• External Connection: Team profile is connected to only one specific sport and shown in the members profiles.
+
+• Location Profiles
+• Venue Calendar: Location managers can add a calendar to book events through playpals.
+• Easy Payment: Payments for booking venues can be made through playpals.
+• Venue information: Location profiles include the list of sports offered in the venue.
+• Public Events: Location profiles can organize public events.
+• Location Publicity: Locations are advertised to users nearby who are interested in the sports offered.
+
+• Social Features:
+• Activity Feed: A social feed to view posts from friends and followed teams.
+• Interaction: Users can like and comment on posts.
+• Event Discovery: A list of available events with filters for sport, location, date, free/paid, and public/private.
+• Shareable Moments: Users can share photos and videos from their events.
+• Dating Function: Private invitation to other users to join sports activities.
