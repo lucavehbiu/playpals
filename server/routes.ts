@@ -93,27 +93,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Event create body:", JSON.stringify(req.body, null, 2));
       
-      const eventData = insertEventSchema.parse(req.body);
+      // Get authenticated user
       const authenticatedUser = (req as any).user as User;
-      
-      // Set creator ID from authenticated user
-      eventData.creatorId = authenticatedUser.id;
-      
-      console.log("Validated event data:", JSON.stringify(eventData, null, 2));
-      
-      const newEvent = await storage.createEvent(eventData);
-      res.status(201).json(newEvent);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.log("Zod validation error:", JSON.stringify(error.errors, null, 2));
-        return res.status(400).json({ 
-          message: "Invalid event data", 
-          errors: error.errors,
-          details: error.format()
-        });
+      if (!authenticatedUser || !authenticatedUser.id) {
+        return res.status(401).json({ message: "Authentication required" });
       }
+      
+      console.log("Authenticated user:", JSON.stringify({
+        id: authenticatedUser.id,
+        username: authenticatedUser.username,
+      }));
+      
+      // Prepare data for validation
+      const eventData = {
+        ...req.body,
+        creatorId: authenticatedUser.id
+      };
+      
+      // Date conversion - convert string to Date object explicitly
+      if (typeof eventData.date === 'string') {
+        try {
+          eventData.date = new Date(eventData.date);
+        } catch (e) {
+          console.error("Date conversion error:", e);
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+      }
+      
+      // Try to validate the data
+      try {
+        const validatedData = insertEventSchema.parse(eventData);
+        console.log("Validated event data:", JSON.stringify(validatedData, null, 2));
+        
+        const newEvent = await storage.createEvent(validatedData);
+        return res.status(201).json(newEvent);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          console.log("Zod validation error:", JSON.stringify(validationError.errors, null, 2));
+          return res.status(400).json({ 
+            message: "Invalid event data", 
+            errors: validationError.errors,
+            details: validationError.format()
+          });
+        }
+        console.error("Event creation error:", validationError);
+        return res.status(500).json({ message: "Failed to create event" });
+      }
+    } catch (error) {
       console.error("Event creation error:", error);
-      res.status(500).json({ message: "Failed to create event" });
+      return res.status(500).json({ message: "Failed to create event" });
     }
   });
   
@@ -121,15 +149,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get all public events (for discovery)
       const events = await storage.getPublicEvents();
-      res.json(events);
+      console.log("Fetched public events:", events ? events.length : 0);
+      res.json(events || []);
     } catch (error) {
+      console.error("Error fetching events:", error);
       res.status(500).json({ message: "Error fetching events" });
     }
   });
   
-  app.get('/api/events/:id', async (req: Request, res: Response) => {
+  // Routes with path parameters should come BEFORE more generic routes
+  // Pattern-specific routes like '/api/events/user/:userId' should come BEFORE '/api/events/:id'
+  app.get('/api/events/user/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      console.log(`Fetching events for user ID: ${userId}`);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const events = await storage.getEventsByCreator(userId);
+      console.log("Fetched user events:", events ? events.length : 0);
+      res.json(events || []);
+    } catch (error) {
+      console.error("Error fetching user events:", error);
+      res.status(500).json({ message: "Error fetching user events" });
+    }
+  });
+  
+  app.get('/api/events/:id([0-9]+)', async (req: Request, res: Response) => {
     try {
       const eventId = parseInt(req.params.id);
+      console.log(`Fetching event ID: ${eventId}`);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
       const event = await storage.getEvent(eventId);
       
       if (!event) {
@@ -138,17 +194,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(event);
     } catch (error) {
+      console.error("Error fetching event:", error);
       res.status(500).json({ message: "Error fetching event" });
-    }
-  });
-  
-  app.get('/api/events/user/:userId', async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const events = await storage.getEventsByCreator(userId);
-      res.json(events);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching user events" });
     }
   });
   

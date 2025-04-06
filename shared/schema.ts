@@ -64,7 +64,8 @@ export const teamMembers = pgTable("team_members", {
   uniqueMember: unique().on(t.teamId, t.userId),
 }));
 
-// Events table with team reference
+// Events table without team reference for now
+// We'll implement the team reference later with proper migrations
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -80,7 +81,7 @@ export const events = pgTable("events", {
   cost: integer("cost").default(0),
   creatorId: integer("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   eventImage: text("event_image"),
-  teamId: integer("team_id").references(() => teams.id),
+  // Removed teamId for now to match existing database schema
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -117,7 +118,8 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
     relationName: "user_teams",
   }),
   members: many(teamMembers, { relationName: "team_members" }),
-  events: many(events, { relationName: "team_events" }),
+  // Temporarily remove events relation
+  // events: many(events, { relationName: "team_events" }),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -126,11 +128,12 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     references: [users.id],
     relationName: "user_events",
   }),
-  team: one(teams, {
-    fields: [events.teamId],
-    references: [teams.id],
-    relationName: "team_events",
-  }),
+  // Temporarily remove team relation until we add the column
+  // team: one(teams, {
+  //   fields: [events.teamId],
+  //   references: [teams.id],
+  //   relationName: "team_events",
+  // }),
   rsvps: many(rsvps, { relationName: "event_rsvps" }),
 }));
 
@@ -176,15 +179,12 @@ export const insertEventSchema = createInsertSchema(events)
     currentParticipants: true,
     createdAt: true,
   })
-  .transform((data) => {
-    // Convert date string to Date object if it's a string
-    if (typeof data.date === 'string') {
-      return {
-        ...data,
-        date: new Date(data.date)
-      };
-    }
-    return data;
+  // Override type for date field with preprocess
+  .extend({
+    date: z.preprocess(
+      (val) => (typeof val === 'string' ? new Date(val) : val),
+      z.date()
+    )
   });
 
 export const insertRSVPSchema = createInsertSchema(rsvps).omit({
