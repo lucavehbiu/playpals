@@ -97,6 +97,11 @@ const Header = () => {
                 <span className="text-primary font-bold text-xl cursor-pointer">PlayPals</span>
               </Link>
               <nav className="ml-10 flex items-center space-x-8">
+                <Link href="/">
+                  <a className={`${location === '/' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
+                    Feed
+                  </a>
+                </Link>
                 <Link href="/discover">
                   <a className={`${location === '/discover' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
                     Discover
@@ -107,8 +112,16 @@ const Header = () => {
                     My Events
                   </a>
                 </Link>
-                <a href="#" className="text-dark hover:text-primary font-medium">Teams</a>
-                <a href="#" className="text-dark hover:text-primary font-medium">Venues</a>
+                <Link href="/teams">
+                  <a className={`${location === '/teams' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
+                    Teams
+                  </a>
+                </Link>
+                <Link href="/invitations">
+                  <a className={`${location === '/invitations' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
+                    Invitations
+                  </a>
+                </Link>
               </nav>
             </div>
             <div className="flex items-center space-x-8">
