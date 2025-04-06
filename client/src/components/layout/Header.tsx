@@ -1,21 +1,21 @@
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { UserProfile } from "@/lib/types";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const [location] = useLocation();
-  
-  // Get user data
-  const userId = localStorage.getItem('userId') || '1'; // Default for demo
-  const { data: user } = useQuery<UserProfile>({
-    queryKey: [`/api/users/${userId}`],
-  });
+  const { user, logoutMutation } = useAuth();
   
   // For demo purposes we'll use a static count of notifications
   const notificationCount = 3;
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
   
   return (
     <>
@@ -63,6 +63,15 @@ const Header = () => {
                   </div>
                 )}
               </Link>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="px-2" 
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
           
@@ -145,6 +154,16 @@ const Header = () => {
                     </svg>
                   </div>
                 </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
               </div>
             </div>
           </div>
