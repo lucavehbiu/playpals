@@ -22,10 +22,16 @@ async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  // Check if the stored password is already hashed (contains a .)
+  if (stored.includes('.')) {
+    const [hashed, salt] = stored.split(".");
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } else {
+    // For plain text passwords (like in sample data)
+    return supplied === stored;
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -93,12 +99,12 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: any, info: any) => {
       if (err) return next(err);
       if (!user) {
         return res.status(400).json({ message: "Invalid username or password" });
       }
-      req.login(user, err => {
+      req.login(user, (err: Error | null) => {
         if (err) return next(err);
         return res.status(200).json(user);
       });
@@ -106,7 +112,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
+    req.logout((err: Error | null) => {
       if (err) return next(err);
       res.status(200).json({ message: "Logged out successfully" });
     });
