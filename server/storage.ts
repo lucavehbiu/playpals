@@ -1,10 +1,11 @@
 import { 
   users, type User, type InsertUser, 
   events, type Event, type InsertEvent,
-  rsvps, type RSVP, type InsertRSVP
+  rsvps, type RSVP, type InsertRSVP,
+  friendships, type Friendship, type InsertFriendship
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, or, like } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -20,6 +21,16 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  searchUsers(query: string): Promise<User[]>;
+  
+  // Friendship methods
+  getFriendship(userId: number, friendId: number): Promise<Friendship | undefined>;
+  getFriendshipById(id: number): Promise<Friendship | undefined>;
+  getFriendsByUserId(userId: number): Promise<User[]>;
+  getPendingFriendRequests(userId: number): Promise<Friendship[]>;
+  sendFriendRequest(friendship: InsertFriendship): Promise<Friendship>;
+  updateFriendshipStatus(id: number, status: string): Promise<Friendship | undefined>;
+  deleteFriendship(id: number): Promise<boolean>;
   
   // Event methods
   getEvent(id: number): Promise<Event | undefined>;
@@ -46,9 +57,11 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private events: Map<number, Event>;
   private rsvps: Map<number, RSVP>;
+  private friendships: Map<number, Friendship>;
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
+  private friendshipIdCounter: number;
   
   // Session store for authentication
   public sessionStore: session.Store;
@@ -57,9 +70,11 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.events = new Map();
     this.rsvps = new Map();
+    this.friendships = new Map();
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
+    this.friendshipIdCounter = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -96,6 +111,75 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, ...userData };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+  
+  async searchUsers(query: string): Promise<User[]> {
+    const lowerQuery = query.toLowerCase();
+    return Array.from(this.users.values()).filter(user => 
+      user.username.toLowerCase().includes(lowerQuery) || 
+      user.name.toLowerCase().includes(lowerQuery) ||
+      user.email.toLowerCase().includes(lowerQuery)
+    );
+  }
+  
+  // Friendship methods
+  async getFriendship(userId: number, friendId: number): Promise<Friendship | undefined> {
+    return Array.from(this.friendships.values()).find(
+      friendship => 
+        (friendship.userId === userId && friendship.friendId === friendId) ||
+        (friendship.userId === friendId && friendship.friendId === userId)
+    );
+  }
+  
+  async getFriendshipById(id: number): Promise<Friendship | undefined> {
+    return this.friendships.get(id);
+  }
+  
+  async getFriendsByUserId(userId: number): Promise<User[]> {
+    // Get accepted friendships where user is either the sender or receiver
+    const relevantFriendships = Array.from(this.friendships.values()).filter(
+      friendship => 
+        friendship.status === "accepted" &&
+        (friendship.userId === userId || friendship.friendId === userId)
+    );
+    
+    // Get the other user's ID from each friendship
+    const friendIds = relevantFriendships.map(friendship => 
+      friendship.userId === userId ? friendship.friendId : friendship.userId
+    );
+    
+    // Get the user objects for each friend
+    return friendIds.map(id => this.users.get(id)).filter(user => user !== undefined) as User[];
+  }
+  
+  async getPendingFriendRequests(userId: number): Promise<Friendship[]> {
+    // Get pending friend requests received by the user
+    return Array.from(this.friendships.values()).filter(
+      friendship => 
+        friendship.status === "pending" &&
+        friendship.friendId === userId
+    );
+  }
+  
+  async sendFriendRequest(friendship: InsertFriendship): Promise<Friendship> {
+    const id = this.friendshipIdCounter++;
+    const now = new Date();
+    const newFriendship: Friendship = { ...friendship, id, createdAt: now };
+    this.friendships.set(id, newFriendship);
+    return newFriendship;
+  }
+  
+  async updateFriendshipStatus(id: number, status: string): Promise<Friendship | undefined> {
+    const friendship = this.friendships.get(id);
+    if (!friendship) return undefined;
+    
+    const updatedFriendship = { ...friendship, status };
+    this.friendships.set(id, updatedFriendship);
+    return updatedFriendship;
+  }
+  
+  async deleteFriendship(id: number): Promise<boolean> {
+    return this.friendships.delete(id);
   }
 
   // Event methods
@@ -445,6 +529,184 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updatedUser || undefined;
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    try {
+      const searchResults = await db
+        .select()
+        .from(users)
+        .where(
+          or(
+            like(users.username, `%${query}%`),
+            like(users.name, `%${query}%`),
+            like(users.email, `%${query}%`)
+          )
+        )
+        .limit(10);
+      
+      return searchResults;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  }
+
+  // Friendship methods
+  async getFriendship(userId: number, friendId: number): Promise<Friendship | undefined> {
+    try {
+      const [friendship] = await db
+        .select()
+        .from(friendships)
+        .where(
+          or(
+            and(
+              eq(friendships.userId, userId),
+              eq(friendships.friendId, friendId)
+            ),
+            and(
+              eq(friendships.userId, friendId),
+              eq(friendships.friendId, userId)
+            )
+          )
+        );
+      
+      return friendship;
+    } catch (error) {
+      console.error('Error getting friendship:', error);
+      return undefined;
+    }
+  }
+
+  async getFriendshipById(id: number): Promise<Friendship | undefined> {
+    try {
+      const [friendship] = await db
+        .select()
+        .from(friendships)
+        .where(eq(friendships.id, id));
+      
+      return friendship;
+    } catch (error) {
+      console.error('Error getting friendship by id:', error);
+      return undefined;
+    }
+  }
+
+  async getFriendsByUserId(userId: number): Promise<User[]> {
+    try {
+      // Get all accepted friendships where user is either the user or friend
+      const friendshipsAsUser = await db
+        .select()
+        .from(friendships)
+        .where(
+          and(
+            eq(friendships.userId, userId),
+            eq(friendships.status, 'accepted')
+          )
+        );
+      
+      const friendshipsAsFriend = await db
+        .select()
+        .from(friendships)
+        .where(
+          and(
+            eq(friendships.friendId, userId),
+            eq(friendships.status, 'accepted')
+          )
+        );
+      
+      // Extract friend IDs
+      const friendIds = [
+        ...friendshipsAsUser.map(f => f.friendId),
+        ...friendshipsAsFriend.map(f => f.userId)
+      ];
+      
+      // Get user details for all friend IDs
+      if (friendIds.length === 0) return [];
+      
+      // Build the where condition using the in operator instead
+      const friends = await db
+        .select()
+        .from(users)
+        .where(
+          // If we can't use a reduce trick, we can use a simple in condition
+          friendIds.length === 1 
+            ? eq(users.id, friendIds[0]) 
+            : or(...friendIds.map(id => eq(users.id, id)))
+        );
+      
+      return friends;
+    } catch (error) {
+      console.error('Error getting friends by user id:', error);
+      return [];
+    }
+  }
+
+  async getPendingFriendRequests(userId: number): Promise<Friendship[]> {
+    try {
+      // Get all pending friend requests sent to the user
+      return db
+        .select()
+        .from(friendships)
+        .where(
+          and(
+            eq(friendships.friendId, userId),
+            eq(friendships.status, 'pending')
+          )
+        );
+    } catch (error) {
+      console.error('Error getting pending friend requests:', error);
+      return [];
+    }
+  }
+
+  async sendFriendRequest(friendship: InsertFriendship): Promise<Friendship> {
+    try {
+      // Set default status to pending if not provided
+      const friendshipData = {
+        ...friendship,
+        status: friendship.status || 'pending'
+      };
+      
+      const [newFriendship] = await db
+        .insert(friendships)
+        .values(friendshipData)
+        .returning();
+      
+      return newFriendship;
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      throw error;
+    }
+  }
+
+  async updateFriendshipStatus(id: number, status: string): Promise<Friendship | undefined> {
+    try {
+      const [updatedFriendship] = await db
+        .update(friendships)
+        .set({ status })
+        .where(eq(friendships.id, id))
+        .returning();
+      
+      return updatedFriendship;
+    } catch (error) {
+      console.error('Error updating friendship status:', error);
+      return undefined;
+    }
+  }
+
+  async deleteFriendship(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(friendships)
+        .where(eq(friendships.id, id))
+        .returning({ id: friendships.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting friendship:', error);
+      return false;
+    }
   }
 
   // Event methods

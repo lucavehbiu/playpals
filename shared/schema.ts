@@ -38,6 +38,20 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Friendship table to manage user relationships
+export const friendships = pgTable("friendships", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  friendId: integer("friend_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Ensure unique friendships - can't friend someone twice
+    uniqueFriendship: unique().on(table.userId, table.friendId),
+  };
+});
+
 // Teams table
 export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
@@ -150,11 +164,26 @@ export const rsvpsRelations = relations(rsvps, ({ one }) => ({
   }),
 }));
 
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user: one(users, {
+    fields: [friendships.userId],
+    references: [users.id],
+    relationName: "user_sent_friendships",
+  }),
+  friend: one(users, {
+    fields: [friendships.friendId],
+    references: [users.id],
+    relationName: "user_received_friendships",
+  }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   events: many(events, { relationName: "user_events" }),
   teams: many(teams, { relationName: "user_teams" }),
   teamMemberships: many(teamMembers, { relationName: "user_team_memberships" }),
   rsvps: many(rsvps, { relationName: "user_rsvps" }),
+  sentFriendships: many(friendships, { relationName: "user_sent_friendships" }),
+  receivedFriendships: many(friendships, { relationName: "user_received_friendships" }),
 }));
 
 // Create insert schemas
@@ -192,9 +221,17 @@ export const insertRSVPSchema = createInsertSchema(rsvps).omit({
   createdAt: true,
 });
 
+export const insertFriendshipSchema = createInsertSchema(friendships).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Friendship = typeof friendships.$inferSelect;
+export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 
 export type Team = typeof teams.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;

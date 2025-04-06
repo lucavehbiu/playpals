@@ -47,6 +47,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Add user search endpoint for finding friends
+  // Note: This must come BEFORE the specific user id route to avoid conflicts
+  app.get('/api/users/search', async (req: Request, res: Response) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query || query.length < 2) {
+        return res.status(400).json({ message: "Search query must be at least 2 characters" });
+      }
+      
+      const users = await storage.searchUsers(query);
+      
+      // Don't return password hashes in the API
+      const sanitizedUsers = users.map(({ password, ...userData }: { password: string, [key: string]: any }) => userData);
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "Error searching users" });
+    }
+  });
+  
   app.get('/api/users/:id', async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.id);
