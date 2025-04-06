@@ -24,8 +24,8 @@ function Router() {
           <div className="min-h-screen flex flex-col">
             <Header />
             
-            <main className="flex-grow">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="flex-grow pt-14"> {/* Added pt-14 to account for sticky navigation */}
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <Switch>
                   <ProtectedRoute path="/" component={Feed} />
                   <ProtectedRoute path="/myevents" component={MyEvents} />

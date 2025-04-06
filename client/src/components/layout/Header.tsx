@@ -1,8 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut } from "lucide-react";
+import { LogOut, Home, Search, Bell, Users, Calendar, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const [location] = useLocation();
@@ -11,7 +12,7 @@ const Header = () => {
   // For demo purposes we'll use a static count of notifications
   const notificationCount = 3;
   
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -19,167 +20,160 @@ const Header = () => {
   
   return (
     <>
-      {/* Mobile Header */}
-      <header className="bg-white shadow-sm lg:hidden">
+      {/* Facebook-style Header for both mobile and desktop */}
+      <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo and Search */}
             <div className="flex items-center">
               <Link href="/">
                 <span className="text-primary font-bold text-xl cursor-pointer">PlayPals</span>
               </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                type="button" 
-                className="text-gray-500"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-              <button type="button" className="text-gray-500 relative">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-danger text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
-              <Link href="/profile">
-                {user?.profileImage ? (
-                  <img 
-                    className="h-8 w-8 rounded-full" 
-                    src={user.profileImage} 
-                    alt={`${user.name}'s profile`}
+              <div className="hidden md:flex ml-4 relative">
+                <div className="relative rounded-full bg-gray-100 pl-10 pr-4 py-2">
+                  <Search className="h-5 w-5 text-gray-500 absolute left-3 top-2" />
+                  <input 
+                    type="text" 
+                    placeholder="Search PlayPals" 
+                    className="bg-transparent border-none outline-none text-sm w-48"
                   />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-600">
-                      {user?.name?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Main Navigation - Desktop */}
+            <nav className="hidden md:flex items-center justify-center flex-1 space-x-1">
+              <Link href="/">
+                <a className={`px-6 py-2 rounded-md ${location === '/' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <Home className="h-6 w-6 mx-auto" />
+                </a>
               </Link>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="px-2" 
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
+              <Link href="/discover">
+                <a className={`px-6 py-2 rounded-md ${location === '/discover' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <Search className="h-6 w-6 mx-auto" />
+                </a>
+              </Link>
+              <Link href="/myevents">
+                <a className={`px-6 py-2 rounded-md ${location === '/myevents' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <Calendar className="h-6 w-6 mx-auto" />
+                </a>
+              </Link>
+              <Link href="/teams">
+                <a className={`px-6 py-2 rounded-md ${location === '/teams' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <Users className="h-6 w-6 mx-auto" />
+                </a>
+              </Link>
+            </nav>
+            
+            {/* User Actions - Right Side */}
+            <div className="flex items-center space-x-2">
+              <Link href="/invitations">
+                <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 relative">
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
+              
+              <Link href="/profile">
+                <div className="h-9 w-9 cursor-pointer">
+                  <Avatar>
+                    {user?.profileImage ? (
+                      <AvatarImage src={user.profileImage} alt={`${user.name}'s profile`} />
+                    ) : (
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {user?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </div>
+              </Link>
+              
+              {/* Mobile menu button */}
+              <button 
+                type="button"
+                className="md:hidden inline-flex items-center justify-center rounded-md text-gray-500"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                <LogOut className="h-5 w-5" />
-              </Button>
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
             </div>
           </div>
           
-          {/* Mobile Search */}
-          {isSearchOpen && (
-            <div className="pb-4">
-              <input 
-                type="text" 
-                placeholder="Search events..." 
-                className="w-full bg-gray-100 rounded-full py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
-              />
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Desktop Header */}
-      <header className="bg-white shadow-sm hidden lg:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Link href="/">
-                <span className="text-primary font-bold text-xl cursor-pointer">PlayPals</span>
-              </Link>
-              <nav className="ml-10 flex items-center space-x-8">
+          {/* Mobile Navigation - Expandable Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 py-2">
+              <div className="space-y-1 px-2">
                 <Link href="/">
-                  <a className={`${location === '/' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
-                    Feed
+                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    <div className="flex items-center">
+                      <Home className="h-5 w-5 mr-3" />
+                      Feed
+                    </div>
                   </a>
                 </Link>
                 <Link href="/discover">
-                  <a className={`${location === '/discover' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
-                    Discover
+                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/discover' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    <div className="flex items-center">
+                      <Search className="h-5 w-5 mr-3" />
+                      Discover
+                    </div>
                   </a>
                 </Link>
                 <Link href="/myevents">
-                  <a className={`${location === '/myevents' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
-                    My Events
+                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/myevents' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    <div className="flex items-center">
+                      <Calendar className="h-5 w-5 mr-3" />
+                      My Events
+                    </div>
                   </a>
                 </Link>
                 <Link href="/teams">
-                  <a className={`${location === '/teams' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
-                    Teams
+                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/teams' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    <div className="flex items-center">
+                      <Users className="h-5 w-5 mr-3" />
+                      Teams
+                    </div>
                   </a>
                 </Link>
                 <Link href="/invitations">
-                  <a className={`${location === '/invitations' ? 'text-primary border-b-2 border-primary' : 'text-dark hover:text-primary'} font-medium`}>
-                    Invitations
+                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/invitations' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    <div className="flex items-center">
+                      <Bell className="h-5 w-5 mr-3" />
+                      Invitations
+                      {notificationCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {notificationCount}
+                        </span>
+                      )}
+                    </div>
                   </a>
                 </Link>
-              </nav>
-            </div>
-            <div className="flex items-center space-x-8">
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Search events..." 
-                  className="bg-gray-100 rounded-full py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white" 
-                />
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute right-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <button type="button" className="text-gray-500 hover:text-gray-700 relative">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-danger text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
-              <div className="flex items-center space-x-3">
-                <Link href="/profile">
-                  <div className="flex items-center space-x-3 cursor-pointer">
-                    {user?.profileImage ? (
-                      <img 
-                        className="h-8 w-8 rounded-full" 
-                        src={user.profileImage} 
-                        alt={`${user.name}'s profile`} 
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600">
-                          {user?.name?.charAt(0) || 'U'}
-                        </span>
-                      </div>
-                    )}
-                    <span className="font-medium text-sm">{user?.name || 'User'}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
-                  className="flex items-center gap-1"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </Button>
+                <div className="pt-4 pb-2">
+                  <div className="border-t border-gray-200"></div>
+                </div>
+                <div className="px-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                    className="w-full flex items-center justify-center gap-1"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    <span>Logout</span>
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </header>
     </>

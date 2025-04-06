@@ -44,63 +44,8 @@ const Feed = () => {
   
   return (
     <div>
-      {/* Facebook-like top bar with create post button */}
-      <div className="sticky top-0 bg-white shadow-sm -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 -mt-8 pt-4 pb-3 z-10">
-        <div className="flex items-center">
-          <div className="flex-1">
-            <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-              <DialogTrigger asChild>
-                <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-2 cursor-pointer">
-                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-600">
-                      {user?.name?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <div className="flex-1 text-gray-500 text-sm">
-                    Create a post or announce an event...
-                  </div>
-                </div>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Create Post</DialogTitle>
-                  <DialogDescription>
-                    Share an update with your followers or create a new event
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-start space-x-3 py-4">
-                  <Avatar>
-                    <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <Textarea placeholder="What's on your mind?" className="flex-1 resize-none min-h-[120px]" />
-                </div>
-                <DialogFooter className="flex justify-between">
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <CalendarIcon className="w-4 h-4 mr-1" />
-                      Event
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MapPinIcon className="w-4 h-4 mr-1" />
-                      Location
-                    </Button>
-                  </div>
-                  <Button type="submit">Post</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <div className="flex space-x-2 ml-4">
-            <Button size="sm" variant="outline" className="rounded-full">
-              <PlusIcon className="w-4 h-4 mr-1" />
-              Create
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Stories-like events scroller */}
-      <div className="mb-6 mt-4">
+      {/* Stories-like events scroller first (directly after nav bar) */}
+      <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-lg">Upcoming Events</h2>
           <Button variant="ghost" size="sm" className="text-sm text-primary flex items-center">
@@ -163,6 +108,49 @@ const Feed = () => {
             <p className="text-gray-500">No upcoming events</p>
           </div>
         )}
+      </div>
+      
+      {/* Post creation box */}
+      <div className="mb-6">
+        <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+          <DialogTrigger asChild>
+            <div className="flex items-center space-x-3 bg-white rounded-lg p-3 shadow cursor-pointer">
+              <Avatar className="h-9 w-9">
+                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 rounded-full bg-gray-100 py-2.5 px-4 text-gray-500 text-sm hover:bg-gray-200">
+                Create a post or announce an event...
+              </div>
+            </div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Create Post</DialogTitle>
+              <DialogDescription>
+                Share an update with your followers or create a new event
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-start space-x-3 py-4">
+              <Avatar>
+                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+              <Textarea placeholder="What's on your mind?" className="flex-1 resize-none min-h-[120px]" />
+            </div>
+            <DialogFooter className="flex justify-between">
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  <CalendarIcon className="w-4 h-4 mr-1" />
+                  Event
+                </Button>
+                <Button variant="outline" size="sm">
+                  <MapPinIcon className="w-4 h-4 mr-1" />
+                  Location
+                </Button>
+              </div>
+              <Button type="submit">Post</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       
       {/* Feed posts */}
