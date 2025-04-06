@@ -17,8 +17,14 @@ const createEventSchema = z.object({
   time: z.string(),
   location: z.string().min(3, "Please provide a valid location"),
   maxParticipants: z.number().int().min(2, "Need at least 2 participants"),
-  isPublic: z.boolean().default(true),
-  isFree: z.boolean().default(true),
+  isPublic: z.preprocess(
+    (value) => value === "true" || value === true,
+    z.boolean().default(true)
+  ),
+  isFree: z.preprocess(
+    (value) => value === "true" || value === true,
+    z.boolean().default(true)
+  ),
   cost: z.number().optional(),
 });
 
@@ -35,7 +41,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const queryClient = useQueryClient();
   const [showCost, setShowCost] = useState(false);
   
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<CreateEventFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
       title: "",
@@ -59,6 +65,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       // Combine date and time
       const dateTime = new Date(`${data.date}T${data.time}`);
       
+      // Make sure boolean values are properly set
+      const isPublic = data.isPublic === undefined ? true : !!data.isPublic;
+      const isFree = data.isFree === undefined ? true : !!data.isFree;
+      
       // Format the data for the API
       const eventData = {
         title: data.title,
@@ -67,9 +77,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         date: dateTime.toISOString(),
         location: data.location,
         maxParticipants: data.maxParticipants,
-        isPublic: data.isPublic,
-        isFree: data.isFree,
-        cost: !data.isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
+        isPublic: isPublic,
+        isFree: isFree,
+        cost: !isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
         creatorId: parseInt(localStorage.getItem('userId') || '1'),
       };
       
@@ -257,11 +267,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                         id="visibility-public"
                         type="radio"
                         className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
-                        value="public"
-                        {...register("isPublic")}
                         checked={watch("isPublic") === true}
-                        onChange={() => {}}
-                        onClick={() => register("isPublic").onChange({ target: { value: true } })}
+                        onChange={() => setValue("isPublic", true)}
                       />
                       <label htmlFor="visibility-public" className="ml-3 block text-sm font-medium text-gray-700">
                         Public (Anyone can join)
@@ -272,11 +279,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                         id="visibility-private"
                         type="radio"
                         className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
-                        value="private"
-                        {...register("isPublic")}
                         checked={watch("isPublic") === false}
-                        onChange={() => {}}
-                        onClick={() => register("isPublic").onChange({ target: { value: false } })}
+                        onChange={() => setValue("isPublic", false)}
                       />
                       <label htmlFor="visibility-private" className="ml-3 block text-sm font-medium text-gray-700">
                         Private (Invite only)
@@ -290,10 +294,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     id="is-free"
                     type="checkbox"
                     className="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded"
-                    {...register("isFree")}
                     checked={isFree}
                     onChange={(e) => {
-                      register("isFree").onChange(e);
+                      setValue("isFree", e.target.checked);
                       setShowCost(!e.target.checked);
                     }}
                   />
@@ -315,6 +318,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                       placeholder="0.00"
                       {...register("cost", { valueAsNumber: true })}
+                      onChange={(e) => setValue("cost", parseFloat(e.target.value) || 0)}
                     />
                     {errors.cost && (
                       <p className="mt-1 text-sm text-red-600">{errors.cost.message}</p>
