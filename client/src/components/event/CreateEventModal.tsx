@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { sportTypes } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { X } from "lucide-react";
 
 // Form schema based on shared schema with additional validation
@@ -39,6 +40,7 @@ interface CreateEventModalProps {
 const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [showCost, setShowCost] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEventFormData>({
@@ -80,7 +82,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         isPublic: isPublic,
         isFree: isFree,
         cost: !isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
-        creatorId: parseInt(localStorage.getItem('userId') || '1'),
+        // The creatorId will be set from the authenticated user on the server
       };
       
       const response = await apiRequest("POST", "/api/events", eventData);
