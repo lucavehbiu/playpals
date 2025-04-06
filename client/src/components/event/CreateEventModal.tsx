@@ -98,10 +98,31 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       reset();
       if (onEventCreated) onEventCreated();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Event creation error:", error);
+      
+      // Try to extract more detailed error info if available
+      let errorMessage = error.message;
+      try {
+        if (error.response) {
+          const responseData = error.response.data;
+          console.log("Error response data:", responseData);
+          
+          if (responseData.details) {
+            errorMessage = JSON.stringify(responseData.details, null, 2);
+          } else if (responseData.errors) {
+            errorMessage = JSON.stringify(responseData.errors, null, 2);
+          } else if (responseData.message) {
+            errorMessage = responseData.message;
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing error data:", e);
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to create event: ${error.message}`,
+        description: `Failed to create event: ${errorMessage}`,
         variant: "destructive",
       });
     },
