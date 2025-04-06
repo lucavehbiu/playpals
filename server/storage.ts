@@ -5,6 +5,13 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import createMemoryStore from "memorystore";
+import { pool } from "./db";
+
+const PostgresSessionStore = connectPgSimple(session);
+const MemoryStore = createMemoryStore(session);
 
 // Storage interface
 export interface IStorage {
@@ -29,6 +36,9 @@ export interface IStorage {
   createRSVP(rsvp: InsertRSVP): Promise<RSVP>;
   updateRSVP(id: number, rsvpData: Partial<RSVP>): Promise<RSVP | undefined>;
   deleteRSVP(id: number): Promise<boolean>;
+
+  // Session store
+  sessionStore: session.Store;
 }
 
 // In-memory storage implementation
@@ -39,6 +49,9 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
+  
+  // Session store for authentication
+  public sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -47,6 +60,11 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
+    
+    // Initialize session store
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
     
     // Initialize with sample data for development
     this.initSampleData();
@@ -382,6 +400,18 @@ export class MemStorage implements IStorage {
 
 // Database storage implementation
 export class DatabaseStorage implements IStorage {
+  // Session store for authentication
+  public sessionStore: session.Store;
+  
+  constructor() {
+    // Initialize PostgreSQL session store
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      tableName: "session",
+      createTableIfMissing: true,
+    });
+  }
+  
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));

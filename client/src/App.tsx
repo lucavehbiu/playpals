@@ -7,27 +7,37 @@ import Home from "@/pages/Home";
 import MyEvents from "@/pages/MyEvents";
 import Discover from "@/pages/Discover";
 import Profile from "@/pages/Profile";
+import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/myevents" component={MyEvents} />
-            <Route path="/discover" component={Discover} />
-            <Route path="/profile" component={Profile} />
-            <Route component={NotFound} />
-          </Switch>
-        </div>
-      </main>
-      
-      <MobileNav />
+      <Switch>
+        <Route path="/auth" component={AuthPage} />
+        <Route>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            
+            <main className="flex-grow">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <Switch>
+                  <ProtectedRoute path="/" component={Home} />
+                  <ProtectedRoute path="/myevents" component={MyEvents} />
+                  <ProtectedRoute path="/discover" component={Discover} />
+                  <ProtectedRoute path="/profile" component={Profile} />
+                  <Route component={NotFound} />
+                </Switch>
+              </div>
+            </main>
+            
+            <MobileNav />
+          </div>
+        </Route>
+      </Switch>
     </div>
   );
 }
@@ -35,8 +45,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

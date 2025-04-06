@@ -5,7 +5,7 @@ import { log } from "./vite";
 const { Pool } = pg;
 
 // Create a PostgreSQL connection pool
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 

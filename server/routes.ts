@@ -10,29 +10,19 @@ import {
   type RSVP
 } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth } from "./auth";
 
-// Authentication middleware (very basic for demo purposes)
-const authenticateUser = async (req: Request, res: Response, next: Function) => {
-  // In a real application, this would use sessions/JWT
-  // For this demo, we'll use a simple userId header
-  const userId = req.headers['userid'];
-  
-  if (!userId) {
-    return res.status(401).json({ message: "Unauthorized - No user ID provided" });
+// Authentication middleware using Passport
+const authenticateUser = (req: Request, res: Response, next: Function) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized - Please log in" });
   }
-  
-  const user = await storage.getUser(parseInt(userId as string));
-  
-  if (!user) {
-    return res.status(401).json({ message: "Unauthorized - User not found" });
-  }
-  
-  // Attach user to request
-  (req as any).user = user;
   next();
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
   // User routes
   app.post('/api/users', async (req: Request, res: Response) => {
     try {
