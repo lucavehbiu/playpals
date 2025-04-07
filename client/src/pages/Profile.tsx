@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserProfile, Event } from "@/lib/types";
-import { useState } from "react";
+import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Star, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 
 const Profile = () => {
   const { toast } = useToast();
   const userId = localStorage.getItem('userId') || '1'; // Default for demo
-  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'feed'>('profile');
+  const [averageRating, setAverageRating] = useState<number | null>(null);
   
   // Get user data
   const { data: user, isLoading: userLoading } = useQuery<UserProfile>({
@@ -17,6 +19,48 @@ const Profile = () => {
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: [`/api/events/user/${userId}`],
   });
+  
+  // Get player average rating
+  const { data: playerRating } = useQuery<{average: number}>({
+    queryKey: [`/api/player-ratings/average/${userId}`],
+  });
+  
+  // Set average rating when player rating data is loaded
+  useEffect(() => {
+    if (playerRating?.average) {
+      setAverageRating(playerRating.average);
+    }
+  }, [playerRating]);
+  
+  // Mock posts data - in a real app, this would be fetched from an API
+  const posts: Post[] = [
+    {
+      id: 1,
+      user_id: parseInt(userId),
+      content: "Had an amazing time at the basketball tournament yesterday! Great teamwork everyone! 🏀",
+      image_url: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      likes: 24,
+      comments: 8
+    },
+    {
+      id: 2,
+      user_id: parseInt(userId),
+      content: "Just signed up for the charity marathon next month. Who else is joining? #RunForACause 🏃‍♂️",
+      created_at: new Date(Date.now() - 172800000).toISOString(),
+      likes: 15,
+      comments: 6
+    },
+    {
+      id: 3,
+      user_id: parseInt(userId),
+      content: "New personal best in swimming today! 200m in 2:05! All that training is paying off 🏊‍♂️",
+      image_url: "https://images.unsplash.com/photo-1560090995-01632a28895b?w=600&auto=format",
+      created_at: new Date(Date.now() - 259200000).toISOString(),
+      likes: 32,
+      comments: 12
+    }
+  ];
   
   if (userLoading) {
     return (
@@ -58,6 +102,18 @@ const Profile = () => {
             <div className="mt-4 sm:mt-0 sm:ml-4">
               <h1 className="text-2xl font-bold">{user.name}</h1>
               <p className="text-blue-100">@{user.username}</p>
+              <div className="flex items-center mt-1">
+                <div className="flex items-center">
+                  <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
+                  <span className="text-yellow-100 font-medium">{averageRating ? averageRating.toFixed(1) : "4.7"}</span>
+                </div>
+                {user.headline && (
+                  <div className="ml-3 text-sm text-blue-100">
+                    <span>•</span>
+                    <span className="ml-2">{user.headline}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="mt-4 sm:mt-0">
@@ -106,6 +162,16 @@ const Profile = () => {
             onClick={() => setActiveTab('teams')}
           >
             Teams
+          </button>
+          <button
+            className={`py-4 px-6 font-medium text-sm ${
+              activeTab === 'feed'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+            onClick={() => setActiveTab('feed')}
+          >
+            Feed
           </button>
         </nav>
       </div>
@@ -261,6 +327,101 @@ const Profile = () => {
               >
                 Create a Team
               </button>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'feed' && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">Activity Feed</h2>
+            
+            <div className="mb-6">
+              <div className="flex items-center space-x-3 mb-6">
+                {user.profileImage ? (
+                  <img 
+                    src={user.profileImage} 
+                    alt={`${user.name}'s profile`} 
+                    className="h-10 w-10 rounded-full" 
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-lg font-bold text-white">
+                    {user.name.charAt(0)}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    className="w-full rounded-full border border-gray-300 px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Share your latest sports activity..."
+                  />
+                </div>
+                <button
+                  className="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700"
+                  onClick={() => toast({
+                    title: "Post Created",
+                    description: "Your post has been shared with your followers."
+                  })}
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              {posts.map(post => (
+                <div key={post.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                  <div className="p-4">
+                    <div className="flex items-center mb-3">
+                      {user.profileImage ? (
+                        <img 
+                          src={user.profileImage} 
+                          alt={`${user.name}'s profile`} 
+                          className="h-10 w-10 rounded-full mr-3" 
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-lg font-bold text-white mr-3">
+                          {user.name.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold">{user.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(post.created_at).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-800 mb-3">{post.content}</p>
+                    
+                    {post.image_url && (
+                      <div className="mb-3 rounded-lg overflow-hidden">
+                        <img src={post.image_url} alt="Post" className="w-full h-auto" />
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-gray-500">
+                      <button className="flex items-center space-x-1 hover:text-blue-600">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span>{post.likes}</span>
+                      </button>
+                      <button className="flex items-center space-x-1 hover:text-blue-600">
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{post.comments}</span>
+                      </button>
+                      <button className="flex items-center space-x-1 hover:text-blue-600">
+                        <Share2 className="w-4 h-4" />
+                        <span>Share</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

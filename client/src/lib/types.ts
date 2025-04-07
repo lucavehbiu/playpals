@@ -6,6 +6,9 @@ export interface UserProfile {
   profileImage?: string;
   bio?: string;
   createdAt: string;
+  headline?: string;
+  location?: string;
+  cover_image?: string;
 }
 
 export interface getUserData {
@@ -16,6 +19,31 @@ export interface getUserData {
   profileImage: string | null;
   bio: string | null;
   createdAt: string;
+  headline: string | null;
+  location: string | null;
+  cover_image: string | null;
+}
+
+export interface PlayerRating {
+  id: number;
+  rated_user_id: number;
+  rater_user_id: number;
+  event_id?: number;
+  sport_type: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
+export interface Post {
+  id: number;
+  user_id: number;
+  content: string;
+  image_url?: string;
+  created_at: string;
+  user?: UserProfile;
+  likes: number;
+  comments: number;
 }
 
 export interface loginUserData {
