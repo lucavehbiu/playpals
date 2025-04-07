@@ -2,10 +2,12 @@ import {
   users, type User, type InsertUser, 
   events, type Event, type InsertEvent,
   rsvps, type RSVP, type InsertRSVP,
-  friendships, type Friendship, type InsertFriendship
+  friendships, type Friendship, type InsertFriendship,
+  userSportPreferences, type UserSportPreference, type InsertUserSportPreference,
+  playerRatings, type PlayerRating, type InsertPlayerRating
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, like } from "drizzle-orm";
+import { eq, and, desc, or, like, avg, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -47,6 +49,21 @@ export interface IStorage {
   createRSVP(rsvp: InsertRSVP): Promise<RSVP>;
   updateRSVP(id: number, rsvpData: Partial<RSVP>): Promise<RSVP | undefined>;
   deleteRSVP(id: number): Promise<boolean>;
+  
+  // Sport preferences methods
+  getUserSportPreferences(userId: number): Promise<UserSportPreference[]>;
+  getUserSportPreference(userId: number, sportType: string): Promise<UserSportPreference | undefined>;
+  createUserSportPreference(preference: InsertUserSportPreference): Promise<UserSportPreference>;
+  updateUserSportPreference(id: number, preferenceData: Partial<UserSportPreference>): Promise<UserSportPreference | undefined>;
+  deleteUserSportPreference(id: number): Promise<boolean>;
+  
+  // Player ratings methods
+  getPlayerRatings(userId: number): Promise<PlayerRating[]>;
+  getPlayerRatingsByEvent(eventId: number): Promise<PlayerRating[]>;
+  createPlayerRating(rating: InsertPlayerRating): Promise<PlayerRating>;
+  updatePlayerRating(id: number, ratingData: Partial<PlayerRating>): Promise<PlayerRating | undefined>;
+  deletePlayerRating(id: number): Promise<boolean>;
+  getAveragePlayerRating(userId: number, sportType?: string): Promise<number>;
 
   // Session store
   sessionStore: session.Store;
@@ -58,10 +75,14 @@ export class MemStorage implements IStorage {
   private events: Map<number, Event>;
   private rsvps: Map<number, RSVP>;
   private friendships: Map<number, Friendship>;
+  private userSportPreferences: Map<number, UserSportPreference>;
+  private playerRatings: Map<number, PlayerRating>;
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
   private friendshipIdCounter: number;
+  private sportPreferenceIdCounter: number;
+  private playerRatingIdCounter: number;
   
   // Session store for authentication
   public sessionStore: session.Store;
@@ -71,10 +92,14 @@ export class MemStorage implements IStorage {
     this.events = new Map();
     this.rsvps = new Map();
     this.friendships = new Map();
+    this.userSportPreferences = new Map();
+    this.playerRatings = new Map();
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
     this.friendshipIdCounter = 1;
+    this.sportPreferenceIdCounter = 1;
+    this.playerRatingIdCounter = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -99,7 +124,16 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const now = new Date();
-    const user: User = { ...insertUser, id, createdAt: now };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: now,
+      profileImage: insertUser.profileImage ?? null,
+      coverImage: insertUser.coverImage ?? null,
+      bio: insertUser.bio ?? null,
+      headline: insertUser.headline ?? null,
+      location: insertUser.location ?? null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -164,7 +198,12 @@ export class MemStorage implements IStorage {
   async sendFriendRequest(friendship: InsertFriendship): Promise<Friendship> {
     const id = this.friendshipIdCounter++;
     const now = new Date();
-    const newFriendship: Friendship = { ...friendship, id, createdAt: now };
+    const newFriendship: Friendship = { 
+      ...friendship, 
+      id, 
+      createdAt: now,
+      status: friendship.status || 'pending' // Ensure status is always set
+    };
     this.friendships.set(id, newFriendship);
     return newFriendship;
   }
@@ -206,7 +245,13 @@ export class MemStorage implements IStorage {
       ...insertEvent, 
       id, 
       createdAt: now,
-      currentParticipants: 1 // Creator is automatically a participant
+      currentParticipants: 1, // Creator is automatically a participant
+      description: insertEvent.description ?? null,
+      locationCoordinates: null, // Set default value for required field
+      eventImage: insertEvent.eventImage ?? null,
+      isPublic: insertEvent.isPublic === undefined ? true : insertEvent.isPublic,
+      isFree: insertEvent.isFree === undefined ? true : insertEvent.isFree,
+      cost: insertEvent.cost ?? null
     };
     this.events.set(id, event);
     return event;
@@ -304,6 +349,97 @@ export class MemStorage implements IStorage {
     }
     
     return this.rsvps.delete(id);
+  }
+  
+  // Sport Preferences methods
+  async getUserSportPreferences(userId: number): Promise<UserSportPreference[]> {
+    return Array.from(this.userSportPreferences.values()).filter(
+      preference => preference.userId === userId
+    );
+  }
+  
+  async getUserSportPreference(userId: number, sportType: string): Promise<UserSportPreference | undefined> {
+    return Array.from(this.userSportPreferences.values()).find(
+      preference => preference.userId === userId && preference.sportType === sportType
+    );
+  }
+  
+  async createUserSportPreference(preference: InsertUserSportPreference): Promise<UserSportPreference> {
+    const id = this.sportPreferenceIdCounter++;
+    const now = new Date();
+    const newPreference: UserSportPreference = { 
+      ...preference, 
+      id, 
+      createdAt: now,
+      yearsExperience: preference.yearsExperience ?? null,
+      isVisible: preference.isVisible ?? true
+    };
+    this.userSportPreferences.set(id, newPreference);
+    return newPreference;
+  }
+  
+  async updateUserSportPreference(id: number, preferenceData: Partial<UserSportPreference>): Promise<UserSportPreference | undefined> {
+    const preference = this.userSportPreferences.get(id);
+    if (!preference) return undefined;
+    
+    const updatedPreference = { ...preference, ...preferenceData };
+    this.userSportPreferences.set(id, updatedPreference);
+    return updatedPreference;
+  }
+  
+  async deleteUserSportPreference(id: number): Promise<boolean> {
+    return this.userSportPreferences.delete(id);
+  }
+  
+  // Player Ratings methods
+  async getPlayerRatings(userId: number): Promise<PlayerRating[]> {
+    return Array.from(this.playerRatings.values()).filter(
+      rating => rating.ratedUserId === userId
+    );
+  }
+  
+  async getPlayerRatingsByEvent(eventId: number): Promise<PlayerRating[]> {
+    return Array.from(this.playerRatings.values()).filter(
+      rating => rating.eventId === eventId
+    );
+  }
+  
+  async createPlayerRating(rating: InsertPlayerRating): Promise<PlayerRating> {
+    const id = this.playerRatingIdCounter++;
+    const now = new Date();
+    const newRating: PlayerRating = { 
+      ...rating, 
+      id, 
+      createdAt: now,
+      eventId: rating.eventId ?? null,
+      comment: rating.comment ?? null
+    };
+    this.playerRatings.set(id, newRating);
+    return newRating;
+  }
+  
+  async updatePlayerRating(id: number, ratingData: Partial<PlayerRating>): Promise<PlayerRating | undefined> {
+    const rating = this.playerRatings.get(id);
+    if (!rating) return undefined;
+    
+    const updatedRating = { ...rating, ...ratingData };
+    this.playerRatings.set(id, updatedRating);
+    return updatedRating;
+  }
+  
+  async deletePlayerRating(id: number): Promise<boolean> {
+    return this.playerRatings.delete(id);
+  }
+  
+  async getAveragePlayerRating(userId: number, sportType?: string): Promise<number> {
+    const ratings = Array.from(this.playerRatings.values()).filter(
+      rating => rating.ratedUserId === userId && (!sportType || rating.sportType === sportType)
+    );
+    
+    if (ratings.length === 0) return 0;
+    
+    const sum = ratings.reduce((acc, rating) => acc + rating.rating, 0);
+    return sum / ratings.length;
   }
 
   // Initialize with sample data
@@ -477,6 +613,54 @@ export class MemStorage implements IStorage {
           status: "approved"
         };
         this.createRSVP(rsvp);
+      });
+      
+      // Add sport preferences for users
+      const sportsPreferences = [
+        // Alex's preferences
+        { userId: 1, sportType: "basketball", skillLevel: "advanced", yearsExperience: 8 },
+        { userId: 1, sportType: "soccer", skillLevel: "intermediate", yearsExperience: 4 },
+        { userId: 1, sportType: "tennis", skillLevel: "advanced", yearsExperience: 6 },
+        
+        // Sarah's preferences
+        { userId: 2, sportType: "volleyball", skillLevel: "expert", yearsExperience: 10 },
+        { userId: 2, sportType: "swimming", skillLevel: "intermediate", yearsExperience: 3 },
+        
+        // Mark's preferences
+        { userId: 3, sportType: "cycling", skillLevel: "expert", yearsExperience: 12 },
+        { userId: 3, sportType: "running", skillLevel: "advanced", yearsExperience: 8 },
+        
+        // Emma's preferences
+        { userId: 4, sportType: "yoga", skillLevel: "expert", yearsExperience: 7 },
+        { userId: 4, sportType: "swimming", skillLevel: "advanced", yearsExperience: 5 }
+      ];
+      
+      sportsPreferences.forEach(pref => {
+        this.createUserSportPreference(pref);
+      });
+      
+      // Add ratings between users
+      const ratings = [
+        // Ratings for Alex (user 1)
+        { ratedUserId: 1, raterUserId: 2, eventId: 1, sportType: "basketball", rating: 5, comment: "Excellent player, great teamwork!" },
+        { ratedUserId: 1, raterUserId: 3, eventId: 1, sportType: "basketball", rating: 4, comment: "Very skilled player" },
+        { ratedUserId: 1, raterUserId: 4, eventId: 1, sportType: "basketball", rating: 5, comment: "Amazing skills and sportsmanship" },
+        
+        // Ratings for Sarah (user 2)
+        { ratedUserId: 2, raterUserId: 1, eventId: 4, sportType: "volleyball", rating: 5, comment: "Incredible volleyball skills" },
+        { ratedUserId: 2, raterUserId: 3, eventId: 4, sportType: "volleyball", rating: 5, comment: "Professional level player" },
+        
+        // Ratings for Mark (user 3)
+        { ratedUserId: 3, raterUserId: 1, eventId: 5, sportType: "cycling", rating: 4, comment: "Very strong cyclist" },
+        { ratedUserId: 3, raterUserId: 4, eventId: 5, sportType: "cycling", rating: 5, comment: "Exceptional endurance" },
+        
+        // Ratings for Emma (user 4)
+        { ratedUserId: 4, raterUserId: 1, eventId: 6, sportType: "yoga", rating: 5, comment: "Amazing instructor, very helpful" },
+        { ratedUserId: 4, raterUserId: 2, eventId: 6, sportType: "yoga", rating: 5, comment: "Patient and knowledgeable" }
+      ];
+      
+      ratings.forEach(rating => {
+        this.createPlayerRating(rating);
       });
     });
   }
@@ -873,6 +1057,180 @@ export class DatabaseStorage implements IStorage {
     
     return result.length > 0;
   }
+  
+  // Sport Preferences methods
+  async getUserSportPreferences(userId: number): Promise<UserSportPreference[]> {
+    try {
+      return db
+        .select()
+        .from(userSportPreferences)
+        .where(eq(userSportPreferences.userId, userId));
+    } catch (error) {
+      console.error('Error getting user sport preferences:', error);
+      return [];
+    }
+  }
+  
+  async getUserSportPreference(userId: number, sportType: string): Promise<UserSportPreference | undefined> {
+    try {
+      const [preference] = await db
+        .select()
+        .from(userSportPreferences)
+        .where(
+          and(
+            eq(userSportPreferences.userId, userId),
+            eq(userSportPreferences.sportType, sportType)
+          )
+        );
+      
+      return preference;
+    } catch (error) {
+      console.error('Error getting user sport preference:', error);
+      return undefined;
+    }
+  }
+  
+  async createUserSportPreference(preference: InsertUserSportPreference): Promise<UserSportPreference> {
+    try {
+      // Ensure null values for optional fields
+      const preferenceWithNulls = {
+        ...preference,
+        yearsExperience: preference.yearsExperience ?? null,
+        isVisible: preference.isVisible ?? true
+      };
+      
+      const [newPreference] = await db
+        .insert(userSportPreferences)
+        .values(preferenceWithNulls)
+        .returning();
+      
+      return newPreference;
+    } catch (error) {
+      console.error('Error creating user sport preference:', error);
+      throw error;
+    }
+  }
+  
+  async updateUserSportPreference(id: number, preferenceData: Partial<UserSportPreference>): Promise<UserSportPreference | undefined> {
+    try {
+      const [updatedPreference] = await db
+        .update(userSportPreferences)
+        .set(preferenceData)
+        .where(eq(userSportPreferences.id, id))
+        .returning();
+      
+      return updatedPreference;
+    } catch (error) {
+      console.error('Error updating user sport preference:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteUserSportPreference(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(userSportPreferences)
+        .where(eq(userSportPreferences.id, id))
+        .returning({ id: userSportPreferences.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting user sport preference:', error);
+      return false;
+    }
+  }
+  
+  // Player Ratings methods
+  async getPlayerRatings(userId: number): Promise<PlayerRating[]> {
+    try {
+      return db
+        .select()
+        .from(playerRatings)
+        .where(eq(playerRatings.ratedUserId, userId));
+    } catch (error) {
+      console.error('Error getting player ratings:', error);
+      return [];
+    }
+  }
+  
+  async getPlayerRatingsByEvent(eventId: number): Promise<PlayerRating[]> {
+    try {
+      return db
+        .select()
+        .from(playerRatings)
+        .where(eq(playerRatings.eventId, eventId));
+    } catch (error) {
+      console.error('Error getting player ratings by event:', error);
+      return [];
+    }
+  }
+  
+  async createPlayerRating(rating: InsertPlayerRating): Promise<PlayerRating> {
+    try {
+      // Ensure null values for optional fields
+      const ratingWithNulls = {
+        ...rating,
+        eventId: rating.eventId ?? null,
+        comment: rating.comment ?? null
+      };
+      
+      const [newRating] = await db
+        .insert(playerRatings)
+        .values(ratingWithNulls)
+        .returning();
+      
+      return newRating;
+    } catch (error) {
+      console.error('Error creating player rating:', error);
+      throw error;
+    }
+  }
+  
+  async updatePlayerRating(id: number, ratingData: Partial<PlayerRating>): Promise<PlayerRating | undefined> {
+    try {
+      const [updatedRating] = await db
+        .update(playerRatings)
+        .set(ratingData)
+        .where(eq(playerRatings.id, id))
+        .returning();
+      
+      return updatedRating;
+    } catch (error) {
+      console.error('Error updating player rating:', error);
+      return undefined;
+    }
+  }
+  
+  async deletePlayerRating(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(playerRatings)
+        .where(eq(playerRatings.id, id))
+        .returning({ id: playerRatings.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting player rating:', error);
+      return false;
+    }
+  }
+  
+  async getAveragePlayerRating(userId: number, sportType?: string): Promise<number> {
+    try {
+      const result = await db.execute(
+        sql`SELECT AVG(rating) as average_rating 
+            FROM ${playerRatings} 
+            WHERE ${playerRatings.ratedUserId} = ${userId}
+            ${sportType ? sql`AND ${playerRatings.sportType} = ${sportType}` : sql``}`
+      );
+      
+      const average = result.rows[0]?.average_rating;
+      return average ? parseFloat(average.toString()) : 0;
+    } catch (error) {
+      console.error('Error getting average player rating:', error);
+      return 0;
+    }
+  }
 
   // Initialize database with sample data
   async initSampleData() {
@@ -1055,6 +1413,54 @@ export class DatabaseStorage implements IStorage {
         status: "approved"
       };
       await this.createRSVP(rsvp);
+    }
+    
+    // Add sport preferences for users
+    const sportsPreferences = [
+      // Alex's preferences
+      { userId: user.id, sportType: "basketball", skillLevel: "advanced", yearsExperience: 8 },
+      { userId: user.id, sportType: "soccer", skillLevel: "intermediate", yearsExperience: 4 },
+      { userId: user.id, sportType: "tennis", skillLevel: "advanced", yearsExperience: 6 },
+      
+      // Sarah's preferences
+      { userId: user2.id, sportType: "volleyball", skillLevel: "expert", yearsExperience: 10 },
+      { userId: user2.id, sportType: "swimming", skillLevel: "intermediate", yearsExperience: 3 },
+      
+      // Mark's preferences
+      { userId: user3.id, sportType: "cycling", skillLevel: "expert", yearsExperience: 12 },
+      { userId: user3.id, sportType: "running", skillLevel: "advanced", yearsExperience: 8 },
+      
+      // Emma's preferences
+      { userId: user4.id, sportType: "yoga", skillLevel: "expert", yearsExperience: 7 },
+      { userId: user4.id, sportType: "swimming", skillLevel: "advanced", yearsExperience: 5 }
+    ];
+    
+    for (const pref of sportsPreferences) {
+      await this.createUserSportPreference(pref);
+    }
+    
+    // Add ratings between users
+    const ratings = [
+      // Ratings for Alex (user 1)
+      { ratedUserId: user.id, raterUserId: user2.id, eventId: basketballEventData.id, sportType: "basketball", rating: 5, comment: "Excellent player, great teamwork!" },
+      { ratedUserId: user.id, raterUserId: user3.id, eventId: basketballEventData.id, sportType: "basketball", rating: 4, comment: "Very skilled player" },
+      { ratedUserId: user.id, raterUserId: user4.id, eventId: basketballEventData.id, sportType: "basketball", rating: 5, comment: "Amazing skills and sportsmanship" },
+      
+      // Ratings for Sarah (user 2)
+      { ratedUserId: user2.id, raterUserId: user.id, eventId: 4, sportType: "volleyball", rating: 5, comment: "Incredible volleyball skills" },
+      { ratedUserId: user2.id, raterUserId: user3.id, eventId: 4, sportType: "volleyball", rating: 5, comment: "Professional level player" },
+      
+      // Ratings for Mark (user 3)
+      { ratedUserId: user3.id, raterUserId: user.id, eventId: 5, sportType: "cycling", rating: 4, comment: "Very strong cyclist" },
+      { ratedUserId: user3.id, raterUserId: user4.id, eventId: 5, sportType: "cycling", rating: 5, comment: "Exceptional endurance" },
+      
+      // Ratings for Emma (user 4)
+      { ratedUserId: user4.id, raterUserId: user.id, eventId: 6, sportType: "yoga", rating: 5, comment: "Amazing instructor, very helpful" },
+      { ratedUserId: user4.id, raterUserId: user2.id, eventId: 6, sportType: "yoga", rating: 5, comment: "Patient and knowledgeable" }
+    ];
+    
+    for (const rating of ratings) {
+      await this.createPlayerRating(rating);
     }
   }
 }

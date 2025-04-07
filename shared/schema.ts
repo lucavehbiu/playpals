@@ -26,6 +26,9 @@ export const rsvpStatusTypes = ["approved", "denied", "maybe"] as const;
 // Team membership roles
 export const teamMemberRoles = ["admin", "member", "captain"] as const;
 
+// Skill levels for sports
+export const skillLevels = ["beginner", "intermediate", "advanced", "expert"] as const;
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -34,7 +37,10 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   profileImage: text("profile_image"),
+  coverImage: text("cover_image"),
   bio: text("bio"),
+  headline: text("headline"),
+  location: text("location"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -111,6 +117,35 @@ export const rsvps = pgTable("rsvps", {
   uniqueRsvp: unique().on(t.eventId, t.userId),
 }));
 
+// User Sport Preferences table
+export const userSportPreferences = pgTable("user_sport_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sportType: text("sport_type").notNull(),
+  skillLevel: text("skill_level").notNull(),
+  yearsExperience: integer("years_experience").default(0),
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only have one preference entry per sport
+  uniqueSportPreference: unique().on(t.userId, t.sportType),
+}));
+
+// Player Ratings table
+export const playerRatings = pgTable("player_ratings", {
+  id: serial("id").primaryKey(),
+  ratedUserId: integer("rated_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  raterUserId: integer("rater_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eventId: integer("event_id").references(() => events.id, { onDelete: "cascade" }),
+  sportType: text("sport_type").notNull(),
+  rating: integer("rating").notNull(), // 1-5 stars
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only rate another user once per event
+  uniqueEventRating: unique().on(t.ratedUserId, t.raterUserId, t.eventId),
+}));
+
 // Define relations
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -184,6 +219,35 @@ export const usersRelations = relations(users, ({ many }) => ({
   rsvps: many(rsvps, { relationName: "user_rsvps" }),
   sentFriendships: many(friendships, { relationName: "user_sent_friendships" }),
   receivedFriendships: many(friendships, { relationName: "user_received_friendships" }),
+  sportPreferences: many(userSportPreferences, { relationName: "user_sport_preferences" }),
+  givenRatings: many(playerRatings, { relationName: "ratings_given" }),
+  receivedRatings: many(playerRatings, { relationName: "ratings_received" }),
+}));
+
+export const userSportPreferencesRelations = relations(userSportPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userSportPreferences.userId],
+    references: [users.id],
+    relationName: "user_sport_preferences",
+  }),
+}));
+
+export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
+  ratedUser: one(users, {
+    fields: [playerRatings.ratedUserId],
+    references: [users.id],
+    relationName: "ratings_received",
+  }),
+  rater: one(users, {
+    fields: [playerRatings.raterUserId],
+    references: [users.id],
+    relationName: "ratings_given",
+  }),
+  event: one(events, {
+    fields: [playerRatings.eventId],
+    references: [events.id],
+    relationName: "event_ratings",
+  }),
 }));
 
 // Create insert schemas
@@ -226,6 +290,16 @@ export const insertFriendshipSchema = createInsertSchema(friendships).omit({
   createdAt: true,
 });
 
+export const insertUserSportPreferenceSchema = createInsertSchema(userSportPreferences).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPlayerRatingSchema = createInsertSchema(playerRatings).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -245,6 +319,13 @@ export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type RSVP = typeof rsvps.$inferSelect;
 export type InsertRSVP = z.infer<typeof insertRSVPSchema>;
 
+export type UserSportPreference = typeof userSportPreferences.$inferSelect;
+export type InsertUserSportPreference = z.infer<typeof insertUserSportPreferenceSchema>;
+
+export type PlayerRating = typeof playerRatings.$inferSelect;
+export type InsertPlayerRating = z.infer<typeof insertPlayerRatingSchema>;
+
 export type SportType = typeof sportTypes[number];
 export type RSVPStatus = typeof rsvpStatusTypes[number];
 export type TeamMemberRole = typeof teamMemberRoles[number];
+export type SkillLevel = typeof skillLevels[number];

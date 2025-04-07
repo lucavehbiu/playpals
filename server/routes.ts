@@ -5,10 +5,17 @@ import {
   insertUserSchema, 
   insertEventSchema, 
   insertRSVPSchema,
+  insertUserSportPreferenceSchema,
+  insertPlayerRatingSchema,
   type User,
   type Event,
-  type RSVP
+  type RSVP,
+  type UserSportPreference,
+  type PlayerRating,
+  playerRatings
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 
@@ -383,6 +390,212 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Error deleting RSVP" });
+    }
+  });
+  
+  // Sport Preferences API Routes
+  app.get('/api/sport-preferences/user/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const preferences = await storage.getUserSportPreferences(userId);
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.error('Error fetching sport preferences:', error);
+      res.status(500).json({ message: "Error fetching sport preferences" });
+    }
+  });
+  
+  app.post('/api/sport-preferences', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const preferenceData = { ...req.body, userId };
+      
+      // Validate with Zod schema
+      const validatedData = insertUserSportPreferenceSchema.parse(preferenceData);
+      
+      // Check if preference already exists
+      const existing = await storage.getUserSportPreference(userId, preferenceData.sportType);
+      if (existing) {
+        return res.status(400).json({ message: "You already have a preference for this sport" });
+      }
+      
+      const preference = await storage.createUserSportPreference(validatedData);
+      res.status(201).json(preference);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid preference data", errors: error.errors });
+      }
+      console.error('Error creating sport preference:', error);
+      res.status(500).json({ message: "Error creating sport preference" });
+    }
+  });
+  
+  app.put('/api/sport-preferences/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const preferenceId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Get the preference to check ownership
+      const preferences = await storage.getUserSportPreferences(userId);
+      const preference = preferences.find(p => p.id === preferenceId);
+      
+      if (!preference) {
+        return res.status(404).json({ message: "Sport preference not found" });
+      }
+      
+      if (preference.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this preference" });
+      }
+      
+      const updated = await storage.updateUserSportPreference(preferenceId, req.body);
+      res.status(200).json(updated);
+    } catch (error) {
+      console.error('Error updating sport preference:', error);
+      res.status(500).json({ message: "Error updating sport preference" });
+    }
+  });
+  
+  app.delete('/api/sport-preferences/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const preferenceId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Get the preference to check ownership
+      const preferences = await storage.getUserSportPreferences(userId);
+      const preference = preferences.find(p => p.id === preferenceId);
+      
+      if (!preference) {
+        return res.status(404).json({ message: "Sport preference not found" });
+      }
+      
+      if (preference.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this preference" });
+      }
+      
+      const deleted = await storage.deleteUserSportPreference(preferenceId);
+      if (deleted) {
+        res.status(200).json({ message: "Sport preference deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete sport preference" });
+      }
+    } catch (error) {
+      console.error('Error deleting sport preference:', error);
+      res.status(500).json({ message: "Error deleting sport preference" });
+    }
+  });
+  
+  // Player Ratings API Routes
+  app.get('/api/player-ratings/user/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const ratings = await storage.getPlayerRatings(userId);
+      res.status(200).json(ratings);
+    } catch (error) {
+      console.error('Error fetching player ratings:', error);
+      res.status(500).json({ message: "Error fetching player ratings" });
+    }
+  });
+  
+  app.get('/api/player-ratings/event/:eventId', async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const ratings = await storage.getPlayerRatingsByEvent(eventId);
+      res.status(200).json(ratings);
+    } catch (error) {
+      console.error('Error fetching event ratings:', error);
+      res.status(500).json({ message: "Error fetching event ratings" });
+    }
+  });
+  
+  app.get('/api/player-ratings/average/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const sportType = req.query.sportType as string | undefined;
+      const average = await storage.getAveragePlayerRating(userId, sportType);
+      res.status(200).json({ average });
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      res.status(500).json({ message: "Error fetching average rating" });
+    }
+  });
+  
+  app.post('/api/player-ratings', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const raterUserId = (req.user as any).id;
+      const ratingData = { ...req.body, raterUserId };
+      
+      // Validate with Zod schema
+      const validatedData = insertPlayerRatingSchema.parse(ratingData);
+      
+      // Check if user is rating themselves
+      if (raterUserId === validatedData.ratedUserId) {
+        return res.status(400).json({ message: "You cannot rate yourself" });
+      }
+      
+      // Validate the rating value
+      if (validatedData.rating < 1 || validatedData.rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+      
+      const rating = await storage.createPlayerRating(validatedData);
+      res.status(201).json(rating);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid rating data", errors: error.errors });
+      }
+      console.error('Error creating player rating:', error);
+      res.status(500).json({ message: "Error creating player rating" });
+    }
+  });
+  
+  app.put('/api/player-ratings/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const ratingId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Get all ratings by this user
+      const allRatings = await storage.getPlayerRatings(req.body.ratedUserId);
+      const rating = allRatings.find(r => r.id === ratingId && r.raterUserId === userId);
+      
+      if (!rating) {
+        return res.status(404).json({ message: "Rating not found or not created by you" });
+      }
+      
+      // Validate the rating value if it's being updated
+      if (req.body.rating && (req.body.rating < 1 || req.body.rating > 5)) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+      
+      const updated = await storage.updatePlayerRating(ratingId, req.body);
+      res.status(200).json(updated);
+    } catch (error) {
+      console.error('Error updating player rating:', error);
+      res.status(500).json({ message: "Error updating player rating" });
+    }
+  });
+  
+  app.delete('/api/player-ratings/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const ratingId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Get all ratings from storage instead of direct DB access
+      const allRatingsByUser = await storage.getPlayerRatings(userId);
+      const rating = allRatingsByUser.find((r: PlayerRating) => r.id === ratingId);
+      
+      if (!rating) {
+        return res.status(404).json({ message: "Rating not found or not created by you" });
+      }
+      
+      const deleted = await storage.deletePlayerRating(ratingId);
+      if (deleted) {
+        res.status(200).json({ message: "Rating deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete rating" });
+      }
+    } catch (error) {
+      console.error('Error deleting player rating:', error);
+      res.status(500).json({ message: "Error deleting player rating" });
     }
   });
 
