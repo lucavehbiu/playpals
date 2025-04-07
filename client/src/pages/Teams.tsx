@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, UserPlusIcon, CalendarIcon, SettingsIcon, Loader2 } from "lucide-react";
+import { PlusIcon, UserPlusIcon, CalendarIcon, SettingsIcon, Loader2, ArrowRightIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
+import { useLocation } from "wouter";
 
 // Define form schema for team creation
 const createTeamSchema = z.object({
@@ -46,6 +47,7 @@ type InviteMemberFormValues = z.infer<typeof inviteMemberSchema>;
 const Teams = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
@@ -565,9 +567,13 @@ const Teams = () => {
                     </Dialog>
                   )}
                   <div className="space-x-1">
-                    <Button variant="outline" size="sm">
-                      <CalendarIcon className="h-4 w-4 mr-1" />
-                      Events
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setLocation(`/teams/${team.id}`)}
+                    >
+                      <ArrowRightIcon className="h-4 w-4 mr-1" />
+                      View Team
                     </Button>
                     {isTeamAdminOrCreator(team) && (
                       <Button variant="ghost" size="sm">

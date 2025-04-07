@@ -8,6 +8,7 @@ import MyEvents from "@/pages/MyEvents";
 import Discover from "@/pages/Discover";
 import Profile from "@/pages/Profile";
 import Teams from "@/pages/Teams";
+import TeamDetails from "@/pages/TeamDetails";
 import Invitations from "@/pages/Invitations";
 import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/Header";
@@ -31,6 +32,7 @@ function Router() {
                   <ProtectedRoute path="/myevents" component={MyEvents} />
                   <ProtectedRoute path="/discover" component={Discover} />
                   <ProtectedRoute path="/teams" component={Teams} />
+                  <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
                   <ProtectedRoute path="/invitations" component={Invitations} />
                   <ProtectedRoute path="/profile" component={Profile} />
                   <Route component={NotFound} />
