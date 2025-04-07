@@ -696,7 +696,10 @@ export class DatabaseStorage implements IStorage {
     const userWithNulls = {
       ...insertUser,
       profileImage: insertUser.profileImage ?? null,
-      bio: insertUser.bio ?? null
+      coverImage: insertUser.coverImage ?? null,
+      bio: insertUser.bio ?? null,
+      headline: insertUser.headline ?? null,
+      location: insertUser.location ?? null
     };
     
     const [user] = await db
