@@ -7,11 +7,23 @@ import {
   insertRSVPSchema,
   insertUserSportPreferenceSchema,
   insertPlayerRatingSchema,
+  insertTeamSchema,
+  insertTeamMemberSchema,
+  insertTeamPostSchema,
+  insertTeamPostCommentSchema,
+  insertTeamScheduleSchema,
+  insertTeamScheduleResponseSchema,
   type User,
   type Event,
   type RSVP,
   type UserSportPreference,
   type PlayerRating,
+  type Team,
+  type TeamMember,
+  type TeamPost,
+  type TeamPostComment,
+  type TeamSchedule,
+  type TeamScheduleResponse,
   playerRatings
 } from "@shared/schema";
 import { db } from "./db";
@@ -596,6 +608,729 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting player rating:', error);
       res.status(500).json({ message: "Error deleting player rating" });
+    }
+  });
+
+  // Team Routes
+  app.post('/api/teams', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const authenticatedUser = (req as any).user as User;
+      
+      // Set creatorId from authenticated user
+      const teamData = {
+        ...req.body,
+        creatorId: authenticatedUser.id
+      };
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamSchema.parse(teamData);
+      
+      const team = await storage.createTeam(validatedData);
+      res.status(201).json(team);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
+      }
+      console.error('Error creating team:', error);
+      res.status(500).json({ message: "Error creating team" });
+    }
+  });
+  
+  app.get('/api/teams', async (req: Request, res: Response) => {
+    try {
+      // Implement this when needed - public teams listing
+      // Placeholder for now
+      res.status(501).json({ message: "Not implemented yet" });
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      res.status(500).json({ message: "Error fetching teams" });
+    }
+  });
+  
+  app.get('/api/teams/user/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const teams = await storage.getTeamsByUser(userId);
+      res.json(teams);
+    } catch (error) {
+      console.error('Error fetching user teams:', error);
+      res.status(500).json({ message: "Error fetching user teams" });
+    }
+  });
+  
+  app.get('/api/teams/:id', async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json(team);
+    } catch (error) {
+      console.error('Error fetching team:', error);
+      res.status(500).json({ message: "Error fetching team" });
+    }
+  });
+  
+  app.put('/api/teams/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Get team member to check user's role
+      const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      // Only admins and the creator can update the team
+      if (team.creatorId !== authenticatedUser.id && (!member || member.role !== "admin")) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to update this team" });
+      }
+      
+      const updatedTeam = await storage.updateTeam(teamId, req.body);
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error('Error updating team:', error);
+      res.status(500).json({ message: "Error updating team" });
+    }
+  });
+  
+  app.delete('/api/teams/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Only the creator can delete the team
+      if (team.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - Only the team creator can delete the team" });
+      }
+      
+      const success = await storage.deleteTeam(teamId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete team" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      res.status(500).json({ message: "Error deleting team" });
+    }
+  });
+  
+  // Team membership routes
+  app.post('/api/teams/:teamId/members', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Get team member to check user's role
+      const adminMember = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      // Only admins and the creator can add members
+      if (team.creatorId !== authenticatedUser.id && (!adminMember || adminMember.role !== "admin")) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to add members to this team" });
+      }
+      
+      // Prepare member data
+      const memberData = {
+        ...req.body,
+        teamId,
+      };
+      
+      // Make sure the user doesn't already exist in the team
+      const existingMember = await storage.getTeamMember(teamId, memberData.userId);
+      
+      if (existingMember) {
+        return res.status(400).json({ message: "User is already a member of this team" });
+      }
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamMemberSchema.parse(memberData);
+      
+      const newMember = await storage.createTeamMember(validatedData);
+      res.status(201).json(newMember);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid member data", errors: error.errors });
+      }
+      console.error('Error adding team member:', error);
+      res.status(500).json({ message: "Error adding team member" });
+    }
+  });
+  
+  app.get('/api/teams/:teamId/members', async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      res.status(500).json({ message: "Error fetching team members" });
+    }
+  });
+  
+  app.put('/api/teams/:teamId/members/:memberId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const memberId = parseInt(req.params.memberId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(memberId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const member = await storage.getTeamMemberById(memberId);
+      
+      if (!member || member.teamId !== teamId) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      // Get the authenticated user's team membership
+      const authMember = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      // Only admins, captains and the creator can update members
+      const isAdmin = team.creatorId === authenticatedUser.id || (authMember && authMember.role === "admin");
+      const isCaptain = authMember && authMember.role === "captain";
+      const isSelf = member.userId === authenticatedUser.id;
+      
+      if (!isAdmin && !isCaptain && !isSelf) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to update this team member" });
+      }
+      
+      // If not admin/creator, restrict updatable fields for captains and self
+      if (!isAdmin) {
+        // Create a new object with only allowed properties
+        const allowedUpdate: Partial<TeamMember> = {};
+        
+        if (isCaptain) {
+          // Captains can update positions and stats, but not roles
+          if (req.body.position !== undefined) allowedUpdate.position = req.body.position;
+          if (req.body.stats !== undefined) allowedUpdate.stats = req.body.stats;
+        }
+        
+        if (isSelf) {
+          // Members can only update their own position
+          if (req.body.position !== undefined) allowedUpdate.position = req.body.position;
+        }
+        
+        const updatedMember = await storage.updateTeamMember(memberId, allowedUpdate);
+        return res.json(updatedMember);
+      }
+      
+      // Admins/creators can update everything
+      const updatedMember = await storage.updateTeamMember(memberId, req.body);
+      res.json(updatedMember);
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      res.status(500).json({ message: "Error updating team member" });
+    }
+  });
+  
+  app.delete('/api/teams/:teamId/members/:memberId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const memberId = parseInt(req.params.memberId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(memberId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const member = await storage.getTeamMemberById(memberId);
+      
+      if (!member || member.teamId !== teamId) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      // Check if the authenticated user is the team creator or an admin
+      const authMember = await storage.getTeamMember(teamId, authenticatedUser.id);
+      const isAdmin = team.creatorId === authenticatedUser.id || (authMember && authMember.role === "admin");
+      const isSelf = member.userId === authenticatedUser.id;
+      
+      if (!isAdmin && !isSelf) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to remove this team member" });
+      }
+      
+      // Don't allow removing the creator
+      if (member.userId === team.creatorId) {
+        return res.status(403).json({ message: "Forbidden - Cannot remove the team creator" });
+      }
+      
+      const success = await storage.deleteTeamMember(memberId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to remove team member" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error removing team member:', error);
+      res.status(500).json({ message: "Error removing team member" });
+    }
+  });
+  
+  // Team posts routes
+  app.post('/api/teams/:teamId/posts', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user is a team member
+      const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      if (!member) {
+        return res.status(403).json({ message: "Forbidden - You must be a team member to create posts" });
+      }
+      
+      // Only admins, captains, and the creator can create posts
+      if (member.role !== "admin" && member.role !== "captain" && team.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to create posts in this team" });
+      }
+      
+      // Prepare post data
+      const postData = {
+        ...req.body,
+        teamId,
+        userId: authenticatedUser.id
+      };
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamPostSchema.parse(postData);
+      
+      const post = await storage.createTeamPost(validatedData);
+      res.status(201).json(post);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid post data", errors: error.errors });
+      }
+      console.error('Error creating team post:', error);
+      res.status(500).json({ message: "Error creating team post" });
+    }
+  });
+  
+  app.get('/api/teams/:teamId/posts', async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const posts = await storage.getTeamPosts(teamId);
+      res.json(posts);
+    } catch (error) {
+      console.error('Error fetching team posts:', error);
+      res.status(500).json({ message: "Error fetching team posts" });
+    }
+  });
+  
+  app.put('/api/teams/:teamId/posts/:postId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const postId = parseInt(req.params.postId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const post = await storage.getTeamPost(postId);
+      
+      if (!post || post.teamId !== teamId) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      // Only the post creator can update it
+      if (post.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own posts" });
+      }
+      
+      const updatedPost = await storage.updateTeamPost(postId, req.body);
+      res.json(updatedPost);
+    } catch (error) {
+      console.error('Error updating team post:', error);
+      res.status(500).json({ message: "Error updating team post" });
+    }
+  });
+  
+  app.delete('/api/teams/:teamId/posts/:postId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const postId = parseInt(req.params.postId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const post = await storage.getTeamPost(postId);
+      
+      if (!post || post.teamId !== teamId) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      // Post can be deleted by the post creator, team creator, or team admin
+      const isCreator = post.userId === authenticatedUser.id;
+      const isTeamAdmin = team && team.creatorId === authenticatedUser.id;
+      const isTeamMemberAdmin = member && member.role === "admin";
+      
+      if (!isCreator && !isTeamAdmin && !isTeamMemberAdmin) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to delete this post" });
+      }
+      
+      const success = await storage.deleteTeamPost(postId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete post" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting team post:', error);
+      res.status(500).json({ message: "Error deleting team post" });
+    }
+  });
+  
+  // Post comments routes
+  app.post('/api/teams/:teamId/posts/:postId/comments', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const postId = parseInt(req.params.postId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const post = await storage.getTeamPost(postId);
+      
+      if (!post || post.teamId !== teamId) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      // Check if user is a team member
+      const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      if (!member) {
+        return res.status(403).json({ message: "Forbidden - You must be a team member to comment on posts" });
+      }
+      
+      // Prepare comment data
+      const commentData = {
+        ...req.body,
+        postId,
+        userId: authenticatedUser.id
+      };
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamPostCommentSchema.parse(commentData);
+      
+      const comment = await storage.createTeamPostComment(validatedData);
+      res.status(201).json(comment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid comment data", errors: error.errors });
+      }
+      console.error('Error creating comment:', error);
+      res.status(500).json({ message: "Error creating comment" });
+    }
+  });
+  
+  app.get('/api/teams/:teamId/posts/:postId/comments', async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const postId = parseInt(req.params.postId);
+      
+      if (isNaN(teamId) || isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const post = await storage.getTeamPost(postId);
+      
+      if (!post || post.teamId !== teamId) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      const comments = await storage.getTeamPostComments(postId);
+      res.json(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.status(500).json({ message: "Error fetching comments" });
+    }
+  });
+  
+  // Team schedule routes
+  app.post('/api/teams/:teamId/schedules', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user is a team member with appropriate permissions
+      const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+      
+      if (!member) {
+        return res.status(403).json({ message: "Forbidden - You must be a team member to create schedules" });
+      }
+      
+      // Only admins, captains, and the creator can create schedules
+      if (member.role !== "admin" && member.role !== "captain" && team.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You don't have permission to create schedules in this team" });
+      }
+      
+      // Date conversion for startTime and endTime
+      const scheduleData = {
+        ...req.body,
+        teamId,
+        creatorId: authenticatedUser.id
+      };
+      
+      if (typeof scheduleData.startTime === 'string') {
+        scheduleData.startTime = new Date(scheduleData.startTime);
+      }
+      
+      if (typeof scheduleData.endTime === 'string') {
+        scheduleData.endTime = new Date(scheduleData.endTime);
+      }
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamScheduleSchema.parse(scheduleData);
+      
+      const schedule = await storage.createTeamSchedule(validatedData);
+      res.status(201).json(schedule);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      console.error('Error creating team schedule:', error);
+      res.status(500).json({ message: "Error creating team schedule" });
+    }
+  });
+  
+  app.get('/api/teams/:teamId/schedules', async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const schedules = await storage.getTeamSchedules(teamId);
+      res.json(schedules);
+    } catch (error) {
+      console.error('Error fetching team schedules:', error);
+      res.status(500).json({ message: "Error fetching team schedules" });
+    }
+  });
+  
+  // Schedule responses routes  
+  app.post('/api/schedules/:scheduleId/responses', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const scheduleId = parseInt(req.params.scheduleId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(scheduleId)) {
+        return res.status(400).json({ message: "Invalid schedule ID" });
+      }
+      
+      const schedule = await storage.getTeamSchedule(scheduleId);
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Schedule not found" });
+      }
+      
+      // Check if user is a team member
+      const member = await storage.getTeamMember(schedule.teamId, authenticatedUser.id);
+      
+      if (!member) {
+        return res.status(403).json({ message: "Forbidden - You must be a team member to respond to schedules" });
+      }
+      
+      // Check if response already exists
+      const existingResponse = await storage.getTeamScheduleResponse(scheduleId, authenticatedUser.id);
+      
+      if (existingResponse) {
+        return res.status(400).json({ message: "You have already responded to this schedule" });
+      }
+      
+      // Date conversion for maybeDeadline
+      const responseData = {
+        ...req.body,
+        scheduleId,
+        userId: authenticatedUser.id
+      };
+      
+      if (typeof responseData.maybeDeadline === 'string') {
+        responseData.maybeDeadline = new Date(responseData.maybeDeadline);
+      }
+      
+      // Validate with Zod schema
+      const validatedData = insertTeamScheduleResponseSchema.parse(responseData);
+      
+      const response = await storage.createTeamScheduleResponse(validatedData);
+      res.status(201).json(response);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid response data", errors: error.errors });
+      }
+      console.error('Error creating schedule response:', error);
+      res.status(500).json({ message: "Error creating schedule response" });
+    }
+  });
+  
+  app.get('/api/schedules/:scheduleId/responses', async (req: Request, res: Response) => {
+    try {
+      const scheduleId = parseInt(req.params.scheduleId);
+      
+      if (isNaN(scheduleId)) {
+        return res.status(400).json({ message: "Invalid schedule ID" });
+      }
+      
+      const schedule = await storage.getTeamSchedule(scheduleId);
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Schedule not found" });
+      }
+      
+      const responses = await storage.getTeamScheduleResponses(scheduleId);
+      res.json(responses);
+    } catch (error) {
+      console.error('Error fetching schedule responses:', error);
+      res.status(500).json({ message: "Error fetching schedule responses" });
+    }
+  });
+  
+  app.put('/api/schedules/:scheduleId/responses/:responseId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const scheduleId = parseInt(req.params.scheduleId);
+      const responseId = parseInt(req.params.responseId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(scheduleId) || isNaN(responseId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const response = await storage.getTeamScheduleResponseById(responseId);
+      
+      if (!response || response.scheduleId !== scheduleId) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      
+      // Users can only update their own responses
+      if (response.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own responses" });
+      }
+      
+      // Date conversion for maybeDeadline
+      const responseData = { ...req.body };
+      
+      if (typeof responseData.maybeDeadline === 'string') {
+        responseData.maybeDeadline = new Date(responseData.maybeDeadline);
+      }
+      
+      const updatedResponse = await storage.updateTeamScheduleResponse(responseId, responseData);
+      res.json(updatedResponse);
+    } catch (error) {
+      console.error('Error updating schedule response:', error);
+      res.status(500).json({ message: "Error updating schedule response" });
     }
   });
 

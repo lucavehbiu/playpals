@@ -4,7 +4,13 @@ import {
   rsvps, type RSVP, type InsertRSVP,
   friendships, type Friendship, type InsertFriendship,
   userSportPreferences, type UserSportPreference, type InsertUserSportPreference,
-  playerRatings, type PlayerRating, type InsertPlayerRating
+  playerRatings, type PlayerRating, type InsertPlayerRating,
+  teams, type Team, type InsertTeam,
+  teamMembers, type TeamMember, type InsertTeamMember,
+  teamPosts, type TeamPost, type InsertTeamPost,
+  teamPostComments, type TeamPostComment, type InsertTeamPostComment,
+  teamSchedules, type TeamSchedule, type InsertTeamSchedule,
+  teamScheduleResponses, type TeamScheduleResponse, type InsertTeamScheduleResponse
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, like, avg, sql } from "drizzle-orm";
@@ -33,6 +39,50 @@ export interface IStorage {
   sendFriendRequest(friendship: InsertFriendship): Promise<Friendship>;
   updateFriendshipStatus(id: number, status: string): Promise<Friendship | undefined>;
   deleteFriendship(id: number): Promise<boolean>;
+  
+  // Team methods
+  getTeam(id: number): Promise<Team | undefined>;
+  getTeamsByUser(userId: number): Promise<Team[]>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined>;
+  deleteTeam(id: number): Promise<boolean>;
+  
+  // Team membership methods
+  getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined>;
+  getTeamMemberById(id: number): Promise<TeamMember | undefined>;
+  getTeamMembers(teamId: number): Promise<TeamMember[]>;
+  createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(id: number, memberData: Partial<TeamMember>): Promise<TeamMember | undefined>;
+  deleteTeamMember(id: number): Promise<boolean>;
+  
+  // Team post methods
+  getTeamPost(id: number): Promise<TeamPost | undefined>;
+  getTeamPosts(teamId: number): Promise<TeamPost[]>;
+  createTeamPost(post: InsertTeamPost): Promise<TeamPost>;
+  updateTeamPost(id: number, postData: Partial<TeamPost>): Promise<TeamPost | undefined>;
+  deleteTeamPost(id: number): Promise<boolean>;
+  
+  // Team post comment methods
+  getTeamPostComment(id: number): Promise<TeamPostComment | undefined>;
+  getTeamPostComments(postId: number): Promise<TeamPostComment[]>;
+  createTeamPostComment(comment: InsertTeamPostComment): Promise<TeamPostComment>;
+  updateTeamPostComment(id: number, commentData: Partial<TeamPostComment>): Promise<TeamPostComment | undefined>;
+  deleteTeamPostComment(id: number): Promise<boolean>;
+  
+  // Team schedule methods
+  getTeamSchedule(id: number): Promise<TeamSchedule | undefined>;
+  getTeamSchedules(teamId: number): Promise<TeamSchedule[]>;
+  createTeamSchedule(schedule: InsertTeamSchedule): Promise<TeamSchedule>;
+  updateTeamSchedule(id: number, scheduleData: Partial<TeamSchedule>): Promise<TeamSchedule | undefined>;
+  deleteTeamSchedule(id: number): Promise<boolean>;
+  
+  // Team schedule response methods
+  getTeamScheduleResponse(scheduleId: number, userId: number): Promise<TeamScheduleResponse | undefined>;
+  getTeamScheduleResponseById(id: number): Promise<TeamScheduleResponse | undefined>;
+  getTeamScheduleResponses(scheduleId: number): Promise<TeamScheduleResponse[]>;
+  createTeamScheduleResponse(response: InsertTeamScheduleResponse): Promise<TeamScheduleResponse>;
+  updateTeamScheduleResponse(id: number, responseData: Partial<TeamScheduleResponse>): Promise<TeamScheduleResponse | undefined>;
+  deleteTeamScheduleResponse(id: number): Promise<boolean>;
   
   // Event methods
   getEvent(id: number): Promise<Event | undefined>;
@@ -77,12 +127,24 @@ export class MemStorage implements IStorage {
   private friendships: Map<number, Friendship>;
   private userSportPreferences: Map<number, UserSportPreference>;
   private playerRatings: Map<number, PlayerRating>;
+  private teams: Map<number, Team>;
+  private teamMembers: Map<number, TeamMember>;
+  private teamPosts: Map<number, TeamPost>;
+  private teamPostComments: Map<number, TeamPostComment>;
+  private teamSchedules: Map<number, TeamSchedule>;
+  private teamScheduleResponses: Map<number, TeamScheduleResponse>;
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
   private friendshipIdCounter: number;
   private sportPreferenceIdCounter: number;
   private playerRatingIdCounter: number;
+  private teamIdCounter: number;
+  private teamMemberIdCounter: number;
+  private teamPostIdCounter: number;
+  private teamPostCommentIdCounter: number;
+  private teamScheduleIdCounter: number;
+  private teamScheduleResponseIdCounter: number;
   
   // Session store for authentication
   public sessionStore: session.Store;
@@ -94,12 +156,24 @@ export class MemStorage implements IStorage {
     this.friendships = new Map();
     this.userSportPreferences = new Map();
     this.playerRatings = new Map();
+    this.teams = new Map();
+    this.teamMembers = new Map();
+    this.teamPosts = new Map();
+    this.teamPostComments = new Map();
+    this.teamSchedules = new Map();
+    this.teamScheduleResponses = new Map();
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
     this.friendshipIdCounter = 1;
     this.sportPreferenceIdCounter = 1;
     this.playerRatingIdCounter = 1;
+    this.teamIdCounter = 1;
+    this.teamMemberIdCounter = 1;
+    this.teamPostIdCounter = 1;
+    this.teamPostCommentIdCounter = 1;
+    this.teamScheduleIdCounter = 1;
+    this.teamScheduleResponseIdCounter = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -219,6 +293,326 @@ export class MemStorage implements IStorage {
   
   async deleteFriendship(id: number): Promise<boolean> {
     return this.friendships.delete(id);
+  }
+
+  // Team methods
+  async getTeam(id: number): Promise<Team | undefined> {
+    return this.teams.get(id);
+  }
+
+  async getTeamsByUser(userId: number): Promise<Team[]> {
+    // Get teams where the user is a member
+    const memberTeamIds = Array.from(this.teamMembers.values())
+      .filter(member => member.userId === userId)
+      .map(member => member.teamId);
+    
+    // Get teams created by the user
+    const createdTeams = Array.from(this.teams.values())
+      .filter(team => team.creatorId === userId);
+    
+    // Get teams where the user is a member but not the creator
+    const memberTeams = Array.from(this.teams.values())
+      .filter(team => 
+        memberTeamIds.includes(team.id) && 
+        team.creatorId !== userId
+      );
+    
+    return [...createdTeams, ...memberTeams];
+  }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const id = this.teamIdCounter++;
+    const now = new Date();
+    const newTeam: Team = {
+      ...team,
+      id,
+      createdAt: now,
+      description: team.description ?? null,
+      logo: team.logo ?? null,
+      isPublic: team.isPublic === undefined ? true : team.isPublic
+    };
+    this.teams.set(id, newTeam);
+    
+    // Automatically add creator as team member with admin role
+    this.createTeamMember({
+      teamId: id,
+      userId: team.creatorId,
+      role: "admin",
+    });
+    
+    return newTeam;
+  }
+
+  async updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined> {
+    const team = this.teams.get(id);
+    if (!team) return undefined;
+    
+    const updatedTeam = { ...team, ...teamData };
+    this.teams.set(id, updatedTeam);
+    return updatedTeam;
+  }
+
+  async deleteTeam(id: number): Promise<boolean> {
+    // Delete team members
+    for (const [memberId, member] of this.teamMembers.entries()) {
+      if (member.teamId === id) {
+        this.teamMembers.delete(memberId);
+      }
+    }
+    
+    // Delete team posts and comments
+    for (const [postId, post] of this.teamPosts.entries()) {
+      if (post.teamId === id) {
+        // Delete comments for this post
+        for (const [commentId, comment] of this.teamPostComments.entries()) {
+          if (comment.postId === postId) {
+            this.teamPostComments.delete(commentId);
+          }
+        }
+        this.teamPosts.delete(postId);
+      }
+    }
+    
+    // Delete team schedules and responses
+    for (const [scheduleId, schedule] of this.teamSchedules.entries()) {
+      if (schedule.teamId === id) {
+        // Delete responses for this schedule
+        for (const [responseId, response] of this.teamScheduleResponses.entries()) {
+          if (response.scheduleId === scheduleId) {
+            this.teamScheduleResponses.delete(responseId);
+          }
+        }
+        this.teamSchedules.delete(scheduleId);
+      }
+    }
+    
+    return this.teams.delete(id);
+  }
+  
+  // Team membership methods
+  async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
+    return Array.from(this.teamMembers.values()).find(
+      member => member.teamId === teamId && member.userId === userId
+    );
+  }
+  
+  async getTeamMemberById(id: number): Promise<TeamMember | undefined> {
+    return this.teamMembers.get(id);
+  }
+  
+  async getTeamMembers(teamId: number): Promise<TeamMember[]> {
+    return Array.from(this.teamMembers.values()).filter(
+      member => member.teamId === teamId
+    );
+  }
+  
+  async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    const id = this.teamMemberIdCounter++;
+    const now = new Date();
+    const newMember: TeamMember = {
+      ...member,
+      id,
+      joinedAt: now,
+      position: member.position ?? null,
+      stats: member.stats ?? null,
+      role: member.role ?? "member"
+    };
+    this.teamMembers.set(id, newMember);
+    return newMember;
+  }
+  
+  async updateTeamMember(id: number, memberData: Partial<TeamMember>): Promise<TeamMember | undefined> {
+    const member = this.teamMembers.get(id);
+    if (!member) return undefined;
+    
+    const updatedMember = { ...member, ...memberData };
+    this.teamMembers.set(id, updatedMember);
+    return updatedMember;
+  }
+  
+  async deleteTeamMember(id: number): Promise<boolean> {
+    return this.teamMembers.delete(id);
+  }
+  
+  // Team post methods
+  async getTeamPost(id: number): Promise<TeamPost | undefined> {
+    return this.teamPosts.get(id);
+  }
+  
+  async getTeamPosts(teamId: number): Promise<TeamPost[]> {
+    return Array.from(this.teamPosts.values())
+      .filter(post => post.teamId === teamId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Newest first
+  }
+  
+  async createTeamPost(post: InsertTeamPost): Promise<TeamPost> {
+    const id = this.teamPostIdCounter++;
+    const now = new Date();
+    const newPost: TeamPost = {
+      ...post,
+      id,
+      createdAt: now,
+      likes: 0,
+      attachments: post.attachments ?? null
+    };
+    this.teamPosts.set(id, newPost);
+    return newPost;
+  }
+  
+  async updateTeamPost(id: number, postData: Partial<TeamPost>): Promise<TeamPost | undefined> {
+    const post = this.teamPosts.get(id);
+    if (!post) return undefined;
+    
+    const updatedPost = { ...post, ...postData };
+    this.teamPosts.set(id, updatedPost);
+    return updatedPost;
+  }
+  
+  async deleteTeamPost(id: number): Promise<boolean> {
+    // Delete all comments for this post
+    for (const [commentId, comment] of this.teamPostComments.entries()) {
+      if (comment.postId === id) {
+        this.teamPostComments.delete(commentId);
+      }
+    }
+    
+    return this.teamPosts.delete(id);
+  }
+  
+  // Team post comment methods
+  async getTeamPostComment(id: number): Promise<TeamPostComment | undefined> {
+    return this.teamPostComments.get(id);
+  }
+  
+  async getTeamPostComments(postId: number): Promise<TeamPostComment[]> {
+    return Array.from(this.teamPostComments.values())
+      .filter(comment => comment.postId === postId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()); // Oldest first
+  }
+  
+  async createTeamPostComment(comment: InsertTeamPostComment): Promise<TeamPostComment> {
+    const id = this.teamPostCommentIdCounter++;
+    const now = new Date();
+    const newComment: TeamPostComment = {
+      ...comment,
+      id,
+      createdAt: now,
+      likes: 0
+    };
+    this.teamPostComments.set(id, newComment);
+    return newComment;
+  }
+  
+  async updateTeamPostComment(id: number, commentData: Partial<TeamPostComment>): Promise<TeamPostComment | undefined> {
+    const comment = this.teamPostComments.get(id);
+    if (!comment) return undefined;
+    
+    const updatedComment = { ...comment, ...commentData };
+    this.teamPostComments.set(id, updatedComment);
+    return updatedComment;
+  }
+  
+  async deleteTeamPostComment(id: number): Promise<boolean> {
+    return this.teamPostComments.delete(id);
+  }
+  
+  // Team schedule methods
+  async getTeamSchedule(id: number): Promise<TeamSchedule | undefined> {
+    return this.teamSchedules.get(id);
+  }
+  
+  async getTeamSchedules(teamId: number): Promise<TeamSchedule[]> {
+    return Array.from(this.teamSchedules.values())
+      .filter(schedule => schedule.teamId === teamId)
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()); // Chronological order
+  }
+  
+  async createTeamSchedule(schedule: InsertTeamSchedule): Promise<TeamSchedule> {
+    const id = this.teamScheduleIdCounter++;
+    const now = new Date();
+    const newSchedule: TeamSchedule = {
+      ...schedule,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      description: schedule.description ?? null,
+      location: schedule.location ?? null
+    };
+    this.teamSchedules.set(id, newSchedule);
+    return newSchedule;
+  }
+  
+  async updateTeamSchedule(id: number, scheduleData: Partial<TeamSchedule>): Promise<TeamSchedule | undefined> {
+    const schedule = this.teamSchedules.get(id);
+    if (!schedule) return undefined;
+    
+    const updatedSchedule = { 
+      ...schedule, 
+      ...scheduleData,
+      updatedAt: new Date()
+    };
+    this.teamSchedules.set(id, updatedSchedule);
+    return updatedSchedule;
+  }
+  
+  async deleteTeamSchedule(id: number): Promise<boolean> {
+    // Delete all responses for this schedule
+    for (const [responseId, response] of this.teamScheduleResponses.entries()) {
+      if (response.scheduleId === id) {
+        this.teamScheduleResponses.delete(responseId);
+      }
+    }
+    
+    return this.teamSchedules.delete(id);
+  }
+  
+  // Team schedule response methods
+  async getTeamScheduleResponse(scheduleId: number, userId: number): Promise<TeamScheduleResponse | undefined> {
+    return Array.from(this.teamScheduleResponses.values()).find(
+      response => response.scheduleId === scheduleId && response.userId === userId
+    );
+  }
+  
+  async getTeamScheduleResponseById(id: number): Promise<TeamScheduleResponse | undefined> {
+    return this.teamScheduleResponses.get(id);
+  }
+  
+  async getTeamScheduleResponses(scheduleId: number): Promise<TeamScheduleResponse[]> {
+    return Array.from(this.teamScheduleResponses.values()).filter(
+      response => response.scheduleId === scheduleId
+    );
+  }
+  
+  async createTeamScheduleResponse(response: InsertTeamScheduleResponse): Promise<TeamScheduleResponse> {
+    const id = this.teamScheduleResponseIdCounter++;
+    const now = new Date();
+    const newResponse: TeamScheduleResponse = {
+      ...response,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      responseNote: response.responseNote ?? null,
+      maybeDeadline: response.maybeDeadline ?? null
+    };
+    this.teamScheduleResponses.set(id, newResponse);
+    return newResponse;
+  }
+  
+  async updateTeamScheduleResponse(id: number, responseData: Partial<TeamScheduleResponse>): Promise<TeamScheduleResponse | undefined> {
+    const response = this.teamScheduleResponses.get(id);
+    if (!response) return undefined;
+    
+    const updatedResponse = { 
+      ...response, 
+      ...responseData,
+      updatedAt: new Date()
+    };
+    this.teamScheduleResponses.set(id, updatedResponse);
+    return updatedResponse;
+  }
+  
+  async deleteTeamScheduleResponse(id: number): Promise<boolean> {
+    return this.teamScheduleResponses.delete(id);
   }
 
   // Event methods
@@ -444,6 +838,14 @@ export class MemStorage implements IStorage {
 
   // Initialize with sample data
   private initSampleData() {
+    // Create team-related maps for storage
+    this.teams = new Map();
+    this.teamMembers = new Map();
+    this.teamPosts = new Map();
+    this.teamPostComments = new Map();
+    this.teamSchedules = new Map();
+    this.teamScheduleResponses = new Map();
+    
     // Create sample user
     const sampleUser: InsertUser = {
       username: "alexsmith",
@@ -662,6 +1064,209 @@ export class MemStorage implements IStorage {
       ratings.forEach(rating => {
         this.createPlayerRating(rating);
       });
+      
+      // Create sample teams
+      const basketballTeam: InsertTeam = {
+        name: "Downtown Dribblers",
+        sportType: "basketball",
+        creatorId: 1, // Alex
+        description: "Casual basketball team that meets twice a week for practice and games.",
+        logo: "https://images.unsplash.com/photo-1519861531473-9200262188bf?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&h=256&q=80",
+        isPublic: true
+      };
+      
+      const volleyballTeam: InsertTeam = {
+        name: "Beach Spikers",
+        sportType: "volleyball",
+        creatorId: 2, // Sarah
+        description: "Competitive beach volleyball team looking for tournaments and friendly matches.",
+        logo: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&h=256&q=80",
+        isPublic: true
+      };
+      
+      this.createTeam(basketballTeam).then(team1 => {
+        // Add additional team members for basketball team
+        this.createTeamMember({
+          teamId: team1.id,
+          userId: 3, // Mark
+          role: "member",
+          position: "Forward"
+        });
+        
+        this.createTeamMember({
+          teamId: team1.id,
+          userId: 4, // Emma
+          role: "captain",
+          position: "Guard"
+        });
+        
+        // Create team posts for basketball team
+        this.createTeamPost({
+          teamId: team1.id,
+          userId: 1, // Alex (admin)
+          content: "Welcome to the Downtown Dribblers! Our next practice is on Friday at 6 PM."
+        }).then(post => {
+          // Add comments to the post
+          this.createTeamPostComment({
+            postId: post.id,
+            userId: 3, // Mark
+            content: "Looking forward to it!"
+          });
+          
+          this.createTeamPostComment({
+            postId: post.id,
+            userId: 4, // Emma
+            content: "I'll bring extra water bottles."
+          });
+        });
+        
+        this.createTeamPost({
+          teamId: team1.id,
+          userId: 4, // Emma (captain)
+          content: "We need to work on our defensive rotations. Here's a video from our last game with some analysis."
+        });
+        
+        // Create team schedule for basketball team
+        const nextPractice = new Date();
+        nextPractice.setDate(nextPractice.getDate() + 2); // 2 days from now
+        nextPractice.setHours(18, 0, 0, 0); // 6:00 PM
+        
+        const practiceEnd = new Date(nextPractice);
+        practiceEnd.setHours(19, 30, 0, 0); // 7:30 PM
+        
+        this.createTeamSchedule({
+          teamId: team1.id,
+          creatorId: 1, // Alex (admin)
+          title: "Team Practice",
+          eventType: "practice",
+          startTime: nextPractice,
+          endTime: practiceEnd,
+          location: "Downtown Community Center",
+          description: "Regular team practice focusing on defensive drills"
+        }).then(schedule => {
+          // Add responses to the schedule
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 1, // Alex
+            response: "attending"
+          });
+          
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 3, // Mark
+            response: "attending"
+          });
+          
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 4, // Emma
+            response: "maybe",
+            responseNote: "I might be running late due to work",
+            maybeDeadline: new Date(nextPractice.getTime() - 3600000) // 1 hour before practice
+          });
+        });
+        
+        // Create a game schedule
+        const nextGame = new Date();
+        nextGame.setDate(nextGame.getDate() + 5); // 5 days from now
+        nextGame.setHours(19, 0, 0, 0); // 7:00 PM
+        
+        const gameEnd = new Date(nextGame);
+        gameEnd.setHours(21, 0, 0, 0); // 9:00 PM
+        
+        this.createTeamSchedule({
+          teamId: team1.id,
+          creatorId: 4, // Emma (captain)
+          title: "Game vs. Uptown Ballers",
+          eventType: "game",
+          startTime: nextGame,
+          endTime: gameEnd,
+          location: "City Sports Center",
+          description: "Regular season game against the Uptown Ballers"
+        }).then(schedule => {
+          // Add responses to the schedule
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 1, // Alex
+            response: "attending"
+          });
+          
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 3, // Mark
+            response: "attending"
+          });
+          
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 4, // Emma
+            response: "attending"
+          });
+        });
+      });
+      
+      this.createTeam(volleyballTeam).then(team2 => {
+        // Add additional team members for volleyball team
+        this.createTeamMember({
+          teamId: team2.id,
+          userId: 1, // Alex
+          role: "member",
+          position: "Outside Hitter"
+        });
+        
+        // Create team posts for volleyball team
+        this.createTeamPost({
+          teamId: team2.id,
+          userId: 2, // Sarah (admin)
+          content: "Beach Spikers assemble! We have a tournament coming up in two weeks. Let's start preparing!"
+        }).then(post => {
+          // Add comments to the post
+          this.createTeamPostComment({
+            postId: post.id,
+            userId: 1, // Alex
+            content: "Can't wait! Do we need to register individually?"
+          });
+          
+          this.createTeamPostComment({
+            postId: post.id,
+            userId: 2, // Sarah (response to Alex)
+            content: "No, I'll handle the team registration. Just make sure you're available that weekend."
+          });
+        });
+        
+        // Create team schedule for volleyball team
+        const beachPractice = new Date();
+        beachPractice.setDate(beachPractice.getDate() + 3); // 3 days from now
+        beachPractice.setHours(17, 0, 0, 0); // 5:00 PM
+        
+        const practiceEnd = new Date(beachPractice);
+        practiceEnd.setHours(19, 0, 0, 0); // 7:00 PM
+        
+        this.createTeamSchedule({
+          teamId: team2.id,
+          creatorId: 2, // Sarah (admin)
+          title: "Beach Practice",
+          eventType: "practice",
+          startTime: beachPractice,
+          endTime: practiceEnd,
+          location: "Ocean Beach Courts",
+          description: "Practice focusing on service and reception"
+        }).then(schedule => {
+          // Add responses to the schedule
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 2, // Sarah
+            response: "attending"
+          });
+          
+          this.createTeamScheduleResponse({
+            scheduleId: schedule.id,
+            userId: 1, // Alex
+            response: "not_attending",
+            responseNote: "I have a conflicting event that day"
+          });
+        });
+      });
     });
   }
 }
@@ -678,6 +1283,405 @@ export class DatabaseStorage implements IStorage {
       tableName: "session",
       createTableIfMissing: true,
     });
+  }
+  
+  // Team methods
+  async getTeam(id: number): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team;
+  }
+  
+  async getTeamsByUser(userId: number): Promise<Team[]> {
+    // Get teams where the user is a creator
+    const creatorTeams = await db.select().from(teams).where(eq(teams.creatorId, userId));
+    
+    // Get teams where the user is a member
+    const memberTeamIds = await db
+      .select({ teamId: teamMembers.teamId })
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId));
+    
+    const memberTeamIdsArray = memberTeamIds.map(item => item.teamId);
+    
+    // If user is not a member of any teams, just return creator teams
+    if (memberTeamIdsArray.length === 0) {
+      return creatorTeams;
+    }
+    
+    // Get teams where user is a member but not a creator
+    const memberTeams = await db
+      .select()
+      .from(teams)
+      .where(
+        and(
+          or(...memberTeamIdsArray.map(teamId => eq(teams.id, teamId))),
+          sql`${teams.creatorId} != ${userId}`
+        )
+      );
+    
+    // Combine the teams where user is creator and teams where user is member
+    return [...creatorTeams, ...memberTeams];
+  }
+  
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const [newTeam] = await db.insert(teams).values(team).returning();
+    
+    // Automatically add creator as admin
+    await db.insert(teamMembers).values({
+      teamId: newTeam.id,
+      userId: newTeam.creatorId,
+      role: "admin",
+    });
+    
+    return newTeam;
+  }
+  
+  async updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined> {
+    const [updatedTeam] = await db
+      .update(teams)
+      .set(teamData)
+      .where(eq(teams.id, id))
+      .returning();
+    
+    return updatedTeam;
+  }
+  
+  async deleteTeam(id: number): Promise<boolean> {
+    // First check if team exists
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    if (!team) return false;
+    
+    // Delete related data first (comments, responses, etc.)
+    // Note: In a production system, we'd want to use a transaction here
+    
+    // Get all posts for this team
+    const teamPosts = await db.select().from(teamPosts).where(eq(teamPosts.teamId, id));
+    const postIds = teamPosts.map(post => post.id);
+    
+    // Delete post comments for team posts
+    if (postIds.length > 0) {
+      await db
+        .delete(teamPostComments)
+        .where(or(...postIds.map(postId => eq(teamPostComments.postId, postId))));
+    }
+    
+    // Delete posts
+    await db.delete(teamPosts).where(eq(teamPosts.teamId, id));
+    
+    // Get all schedules for this team
+    const schedules = await db.select().from(teamSchedules).where(eq(teamSchedules.teamId, id));
+    const scheduleIds = schedules.map(schedule => schedule.id);
+    
+    // Delete schedule responses
+    if (scheduleIds.length > 0) {
+      await db
+        .delete(teamScheduleResponses)
+        .where(or(...scheduleIds.map(scheduleId => eq(teamScheduleResponses.scheduleId, scheduleId))));
+    }
+    
+    // Delete schedules
+    await db.delete(teamSchedules).where(eq(teamSchedules.teamId, id));
+    
+    // Delete team members
+    await db.delete(teamMembers).where(eq(teamMembers.teamId, id));
+    
+    // Finally, delete the team itself
+    const deleted = await db.delete(teams).where(eq(teams.id, id));
+    
+    return deleted.count > 0;
+  }
+  
+  // Team membership methods
+  async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.teamId, teamId),
+          eq(teamMembers.userId, userId)
+        )
+      );
+    
+    return member;
+  }
+  
+  async getTeamMemberById(id: number): Promise<TeamMember | undefined> {
+    const [member] = await db.select().from(teamMembers).where(eq(teamMembers.id, id));
+    return member;
+  }
+  
+  async getTeamMembers(teamId: number): Promise<TeamMember[]> {
+    const members = await db
+      .select({
+        id: teamMembers.id,
+        teamId: teamMembers.teamId,
+        userId: teamMembers.userId,
+        role: teamMembers.role,
+        position: teamMembers.position,
+        stats: teamMembers.stats,
+        joinedAt: teamMembers.joinedAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          email: users.email,
+          profileImage: users.profileImage
+        }
+      })
+      .from(teamMembers)
+      .leftJoin(users, eq(teamMembers.userId, users.id))
+      .where(eq(teamMembers.teamId, teamId));
+    
+    return members;
+  }
+  
+  async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    const [newMember] = await db.insert(teamMembers).values(member).returning();
+    return newMember;
+  }
+  
+  async updateTeamMember(id: number, memberData: Partial<TeamMember>): Promise<TeamMember | undefined> {
+    const [updatedMember] = await db
+      .update(teamMembers)
+      .set(memberData)
+      .where(eq(teamMembers.id, id))
+      .returning();
+    
+    return updatedMember;
+  }
+  
+  async deleteTeamMember(id: number): Promise<boolean> {
+    const deleted = await db.delete(teamMembers).where(eq(teamMembers.id, id));
+    return deleted.count > 0;
+  }
+  
+  // Team post methods
+  async getTeamPost(id: number): Promise<TeamPost | undefined> {
+    const [post] = await db.select().from(teamPosts).where(eq(teamPosts.id, id));
+    return post;
+  }
+  
+  async getTeamPosts(teamId: number): Promise<TeamPost[]> {
+    const posts = await db
+      .select({
+        id: teamPosts.id,
+        teamId: teamPosts.teamId,
+        userId: teamPosts.userId,
+        content: teamPosts.content,
+        image: teamPosts.image,
+        createdAt: teamPosts.createdAt,
+        updatedAt: teamPosts.updatedAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          profileImage: users.profileImage
+        }
+      })
+      .from(teamPosts)
+      .leftJoin(users, eq(teamPosts.userId, users.id))
+      .where(eq(teamPosts.teamId, teamId))
+      .orderBy(desc(teamPosts.createdAt));
+    
+    return posts;
+  }
+  
+  async createTeamPost(post: InsertTeamPost): Promise<TeamPost> {
+    const [newPost] = await db.insert(teamPosts).values(post).returning();
+    return newPost;
+  }
+  
+  async updateTeamPost(id: number, postData: Partial<TeamPost>): Promise<TeamPost | undefined> {
+    const [updatedPost] = await db
+      .update(teamPosts)
+      .set({
+        ...postData,
+        updatedAt: new Date()
+      })
+      .where(eq(teamPosts.id, id))
+      .returning();
+    
+    return updatedPost;
+  }
+  
+  async deleteTeamPost(id: number): Promise<boolean> {
+    // Delete comments first
+    await db.delete(teamPostComments).where(eq(teamPostComments.postId, id));
+    
+    // Then delete the post
+    const deleted = await db.delete(teamPosts).where(eq(teamPosts.id, id));
+    return deleted.count > 0;
+  }
+  
+  // Team post comment methods
+  async getTeamPostComment(id: number): Promise<TeamPostComment | undefined> {
+    const [comment] = await db.select().from(teamPostComments).where(eq(teamPostComments.id, id));
+    return comment;
+  }
+  
+  async getTeamPostComments(postId: number): Promise<TeamPostComment[]> {
+    const comments = await db
+      .select({
+        id: teamPostComments.id,
+        postId: teamPostComments.postId,
+        userId: teamPostComments.userId,
+        content: teamPostComments.content,
+        createdAt: teamPostComments.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          profileImage: users.profileImage
+        }
+      })
+      .from(teamPostComments)
+      .leftJoin(users, eq(teamPostComments.userId, users.id))
+      .where(eq(teamPostComments.postId, postId))
+      .orderBy(teamPostComments.createdAt);
+    
+    return comments;
+  }
+  
+  async createTeamPostComment(comment: InsertTeamPostComment): Promise<TeamPostComment> {
+    const [newComment] = await db.insert(teamPostComments).values(comment).returning();
+    return newComment;
+  }
+  
+  async updateTeamPostComment(id: number, commentData: Partial<TeamPostComment>): Promise<TeamPostComment | undefined> {
+    const [updatedComment] = await db
+      .update(teamPostComments)
+      .set(commentData)
+      .where(eq(teamPostComments.id, id))
+      .returning();
+    
+    return updatedComment;
+  }
+  
+  async deleteTeamPostComment(id: number): Promise<boolean> {
+    const deleted = await db.delete(teamPostComments).where(eq(teamPostComments.id, id));
+    return deleted.count > 0;
+  }
+  
+  // Team schedule methods
+  async getTeamSchedule(id: number): Promise<TeamSchedule | undefined> {
+    const [schedule] = await db.select().from(teamSchedules).where(eq(teamSchedules.id, id));
+    return schedule;
+  }
+  
+  async getTeamSchedules(teamId: number): Promise<TeamSchedule[]> {
+    const schedules = await db
+      .select({
+        id: teamSchedules.id,
+        teamId: teamSchedules.teamId,
+        creatorId: teamSchedules.creatorId,
+        title: teamSchedules.title,
+        description: teamSchedules.description,
+        startTime: teamSchedules.startTime,
+        endTime: teamSchedules.endTime,
+        location: teamSchedules.location,
+        isRequired: teamSchedules.isRequired,
+        createdAt: teamSchedules.createdAt,
+        creator: {
+          id: users.id,
+          username: users.username,
+          name: users.name
+        }
+      })
+      .from(teamSchedules)
+      .leftJoin(users, eq(teamSchedules.creatorId, users.id))
+      .where(eq(teamSchedules.teamId, teamId))
+      .orderBy(teamSchedules.startTime);
+    
+    return schedules;
+  }
+  
+  async createTeamSchedule(schedule: InsertTeamSchedule): Promise<TeamSchedule> {
+    const [newSchedule] = await db.insert(teamSchedules).values(schedule).returning();
+    return newSchedule;
+  }
+  
+  async updateTeamSchedule(id: number, scheduleData: Partial<TeamSchedule>): Promise<TeamSchedule | undefined> {
+    const [updatedSchedule] = await db
+      .update(teamSchedules)
+      .set(scheduleData)
+      .where(eq(teamSchedules.id, id))
+      .returning();
+    
+    return updatedSchedule;
+  }
+  
+  async deleteTeamSchedule(id: number): Promise<boolean> {
+    // Delete responses first
+    await db.delete(teamScheduleResponses).where(eq(teamScheduleResponses.scheduleId, id));
+    
+    // Then delete the schedule
+    const deleted = await db.delete(teamSchedules).where(eq(teamSchedules.id, id));
+    return deleted.count > 0;
+  }
+  
+  // Team schedule response methods
+  async getTeamScheduleResponse(scheduleId: number, userId: number): Promise<TeamScheduleResponse | undefined> {
+    const [response] = await db
+      .select()
+      .from(teamScheduleResponses)
+      .where(
+        and(
+          eq(teamScheduleResponses.scheduleId, scheduleId),
+          eq(teamScheduleResponses.userId, userId)
+        )
+      );
+    
+    return response;
+  }
+  
+  async getTeamScheduleResponseById(id: number): Promise<TeamScheduleResponse | undefined> {
+    const [response] = await db.select().from(teamScheduleResponses).where(eq(teamScheduleResponses.id, id));
+    return response;
+  }
+  
+  async getTeamScheduleResponses(scheduleId: number): Promise<TeamScheduleResponse[]> {
+    const responses = await db
+      .select({
+        id: teamScheduleResponses.id,
+        scheduleId: teamScheduleResponses.scheduleId,
+        userId: teamScheduleResponses.userId,
+        response: teamScheduleResponses.response,
+        notes: teamScheduleResponses.notes,
+        maybeDeadline: teamScheduleResponses.maybeDeadline,
+        createdAt: teamScheduleResponses.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          profileImage: users.profileImage
+        }
+      })
+      .from(teamScheduleResponses)
+      .leftJoin(users, eq(teamScheduleResponses.userId, users.id))
+      .where(eq(teamScheduleResponses.scheduleId, scheduleId));
+    
+    return responses;
+  }
+  
+  async createTeamScheduleResponse(response: InsertTeamScheduleResponse): Promise<TeamScheduleResponse> {
+    const [newResponse] = await db.insert(teamScheduleResponses).values(response).returning();
+    return newResponse;
+  }
+  
+  async updateTeamScheduleResponse(id: number, responseData: Partial<TeamScheduleResponse>): Promise<TeamScheduleResponse | undefined> {
+    const [updatedResponse] = await db
+      .update(teamScheduleResponses)
+      .set(responseData)
+      .where(eq(teamScheduleResponses.id, id))
+      .returning();
+    
+    return updatedResponse;
+  }
+  
+  async deleteTeamScheduleResponse(id: number): Promise<boolean> {
+    const deleted = await db.delete(teamScheduleResponses).where(eq(teamScheduleResponses.id, id));
+    return deleted.count > 0;
   }
   
   // User methods

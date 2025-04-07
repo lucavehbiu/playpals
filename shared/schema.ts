@@ -26,6 +26,9 @@ export const rsvpStatusTypes = ["approved", "denied", "maybe"] as const;
 // Team membership roles
 export const teamMemberRoles = ["admin", "member", "captain"] as const;
 
+// Team schedule response types
+export const scheduleResponseTypes = ["attending", "not_attending", "maybe"] as const;
+
 // Skill levels for sports
 export const skillLevels = ["beginner", "intermediate", "advanced", "expert"] as const;
 
@@ -146,6 +149,57 @@ export const playerRatings = pgTable("player_ratings", {
   uniqueEventRating: unique().on(t.ratedUserId, t.raterUserId, t.eventId),
 }));
 
+// Team Posts table
+export const teamPosts = pgTable("team_posts", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  attachments: jsonb("attachments"),
+  likes: integer("likes").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Team Post Comments table
+export const teamPostComments = pgTable("team_post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => teamPosts.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  likes: integer("likes").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Team Schedule Events table
+export const teamSchedules = pgTable("team_schedules", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  creatorId: integer("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventType: text("event_type").notNull(), // "training", "game", "meeting", etc.
+  location: text("location"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Team Schedule Responses table
+export const teamScheduleResponses = pgTable("team_schedule_responses", {
+  id: serial("id").primaryKey(),
+  scheduleId: integer("schedule_id").notNull().references(() => teamSchedules.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  response: text("response").notNull(), // "attending", "not_attending", "maybe"
+  responseNote: text("response_note"),
+  maybeDeadline: timestamp("maybe_deadline"), // Only for "maybe" responses
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only respond once per schedule event
+  uniqueScheduleResponse: unique().on(t.scheduleId, t.userId),
+}));
+
 // Define relations
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -167,6 +221,8 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
     relationName: "user_teams",
   }),
   members: many(teamMembers, { relationName: "team_members" }),
+  posts: many(teamPosts, { relationName: "team_posts" }),
+  schedules: many(teamSchedules, { relationName: "team_schedules" }),
   // Temporarily remove events relation
   // events: many(events, { relationName: "team_events" }),
 }));
@@ -216,6 +272,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   events: many(events, { relationName: "user_events" }),
   teams: many(teams, { relationName: "user_teams" }),
   teamMemberships: many(teamMembers, { relationName: "user_team_memberships" }),
+  teamPosts: many(teamPosts, { relationName: "user_team_posts" }),
+  teamPostComments: many(teamPostComments, { relationName: "user_team_post_comments" }),
+  teamSchedules: many(teamSchedules, { relationName: "user_team_schedules" }),
+  teamScheduleResponses: many(teamScheduleResponses, { relationName: "user_team_schedule_responses" }),
   rsvps: many(rsvps, { relationName: "user_rsvps" }),
   sentFriendships: many(friendships, { relationName: "user_sent_friendships" }),
   receivedFriendships: many(friendships, { relationName: "user_received_friendships" }),
@@ -247,6 +307,64 @@ export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
     fields: [playerRatings.eventId],
     references: [events.id],
     relationName: "event_ratings",
+  }),
+}));
+
+// Team Posts relations
+export const teamPostsRelations = relations(teamPosts, ({ one, many }) => ({
+  team: one(teams, {
+    fields: [teamPosts.teamId],
+    references: [teams.id],
+    relationName: "team_posts",
+  }),
+  user: one(users, {
+    fields: [teamPosts.userId],
+    references: [users.id],
+    relationName: "user_team_posts",
+  }),
+  comments: many(teamPostComments, { relationName: "post_comments" }),
+}));
+
+// Team Post Comments relations
+export const teamPostCommentsRelations = relations(teamPostComments, ({ one }) => ({
+  post: one(teamPosts, {
+    fields: [teamPostComments.postId],
+    references: [teamPosts.id],
+    relationName: "post_comments",
+  }),
+  user: one(users, {
+    fields: [teamPostComments.userId],
+    references: [users.id],
+    relationName: "user_team_post_comments",
+  }),
+}));
+
+// Team Schedules relations
+export const teamSchedulesRelations = relations(teamSchedules, ({ one, many }) => ({
+  team: one(teams, {
+    fields: [teamSchedules.teamId],
+    references: [teams.id],
+    relationName: "team_schedules",
+  }),
+  creator: one(users, {
+    fields: [teamSchedules.creatorId],
+    references: [users.id],
+    relationName: "user_team_schedules",
+  }),
+  responses: many(teamScheduleResponses, { relationName: "schedule_responses" }),
+}));
+
+// Team Schedule Responses relations
+export const teamScheduleResponsesRelations = relations(teamScheduleResponses, ({ one }) => ({
+  schedule: one(teamSchedules, {
+    fields: [teamScheduleResponses.scheduleId],
+    references: [teamSchedules.id],
+    relationName: "schedule_responses",
+  }),
+  user: one(users, {
+    fields: [teamScheduleResponses.userId],
+    references: [users.id],
+    relationName: "user_team_schedule_responses",
   }),
 }));
 
@@ -300,6 +418,44 @@ export const insertPlayerRatingSchema = createInsertSchema(playerRatings).omit({
   createdAt: true,
 });
 
+export const insertTeamPostSchema = createInsertSchema(teamPosts).omit({
+  id: true,
+  createdAt: true,
+  likes: true,
+});
+
+export const insertTeamPostCommentSchema = createInsertSchema(teamPostComments).omit({
+  id: true,
+  createdAt: true,
+  likes: true,
+});
+
+export const insertTeamScheduleSchema = createInsertSchema(teamSchedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  startTime: z.preprocess(
+    (val) => (typeof val === 'string' ? new Date(val) : val),
+    z.date()
+  ),
+  endTime: z.preprocess(
+    (val) => (typeof val === 'string' ? new Date(val) : val),
+    z.date()
+  ),
+});
+
+export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleResponses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  maybeDeadline: z.preprocess(
+    (val) => (typeof val === 'string' ? new Date(val) : val),
+    z.date().optional()
+  ),
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -312,6 +468,18 @@ export type InsertTeam = z.infer<typeof insertTeamSchema>;
 
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+
+export type TeamPost = typeof teamPosts.$inferSelect;
+export type InsertTeamPost = z.infer<typeof insertTeamPostSchema>;
+
+export type TeamPostComment = typeof teamPostComments.$inferSelect;
+export type InsertTeamPostComment = z.infer<typeof insertTeamPostCommentSchema>;
+
+export type TeamSchedule = typeof teamSchedules.$inferSelect;
+export type InsertTeamSchedule = z.infer<typeof insertTeamScheduleSchema>;
+
+export type TeamScheduleResponse = typeof teamScheduleResponses.$inferSelect;
+export type InsertTeamScheduleResponse = z.infer<typeof insertTeamScheduleResponseSchema>;
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -328,4 +496,5 @@ export type InsertPlayerRating = z.infer<typeof insertPlayerRatingSchema>;
 export type SportType = typeof sportTypes[number];
 export type RSVPStatus = typeof rsvpStatusTypes[number];
 export type TeamMemberRole = typeof teamMemberRoles[number];
+export type ScheduleResponseType = typeof scheduleResponseTypes[number];
 export type SkillLevel = typeof skillLevels[number];
