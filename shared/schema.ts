@@ -177,12 +177,11 @@ export const teamSchedules = pgTable("team_schedules", {
   creatorId: integer("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
-  eventType: text("event_type").notNull(), // "training", "game", "meeting", etc.
   location: text("location"),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
+  isRequired: boolean("is_required").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Team Schedule Responses table
@@ -191,7 +190,7 @@ export const teamScheduleResponses = pgTable("team_schedule_responses", {
   scheduleId: integer("schedule_id").notNull().references(() => teamSchedules.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   response: text("response").notNull(), // "attending", "not_attending", "maybe"
-  responseNote: text("response_note"),
+  notes: text("notes"),
   maybeDeadline: timestamp("maybe_deadline"), // Only for "maybe" responses
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -433,7 +432,6 @@ export const insertTeamPostCommentSchema = createInsertSchema(teamPostComments).
 export const insertTeamScheduleSchema = createInsertSchema(teamSchedules).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 }).extend({
   startTime: z.preprocess(
     (val) => (typeof val === 'string' ? new Date(val) : val),
@@ -443,6 +441,7 @@ export const insertTeamScheduleSchema = createInsertSchema(teamSchedules).omit({
     (val) => (typeof val === 'string' ? new Date(val) : val),
     z.date()
   ),
+  isRequired: z.boolean().optional().default(false),
 });
 
 export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleResponses).omit({

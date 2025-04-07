@@ -591,7 +591,7 @@ export class MemStorage implements IStorage {
       id,
       createdAt: now,
       updatedAt: now,
-      responseNote: response.responseNote ?? null,
+      notes: response.notes ?? null,
       maybeDeadline: response.maybeDeadline ?? null
     };
     this.teamScheduleResponses.set(id, newResponse);
@@ -1263,7 +1263,7 @@ export class MemStorage implements IStorage {
             scheduleId: schedule.id,
             userId: 1, // Alex
             response: "not_attending",
-            responseNote: "I have a conflicting event that day"
+            notes: "I have a conflicting event that day"
           });
         });
       });
