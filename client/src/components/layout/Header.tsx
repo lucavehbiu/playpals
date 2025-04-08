@@ -26,8 +26,8 @@ const Header = () => {
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link href="/">
-                <span className="text-primary font-bold text-xl cursor-pointer">PlayPals</span>
+              <Link href="/" className="text-primary font-bold text-xl cursor-pointer">
+                PlayPals
               </Link>
             </div>
             
@@ -45,35 +45,25 @@ const Header = () => {
             
             {/* Main Navigation - Desktop */}
             <nav className="hidden md:flex items-center justify-between flex-1 px-4 lg:px-10 max-w-3xl mx-auto">
-              <Link href="/">
-                <a className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <Home className="h-6 w-6 mx-auto" />
-                  <span className="text-xs font-medium mt-1 block">Feed</span>
-                </a>
+              <Link href="/" className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Home className="h-6 w-6 mx-auto" />
+                <span className="text-xs font-medium mt-1 block">Feed</span>
               </Link>
-              <Link href="/discover">
-                <a className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/discover' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <Search className="h-6 w-6 mx-auto" />
-                  <span className="text-xs font-medium mt-1 block">Discover</span>
-                </a>
+              <Link href="/discover" className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/discover' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Search className="h-6 w-6 mx-auto" />
+                <span className="text-xs font-medium mt-1 block">Discover</span>
               </Link>
-              <Link href="/myevents">
-                <a className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/myevents' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <Calendar className="h-6 w-6 mx-auto" />
-                  <span className="text-xs font-medium mt-1 block">Events</span>
-                </a>
+              <Link href="/myevents" className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/myevents' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Calendar className="h-6 w-6 mx-auto" />
+                <span className="text-xs font-medium mt-1 block">Events</span>
               </Link>
-              <Link href="/teams">
-                <a className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/teams' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <Users className="h-6 w-6 mx-auto" />
-                  <span className="text-xs font-medium mt-1 block">Teams</span>
-                </a>
+              <Link href="/teams" className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/teams' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Users className="h-6 w-6 mx-auto" />
+                <span className="text-xs font-medium mt-1 block">Teams</span>
               </Link>
-              <Link href="/invitations">
-                <a className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/invitations' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  <Bell className="h-6 w-6 mx-auto" />
-                  <span className="text-xs font-medium mt-1 block">Invites</span>
-                </a>
+              <Link href="/invitations" className={`px-6 py-2 rounded-md text-center w-[85px] ${location === '/invitations' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Bell className="h-6 w-6 mx-auto" />
+                <span className="text-xs font-medium mt-1 block">Invites</span>
               </Link>
             </nav>
             
@@ -81,7 +71,7 @@ const Header = () => {
             <div className="flex items-center space-x-2">
               {/* Notifications - Only show on larger screens when nav is visible */}
               <div className="hidden lg:block">
-                <Link href="/invitations">
+                <Link href="/invitations" className="inline-block">
                   <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 relative">
                     <Bell className="h-5 w-5" />
                     {notificationCount > 0 && (
@@ -93,7 +83,7 @@ const Header = () => {
                 </Link>
               </div>
               
-              <Link href="/profile">
+              <Link href="/profile" className="inline-block">
                 <div className="h-9 w-9 cursor-pointer">
                   <Avatar>
                     {user?.profileImage ? (
@@ -126,50 +116,40 @@ const Header = () => {
           {isMobileMenuOpen && (
             <div className="md:hidden border-t border-gray-200 py-2">
               <div className="space-y-1 px-2">
-                <Link href="/">
-                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                    <div className="flex items-center">
-                      <Home className="h-5 w-5 mr-3" />
-                      Feed
-                    </div>
-                  </a>
+                <Link href="/" className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <div className="flex items-center">
+                    <Home className="h-5 w-5 mr-3" />
+                    Feed
+                  </div>
                 </Link>
-                <Link href="/discover">
-                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/discover' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                    <div className="flex items-center">
-                      <Search className="h-5 w-5 mr-3" />
-                      Discover
-                    </div>
-                  </a>
+                <Link href="/discover" className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/discover' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <div className="flex items-center">
+                    <Search className="h-5 w-5 mr-3" />
+                    Discover
+                  </div>
                 </Link>
-                <Link href="/myevents">
-                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/myevents' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                    <div className="flex items-center">
-                      <Calendar className="h-5 w-5 mr-3" />
-                      My Events
-                    </div>
-                  </a>
+                <Link href="/myevents" className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/myevents' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 mr-3" />
+                    My Events
+                  </div>
                 </Link>
-                <Link href="/teams">
-                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/teams' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                    <div className="flex items-center">
-                      <Users className="h-5 w-5 mr-3" />
-                      Teams
-                    </div>
-                  </a>
+                <Link href="/teams" className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/teams' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 mr-3" />
+                    Teams
+                  </div>
                 </Link>
-                <Link href="/invitations">
-                  <a className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/invitations' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                    <div className="flex items-center">
-                      <Bell className="h-5 w-5 mr-3" />
-                      Invitations
-                      {notificationCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </div>
-                  </a>
+                <Link href="/invitations" className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/invitations' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <div className="flex items-center">
+                    <Bell className="h-5 w-5 mr-3" />
+                    Invitations
+                    {notificationCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {notificationCount}
+                      </span>
+                    )}
+                  </div>
                 </Link>
                 <div className="pt-4 pb-2">
                   <div className="border-t border-gray-200"></div>

@@ -19,6 +19,12 @@ const EventCard = ({
   onShare 
 }: EventCardProps) => {
   const [, setLocation] = useLocation();
+  
+  const navigateToEventDetails = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setLocation(`/events/${event.id}`);
+  };
+  
   const getSportBadgeColor = (sport: string) => {
     const sportColors: Record<string, string> = {
       basketball: "bg-secondary",
@@ -47,15 +53,11 @@ const EventCard = ({
     return `${event.currentParticipants}/${event.maxParticipants} players`;
   };
   
-  const handleViewDetails = () => {
-    setLocation(`/events/${event.id}`);
-  };
-  
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300">
       <div 
         className="aspect-w-16 aspect-h-9 h-48 relative" 
-        onClick={handleViewDetails}
+        onClick={navigateToEventDetails}
       >
         <img 
           src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
@@ -72,7 +74,7 @@ const EventCard = ({
         </div>
       </div>
       <div className="p-4">
-        <div className="mb-4" onClick={handleViewDetails}>
+        <div className="mb-4" onClick={navigateToEventDetails}>
           <div className="flex items-center text-sm text-gray-500 mb-2">
             <CalendarIcon className="h-5 w-5 mr-1 text-gray-400" />
             <span>{formatDate(event.date)}</span>
@@ -101,13 +103,19 @@ const EventCard = ({
             <>
               <button 
                 className="flex-1 bg-primary text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-                onClick={() => onManage && onManage(event.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onManage && onManage(event.id);
+                }}
               >
                 Manage
               </button>
               <button 
                 className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-200"
-                onClick={() => onShare && onShare(event.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare && onShare(event.id);
+                }}
               >
                 Share
               </button>
@@ -116,11 +124,17 @@ const EventCard = ({
             <>
               <button 
                 className="flex-1 bg-secondary text-white py-2 rounded-md text-sm font-medium hover:bg-green-700"
-                onClick={() => onJoin && onJoin(event.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onJoin && onJoin(event.id);
+                }}
               >
                 Join Event
               </button>
-              <button className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200">
+              <button 
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
                 </svg>
