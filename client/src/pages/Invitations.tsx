@@ -18,7 +18,7 @@ const Invitations = () => {
   
   // Fetch RSVPs for the current user
   const { data: rsvps, isLoading } = useQuery<RSVPWithEvent[]>({
-    queryKey: ['/api/rsvps/user', user?.id],
+    queryKey: [`/api/rsvps/user/${user?.id}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user
   });
@@ -30,7 +30,7 @@ const Invitations = () => {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rsvps/user', user?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/rsvps/user/${user?.id}`] });
       toast({
         title: "Success",
         description: "Your response has been saved",
@@ -60,6 +60,7 @@ const Invitations = () => {
   
   // Logging for debugging
   console.log("RSVP data:", rsvps);
+  console.log("User ID:", user?.id);
   
   // Filter for pending invitations (RSVP status "maybe" or "pending")
   const pendingInvitations = rsvps?.filter((rsvp: RSVPWithEvent) => {
