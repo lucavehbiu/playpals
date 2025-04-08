@@ -20,10 +20,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 const Feed = () => {
   const { user } = useAuth();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
   
   // Fetch events from users that current user follows - in a real app this would be a separate API endpoint
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
@@ -70,6 +72,7 @@ const Feed = () => {
               <div 
                 key={event.id} 
                 className="flex-shrink-0 w-[140px] rounded-xl overflow-hidden border border-gray-200 shadow-sm relative cursor-pointer group"
+                onClick={() => setLocation(`/events/${event.id}`)}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
                 <div className="h-[230px] bg-gray-200">
@@ -194,7 +197,10 @@ const Feed = () => {
                   </div>
                   
                   {/* Post content */}
-                  <div className="px-4 py-3">
+                  <div 
+                    className="px-4 py-3 cursor-pointer" 
+                    onClick={() => setLocation(`/events/${event.id}`)}
+                  >
                     <h4 className="font-bold text-lg mb-2">{event.title}</h4>
                     <p className="text-gray-700 mb-3">{event.description}</p>
                     
@@ -223,7 +229,10 @@ const Feed = () => {
                   
                   {/* Post image */}
                   {event.eventImage && (
-                    <div className="border-t border-b border-gray-100">
+                    <div 
+                      className="border-t border-b border-gray-100 cursor-pointer"
+                      onClick={() => setLocation(`/events/${event.id}`)}
+                    >
                       <img 
                         src={event.eventImage} 
                         alt={event.title} 
