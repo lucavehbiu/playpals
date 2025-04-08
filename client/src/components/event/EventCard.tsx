@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Event } from "@/lib/types";
-import { CalendarIcon, MapPinIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, ArrowUpRight } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface EventCardProps {
@@ -20,8 +20,12 @@ const EventCard = ({
 }: EventCardProps) => {
   const [, setLocation] = useLocation();
   
-  const navigateToEventDetails = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const navigateToEventDetails = (e: React.MouseEvent) => {
+    // If the click is on a button, don't navigate
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || 
+        (e.target as HTMLElement).closest('button')) {
+      return;
+    }
     setLocation(`/events/${event.id}`);
   };
   
@@ -55,9 +59,13 @@ const EventCard = ({
   
   return (
     <div 
-      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300"
+      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300 relative"
       onClick={navigateToEventDetails}
     >
+      <div className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1.5 shadow-sm">
+        <ArrowUpRight className="h-4 w-4 text-primary" />
+      </div>
+      
       <div className="aspect-w-16 aspect-h-9 h-48 relative">
         <img 
           src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
@@ -73,6 +81,7 @@ const EventCard = ({
           </div>
         </div>
       </div>
+      
       <div className="p-4">
         <div className="mb-4">
           <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -98,6 +107,7 @@ const EventCard = ({
             <span className="text-sm text-gray-500">{formatParticipants()}</span>
           </div>
         </div>
+        
         <div className="flex space-x-2">
           {isManageable ? (
             <>
