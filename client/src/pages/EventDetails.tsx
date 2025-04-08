@@ -167,9 +167,12 @@ const EventDetails = () => {
       {/* Event header */}
       <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
         <img 
-          src={event.eventImage || `https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`}
+          src={event.eventImage}
           alt={event.title || 'Event'} 
           className="w-full h-full object-cover" 
+          onError={(e) => {
+            e.currentTarget.src = `https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -187,13 +190,13 @@ const EventDetails = () => {
               {event.isFree ? "Free" : <><DollarSign className="h-3 w-3 mr-1" />{event.cost || 0}</>}
             </Badge>
           </div>
-          <h1 className="text-3xl font-bold text-white">{event.title || 'Untitled Event'}</h1>
+          <h1 className="text-3xl font-bold text-white">{event.title}</h1>
           <div className="flex mt-2 items-center">
             <Avatar className="h-8 w-8 border-2 border-white">
-              <AvatarImage src={event.creator?.profileImage || undefined} />
-              <AvatarFallback>{event.creator?.name?.[0] || "U"}</AvatarFallback>
+              <AvatarImage src={undefined} />
+              <AvatarFallback>U</AvatarFallback>
             </Avatar>
-            <span className="ml-2 text-white">{event.creator?.name || "Unknown"}</span>
+            <span className="ml-2 text-white">Created by {user?.username || "Unknown"}</span>
           </div>
         </div>
       </div>
