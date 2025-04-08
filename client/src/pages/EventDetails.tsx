@@ -15,7 +15,9 @@ import {
   Users,
   MessageSquare,
   Globe,
-  Lock
+  Lock,
+  UserPlus,
+  Settings
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -226,14 +228,29 @@ const EventDetails = () => {
         )}
         
         {isCreator && (
-          <Button 
-            className="flex-1 md:flex-none" 
-            variant="outline"
-            onClick={() => setLocation(`/myevents?manage=${event.id}`)}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Manage Event
-          </Button>
+          <>
+            <Button 
+              className="flex-1 md:flex-none" 
+              onClick={() => {
+                toast({
+                  title: "Invite Friends",
+                  description: "Select friends to invite to this event",
+                });
+                // This would open a modal to select friends to invite
+              }}
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Friends
+            </Button>
+            <Button 
+              className="flex-1 md:flex-none" 
+              variant="outline"
+              onClick={() => setLocation(`/myevents?manage=${event.id}`)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Event
+            </Button>
+          </>
         )}
         
         <Button 
