@@ -2,11 +2,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, MapPinIcon, UserIcon, Clock, CheckIcon, XIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, UserIcon, Clock, CheckIcon, XIcon, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { RSVP, Event } from "@/lib/types";
+import { RSVP, Event, UserProfile } from "@/lib/types";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 interface RSVPWithEvent extends RSVP {
   event?: Event;
@@ -57,8 +58,13 @@ const Invitations = () => {
     );
   }
   
-  // Filter for pending invitations (RSVP status "maybe")
-  const pendingInvitations = rsvps?.filter((rsvp: RSVPWithEvent) => rsvp.status === "maybe") || [];
+  // Logging for debugging
+  console.log("RSVP data:", rsvps);
+  
+  // Filter for pending invitations (RSVP status "maybe" or "pending")
+  const pendingInvitations = rsvps?.filter((rsvp: RSVPWithEvent) => {
+    return rsvp.status === "maybe" || rsvp.status === "pending";
+  }) || [];
   
   return (
     <div>
@@ -110,38 +116,47 @@ const Invitations = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <div>
-                    {invitation.event?.isFree ? (
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Free</span>
-                    ) : (
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                        ${(invitation.event?.cost ? (invitation.event.cost / 100).toFixed(2) : '0.00')}
-                      </span>
-                    )}
+                <div className="flex flex-col space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      {invitation.event?.isFree ? (
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Free</span>
+                      ) : (
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                          ${(invitation.event?.cost ? (invitation.event.cost / 100).toFixed(2) : '0.00')}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        disabled={updateRSVPMutation.isPending}
+                        onClick={() => handleRSVPResponse(invitation.id, "denied")}
+                      >
+                        <XIcon className="h-4 w-4 mr-1" />
+                        Decline
+                      </Button>
+                      <Button 
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={updateRSVPMutation.isPending}
+                        onClick={() => handleRSVPResponse(invitation.id, "approved")}
+                      >
+                        <CheckIcon className="h-4 w-4 mr-1" />
+                        Accept
+                      </Button>
+                    </div>
                   </div>
                   
-                  <div className="space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                      disabled={updateRSVPMutation.isPending}
-                      onClick={() => handleRSVPResponse(invitation.id, "denied")}
-                    >
-                      <XIcon className="h-4 w-4 mr-1" />
-                      Decline
+                  <Link href={`/events/${invitation.event?.id}`}>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Event Details
                     </Button>
-                    <Button 
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                      disabled={updateRSVPMutation.isPending}
-                      onClick={() => handleRSVPResponse(invitation.id, "approved")}
-                    >
-                      <CheckIcon className="h-4 w-4 mr-1" />
-                      Accept
-                    </Button>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -181,9 +196,12 @@ const Invitations = () => {
                     </div>
                   </div>
                   
-                  <Button variant="outline" size="sm" className="w-full">
-                    View Details
-                  </Button>
+                  <Link href={`/events/${rsvp.event?.id}`}>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Eye className="h-3 w-3 mr-1" />
+                      View Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}

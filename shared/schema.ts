@@ -113,7 +113,7 @@ export const rsvps = pgTable("rsvps", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  status: text("status").notNull(),
+  status: text("status", { enum: ["approved", "denied", "maybe", "pending"] }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({
   // Prevent duplicate RSVPs
