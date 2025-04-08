@@ -44,7 +44,7 @@ const EventDetails = () => {
     enabled: !!eventId,
   });
   
-  // Mutation for joining an event
+  // Mutation for requesting to join an event
   const joinEventMutation = useMutation({
     mutationFn: async () => {
       if (!eventId) throw new Error("No event ID provided");
@@ -52,7 +52,7 @@ const EventDetails = () => {
       const response = await apiRequest("POST", "/api/rsvps", {
         eventId: eventIdNum,
         userId: user?.id,
-        status: "approved"
+        status: "pending" // Set to pending instead of approved
       });
       return await response.json();
     },
@@ -63,14 +63,14 @@ const EventDetails = () => {
         queryClient.invalidateQueries({ queryKey: ['/api/events', eventIdNum] });
       }
       toast({
-        title: "Success",
-        description: "You've joined this event!",
+        title: "Request Sent",
+        description: "Your request to join this event has been sent to the organizer!",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to join event",
+        description: error instanceof Error ? error.message : "Failed to send join request",
         variant: "destructive",
       });
     }
@@ -108,7 +108,9 @@ const EventDetails = () => {
   const isCreator = user && event && user.id === event.creatorId;
   
   // Check if user has already RSVPd
-  const hasRSVPd = rsvps?.some((rsvp: any) => rsvp.userId === user?.id);
+  const userRSVP = rsvps?.find((rsvp: any) => rsvp.userId === user?.id);
+  const hasRSVPd = !!userRSVP;
+  const rsvpStatus = userRSVP?.status;
   
   // Sport badge colors (same as in EventCard)
   const getSportBadgeColor = (sport: string | undefined) => {
@@ -167,12 +169,9 @@ const EventDetails = () => {
       {/* Event header */}
       <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
         <img 
-          src={event.eventImage}
+          src={`https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`}
           alt={event.title || 'Event'} 
           className="w-full h-full object-cover" 
-          onError={(e) => {
-            e.currentTarget.src = `https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`;
-          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -190,7 +189,7 @@ const EventDetails = () => {
               {event.isFree ? "Free" : <><DollarSign className="h-3 w-3 mr-1" />{event.cost || 0}</>}
             </Badge>
           </div>
-          <h1 className="text-3xl font-bold text-white">{event.title}</h1>
+          <h1 className="text-3xl font-bold text-white">{event.title || "Event Title"}</h1>
           <div className="flex mt-2 items-center">
             <Avatar className="h-8 w-8 border-2 border-white">
               <AvatarImage src={undefined} />
@@ -210,8 +209,20 @@ const EventDetails = () => {
             disabled={joinEventMutation.isPending}
           >
             <Users className="mr-2 h-4 w-4" />
-            {joinEventMutation.isPending ? "Joining..." : "Join Event"}
+            {joinEventMutation.isPending ? "Sending Request..." : "Request to Join"}
           </Button>
+        )}
+        
+        {!isCreator && hasRSVPd && rsvpStatus === "pending" && (
+          <div className="flex items-center px-3 py-2 rounded-md bg-gray-100 text-gray-700">
+            <span className="text-sm">Your request to join is pending approval by the organizer</span>
+          </div>
+        )}
+        
+        {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
+          <div className="flex items-center px-3 py-2 rounded-md bg-green-100 text-green-700">
+            <span className="text-sm">You're confirmed to attend this event</span>
+          </div>
         )}
         
         {isCreator && (
@@ -318,7 +329,8 @@ const EventDetails = () => {
                         <p className="font-medium">{rsvp.user?.name || "Unknown"}</p>
                         <p className="text-sm text-gray-500">
                           {rsvp.status === "approved" ? "Going" : 
-                           rsvp.status === "denied" ? "Not going" : "Maybe"}
+                           rsvp.status === "denied" ? "Not going" : 
+                           rsvp.status === "pending" ? "Request Pending" : "Maybe"}
                         </p>
                       </div>
                     </div>
