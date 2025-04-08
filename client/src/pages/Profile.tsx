@@ -3,26 +3,31 @@ import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const Profile = () => {
   const { toast } = useToast();
-  const userId = localStorage.getItem('userId') || '1'; // Default for demo
+  const { user: authUser } = useAuth();
+  const userId = authUser?.id.toString() || '';
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'feed'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
   
   // Get user data
   const { data: user, isLoading: userLoading } = useQuery<UserProfile>({
     queryKey: [`/api/users/${userId}`],
+    enabled: !!userId,
   });
   
   // Get events created by the user
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: [`/api/events/user/${userId}`],
+    enabled: !!userId,
   });
   
   // Get player average rating
   const { data: playerRating } = useQuery<{average: number}>({
     queryKey: [`/api/player-ratings/average/${userId}`],
+    enabled: !!userId,
   });
   
   // Set average rating when player rating data is loaded
@@ -33,7 +38,7 @@ const Profile = () => {
   }, [playerRating]);
   
   // Mock posts data - in a real app, this would be fetched from an API
-  const posts: Post[] = [
+  const posts: Post[] = userId ? [
     {
       id: 1,
       user_id: parseInt(userId),
@@ -60,7 +65,7 @@ const Profile = () => {
       likes: 32,
       comments: 12
     }
-  ];
+  ] : [];
   
   if (userLoading) {
     return (
