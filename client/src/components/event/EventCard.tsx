@@ -54,11 +54,11 @@ const EventCard = ({
   };
   
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300">
-      <div 
-        className="aspect-w-16 aspect-h-9 h-48 relative" 
-        onClick={navigateToEventDetails}
-      >
+    <div 
+      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300"
+      onClick={navigateToEventDetails}
+    >
+      <div className="aspect-w-16 aspect-h-9 h-48 relative">
         <img 
           src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
           alt={`${event.title}`} 
@@ -74,7 +74,7 @@ const EventCard = ({
         </div>
       </div>
       <div className="p-4">
-        <div className="mb-4" onClick={navigateToEventDetails}>
+        <div className="mb-4">
           <div className="flex items-center text-sm text-gray-500 mb-2">
             <CalendarIcon className="h-5 w-5 mr-1 text-gray-400" />
             <span>{formatDate(event.date)}</span>
