@@ -111,7 +111,9 @@ const EventDetails = () => {
   const hasRSVPd = rsvps?.some((rsvp: any) => rsvp.userId === user?.id);
   
   // Sport badge colors (same as in EventCard)
-  const getSportBadgeColor = (sport: string) => {
+  const getSportBadgeColor = (sport: string | undefined) => {
+    if (!sport) return "bg-gray-500";
+    
     const sportColors: Record<string, string> = {
       basketball: "bg-secondary",
       soccer: "bg-accent",
@@ -165,25 +167,27 @@ const EventDetails = () => {
       {/* Event header */}
       <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
         <img 
-          src={event.eventImage || `https://source.unsplash.com/random/1200x600/?${event.sportType}`} 
-          alt={event.title} 
+          src={event.eventImage || `https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`}
+          alt={event.title || 'Event'} 
           className="w-full h-full object-cover" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <div className="flex items-center mb-2">
-            <Badge className={`${getSportBadgeColor(event.sportType)} hover:${getSportBadgeColor(event.sportType)}`}>
-              {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
-            </Badge>
+            {event.sportType && (
+              <Badge className={`${getSportBadgeColor(event.sportType)} hover:${getSportBadgeColor(event.sportType)}`}>
+                {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
+              </Badge>
+            )}
             <Badge className="ml-2 bg-gray-200 text-gray-800 hover:bg-gray-300" variant="outline">
               {event.isPublic ? <Globe className="h-3 w-3 mr-1" /> : <Lock className="h-3 w-3 mr-1" />}
               {event.isPublic ? "Public" : "Private"}
             </Badge>
             <Badge className="ml-2 bg-gray-200 text-gray-800 hover:bg-gray-300" variant="outline">
-              {event.isFree ? "Free" : <><DollarSign className="h-3 w-3 mr-1" />{event.cost}</>}
+              {event.isFree ? "Free" : <><DollarSign className="h-3 w-3 mr-1" />{event.cost || 0}</>}
             </Badge>
           </div>
-          <h1 className="text-3xl font-bold text-white">{event.title}</h1>
+          <h1 className="text-3xl font-bold text-white">{event.title || 'Untitled Event'}</h1>
           <div className="flex mt-2 items-center">
             <Avatar className="h-8 w-8 border-2 border-white">
               <AvatarImage src={event.creator?.profileImage || undefined} />
