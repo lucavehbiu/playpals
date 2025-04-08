@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { Event } from "@/lib/types";
 import { CalendarIcon, MapPinIcon } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface EventCardProps {
   event: Event;
@@ -17,6 +18,7 @@ const EventCard = ({
   onManage, 
   onShare 
 }: EventCardProps) => {
+  const [, setLocation] = useLocation();
   const getSportBadgeColor = (sport: string) => {
     const sportColors: Record<string, string> = {
       basketball: "bg-secondary",
@@ -45,9 +47,16 @@ const EventCard = ({
     return `${event.currentParticipants}/${event.maxParticipants} players`;
   };
   
+  const handleViewDetails = () => {
+    setLocation(`/events/${event.id}`);
+  };
+  
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="aspect-w-16 aspect-h-9 h-48 relative">
+    <div className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300">
+      <div 
+        className="aspect-w-16 aspect-h-9 h-48 relative" 
+        onClick={handleViewDetails}
+      >
         <img 
           src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
           alt={`${event.title}`} 
@@ -63,27 +72,29 @@ const EventCard = ({
         </div>
       </div>
       <div className="p-4">
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <CalendarIcon className="h-5 w-5 mr-1 text-gray-400" />
-          <span>{formatDate(event.date)}</span>
-        </div>
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <MapPinIcon className="h-5 w-5 mr-1 text-gray-400" />
-          <span>{event.location}</span>
-        </div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex -space-x-2">
-            {/* This would show actual participants in a real app */}
-            <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-            <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-            <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt="" />
-            {event.currentParticipants > 3 && (
-              <div className="h-6 w-6 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-500">
-                +{event.currentParticipants - 3}
-              </div>
-            )}
+        <div className="mb-4" onClick={handleViewDetails}>
+          <div className="flex items-center text-sm text-gray-500 mb-2">
+            <CalendarIcon className="h-5 w-5 mr-1 text-gray-400" />
+            <span>{formatDate(event.date)}</span>
           </div>
-          <span className="text-sm text-gray-500">{formatParticipants()}</span>
+          <div className="flex items-center text-sm text-gray-500 mb-2">
+            <MapPinIcon className="h-5 w-5 mr-1 text-gray-400" />
+            <span>{event.location}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex -space-x-2">
+              {/* This would show actual participants in a real app */}
+              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt="" />
+              {event.currentParticipants > 3 && (
+                <div className="h-6 w-6 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-500">
+                  +{event.currentParticipants - 3}
+                </div>
+              )}
+            </div>
+            <span className="text-sm text-gray-500">{formatParticipants()}</span>
+          </div>
         </div>
         <div className="flex space-x-2">
           {isManageable ? (
