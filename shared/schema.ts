@@ -193,7 +193,6 @@ export const teamScheduleResponses = pgTable("team_schedule_responses", {
   notes: text("notes"),
   maybeDeadline: timestamp("maybe_deadline"), // Only for "maybe" responses
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (t) => ({
   // Ensure a user can only respond once per schedule event
   uniqueScheduleResponse: unique().on(t.scheduleId, t.userId),
@@ -447,7 +446,6 @@ export const insertTeamScheduleSchema = createInsertSchema(teamSchedules).omit({
 export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleResponses).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 }).extend({
   maybeDeadline: z.preprocess(
     (val) => (typeof val === 'string' ? new Date(val) : val),

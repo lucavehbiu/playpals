@@ -26,7 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -72,6 +72,7 @@ const createScheduleSchema = z.object({
 const responseSchema = z.object({
   response: z.enum(["attending", "not_attending", "maybe"]),
   notes: z.string().optional(),
+  maybeDeadline: z.string().optional(),
 });
 
 const TeamDetails = () => {
@@ -126,6 +127,7 @@ const TeamDetails = () => {
     defaultValues: {
       response: "attending",
       notes: "",
+      maybeDeadline: new Date(Date.now() + 86400000).toISOString().substring(0, 16), // Next day as default
     },
   });
   
@@ -265,7 +267,7 @@ const TeamDetails = () => {
           userId: user?.id,
           response: data.response,
           notes: data.notes || null,
-          maybeDeadline: data.response === 'maybe' ? new Date(Date.now() + 86400000).toISOString() : null,
+          maybeDeadline: data.response === 'maybe' ? new Date(data.maybeDeadline).toISOString() : null,
         }),
       });
       
@@ -835,6 +837,29 @@ const TeamDetails = () => {
                                   </FormItem>
                                 )}
                               />
+                              
+                              {/* Show date/time picker only when "maybe" is selected */}
+                              {responseForm.watch("response") === "maybe" && (
+                                <FormField
+                                  control={responseForm.control}
+                                  name="maybeDeadline"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Decision Deadline</FormLabel>
+                                      <FormDescription>
+                                        When will you make your final decision?
+                                      </FormDescription>
+                                      <FormControl>
+                                        <Input 
+                                          type="datetime-local" 
+                                          {...field} 
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              )}
                               
                               <DialogFooter>
                                 <Button type="submit" disabled={respondToScheduleMutation.isPending}>

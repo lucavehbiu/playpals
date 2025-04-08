@@ -1623,7 +1623,15 @@ export class DatabaseStorage implements IStorage {
   // Team schedule response methods
   async getTeamScheduleResponse(scheduleId: number, userId: number): Promise<TeamScheduleResponse | undefined> {
     const [response] = await db
-      .select()
+      .select({
+        id: teamScheduleResponses.id,
+        scheduleId: teamScheduleResponses.scheduleId,
+        userId: teamScheduleResponses.userId,
+        response: teamScheduleResponses.response,
+        notes: teamScheduleResponses.notes,
+        maybeDeadline: teamScheduleResponses.maybeDeadline,
+        createdAt: teamScheduleResponses.createdAt
+      })
       .from(teamScheduleResponses)
       .where(
         and(
@@ -1636,11 +1644,23 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTeamScheduleResponseById(id: number): Promise<TeamScheduleResponse | undefined> {
-    const [response] = await db.select().from(teamScheduleResponses).where(eq(teamScheduleResponses.id, id));
+    const [response] = await db
+      .select({
+        id: teamScheduleResponses.id,
+        scheduleId: teamScheduleResponses.scheduleId,
+        userId: teamScheduleResponses.userId,
+        response: teamScheduleResponses.response,
+        notes: teamScheduleResponses.notes,
+        maybeDeadline: teamScheduleResponses.maybeDeadline,
+        createdAt: teamScheduleResponses.createdAt
+      })
+      .from(teamScheduleResponses)
+      .where(eq(teamScheduleResponses.id, id));
+    
     return response;
   }
   
-  async getTeamScheduleResponses(scheduleId: number): Promise<TeamScheduleResponse[]> {
+  async getTeamScheduleResponses(scheduleId: number): Promise<any[]> {
     const responses = await db
       .select({
         id: teamScheduleResponses.id,
