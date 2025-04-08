@@ -312,16 +312,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already RSVP'd
       const existingRSVP = await storage.getRSVP(rsvpData.eventId, authenticatedUser.id);
       
-      if (existingRSVP) {
-        return res.status(400).json({ message: "Already RSVP'd to this event" });
-      }
-      
       // Check if event is full (only if status is "approved")
       if (rsvpData.status === "approved" && event.currentParticipants >= event.maxParticipants) {
         return res.status(400).json({ message: "Event is full" });
       }
       
-      const newRSVP = await storage.createRSVP(rsvpData);
+      let newRSVP;
+      
+      if (existingRSVP) {
+        // Update the existing RSVP instead of creating a new one
+        newRSVP = await storage.updateRSVP(existingRSVP.id, { status: rsvpData.status });
+      } else {
+        // Create a new RSVP if none exists
+        newRSVP = await storage.createRSVP(rsvpData);
+      }
       res.status(201).json(newRSVP);
     } catch (error) {
       if (error instanceof z.ZodError) {
