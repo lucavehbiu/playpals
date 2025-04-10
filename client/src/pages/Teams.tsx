@@ -229,8 +229,8 @@ const Teams = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Your Teams</h1>
-          <p className="text-gray-500">Manage your sports teams and team events</p>
+          <h1 className="text-2xl font-bold">Teams</h1>
+          <p className="text-gray-500">Discover and manage sports teams</p>
         </div>
         <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
           <DialogTrigger asChild>

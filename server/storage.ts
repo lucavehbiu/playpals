@@ -43,6 +43,7 @@ export interface IStorage {
   // Team methods
   getTeam(id: number): Promise<Team | undefined>;
   getTeamsByUser(userId: number): Promise<Team[]>;
+  getAllTeams(nameQuery?: string): Promise<Team[]>;
   createTeam(team: InsertTeam): Promise<Team>;
   updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined>;
   deleteTeam(id: number): Promise<boolean>;
@@ -318,6 +319,21 @@ export class MemStorage implements IStorage {
       );
     
     return [...createdTeams, ...memberTeams];
+  }
+  
+  async getAllTeams(nameQuery?: string): Promise<Team[]> {
+    let teams = Array.from(this.teams.values());
+    
+    // If name query is provided, filter teams by name
+    if (nameQuery) {
+      const lowerQuery = nameQuery.toLowerCase();
+      teams = teams.filter(team => 
+        team.name.toLowerCase().includes(lowerQuery)
+      );
+    }
+    
+    // Return all teams, sorted by creation date (newest first)
+    return teams.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createTeam(team: InsertTeam): Promise<Team> {
