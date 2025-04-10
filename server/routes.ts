@@ -655,9 +655,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/teams', async (req: Request, res: Response) => {
     try {
-      // Implement this when needed - public teams listing
-      // Placeholder for now
-      res.status(501).json({ message: "Not implemented yet" });
+      // Get query parameters
+      const nameQuery = req.query.name as string | undefined;
+      
+      // Fetch all teams with optional name filter
+      const teams = await storage.getAllTeams(nameQuery);
+      
+      // Get creator info for each team
+      const teamsWithCreatorInfo = await Promise.all(teams.map(async (team) => {
+        const creator = await storage.getUser(team.creatorId);
+        return {
+          ...team,
+          creator: creator ? {
+            id: creator.id,
+            username: creator.username,
+            name: creator.name,
+            profileImage: creator.profileImage
+          } : null
+        };
+      }));
+      
+      res.json(teamsWithCreatorInfo);
     } catch (error) {
       console.error('Error fetching teams:', error);
       res.status(500).json({ message: "Error fetching teams" });
