@@ -65,13 +65,29 @@ const Header = () => {
       const response = await apiRequest("GET", `/api/events`);
       const events = await response.json();
       
+      // Split the query into words for better matching
+      const queryParts = query.toLowerCase().split(/\s+/).filter(part => part.length > 0);
+      
       // Filter events by query (title, description, location, sport type)
-      const filteredEvents = events.filter((event: any) => 
-        event.title.toLowerCase().includes(query.toLowerCase()) ||
-        (event.description && event.description.toLowerCase().includes(query.toLowerCase())) ||
-        (event.location && event.location.toLowerCase().includes(query.toLowerCase())) ||
-        (event.sportType && event.sportType.toLowerCase().includes(query.toLowerCase()))
-      );
+      const filteredEvents = events.filter((event: any) => {
+        // For single word queries, use simple includes matching
+        if (queryParts.length <= 1) {
+          return (
+            event.title.toLowerCase().includes(query.toLowerCase()) ||
+            (event.description && event.description.toLowerCase().includes(query.toLowerCase())) ||
+            (event.location && event.location.toLowerCase().includes(query.toLowerCase())) ||
+            (event.sportType && event.sportType.toLowerCase().includes(query.toLowerCase()))
+          );
+        }
+        
+        // For multi-word queries, check if ALL parts appear in at least one field
+        return queryParts.every(part => (
+          event.title.toLowerCase().includes(part) ||
+          (event.description && event.description.toLowerCase().includes(part)) ||
+          (event.location && event.location.toLowerCase().includes(part)) ||
+          (event.sportType && event.sportType.toLowerCase().includes(part))
+        ));
+      });
       
       return filteredEvents.map((event: any) => ({
         id: event.id,
@@ -95,11 +111,25 @@ const Header = () => {
       const response = await apiRequest("GET", `/api/teams`);
       const teams = await response.json();
       
+      // Split the query into words for better matching
+      const queryParts = query.toLowerCase().split(/\s+/).filter(part => part.length > 0);
+      
       // Filter teams by query (name, description)
-      const filteredTeams = teams.filter((team: any) => 
-        team.name.toLowerCase().includes(query.toLowerCase()) ||
-        (team.description && team.description.toLowerCase().includes(query.toLowerCase()))
-      );
+      const filteredTeams = teams.filter((team: any) => {
+        // For single word queries, use simple includes matching
+        if (queryParts.length <= 1) {
+          return (
+            team.name.toLowerCase().includes(query.toLowerCase()) ||
+            (team.description && team.description.toLowerCase().includes(query.toLowerCase()))
+          );
+        }
+        
+        // For multi-word queries, check if ALL parts appear in at least one field
+        return queryParts.every(part => (
+          team.name.toLowerCase().includes(part) ||
+          (team.description && team.description.toLowerCase().includes(part))
+        ));
+      });
       
       return filteredTeams.map((team: any) => ({
         id: team.id,
