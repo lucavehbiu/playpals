@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
+import { useState, useEffect } from "react";
 import { Event } from "@/lib/types";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +18,8 @@ import {
   Globe,
   Lock,
   UserPlus,
-  Settings
+  Settings,
+  ImageIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -106,6 +108,23 @@ const EventDetails = () => {
     return format(date, "EEEE, MMMM d, yyyy");
   };
   
+  // State for image loading
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // Create sport-specific image URL
+  const getEventImageUrl = (sportType: string | undefined) => {
+    return `https://source.unsplash.com/featured/1200x600/?${sportType?.toLowerCase() || 'sport'}`;
+  };
+
+  // Reset image state when event changes
+  useEffect(() => {
+    if (event) {
+      setImageLoaded(false);
+      setImageError(false);
+    }
+  }, [event?.id]);
+
   // Determine if the current user is the creator of this event
   const isCreator = user && event && user.id === event.creatorId;
   
@@ -170,11 +189,34 @@ const EventDetails = () => {
       
       {/* Event header */}
       <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
+        {/* Image loading state */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
+        {/* Error state */}
+        {imageError && (
+          <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-gray-400 mb-2" />
+            <p className="text-gray-600">Could not load event image</p>
+            <div className={`mt-4 h-8 w-32 rounded-full ${getSportBadgeColor(event.sportType)}`}></div>
+          </div>
+        )}
+        
+        {/* Actual image */}
         <img 
-          src={`https://source.unsplash.com/random/1200x600/?${event.sportType || 'sport'}`}
+          src={getEventImageUrl(event.sportType)}
           alt={event.title || 'Event'} 
-          className="w-full h-full object-cover" 
+          className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageError(true);
+            console.error("Failed to load image for event:", event.title);
+          }}
         />
+        
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <div className="flex items-center mb-2">
