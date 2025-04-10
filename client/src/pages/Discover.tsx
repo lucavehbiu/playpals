@@ -40,13 +40,28 @@ const Discover = () => {
     
     // Filter by date
     if (dateFilter) {
-      // Convert both dates to comparable format
+      // Convert the filter date string to a Date object at start of day
       const filterDate = parseISO(dateFilter);
-      const eventDate = parseISO(event.date.toString());
       
-      // Check if event date is on or after the filter date
-      // Only include events happening on or after the filter date
-      if (!isSameDay(eventDate, filterDate) && !isAfter(eventDate, filterDate)) {
+      // Parse the event date string into a Date object
+      // The date format comes from the server as ISO string
+      const eventDate = new Date(event.date);
+      
+      // Set time to start of day for proper comparison
+      const eventDateStart = new Date(
+        eventDate.getFullYear(),
+        eventDate.getMonth(),
+        eventDate.getDate()
+      );
+      
+      const filterDateStart = new Date(
+        filterDate.getFullYear(),
+        filterDate.getMonth(),
+        filterDate.getDate()
+      );
+      
+      // Only include events with dates >= filter date
+      if (eventDateStart < filterDateStart) {
         return false;
       }
     }
