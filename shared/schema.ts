@@ -198,6 +198,18 @@ export const teamScheduleResponses = pgTable("team_schedule_responses", {
   uniqueScheduleResponse: unique().on(t.scheduleId, t.userId),
 }));
 
+// Team Join Requests table
+export const teamJoinRequests = pgTable("team_join_requests", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only have one active request per team
+  uniqueJoinRequest: unique().on(t.teamId, t.userId),
+}));
+
 // Define relations
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -221,6 +233,7 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
   members: many(teamMembers, { relationName: "team_members" }),
   posts: many(teamPosts, { relationName: "team_posts" }),
   schedules: many(teamSchedules, { relationName: "team_schedules" }),
+  joinRequests: many(teamJoinRequests, { relationName: "team_join_requests" }),
   // Temporarily remove events relation
   // events: many(events, { relationName: "team_events" }),
 }));
@@ -453,6 +466,11 @@ export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleR
   ),
 });
 
+export const insertTeamJoinRequestSchema = createInsertSchema(teamJoinRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -477,6 +495,9 @@ export type InsertTeamSchedule = z.infer<typeof insertTeamScheduleSchema>;
 
 export type TeamScheduleResponse = typeof teamScheduleResponses.$inferSelect;
 export type InsertTeamScheduleResponse = z.infer<typeof insertTeamScheduleResponseSchema>;
+
+export type TeamJoinRequest = typeof teamJoinRequests.$inferSelect;
+export type InsertTeamJoinRequest = z.infer<typeof insertTeamJoinRequestSchema>;
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
