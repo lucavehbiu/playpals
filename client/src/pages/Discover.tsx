@@ -42,9 +42,10 @@ const Discover = () => {
     if (dateFilter) {
       // Convert both dates to comparable format
       const filterDate = parseISO(dateFilter);
-      const eventDate = new Date(event.date);
+      const eventDate = parseISO(event.date.toString());
       
-      // If event date is before the filter date, exclude
+      // Check if event date is on or after the filter date
+      // Only include events happening on or after the filter date
       if (!isSameDay(eventDate, filterDate) && !isAfter(eventDate, filterDate)) {
         return false;
       }
