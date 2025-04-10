@@ -1823,17 +1823,41 @@ export class DatabaseStorage implements IStorage {
 
   async searchUsers(query: string): Promise<User[]> {
     try {
-      const searchResults = await db
-        .select()
-        .from(users)
-        .where(
-          or(
-            like(users.username, `%${query}%`),
-            like(users.name, `%${query}%`),
-            like(users.email, `%${query}%`)
+      // Split the query into words for better full name matching
+      const queryParts = query.toLowerCase().split(/\s+/).filter(part => part.length > 0);
+      
+      let searchResults;
+      
+      // If there's only one part in the query, do a simple search
+      if (queryParts.length <= 1) {
+        searchResults = await db
+          .select()
+          .from(users)
+          .where(
+            or(
+              like(users.username, `%${query}%`),
+              like(users.name, `%${query}%`),
+              like(users.email, `%${query}%`)
+            )
           )
-        )
-        .limit(10);
+          .limit(10);
+      } else {
+        // For multi-word queries (e.g., "Alex Smith"), check if all parts match the name
+        // We need to create conditions that check if each word appears in the name
+        const conditions = queryParts.map(part => {
+          return or(
+            like(users.username, `%${part}%`),
+            like(users.name, `%${part}%`),
+            like(users.email, `%${part}%`)
+          );
+        });
+        
+        searchResults = await db
+          .select()
+          .from(users)
+          .where(and(...conditions))
+          .limit(10);
+      }
       
       return searchResults;
     } catch (error) {
