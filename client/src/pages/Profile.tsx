@@ -4,11 +4,21 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 const Profile = () => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
-  const userId = authUser?.id.toString() || '';
+  const [location] = useLocation();
+  
+  // Get userId from URL query parameter if available
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlUserId = urlParams.get('id');
+  
+  // Use URL userId if available, otherwise use authenticated user's ID
+  const userId = urlUserId || authUser?.id.toString() || '';
+  const isOwnProfile = authUser?.id.toString() === userId;
+  
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'feed'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
   
@@ -122,15 +132,27 @@ const Profile = () => {
             </div>
           </div>
           <div className="mt-4 sm:mt-0">
-            <button 
-              className="bg-white text-primary py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-50"
-              onClick={() => toast({
-                title: "Edit Profile",
-                description: "This would open the profile editor in the full app."
-              })}
-            >
-              Edit Profile
-            </button>
+            {isOwnProfile ? (
+              <button 
+                className="bg-white text-primary py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-50"
+                onClick={() => toast({
+                  title: "Edit Profile",
+                  description: "This would open the profile editor in the full app."
+                })}
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <button 
+                className="bg-white text-primary py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-50"
+                onClick={() => toast({
+                  title: "Add Friend",
+                  description: "Friend request would be sent in the full app."
+                })}
+              >
+                Add Friend
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -156,7 +178,7 @@ const Profile = () => {
             }`}
             onClick={() => setActiveTab('events')}
           >
-            My Events
+            {isOwnProfile ? "My Events" : "Events"}
           </button>
           <button
             className={`py-4 px-6 font-medium text-sm ${
@@ -240,7 +262,7 @@ const Profile = () => {
         
         {activeTab === 'events' && (
           <div>
-            <h2 className="text-xl font-bold mb-4">My Events</h2>
+            <h2 className="text-xl font-bold mb-4">{isOwnProfile ? "My Events" : `${user.name}'s Events`}</h2>
             
             {eventsLoading ? (
               <div className="text-center py-8">
@@ -300,17 +322,27 @@ const Profile = () => {
               </div>
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-medium text-gray-700 mb-2">You haven't created any events yet</h3>
-                <p className="text-gray-500 mb-4">When you create events, they'll appear here</p>
-                <button 
-                  className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-                  onClick={() => toast({
-                    title: "Create Event",
-                    description: "This would open the event creation modal in the full app."
-                  })}
-                >
-                  Create Your First Event
-                </button>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                  {isOwnProfile 
+                    ? "You haven't created any events yet" 
+                    : `${user.name} hasn't created any events yet`}
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  {isOwnProfile 
+                    ? "When you create events, they'll appear here" 
+                    : "When they create events, they'll appear here"}
+                </p>
+                {isOwnProfile && (
+                  <button 
+                    className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                    onClick={() => toast({
+                      title: "Create Event",
+                      description: "This would open the event creation modal in the full app."
+                    })}
+                  >
+                    Create Your First Event
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -318,20 +350,30 @@ const Profile = () => {
         
         {activeTab === 'teams' && (
           <div>
-            <h2 className="text-xl font-bold mb-4">My Teams</h2>
+            <h2 className="text-xl font-bold mb-4">{isOwnProfile ? "My Teams" : `${user.name}'s Teams`}</h2>
             
             <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-700 mb-2">You're not part of any team yet</h3>
-              <p className="text-gray-500 mb-4">Join or create a team to start competing together</p>
-              <button 
-                className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-                onClick={() => toast({
-                  title: "Create Team",
-                  description: "This would open the team creation form in the full app."
-                })}
-              >
-                Create a Team
-              </button>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">
+                {isOwnProfile 
+                  ? "You're not part of any team yet" 
+                  : `${user.name} is not part of any team yet`}
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {isOwnProfile 
+                  ? "Join or create a team to start competing together" 
+                  : "Teams that they join will appear here"}
+              </p>
+              {isOwnProfile && (
+                <button 
+                  className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                  onClick={() => toast({
+                    title: "Create Team",
+                    description: "This would open the team creation form in the full app."
+                  })}
+                >
+                  Create a Team
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -340,37 +382,39 @@ const Profile = () => {
           <div>
             <h2 className="text-xl font-bold mb-4">Activity Feed</h2>
             
-            <div className="mb-6">
-              <div className="flex items-center space-x-3 mb-6">
-                {user.profileImage ? (
-                  <img 
-                    src={user.profileImage} 
-                    alt={`${user.name}'s profile`} 
-                    className="h-10 w-10 rounded-full" 
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-lg font-bold text-white">
-                    {user.name.charAt(0)}
+            {isOwnProfile && (
+              <div className="mb-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  {user.profileImage ? (
+                    <img 
+                      src={user.profileImage} 
+                      alt={`${user.name}'s profile`} 
+                      className="h-10 w-10 rounded-full" 
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-lg font-bold text-white">
+                      {user.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      className="w-full rounded-full border border-gray-300 px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Share your latest sports activity..."
+                    />
                   </div>
-                )}
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full rounded-full border border-gray-300 px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Share your latest sports activity..."
-                  />
+                  <button
+                    className="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700"
+                    onClick={() => toast({
+                      title: "Post Created",
+                      description: "Your post has been shared with your followers."
+                    })}
+                  >
+                    Post
+                  </button>
                 </div>
-                <button
-                  className="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700"
-                  onClick={() => toast({
-                    title: "Post Created",
-                    description: "Your post has been shared with your followers."
-                  })}
-                >
-                  Post
-                </button>
               </div>
-            </div>
+            )}
             
             <div className="space-y-6">
               {posts.map(post => (
