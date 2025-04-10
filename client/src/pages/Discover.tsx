@@ -2,18 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { Event } from "@/lib/types";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { sportTypes } from "@shared/schema";
+import { format, parseISO, isAfter, isSameDay } from "date-fns";
 
 const Discover = () => {
   const { toast } = useToast();
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
+  const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   
   // Get all public events
   const { data: events, isLoading, error } = useQuery<Event[]>({
     queryKey: ['/api/events'],
   });
-  
+
   const handleJoinEvent = (eventId: number) => {
     toast({
       title: "Join Event",
@@ -21,10 +26,42 @@ const Discover = () => {
     });
   };
   
-  // Filter events by selected sport
-  const filteredEvents = events?.filter(event => 
-    selectedSport === "all" || event.sportType === selectedSport
-  );
+  // Apply all filters to events
+  const filteredEvents = events?.filter(event => {
+    // Filter by sport type
+    if (selectedSport !== "all" && event.sportType !== selectedSport) {
+      return false;
+    }
+    
+    // Filter by location (case-insensitive partial match)
+    if (locationFilter && event.location && !event.location.toLowerCase().includes(locationFilter.toLowerCase())) {
+      return false;
+    }
+    
+    // Filter by date
+    if (dateFilter) {
+      // Convert both dates to comparable format
+      const filterDate = parseISO(dateFilter);
+      const eventDate = new Date(event.date);
+      
+      // If event date is before the filter date, exclude
+      if (!isSameDay(eventDate, filterDate) && !isAfter(eventDate, filterDate)) {
+        return false;
+      }
+    }
+    
+    // Filter by free/paid
+    if (showFreeOnly && !event.isFree) {
+      return false;
+    }
+    
+    // Filter by public/private
+    if (showPublicOnly && !event.isPublic) {
+      return false;
+    }
+    
+    return true;
+  });
   
   return (
     <div>
@@ -63,6 +100,8 @@ const Discover = () => {
               id="location-filter"
               className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Any location"
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
             />
           </div>
           
@@ -74,6 +113,8 @@ const Discover = () => {
               type="date"
               id="date-filter"
               className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
             />
           </div>
         </div>
@@ -85,6 +126,8 @@ const Discover = () => {
               id="free-only"
               type="checkbox"
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              checked={showFreeOnly}
+              onChange={(e) => setShowFreeOnly(e.target.checked)}
             />
             <label htmlFor="free-only" className="ml-2 text-sm text-gray-700">
               Free only
@@ -95,7 +138,8 @@ const Discover = () => {
               id="public-only"
               type="checkbox"
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              defaultChecked
+              checked={showPublicOnly}
+              onChange={(e) => setShowPublicOnly(e.target.checked)}
             />
             <label htmlFor="public-only" className="ml-2 text-sm text-gray-700">
               Public only
