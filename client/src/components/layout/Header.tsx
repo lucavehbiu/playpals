@@ -226,7 +226,7 @@ const Header = () => {
             <div className="flex-shrink-0">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <img src={playPalsLogo} alt="PlayPals Logo" className="h-9 w-9 mr-2" />
+                  <img src={playPalsLogo} alt="PlayPals Logo" className="h-9 w-9 mr-2 rounded-full" />
                   <span className="text-primary font-bold text-xl">
                     PlayPals
                   </span>
