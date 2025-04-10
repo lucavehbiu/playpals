@@ -1369,6 +1369,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team join request routes
+  app.post('/api/teams/:teamId/join-request', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user is already a member
+      const existingMember = await storage.getTeamMember(teamId, authenticatedUser.id);
+      if (existingMember) {
+        return res.status(400).json({ message: "You are already a member of this team" });
+      }
+      
+      // Check if user already has a pending request
+      const existingRequest = await storage.getTeamJoinRequest(teamId, authenticatedUser.id);
+      if (existingRequest) {
+        return res.status(400).json({ message: "You already have a pending join request for this team" });
+      }
+      
+      // Create the join request
+      const joinRequest = await storage.createTeamJoinRequest({
+        teamId,
+        userId: authenticatedUser.id,
+        status: "pending"
+      });
+      
+      res.status(201).json(joinRequest);
+    } catch (error) {
+      console.error('Error creating team join request:', error);
+      res.status(500).json({ message: "Error creating team join request" });
+    }
+  });
+  
+  app.get('/api/teams/:teamId/join-requests', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user is admin
+      if (team.creatorId !== authenticatedUser.id) {
+        const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+        if (!member || member.role !== "admin") {
+          return res.status(403).json({ message: "Forbidden - Only team admins can view join requests" });
+        }
+      }
+      
+      const requests = await storage.getTeamJoinRequests(teamId);
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching team join requests:', error);
+      res.status(500).json({ message: "Error fetching team join requests" });
+    }
+  });
+  
+  app.put('/api/teams/:teamId/join-requests/:requestId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const requestId = parseInt(req.params.requestId);
+      const { status } = req.body;
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(requestId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      if (!status || !["accepted", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'accepted' or 'rejected'" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user is admin
+      if (team.creatorId !== authenticatedUser.id) {
+        const member = await storage.getTeamMember(teamId, authenticatedUser.id);
+        if (!member || member.role !== "admin") {
+          return res.status(403).json({ message: "Forbidden - Only team admins can process join requests" });
+        }
+      }
+      
+      const updatedRequest = await storage.updateTeamJoinRequest(requestId, status);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ message: "Join request not found" });
+      }
+      
+      // If request is accepted, add the user as a team member
+      if (status === "accepted") {
+        await storage.createTeamMember({
+          teamId,
+          userId: updatedRequest.userId,
+          role: "member"
+        });
+      }
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error('Error updating team join request:', error);
+      res.status(500).json({ message: "Error updating team join request" });
+    }
+  });
+
   // Create and return the HTTP server
   const httpServer = createServer(app);
   return httpServer;

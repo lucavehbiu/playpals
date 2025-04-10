@@ -1739,6 +1739,48 @@ export class DatabaseStorage implements IStorage {
     const deleted = await db.delete(teamScheduleResponses).where(eq(teamScheduleResponses.id, id));
     return deleted.count > 0;
   }
+
+  // Team Join Request methods
+  async getTeamJoinRequest(teamId: number, userId: number): Promise<TeamJoinRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(teamJoinRequests)
+      .where(and(
+        eq(teamJoinRequests.teamId, teamId),
+        eq(teamJoinRequests.userId, userId)
+      ));
+    return request;
+  }
+
+  async getTeamJoinRequests(teamId: number): Promise<TeamJoinRequest[]> {
+    const requests = await db
+      .select()
+      .from(teamJoinRequests)
+      .where(eq(teamJoinRequests.teamId, teamId));
+    return requests;
+  }
+
+  async createTeamJoinRequest(joinRequest: InsertTeamJoinRequest): Promise<TeamJoinRequest> {
+    const [newRequest] = await db
+      .insert(teamJoinRequests)
+      .values(joinRequest)
+      .returning();
+    return newRequest;
+  }
+
+  async updateTeamJoinRequest(id: number, status: string): Promise<TeamJoinRequest | undefined> {
+    const [updatedRequest] = await db
+      .update(teamJoinRequests)
+      .set({ status })
+      .where(eq(teamJoinRequests.id, id))
+      .returning();
+    return updatedRequest;
+  }
+
+  async deleteTeamJoinRequest(id: number): Promise<boolean> {
+    const deleted = await db.delete(teamJoinRequests).where(eq(teamJoinRequests.id, id));
+    return deleted.count > 0;
+  }
   
   // User methods
   async getUser(id: number): Promise<User | undefined> {
