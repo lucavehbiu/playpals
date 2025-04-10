@@ -300,8 +300,36 @@ const TeamDetails = () => {
   const currentUserMember = members.find((member: any) => member.userId === user?.id);
   const userRole = currentUserMember?.role || null;
   
-  // Check if user is admin or creator
+  // Check if user is a member, admin, or creator
+  const isUserMember = currentUserMember !== undefined;
   const isAdmin = userRole === 'admin' || (team && team.creatorId === user?.id);
+  
+  // Mutation to send team join request
+  const joinTeamMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/teams/${teamId}/join-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user?.id }),
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Join request sent",
+        description: "Your request to join this team has been sent to the team admin.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to send join request",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Show loading state while data is being fetched
   if (isTeamLoading) {
@@ -312,12 +340,12 @@ const TeamDetails = () => {
     );
   }
   
-  // If team doesn't exist or user isn't a member, show error
+  // If team doesn't exist, show error
   if (!team) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Team Not Found</h1>
-        <p className="mb-4">The team you're looking for doesn't exist or you don't have access.</p>
+        <p className="mb-4">The team you're looking for doesn't exist.</p>
         <Button onClick={() => setLocation("/teams")}>
           Back to Teams
         </Button>
@@ -363,6 +391,28 @@ const TeamDetails = () => {
         </div>
       </div>
       
+      {!isUserMember && (
+        <div className="bg-gray-50 p-6 rounded-lg mb-6 text-center">
+          <h2 className="text-lg font-semibold mb-3">Want to join this team?</h2>
+          <p className="text-gray-600 mb-4">
+            You need to be a member to see team posts, schedules, and other details.
+          </p>
+          <Button 
+            onClick={() => joinTeamMutation.mutate()} 
+            disabled={joinTeamMutation.isPending}
+          >
+            {joinTeamMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending Request...
+              </>
+            ) : (
+              'Request to Join'
+            )}
+          </Button>
+        </div>
+      )}
+      
       <Tab.Group>
         <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
           <Tab className={({ selected }) =>
@@ -372,19 +422,21 @@ const TeamDetails = () => {
           }>
             <div className="flex items-center justify-center">
               <MessageSquare className="h-4 w-4 mr-2" />
-              Team Feed
+              {isUserMember ? 'Team Feed' : 'Overview'}
             </div>
           </Tab>
-          <Tab className={({ selected }) =>
-            `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-             ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
-             focus:outline-none focus:ring-0`
-          }>
-            <div className="flex items-center justify-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule
-            </div>
-          </Tab>
+          {isUserMember && (
+            <Tab className={({ selected }) =>
+              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+               ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
+               focus:outline-none focus:ring-0`
+            }>
+              <div className="flex items-center justify-center">
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule
+              </div>
+            </Tab>
+          )}
           <Tab className={({ selected }) =>
             `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
              ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
@@ -398,178 +450,186 @@ const TeamDetails = () => {
         </Tab.List>
         
         <Tab.Panels>
-          {/* Team Feed Panel */}
+          {/* Team Feed Panel or Overview */}
           <Tab.Panel>
-            <div className="mb-4">
-              {isAdmin && (
-                <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Post
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Create Team Post</DialogTitle>
-                      <DialogDescription>
-                        Share updates, news, or information with your team.
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <Form {...postForm}>
-                      <form onSubmit={postForm.handleSubmit(onCreatePost)} className="space-y-4">
-                        <FormField
-                          control={postForm.control}
-                          name="content"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Content</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Write your post here..." 
-                                  className="min-h-[120px]" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+            {isUserMember ? (
+              // Team Feed for members
+              <>
+                <div className="mb-4">
+                  {isAdmin && (
+                    <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Post
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                          <DialogTitle>Create Team Post</DialogTitle>
+                          <DialogDescription>
+                            Share updates, news, or information with your team.
+                          </DialogDescription>
+                        </DialogHeader>
                         
-                        <DialogFooter>
-                          <Button type="submit" disabled={createPostMutation.isPending}>
-                            {createPostMutation.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Posting...
-                              </>
-                            ) : (
-                              <>
-                                <Send className="mr-2 h-4 w-4" />
-                                Post
-                              </>
-                            )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-            
-            {isPostsLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <MessageSquare className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">No posts yet</h3>
-                <p className="text-gray-500 mb-4">
-                  {isAdmin 
-                    ? "Create the first post to share with your team." 
-                    : "There are no team posts yet. Check back later."}
-                </p>
-                {isAdmin && (
-                  <Button onClick={() => setIsCreatePostOpen(true)}>
-                    Create Post
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {posts.map((post: any) => (
-                  <Card key={post.id} className="overflow-hidden">
-                    <CardHeader className="bg-gray-50 p-4">
-                      <div className="flex items-center space-x-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {post.user?.name?.[0] || post.user?.username?.[0] || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{post.user?.name || post.user?.username || 'Team Member'}</div>
-                          <div className="text-gray-500 text-sm">
-                            {formatDate(post.createdAt)} · {getMemberRole(post.userId, members)}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <p className="whitespace-pre-line">{post.content}</p>
-                    </CardContent>
-                    <CardFooter className="bg-gray-50 p-4 flex justify-between">
-                      <Button variant="ghost" size="sm">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Comment
+                        <Form {...postForm}>
+                          <form onSubmit={postForm.handleSubmit(onCreatePost)} className="space-y-4">
+                            <FormField
+                              control={postForm.control}
+                              name="content"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Content</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Write your post here..." 
+                                      className="min-h-[120px]" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <DialogFooter>
+                              <Button type="submit" disabled={createPostMutation.isPending}>
+                                {createPostMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Posting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="mr-2 h-4 w-4" />
+                                    Post
+                                  </>
+                                )}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+                
+                {isPostsLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <MessageSquare className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">No posts yet</h3>
+                    <p className="text-gray-500 mb-4">
+                      {isAdmin 
+                        ? "Create the first post to share with your team." 
+                        : "There are no team posts yet. Check back later."}
+                    </p>
+                    {isAdmin && (
+                      <Button onClick={() => setIsCreatePostOpen(true)}>
+                        Create Post
                       </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {posts.map((post: any) => (
+                      <Card key={post.id} className="overflow-hidden">
+                        <CardHeader className="bg-gray-50 p-4">
+                          <div className="flex items-center space-x-4">
+                            <Avatar>
+                              <AvatarFallback>
+                                {post.user?.name?.[0] || post.user?.username?.[0] || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{post.user?.name || post.user?.username || 'Team Member'}</div>
+                              <div className="text-gray-500 text-sm">
+                                {formatDate(post.createdAt)} · {getMemberRole(post.userId, members)}
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <p className="whitespace-pre-line">{post.content}</p>
+                        </CardContent>
+                        <CardFooter className="bg-gray-50 p-4 flex justify-between">
+                          <Button variant="ghost" size="sm">
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Comment
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              // Team Overview for non-members
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold">About {team.name}</h3>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-500">Description</h4>
+                      <p className="mt-1">{team.description}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-500">Sport</h4>
+                      <p className="mt-1">{team.sportType}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-500">Created</h4>
+                      <p className="mt-1">{new Date(team.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 italic">
+                        Join this team to see team posts, schedules, and interact with members.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </Tab.Panel>
           
-          {/* Schedule Panel */}
-          <Tab.Panel>
-            <div className="mb-4">
-              {isAdmin && (
-                <Dialog open={isCreateScheduleOpen} onOpenChange={setIsCreateScheduleOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Schedule
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Create Team Schedule</DialogTitle>
-                      <DialogDescription>
-                        Plan practices, games, or other team activities.
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <Form {...scheduleForm}>
-                      <form onSubmit={scheduleForm.handleSubmit(onCreateSchedule)} className="space-y-4">
-                        <FormField
-                          control={scheduleForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., Weekly Practice" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={scheduleForm.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description (Optional)</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Additional details..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Schedule Panel - Only visible to members */}
+          {isUserMember && (
+            <Tab.Panel>
+              <div className="mb-4">
+                {isAdmin && (
+                  <Dialog open={isCreateScheduleOpen} onOpenChange={setIsCreateScheduleOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Schedule
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Create Team Schedule</DialogTitle>
+                        <DialogDescription>
+                          Plan practices, games, or other team activities.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <Form {...scheduleForm}>
+                        <form onSubmit={scheduleForm.handleSubmit(onCreateSchedule)} className="space-y-4">
                           <FormField
                             control={scheduleForm.control}
-                            name="startTime"
+                            name="title"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Start Time</FormLabel>
+                                <FormLabel>Title</FormLabel>
                                 <FormControl>
-                                  <Input type="datetime-local" {...field} />
+                                  <Input placeholder="e.g., Weekly Practice" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -578,311 +638,334 @@ const TeamDetails = () => {
                           
                           <FormField
                             control={scheduleForm.control}
-                            name="endTime"
+                            name="description"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>End Time</FormLabel>
+                                <FormLabel>Description (Optional)</FormLabel>
                                 <FormControl>
-                                  <Input type="datetime-local" {...field} />
+                                  <Textarea placeholder="Additional details..." {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                        </div>
-                        
-                        <FormField
-                          control={scheduleForm.control}
-                          name="location"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Location (Optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., City Park Courts" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={scheduleForm.control}
-                          name="isRequired"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  className="h-4 w-4 text-primary mt-1"
-                                  checked={field.value}
-                                  onChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Required Attendance</FormLabel>
-                                <p className="text-sm text-muted-foreground">
-                                  Mark this schedule as required for all team members.
-                                </p>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <DialogFooter>
-                          <Button type="submit" disabled={createScheduleMutation.isPending}>
-                            {createScheduleMutation.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Creating...
-                              </>
-                            ) : (
-                              'Create Schedule'
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={scheduleForm.control}
+                              name="startTime"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Start Time</FormLabel>
+                                  <FormControl>
+                                    <Input type="datetime-local" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={scheduleForm.control}
+                              name="endTime"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>End Time</FormLabel>
+                                  <FormControl>
+                                    <Input type="datetime-local" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={scheduleForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Location (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., City Park Courts" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-            
-            {isSchedulesLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : schedules.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <CalendarIcon className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">No schedules yet</h3>
-                <p className="text-gray-500 mb-4">
-                  {isAdmin 
-                    ? "Create the first schedule for your team." 
-                    : "There are no team schedules yet. Check back later."}
-                </p>
-                {isAdmin && (
-                  <Button onClick={() => setIsCreateScheduleOpen(true)}>
-                    Create Schedule
-                  </Button>
+                          />
+                          
+                          <FormField
+                            control={scheduleForm.control}
+                            name="isRequired"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 text-primary mt-1"
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Required Attendance</FormLabel>
+                                  <p className="text-sm text-muted-foreground">
+                                    Mark this schedule as required for all team members.
+                                  </p>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter>
+                            <Button type="submit" disabled={createScheduleMutation.isPending}>
+                              {createScheduleMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Creating...
+                                </>
+                              ) : (
+                                'Create Schedule'
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
-            ) : (
-              <div className="space-y-6">
-                {schedules.map((schedule: any) => (
-                  <Card key={schedule.id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-lg font-semibold">{schedule.title}</h3>
-                          <div className="text-sm text-gray-500">
-                            <span className="flex items-center">
-                              <CalendarIcon className="h-4 w-4 mr-1" />
-                              {formatDate(schedule.startTime, true)}
-                            </span>
+              
+              {isSchedulesLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : schedules.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <CalendarIcon className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No schedules yet</h3>
+                  <p className="text-gray-500 mb-4">
+                    {isAdmin 
+                      ? "Create the first schedule for your team." 
+                      : "There are no team schedules yet. Check back later."}
+                  </p>
+                  {isAdmin && (
+                    <Button onClick={() => setIsCreateScheduleOpen(true)}>
+                      Create Schedule
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {schedules.map((schedule: any) => (
+                    <Card key={schedule.id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-lg font-semibold">{schedule.title}</h3>
+                            <div className="text-sm text-gray-500">
+                              <span className="flex items-center">
+                                <CalendarIcon className="h-4 w-4 mr-1" />
+                                {formatDate(schedule.startTime, true)}
+                              </span>
+                            </div>
                           </div>
+                          {schedule.isRequired && (
+                            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                              Required
+                            </Badge>
+                          )}
                         </div>
-                        {schedule.isRequired && (
-                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                            Required
-                          </Badge>
+                      </CardHeader>
+                      <CardContent>
+                        {schedule.description && (
+                          <p className="text-gray-700 mb-3">{schedule.description}</p>
                         )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {schedule.description && (
-                        <p className="text-gray-700 mb-3">{schedule.description}</p>
-                      )}
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <div className="text-sm font-medium text-gray-500 mb-1">Time</div>
-                          <div className="text-sm">
-                            {formatTimeRange(schedule.startTime, schedule.endTime)}
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="text-sm font-medium text-gray-500 mb-1">Time</div>
+                            <div className="text-sm">
+                              {formatTimeRange(schedule.startTime, schedule.endTime)}
+                            </div>
                           </div>
+                          
+                          {schedule.location && (
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <div className="text-sm font-medium text-gray-500 mb-1">Location</div>
+                              <div className="text-sm">{schedule.location}</div>
+                            </div>
+                          )}
                         </div>
                         
-                        {schedule.location && (
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <div className="text-sm font-medium text-gray-500 mb-1">Location</div>
-                            <div className="text-sm">{schedule.location}</div>
+                        <div className="mb-3">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Responses</h4>
+                          <div className="flex gap-4">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center">
+                                    <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs mr-1">
+                                      <CheckCircle className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-sm">{getResponseCount(schedule, 'attending')}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Attending</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center">
+                                    <div className="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs mr-1">
+                                      <XCircle className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-sm">{getResponseCount(schedule, 'not_attending')}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Not Attending</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center">
+                                    <div className="h-6 w-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs mr-1">
+                                      <Clock className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-sm">{getResponseCount(schedule, 'maybe')}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Maybe</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
-                        )}
-                      </div>
-                      
-                      <div className="mb-3">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Responses</h4>
-                        <div className="flex gap-4">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center">
-                                  <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs mr-1">
-                                    <CheckCircle className="h-4 w-4" />
-                                  </div>
-                                  <span className="text-sm">{getResponseCount(schedule, 'attending')}</span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Attending</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center">
-                                  <div className="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs mr-1">
-                                    <XCircle className="h-4 w-4" />
-                                  </div>
-                                  <span className="text-sm">{getResponseCount(schedule, 'not_attending')}</span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Not Attending</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center">
-                                  <div className="h-6 w-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs mr-1">
-                                    <Clock className="h-4 w-4" />
-                                  </div>
-                                  <span className="text-sm">{getResponseCount(schedule, 'maybe')}</span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Maybe</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
                         </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-end bg-gray-50">
-                      <Dialog open={responseDialogOpen && selectedSchedule?.id === schedule.id} onOpenChange={(open) => {
-                        setResponseDialogOpen(open);
-                        if (open) setSelectedSchedule(schedule);
-                        else setSelectedSchedule(null);
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button>Respond</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Respond to Schedule</DialogTitle>
-                            <DialogDescription>
-                              Let your team know if you'll be attending {schedule.title}.
-                            </DialogDescription>
-                          </DialogHeader>
-                          
-                          <Form {...responseForm}>
-                            <form onSubmit={responseForm.handleSubmit(onSubmitResponse)} className="space-y-4">
-                              <FormField
-                                control={responseForm.control}
-                                name="response"
-                                render={({ field }) => (
-                                  <FormItem className="space-y-3">
-                                    <FormLabel>Your Response</FormLabel>
-                                    <FormControl>
-                                      <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex flex-col space-y-1"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="attending" id="attending" />
-                                          <Label htmlFor="attending" className="flex items-center">
-                                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                            Attending
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="not_attending" id="not_attending" />
-                                          <Label htmlFor="not_attending" className="flex items-center">
-                                            <XCircle className="h-4 w-4 text-red-500 mr-2" />
-                                            Not Attending
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="maybe" id="maybe" />
-                                          <Label htmlFor="maybe" className="flex items-center">
-                                            <Clock className="h-4 w-4 text-yellow-500 mr-2" />
-                                            Maybe
-                                          </Label>
-                                        </div>
-                                      </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={responseForm.control}
-                                name="notes"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Notes (Optional)</FormLabel>
-                                    <FormControl>
-                                      <Textarea 
-                                        placeholder="Any additional information..." 
-                                        {...field} 
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              {/* Show date/time picker only when "maybe" is selected */}
-                              {responseForm.watch("response") === "maybe" && (
+                      </CardContent>
+                      <CardFooter className="flex justify-end bg-gray-50">
+                        <Dialog open={responseDialogOpen && selectedSchedule?.id === schedule.id} onOpenChange={(open) => {
+                          setResponseDialogOpen(open);
+                          if (open) setSelectedSchedule(schedule);
+                          else setSelectedSchedule(null);
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button>Respond</Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Respond to Schedule</DialogTitle>
+                              <DialogDescription>
+                                Let your team know if you'll be attending {schedule.title}.
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <Form {...responseForm}>
+                              <form onSubmit={responseForm.handleSubmit(onSubmitResponse)} className="space-y-4">
                                 <FormField
                                   control={responseForm.control}
-                                  name="maybeDeadline"
+                                  name="response"
                                   render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Decision Deadline</FormLabel>
-                                      <FormDescription>
-                                        When will you make your final decision?
-                                      </FormDescription>
+                                    <FormItem className="space-y-3">
+                                      <FormLabel>Your Response</FormLabel>
                                       <FormControl>
-                                        <Input 
-                                          type="datetime-local" 
-                                          {...field} 
-                                        />
+                                        <RadioGroup
+                                          onValueChange={field.onChange}
+                                          defaultValue={field.value}
+                                          className="flex flex-col space-y-1"
+                                        >
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="attending" id="attending" />
+                                            <Label htmlFor="attending" className="flex items-center">
+                                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                                              Attending
+                                            </Label>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="not_attending" id="not_attending" />
+                                            <Label htmlFor="not_attending" className="flex items-center">
+                                              <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                                              Not Attending
+                                            </Label>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="maybe" id="maybe" />
+                                            <Label htmlFor="maybe" className="flex items-center">
+                                              <Clock className="h-4 w-4 text-yellow-500 mr-2" />
+                                              Maybe
+                                            </Label>
+                                          </div>
+                                        </RadioGroup>
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
                                   )}
                                 />
-                              )}
-                              
-                              <DialogFooter>
-                                <Button type="submit" disabled={respondToScheduleMutation.isPending}>
-                                  {respondToScheduleMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Submitting...
-                                    </>
-                                  ) : (
-                                    'Submit Response'
+                                
+                                <FormField
+                                  control={responseForm.control}
+                                  name="notes"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Notes (Optional)</FormLabel>
+                                      <FormControl>
+                                        <Textarea placeholder="Add any additional notes here..." {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
                                   )}
-                                </Button>
-                              </DialogFooter>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </Tab.Panel>
+                                />
+                                
+                                {responseForm.watch('response') === 'maybe' && (
+                                  <FormField
+                                    control={responseForm.control}
+                                    name="maybeDeadline"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>When will you decide by?</FormLabel>
+                                        <FormControl>
+                                          <Input type="datetime-local" {...field} />
+                                        </FormControl>
+                                        <FormDescription>
+                                          Let your team know when you'll make a final decision.
+                                        </FormDescription>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                )}
+                                
+                                <DialogFooter>
+                                  <Button type="submit" disabled={respondToScheduleMutation.isPending}>
+                                    {respondToScheduleMutation.isPending ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Submitting...
+                                      </>
+                                    ) : (
+                                      'Submit Response'
+                                    )}
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </Tab.Panel>
+          )}
           
           {/* Members Panel */}
           <Tab.Panel>
