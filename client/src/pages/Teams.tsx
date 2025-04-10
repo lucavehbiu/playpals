@@ -75,12 +75,12 @@ const Teams = () => {
     },
   });
   
-  // Query to fetch teams
+  // Query to fetch teams - both user's teams and all public teams
   const { data: teams = [], isLoading: isTeamsLoading, error: teamsError } = useQuery({
-    queryKey: ['/api/teams/user', user?.id],
+    queryKey: ['/api/teams'],
     queryFn: async () => {
       if (!user) return [];
-      const result = await fetch(`/api/teams/user/${user.id}`);
+      const result = await fetch(`/api/teams`);
       if (!result.ok) throw new Error('Failed to fetch teams');
       return await result.json();
     },
@@ -100,7 +100,7 @@ const Teams = () => {
         title: "Team created",
         description: "Your team has been created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/teams/user', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
     },
     onError: (error) => {
       toast({
