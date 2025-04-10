@@ -1339,6 +1339,26 @@ export class DatabaseStorage implements IStorage {
     return [...creatorTeams, ...memberTeams];
   }
   
+  async getAllTeams(nameQuery?: string): Promise<Team[]> {
+    try {
+      if (nameQuery) {
+        return await db
+          .select()
+          .from(teams)
+          .where(like(teams.name, `%${nameQuery}%`))
+          .orderBy(desc(teams.createdAt));
+      } else {
+        return await db
+          .select()
+          .from(teams)
+          .orderBy(desc(teams.createdAt));
+      }
+    } catch (error) {
+      console.error("Error fetching all teams:", error);
+      return [];
+    }
+  }
+  
   async createTeam(team: InsertTeam): Promise<Team> {
     const [newTeam] = await db.insert(teams).values(team).returning();
     
