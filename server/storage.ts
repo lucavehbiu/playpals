@@ -10,7 +10,8 @@ import {
   teamPosts, type TeamPost, type InsertTeamPost,
   teamPostComments, type TeamPostComment, type InsertTeamPostComment,
   teamSchedules, type TeamSchedule, type InsertTeamSchedule,
-  teamScheduleResponses, type TeamScheduleResponse, type InsertTeamScheduleResponse
+  teamScheduleResponses, type TeamScheduleResponse, type InsertTeamScheduleResponse,
+  teamJoinRequests, type TeamJoinRequest, type InsertTeamJoinRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, like, avg, sql } from "drizzle-orm";

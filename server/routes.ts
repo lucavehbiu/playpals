@@ -13,6 +13,7 @@ import {
   insertTeamPostCommentSchema,
   insertTeamScheduleSchema,
   insertTeamScheduleResponseSchema,
+  insertTeamJoinRequestSchema,
   type User,
   type Event,
   type RSVP,
@@ -24,7 +25,10 @@ import {
   type TeamPostComment,
   type TeamSchedule,
   type TeamScheduleResponse,
-  playerRatings
+  type TeamJoinRequest,
+  type InsertTeamJoinRequest,
+  playerRatings,
+  teamJoinRequests
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
