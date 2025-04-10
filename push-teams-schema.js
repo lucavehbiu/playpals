@@ -99,6 +99,18 @@ async function pushTeamsSchema() {
       );
     `;
     
+    // Create team_join_requests table
+    await sql`
+      CREATE TABLE IF NOT EXISTS team_join_requests (
+        id SERIAL PRIMARY KEY,
+        team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(team_id, user_id)
+      );
+    `;
+    
     // Add sample team data
     console.log('Adding sample team data...');
     

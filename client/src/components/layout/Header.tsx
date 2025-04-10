@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import playPalsLogo from "@/assets/playpals-logo.jpg";
 
 type SearchResult = {
   id: number;
@@ -224,9 +225,12 @@ const Header = () => {
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
-                <span className="text-primary font-bold text-xl cursor-pointer">
-                  PlayPals
-                </span>
+                <div className="flex items-center cursor-pointer">
+                  <img src={playPalsLogo} alt="PlayPals Logo" className="h-9 w-9 mr-2" />
+                  <span className="text-primary font-bold text-xl">
+                    PlayPals
+                  </span>
+                </div>
               </Link>
             </div>
             
