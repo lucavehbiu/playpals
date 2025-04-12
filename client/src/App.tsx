@@ -10,6 +10,8 @@ import Profile from "@/pages/Profile";
 import Teams from "@/pages/Teams";
 import TeamDetails from "@/pages/TeamDetails";
 import EventDetails from "@/pages/EventDetails";
+import ManageEvent from "@/pages/ManageEvent";
+import EditEvent from "@/pages/EditEvent";
 import Invitations from "@/pages/Invitations";
 import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/Header";
@@ -32,7 +34,9 @@ function Router() {
                   <ProtectedRoute path="/" component={Feed} />
                   <ProtectedRoute path="/myevents" component={MyEvents} />
                   <ProtectedRoute path="/discover" component={Discover} />
-                  <ProtectedRoute path="/events/:eventId" component={EventDetails} />
+                  <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
+                  <ProtectedRoute path="/events/:id/edit" component={EditEvent} />
+                  <ProtectedRoute path="/events/:id" component={EventDetails} />
                   <ProtectedRoute path="/teams" component={Teams} />
                   <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
                   <ProtectedRoute path="/invitations" component={Invitations} />

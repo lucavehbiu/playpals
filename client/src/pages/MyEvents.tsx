@@ -26,10 +26,7 @@ const MyEvents = () => {
   });
   
   const handleManageEvent = (eventId: number) => {
-    toast({
-      title: "Manage Event",
-      description: `You're managing event #${eventId}. This would open a management interface in the full app.`,
-    });
+    setLocation(`/events/manage/${eventId}`);
   };
   
   const handleShareEvent = (eventId: number) => {
