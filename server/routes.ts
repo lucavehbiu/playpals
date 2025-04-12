@@ -266,9 +266,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden - You can only update events you created" });
       }
       
-      const updatedEvent = await storage.updateEvent(eventId, req.body);
-      res.json(updatedEvent);
+      // Validate the update data
+      try {
+        // We're accepting partial data, so we don't validate against the full schema
+        const updatedEventData = {
+          ...req.body,
+          creatorId: event.creatorId // Make sure creatorId doesn't change
+        };
+        
+        console.log("Updating event with data:", updatedEventData);
+        const updatedEvent = await storage.updateEvent(eventId, updatedEventData);
+        
+        if (!updatedEvent) {
+          return res.status(404).json({ message: "Failed to update event" });
+        }
+        
+        return res.json(updatedEvent);
+      } catch (validationError) {
+        console.error("Validation error:", validationError);
+        return res.status(400).json({ message: "Invalid event data", error: validationError });
+      }
     } catch (error) {
+      console.error("Error updating event:", error);
       res.status(500).json({ message: "Error updating event" });
     }
   });
