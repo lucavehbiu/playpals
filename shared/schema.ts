@@ -499,7 +499,25 @@ export type InsertTeamScheduleResponse = z.infer<typeof insertTeamScheduleRespon
 export type TeamJoinRequest = typeof teamJoinRequests.$inferSelect;
 export type InsertTeamJoinRequest = z.infer<typeof insertTeamJoinRequestSchema>;
 
-export type Event = typeof events.$inferSelect;
+// Define the basic Event interface from Drizzle
+export type EventBase = typeof events.$inferSelect;
+
+// Extended Event interface that includes the creator information
+export interface Event extends EventBase {
+  creator?: {
+    id: number;
+    username: string;
+    name: string;
+    email: string;
+    profileImage: string | null;
+    bio: string | null;
+    location: string | null;
+    headline: string | null;
+    coverImage: string | null;
+    createdAt: Date;
+  }
+}
+
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 
 export type RSVP = typeof rsvps.$inferSelect;

@@ -36,11 +36,23 @@ const EventDetails = () => {
   const { user } = useAuth();
   
   // Fetch event details
-  const { data: event, isLoading, error } = useQuery<Event>({
+  const { data: eventResponse, isLoading, error } = useQuery({
     queryKey: ['/api/events', eventId ? parseInt(eventId) : 0],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async ({ queryKey }) => {
+      const eventId = queryKey[1];
+      const response = await fetch(`/api/events/${eventId}`, {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch event: ${response.statusText}`);
+      }
+      return await response.json();
+    },
     enabled: !!eventId,
   });
+  
+  // Get the event object
+  const event = eventResponse as Event;
   
   // Log event data for debugging
   useEffect(() => {
