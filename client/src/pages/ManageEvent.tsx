@@ -147,15 +147,17 @@ const ManageEvent = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold">{event.title}</h1>
-          <p className="text-gray-500">
-            <Badge className={`mr-2 ${event.isPublic ? 'bg-green-500' : 'bg-amber-500'}`}>
-              {event.isPublic ? <Globe className="h-3 w-3 mr-1" /> : <Lock className="h-3 w-3 mr-1" />}
-              {event.isPublic ? 'Public' : 'Private'}
+          <div className="text-gray-500 flex gap-2 items-center mt-1">
+            <Badge className={`${event.isPublic ? 'bg-green-500' : 'bg-amber-500'}`}>
+              <span className="flex items-center">
+                {event.isPublic ? <Globe className="h-3 w-3 mr-1" /> : <Lock className="h-3 w-3 mr-1" />}
+                {event.isPublic ? 'Public' : 'Private'}
+              </span>
             </Badge>
             <Badge className={`${event.sportType === 'basketball' ? 'bg-secondary' : event.sportType === 'tennis' ? 'bg-pink-500' : 'bg-blue-500'}`}>
               {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
             </Badge>
-          </p>
+          </div>
         </div>
         
         <div className="flex gap-2">

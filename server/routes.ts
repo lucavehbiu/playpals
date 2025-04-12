@@ -269,9 +269,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the update data
       try {
         // We're accepting partial data, so we don't validate against the full schema
+        // Make sure to properly handle the date field if it's present
+        const processedData = { ...req.body };
+        if (processedData.date && typeof processedData.date === 'string') {
+          // If date is a string, ensure it's a valid ISO string
+          try {
+            // Verify it can be parsed as a valid date and convert to ISO string
+            processedData.date = new Date(processedData.date).toISOString();
+          } catch (error) {
+            console.error("Date parsing error:", error);
+            return res.status(400).json({ message: "Invalid date format" });
+          }
+        }
+        
+        // Ensure creatorId doesn't change
         const updatedEventData = {
-          ...req.body,
-          creatorId: event.creatorId // Make sure creatorId doesn't change
+          ...processedData,
+          creatorId: event.creatorId
         };
         
         console.log("Updating event with data:", updatedEventData);
