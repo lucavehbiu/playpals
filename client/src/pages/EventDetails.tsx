@@ -19,7 +19,11 @@ import {
   Lock,
   UserPlus,
   Settings,
-  ImageIcon
+  ImageIcon,
+  CheckCircle,
+  ChevronRight,
+  Calendar,
+  MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -199,256 +203,378 @@ const EventDetails = () => {
   }
   
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Back button */}
-      <button 
-        onClick={handleBack}
-        className="flex items-center text-sm text-gray-600 hover:text-primary mb-4"
-      >
-        <ArrowLeft className="h-4 w-4 mr-1" /> Back to events
-      </button>
-      
-      {/* Event header */}
-      <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
-        {/* Image loading state */}
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        )}
+    <div className="max-w-4xl mx-auto px-4 pb-16">
+      {/* Sticky Header with Back Button & Actions */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm px-4 py-3 flex items-center justify-between">
+        <button 
+          onClick={handleBack}
+          className="flex items-center text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1.5" /> 
+          Back
+        </button>
         
-        {/* Error state */}
-        {imageError && (
-          <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center">
-            <ImageIcon className="h-12 w-12 text-gray-400 mb-2" />
-            <p className="text-gray-600">Could not load event image</p>
-            <div className={`mt-4 h-8 w-32 rounded-full ${getSportBadgeColor(event.sportType)}`}></div>
-          </div>
-        )}
-        
-        {/* Actual image */}
-        <img 
-          src={event.eventImage || getEventImageUrl(event.sportType)}
-          alt={event.title || 'Event'} 
-          className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => {
-            setImageError(true);
-            console.error("Failed to load image for event:", event.title);
-          }}
-        />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="flex items-center mb-2">
-            {event.sportType && (
-              <Badge className={`${getSportBadgeColor(event.sportType)} hover:${getSportBadgeColor(event.sportType)}`}>
-                {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
-              </Badge>
-            )}
-            <Badge className="ml-2 bg-gray-200 text-gray-800 hover:bg-gray-300" variant="outline">
-              {event.isPublic ? <Globe className="h-3 w-3 mr-1" /> : <Lock className="h-3 w-3 mr-1" />}
-              {event.isPublic ? "Public" : "Private"}
-            </Badge>
-            <Badge className="ml-2 bg-gray-200 text-gray-800 hover:bg-gray-300" variant="outline">
-              {event.isFree ? "Free" : <><DollarSign className="h-3 w-3 mr-1" />{event.cost || 0}</>}
-            </Badge>
-          </div>
-          <h1 className="text-3xl font-bold text-white">{event.title || "Event Title"}</h1>
-          <div className="flex mt-2 items-center">
-            <Avatar className="h-8 w-8 border-2 border-white">
-              {event.creator?.profileImage ? (
-                <AvatarImage src={event.creator.profileImage} />
-              ) : (
-                <AvatarFallback>{event.creator?.name?.[0] || "U"}</AvatarFallback>
-              )}
-            </Avatar>
-            <span className="ml-2 text-white">Created by {event.creator?.name || event.creator?.username || "Unknown"}</span>
-          </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleShare}
+            className="h-9 w-9 rounded-full"
+          >
+            <Share2 className="h-5 w-5 text-gray-700" />
+          </Button>
+          
+          {isCreator && (
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={() => setLocation(`/myevents?manage=${event.id}`)}
+              className="h-9 w-9 rounded-full"
+            >
+              <Settings className="h-5 w-5 text-gray-700" />
+            </Button>
+          )}
         </div>
       </div>
       
-      {/* Event actions */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      {/* Content Container (with padding for fixed header) */}
+      <div className="pt-16 mt-2">
+        {/* Hero Section */}
+        <div className="relative rounded-xl overflow-hidden aspect-[1.618/1] md:aspect-[2.618/1] mb-4 bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
+          {/* Image loading state */}
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          )}
+          
+          {/* Error state */}
+          {imageError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className={`rounded-xl h-16 w-16 flex items-center justify-center mb-4 ${getSportBadgeColor(event.sportType)}`}>
+                <ImageIcon className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-white font-medium">{event.sportType?.charAt(0).toUpperCase() + event.sportType?.slice(1) || 'Sport'}</h3>
+            </div>
+          )}
+          
+          {/* Actual image with overlay */}
+          <img 
+            src={event.eventImage || getEventImageUrl(event.sportType)}
+            alt={event.title || 'Event'} 
+            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              console.error("Failed to load image for event:", event.title);
+            }}
+          />
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          
+          {/* Content overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+            {/* Event badges */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {event.sportType && (
+                <Badge className={`${getSportBadgeColor(event.sportType)} hover:${getSportBadgeColor(event.sportType)} backdrop-blur-sm backdrop-saturate-150 border border-white/20 text-white px-3 py-1`}>
+                  {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
+                </Badge>
+              )}
+              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
+                {event.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+                {event.isPublic ? "Public" : "Private"}
+              </Badge>
+              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
+                {event.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{event.cost || 0}</>}
+              </Badge>
+            </div>
+            
+            {/* Event title */}
+            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{event.title || "Event Title"}</h1>
+            
+            {/* Creator info */}
+            <div className="flex items-center">
+              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                {event.creator?.profileImage ? (
+                  <AvatarImage src={event.creator.profileImage} />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white">{event.creator?.name?.[0] || "U"}</AvatarFallback>
+                )}
+              </Avatar>
+              <div className="ml-2.5">
+                <p className="text-white font-medium text-sm leading-tight">
+                  {event.creator?.name || event.creator?.username || "Unknown"}
+                </p>
+                <p className="text-white/70 text-xs">Organizer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Key Info Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+            <CalendarIcon className="h-6 w-6 text-primary mb-2" />
+            <p className="text-xs text-gray-500">Date & Time</p>
+            <p className="font-medium text-sm md:text-base">{formatEventDate(event.date)}</p>
+            <p className="text-sm text-gray-600">{formatEventTime(event.date)}</p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+            <MapPinIcon className="h-6 w-6 text-primary mb-2" />
+            <p className="text-xs text-gray-500">Location</p>
+            <p className="font-medium text-sm md:text-base break-words">{event.location}</p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center col-span-2 md:col-span-1">
+            <Users className="h-6 w-6 text-primary mb-2" />
+            <p className="text-xs text-gray-500">Participants</p>
+            <p className="font-medium text-sm md:text-base">
+              {event.currentParticipants} of {event.maxParticipants}
+            </p>
+            <div className="w-full max-w-24 bg-gray-200 rounded-full h-1.5 mt-1.5">
+              <div 
+                className="bg-primary h-1.5 rounded-full" 
+                style={{ 
+                  width: `${(event.currentParticipants / event.maxParticipants) * 100}%` 
+                }}
+              ></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Join Event Button - Prominent CTA */}
         {!isCreator && !hasRSVPd && (
-          <Button 
-            className="flex-1 md:flex-none" 
-            onClick={handleJoin}
-            disabled={joinEventMutation.isPending}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            {joinEventMutation.isPending ? "Sending Request..." : "Request to Join"}
-          </Button>
-        )}
-        
-        {!isCreator && hasRSVPd && rsvpStatus === "pending" && (
-          <div className="flex items-center px-3 py-2 rounded-md bg-gray-100 text-gray-700">
-            <span className="text-sm">Your request to join is pending approval by the organizer</span>
-          </div>
-        )}
-        
-        {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
-          <div className="flex items-center px-3 py-2 rounded-md bg-green-100 text-green-700">
-            <span className="text-sm">You're confirmed to attend this event</span>
-          </div>
-        )}
-        
-        {isCreator && (
-          <>
+          <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <Button 
-              className="flex-1 md:flex-none" 
+              className="w-full py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02]" 
+              onClick={handleJoin}
+              disabled={joinEventMutation.isPending}
+            >
+              <Users className="mr-2.5 h-5 w-5" />
+              {joinEventMutation.isPending ? "Sending Request..." : "Request to Join"}
+            </Button>
+          </div>
+        )}
+        
+        {/* RSVP Status */}
+        {!isCreator && hasRSVPd && (
+          <div className={`mb-6 p-4 rounded-xl ${
+            rsvpStatus === "approved" ? "bg-green-50 border border-green-100" : 
+            "bg-blue-50 border border-blue-100"
+          }`}>
+            <div className="flex items-center">
+              {rsvpStatus === "approved" ? (
+                <CheckCircle className={`h-6 w-6 mr-3 text-green-600`} />
+              ) : (
+                <Clock className={`h-6 w-6 mr-3 text-blue-600`} />
+              )}
+              <div>
+                <p className={`font-medium ${
+                  rsvpStatus === "approved" ? "text-green-800" : "text-blue-800"
+                }`}>
+                  {rsvpStatus === "approved" ? "You're going to this event" : "Your request is pending"}
+                </p>
+                <p className={`text-sm ${
+                  rsvpStatus === "approved" ? "text-green-600" : "text-blue-600"
+                }`}>
+                  {rsvpStatus === "approved" 
+                    ? "You're confirmed to attend this event" 
+                    : "Waiting for the organizer to approve your request"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Organizer Actions */}
+        {isCreator && (
+          <div className="flex gap-3 mb-6">
+            <Button 
+              className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg" 
               onClick={() => {
                 toast({
                   title: "Invite Friends",
                   description: "Select friends to invite to this event",
                 });
-                // This would open a modal to select friends to invite
               }}
             >
-              <UserPlus className="mr-2 h-4 w-4" />
+              <UserPlus className="mr-2 h-5 w-5" />
               Invite Friends
             </Button>
-            <Button 
-              className="flex-1 md:flex-none" 
-              variant="outline"
-              onClick={() => setLocation(`/myevents?manage=${event.id}`)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Manage Event
-            </Button>
-          </>
+          </div>
         )}
         
-        <Button 
-          className="flex-1 md:flex-none" 
-          variant="outline"
-          onClick={handleShare}
-        >
-          <Share2 className="mr-2 h-4 w-4" />
-          Share
-        </Button>
-      </div>
-      
-      {/* Event details */}
-      <Tabs defaultValue="details" className="mb-6">
-        <TabsList className="mb-4">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="participants">Participants ({event.currentParticipants})</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="details">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Event Information</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-start">
-                      <CalendarIcon className="h-5 w-5 mr-3 text-gray-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium">{formatEventDate(event.date)}</p>
-                        <p className="text-gray-600">{formatEventTime(event.date)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <MapPinIcon className="h-5 w-5 mr-3 text-gray-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium">{event.location}</p>
-                        {event.locationCoordinates && (
-                          <p className="text-gray-600 text-sm">
-                            View on map
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <Users className="h-5 w-5 mr-3 text-gray-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium">
-                          {event.currentParticipants} of {event.maxParticipants} participants
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ 
-                              width: `${(event.currentParticipants / event.maxParticipants) * 100}%` 
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Description</h3>
-                  <p className="text-gray-700">
+        {/* Tabs with Details */}
+        <Tabs defaultValue="details" className="mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 p-1 rounded-xl">
+            <TabsTrigger value="details" className="rounded-lg py-2.5">About</TabsTrigger>
+            <TabsTrigger value="participants" className="rounded-lg py-2.5">
+              Participants 
+              <span className="ml-1.5 bg-gray-200 text-gray-700 text-xs px-1.5 py-0.5 rounded-full">
+                {event.currentParticipants}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="discussion" className="rounded-lg py-2.5">Discussion</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3">About This Event</h3>
+                <div className="prose prose-gray max-w-none">
+                  <p className="text-gray-700 leading-relaxed">
                     {event.description || "No description provided."}
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="participants">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-semibold mb-4">Participants</h3>
               
-              {rsvps && rsvps.length > 0 ? (
-                <div className="space-y-4">
-                  {rsvps.map((rsvp: any) => (
-                    <div key={rsvp.id} className="flex items-center">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={rsvp.user?.profileImage || undefined} />
-                        <AvatarFallback>{rsvp.user?.name?.[0] || "U"}</AvatarFallback>
-                      </Avatar>
-                      <div className="ml-3">
-                        <p className="font-medium">{rsvp.user?.name || "Unknown"}</p>
-                        <p className="text-sm text-gray-500">
-                          {rsvp.status === "approved" ? "Going" : 
-                           rsvp.status === "denied" ? "Not going" : 
-                           rsvp.status === "pending" ? "Request Pending" : "Maybe"}
-                        </p>
-                      </div>
+              <Separator />
+              
+              <div>
+                <h3 className="text-xl font-semibold mb-3">Organizer</h3>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <div className="flex items-start">
+                    <Avatar className="h-12 w-12">
+                      {event.creator?.profileImage ? (
+                        <AvatarImage src={event.creator.profileImage} />
+                      ) : (
+                        <AvatarFallback className="bg-primary text-white">{event.creator?.name?.[0] || "U"}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="ml-3">
+                      <p className="font-medium">{event.creator?.name || event.creator?.username || "Unknown"}</p>
+                      <p className="text-sm text-gray-500">{event.creator?.bio || "Event organizer"}</p>
+                      <Button variant="ghost" size="sm" className="mt-1 h-8 px-3 text-xs">
+                        <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Follow
+                      </Button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
-                <p className="text-gray-500 italic">No participants yet</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="discussion">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-semibold mb-4">Discussion</h3>
-              
-              <div className="bg-gray-50 p-4 rounded-lg text-center">
-                <MessageSquare className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-                <p className="text-gray-600">Discussion section coming soon!</p>
-                <p className="text-sm text-gray-500">
-                  Event participants will be able to chat here
-                </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Similar events section */}
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-4">Similar Events</h3>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="participants">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold mb-3">Event Participants</h3>
+              
+              <div className="bg-gray-50 rounded-xl p-4">
+                {rsvps && rsvps.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {rsvps.map((rsvp: any) => (
+                      <div key={rsvp.id} className="flex items-center py-3 first:pt-0 last:pb-0">
+                        <Avatar className="h-10 w-10 border border-gray-100">
+                          <AvatarImage src={rsvp.user?.profileImage || undefined} />
+                          <AvatarFallback className="bg-primary/10">{rsvp.user?.name?.[0] || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div className="ml-3 flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium">{rsvp.user?.name || "Unknown"}</p>
+                            <Badge className={
+                              rsvp.status === "approved" ? "bg-green-100 text-green-800 hover:bg-green-100" : 
+                              rsvp.status === "pending" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" :
+                              "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                            }>
+                              {rsvp.status === "approved" ? "Going" : 
+                              rsvp.status === "denied" ? "Not going" : 
+                              rsvp.status === "pending" ? "Pending" : "Maybe"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-600 font-medium">No participants yet</p>
+                    <p className="text-sm text-gray-500 mt-1">Be the first to join this event!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="discussion">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold mb-3">Event Discussion</h3>
+              
+              <div className="bg-gray-50 p-6 rounded-xl text-center">
+                <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-700 font-medium">Discussion coming soon!</p>
+                <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
+                  Chat with other participants about this event. This feature will be available soon.
+                </p>
+                <Button variant="outline" className="mt-4" disabled>
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  New Discussion
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
         
-        <div className="bg-gray-50 p-6 rounded-lg text-center">
-          <p className="text-gray-600">Similar events will be displayed here</p>
+        {/* Similar Events section */}
+        <section className="mt-10 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold">Similar Events</h3>
+            <Button variant="ghost" size="sm" className="text-sm text-primary">
+              See all <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="bg-gray-50 rounded-xl p-8 text-center">
+            <div className="max-w-sm mx-auto">
+              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+              <p className="text-gray-700 font-medium">More events coming soon</p>
+              <p className="text-sm text-gray-500 mt-1">
+                We're finding more {event.sportType} events that you might be interested in.
+              </p>
+            </div>
+          </div>
+        </section>
+        
+        {/* Mobile Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-3 z-50 md:hidden">
+          {!isCreator && !hasRSVPd ? (
+            <Button 
+              className="w-full py-5 text-sm font-medium rounded-xl" 
+              onClick={handleJoin}
+              disabled={joinEventMutation.isPending}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              {joinEventMutation.isPending ? "Sending..." : "Request to Join"}
+            </Button>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="flex-1 py-5 text-sm font-medium rounded-xl" 
+                onClick={handleShare}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+              
+              {isCreator && (
+                <Button 
+                  className="flex-1 py-5 text-sm font-medium rounded-xl"
+                  onClick={() => {
+                    toast({
+                      title: "Invite Friends",
+                      description: "Select friends to invite to this event",
+                    });
+                  }}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Invite
+                </Button>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
