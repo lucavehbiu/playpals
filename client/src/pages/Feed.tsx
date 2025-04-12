@@ -16,7 +16,8 @@ import {
   UserPlus,
   Award,
   Star,
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -24,7 +25,7 @@ import { getQueryFn } from "@/lib/queryClient";
 import { Event } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -37,6 +38,7 @@ const Feed = () => {
   const [activeTab, setActiveTab] = useState<"trending" | "following" | "discover">("trending");
   const [, setLocation] = useLocation();
   const [animateStories, setAnimateStories] = useState(false);
+  const [quickViewEvent, setQuickViewEvent] = useState<Event | null>(null);
   
   // Fetch events from users that current user follows - in a real app this would be a separate API endpoint
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
@@ -442,7 +444,7 @@ const Feed = () => {
                       <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
                       <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
                       
-                      <div className="flex flex-col gap-2 mb-3">
+                      <div className="mb-3">
                         <div className="bg-gray-50 rounded-lg p-2 flex items-center">
                           <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
                             <CalendarIcon className="h-3 w-3 text-primary" />
@@ -452,16 +454,6 @@ const Feed = () => {
                             <p className="text-xs font-medium">
                               {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
-                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                            <MapPinIcon className="h-3 w-3 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[10px] text-gray-500 mb-0.5">Location</p>
-                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
                           </div>
                         </div>
                       </div>
@@ -480,18 +472,27 @@ const Feed = () => {
                       </div>
                     </div>
                     
-                    {/* Mobile-optimized image */}
+                    {/* Mobile-optimized image with location overlay and quick view */}
                     {event.eventImage && (
                       <div 
                         className="cursor-pointer relative overflow-hidden"
-                        onClick={() => setLocation(`/events/${event.id}`)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setQuickViewEvent(event);
+                        }}
                       >
                         <img 
                           src={event.eventImage} 
                           alt={event.title} 
                           className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                        {/* Gradient overlay with location */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
+                          <div className="absolute bottom-2 left-3 right-3 flex items-center text-white">
+                            <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     
@@ -517,6 +518,94 @@ const Feed = () => {
           </motion.div>
         )}
       </div>
+      
+      {/* Quick view event dialog */}
+      <Dialog open={!!quickViewEvent} onOpenChange={() => setQuickViewEvent(null)}>
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          {quickViewEvent && (
+            <>
+              <div className="relative">
+                {quickViewEvent.eventImage && (
+                  <div className="relative w-full h-[200px] sm:h-[280px]">
+                    <img 
+                      src={quickViewEvent.eventImage} 
+                      alt={quickViewEvent.title}
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  </div>
+                )}
+                
+                <div className="absolute top-2 right-2 z-10">
+                  <DialogClose asChild>
+                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-black/30 border-0 text-white hover:bg-black/50 hover:text-white">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </DialogClose>
+                </div>
+                
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <Badge variant={quickViewEvent.sportType === 'basketball' ? 'default' : 
+                           quickViewEvent.sportType === 'soccer' ? 'secondary' : 
+                           quickViewEvent.sportType === 'tennis' ? 'outline' : 'default'} 
+                    className="mb-2 capitalize">
+                    {quickViewEvent.sportType}
+                  </Badge>
+                  <h3 className="text-xl font-bold mb-1">{quickViewEvent.title}</h3>
+                  <div className="flex items-center text-sm">
+                    <CalendarIcon className="h-4 w-4 mr-1" />
+                    {new Date(quickViewEvent.date).toLocaleDateString()} • {new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                <div className="flex items-center mb-4">
+                  <Avatar className="h-10 w-10 mr-3">
+                    <AvatarFallback>{quickViewEvent.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-medium">Organized by {quickViewEvent.creator?.name || 'Unknown'}</h4>
+                    <p className="text-sm text-gray-500">
+                      {formatDistanceToNow(new Date(quickViewEvent.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center mb-2">
+                    <MapPinIcon className="h-4 w-4 text-gray-500 mr-2" />
+                    <p className="text-sm">{quickViewEvent.location}</p>
+                  </div>
+                  <div className="flex items-center">
+                    <UserIcon className="h-4 w-4 text-gray-500 mr-2" />
+                    <p className="text-sm">{quickViewEvent.currentParticipants} of {quickViewEvent.maxParticipants} participants</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-700 mb-4">
+                  {quickViewEvent.description}
+                </p>
+                
+                <div className="flex space-x-3">
+                  <Button 
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                    onClick={() => {
+                      setQuickViewEvent(null);
+                      setLocation(`/events/${quickViewEvent.id}`);
+                    }}
+                  >
+                    View Details
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Join Event
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
