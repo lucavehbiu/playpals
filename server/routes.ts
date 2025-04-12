@@ -231,27 +231,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid event ID" });
       }
       
+      // Use the improved getEvent method which already includes creator info
       const event = await storage.getEvent(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      // Get creator information
-      if (event.creatorId) {
-        try {
-          const creator = await storage.getUser(event.creatorId);
-          if (creator) {
-            // Set the creator object without exposing the password
-            const { password, ...creatorData } = creator;
-            // @ts-ignore - We're dynamically adding the creator property
-            event.creator = creatorData;
-            console.log("Added creator info:", event.creator?.name || event.creator?.username);
-          }
-        } catch (err) {
-          console.error("Error fetching event creator:", err);
-        }
-      }
+      console.log("Found event with creator info:", 
+        event.title, 
+        "Creator:", event.creator?.name || "Not found");
       
       res.json(event);
     } catch (error) {
