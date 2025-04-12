@@ -237,6 +237,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
       
+      // Get creator information
+      if (event.creatorId) {
+        try {
+          const creator = await storage.getUser(event.creatorId);
+          if (creator) {
+            // Set the creator object without exposing the password
+            const { password, ...creatorData } = creator;
+            event.creator = creatorData;
+          }
+        } catch (err) {
+          console.error("Error fetching event creator:", err);
+        }
+      }
+      
       res.json(event);
     } catch (error) {
       console.error("Error fetching event:", error);

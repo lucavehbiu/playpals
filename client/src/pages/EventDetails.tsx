@@ -126,7 +126,7 @@ const EventDetails = () => {
   }, [event?.id]);
 
   // Determine if the current user is the creator of this event
-  const isCreator = user && event && user.id === event.creatorId;
+  const isCreator = user && event && user.id === (event.creatorId || event.creator?.id);
   
   // Check if user has already RSVPd
   const userRSVP = rsvps?.find((rsvp: any) => rsvp.userId === user?.id);
@@ -207,7 +207,7 @@ const EventDetails = () => {
         
         {/* Actual image */}
         <img 
-          src={getEventImageUrl(event.sportType)}
+          src={event.eventImage || getEventImageUrl(event.sportType)}
           alt={event.title || 'Event'} 
           className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImageLoaded(true)}
@@ -236,10 +236,13 @@ const EventDetails = () => {
           <h1 className="text-3xl font-bold text-white">{event.title || "Event Title"}</h1>
           <div className="flex mt-2 items-center">
             <Avatar className="h-8 w-8 border-2 border-white">
-              <AvatarImage src={undefined} />
-              <AvatarFallback>U</AvatarFallback>
+              {event.creator?.profileImage ? (
+                <AvatarImage src={event.creator.profileImage} />
+              ) : (
+                <AvatarFallback>{event.creator?.name?.[0] || "U"}</AvatarFallback>
+              )}
             </Avatar>
-            <span className="ml-2 text-white">Created by {user?.username || "Unknown"}</span>
+            <span className="ml-2 text-white">Created by {event.creator?.name || event.creator?.username || "Unknown"}</span>
           </div>
         </div>
       </div>
