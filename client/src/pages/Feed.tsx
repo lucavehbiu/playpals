@@ -168,7 +168,10 @@ const Feed = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.05 * index }}
                   className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center"
-                  onClick={() => setLocation(`/events/${event.id}`)}
+                  onClick={() => {
+                    setSelectedStoryIndex(index);
+                    setStoriesViewerOpen(true);
+                  }}
                 >
                   {/* Story ring with gradient border */}
                   <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gradient-to-br from-primary via-blue-500 to-purple-600 p-[2px] relative">
@@ -634,6 +637,15 @@ const Feed = () => {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Instagram-style Stories Viewer */}
+      {storiesViewerOpen && upcomingEvents.length > 0 && (
+        <StoriesViewer 
+          events={upcomingEvents}
+          initialIndex={selectedStoryIndex}
+          onClose={() => setStoriesViewerOpen(false)}
+        />
+      )}
     </div>
   );
 };
