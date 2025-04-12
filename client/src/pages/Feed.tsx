@@ -431,12 +431,12 @@ const Feed = () => {
                       <h4 className="font-bold text-xl text-gray-900 mb-2">{event.title}</h4>
                       <p className="text-gray-700 mb-4 line-clamp-2">{event.description}</p>
                       
-                      <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="flex flex-col gap-2 mb-4">
                         <div className="bg-gray-50 rounded-lg p-3 flex items-center">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
                             <CalendarIcon className="h-4 w-4 text-primary" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <p className="text-xs text-gray-500">Date & Time</p>
                             <p className="text-sm font-medium">
                               {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -448,9 +448,9 @@ const Feed = () => {
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
                             <MapPinIcon className="h-4 w-4 text-primary" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <p className="text-xs text-gray-500">Location</p>
-                            <p className="text-sm font-medium line-clamp-1">{event.location}</p>
+                            <p className="text-sm font-medium line-clamp-2">{event.location}</p>
                           </div>
                         </div>
                       </div>
