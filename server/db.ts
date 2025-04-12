@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { log } from "./vite";
+import * as schema from "@shared/schema";
 
 const { Pool } = pg;
 
@@ -14,5 +15,5 @@ pool.on("connect", () => {
   log("Connected to PostgreSQL database", "database");
 });
 
-// Initialize Drizzle with the pool
-export const db = drizzle(pool);
+// Initialize Drizzle with the pool and schema
+export const db = drizzle(pool, { schema });

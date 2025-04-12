@@ -40,11 +40,16 @@ const EventDetails = () => {
     queryKey: ['/api/events', eventId ? parseInt(eventId) : 0],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!eventId,
-    // Uncomment for debugging
-    // onSuccess: (data) => {
-    //   console.log("Event data received:", data);
-    // }
   });
+  
+  // Log event data for debugging
+  useEffect(() => {
+    if (event) {
+      console.log("Event data received:", event);
+      console.log("Event creator:", event.creator);
+      console.log("Event image:", event.eventImage);
+    }
+  }, [event]);
   
   // Fetch RSVPs for this event
   const { data: rsvps = [] } = useQuery<any[]>({

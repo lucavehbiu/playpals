@@ -2025,8 +2025,35 @@ export class DatabaseStorage implements IStorage {
 
   // Event methods
   async getEvent(id: number): Promise<Event | undefined> {
-    const [event] = await db.select().from(events).where(eq(events.id, id));
-    return event || undefined;
+    // Get event with creator relationship using Drizzle's relation queries
+    const [eventResult] = await db.query.events.findMany({
+      where: eq(events.id, id),
+      with: {
+        creator: {
+          columns: {
+            password: false, // Don't include password
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            profileImage: true,
+            bio: true,
+            location: true,
+            headline: true,
+            coverImage: true,
+            createdAt: true
+          }
+        }
+      }
+    });
+    
+    // Log for debugging
+    if (eventResult) {
+      console.log("Found event:", eventResult.id, eventResult.title);
+      console.log("Creator info:", eventResult.creator?.name || eventResult.creator?.username);
+    }
+    
+    return eventResult;
   }
 
   async getEventsByCreator(creatorId: number): Promise<Event[]> {
