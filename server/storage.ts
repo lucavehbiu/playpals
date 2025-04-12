@@ -2091,9 +2091,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined> {
+    // Process date field to ensure it's a Date object
+    const processedData = { ...eventData };
+    
+    // If date is a string, convert it to a Date object
+    if (processedData.date && typeof processedData.date === 'string') {
+      try {
+        processedData.date = new Date(processedData.date);
+      } catch (error) {
+        console.error("Failed to convert date string to Date object:", error);
+        throw new Error("Invalid date format");
+      }
+    }
+    
     const [updatedEvent] = await db
       .update(events)
-      .set(eventData)
+      .set(processedData)
       .where(eq(events.id, id))
       .returning();
     return updatedEvent || undefined;
