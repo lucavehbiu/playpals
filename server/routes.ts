@@ -244,7 +244,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (creator) {
             // Set the creator object without exposing the password
             const { password, ...creatorData } = creator;
+            // @ts-ignore - We're dynamically adding the creator property
             event.creator = creatorData;
+            console.log("Added creator info:", event.creator?.name || event.creator?.username);
           }
         } catch (err) {
           console.error("Error fetching event creator:", err);

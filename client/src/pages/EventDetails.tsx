@@ -40,6 +40,10 @@ const EventDetails = () => {
     queryKey: ['/api/events', eventId ? parseInt(eventId) : 0],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!eventId,
+    // Uncomment for debugging
+    // onSuccess: (data) => {
+    //   console.log("Event data received:", data);
+    // }
   });
   
   // Fetch RSVPs for this event
