@@ -229,51 +229,111 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
           </button>
           
           {/* Content overlay */}
-          <div className="absolute inset-x-0 bottom-16 px-6 z-10 text-white max-w-xl mx-auto">
-            <div className="mb-4">
-              <h2 className="text-3xl font-bold mb-2">{currentEvent.title}</h2>
-              <p className="text-white/80 line-clamp-2">{currentEvent.description}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <CalendarIcon className="h-5 w-5 text-white/80 mr-3" />
-                <div>
-                  <p className="text-xs text-white/60">Date</p>
-                  <p className="font-medium">{formatEventDate(currentEvent.date)}</p>
-                </div>
+          <div className="absolute inset-0 flex flex-col justify-end px-6 pb-16 z-10">
+            {/* Creator info */}
+            <div className="flex items-center mb-4">
+              <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                {currentEvent.creator?.profileImage ? (
+                  <img 
+                    src={currentEvent.creator.profileImage}
+                    alt={currentEvent.creator.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-white font-bold">
+                    {currentEvent.creator?.name?.charAt(0) || 'U'}
+                  </div>
+                )}
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <Clock className="h-5 w-5 text-white/80 mr-3" />
-                <div>
-                  <p className="text-xs text-white/60">Time</p>
-                  <p className="font-medium">{formatEventTime(currentEvent.date)}</p>
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <MapPin className="h-5 w-5 text-white/80 mr-3" />
-                <div>
-                  <p className="text-xs text-white/60">Location</p>
-                  <p className="font-medium line-clamp-1">{currentEvent.location}</p>
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <Users className="h-5 w-5 text-white/80 mr-3" />
-                <div>
-                  <p className="text-xs text-white/60">Participants</p>
-                  <p className="font-medium">
-                    {currentEvent.currentParticipants} of {currentEvent.maxParticipants}
-                  </p>
-                </div>
+              <div className="ml-3">
+                <p className="text-white font-medium text-sm">
+                  {currentEvent.creator?.name || 'Unknown User'}
+                </p>
+                <p className="text-white/60 text-xs">
+                  {formatDistanceToNow(new Date(currentEvent.createdAt), { addSuffix: true })}
+                </p>
               </div>
             </div>
             
-            <Button 
-              className="w-full py-6 rounded-xl bg-white text-black hover:bg-white/90 text-base font-semibold flex items-center justify-center"
-              onClick={handleViewEvent}
-            >
-              View Event <ExternalLink className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-5 mb-4 max-w-xl mx-auto w-full">
+              <div className="mb-4">
+                <div className="flex items-center mb-1">
+                  <Badge variant="secondary" className="mr-2 capitalize">
+                    {currentEvent.sportType}
+                  </Badge>
+                  <div className="flex items-center text-white/70 text-xs">
+                    <Users className="h-3 w-3 mr-1" />
+                    {currentEvent.currentParticipants}/{currentEvent.maxParticipants}
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold mb-2 text-white">{currentEvent.title}</h2>
+                <p className="text-white/80 text-sm">{currentEvent.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
+                  <CalendarIcon className="h-5 w-5 text-white/80 mr-3" />
+                  <div>
+                    <p className="text-xs text-white/60">Date</p>
+                    <p className="font-medium text-white">{formatEventDate(currentEvent.date)}</p>
+                  </div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
+                  <Clock className="h-5 w-5 text-white/80 mr-3" />
+                  <div>
+                    <p className="text-xs text-white/60">Time</p>
+                    <p className="font-medium text-white">{formatEventTime(currentEvent.date)}</p>
+                  </div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
+                  <MapPin className="h-5 w-5 text-white/80 mr-3" />
+                  <div>
+                    <p className="text-xs text-white/60">Location</p>
+                    <p className="font-medium text-white line-clamp-1">{currentEvent.location}</p>
+                  </div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
+                  {currentEvent.isFree ? (
+                    <>
+                      <div className="h-5 w-5 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                        <span className="text-green-500 text-xs font-bold">$</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-white/60">Price</p>
+                        <p className="font-medium text-white">Free</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-5 w-5 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
+                        <span className="text-blue-500 text-xs font-bold">$</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-white/60">Price</p>
+                        <p className="font-medium text-white">
+                          ${(currentEvent.cost ? (currentEvent.cost / 100).toFixed(2) : '0.00')}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 max-w-xl mx-auto w-full">
+              <Button 
+                className="flex-1 py-6 rounded-xl bg-white text-black hover:bg-white/90 text-base font-semibold flex items-center justify-center"
+                onClick={handleViewEvent}
+              >
+                View Event <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 py-6 rounded-xl bg-white/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/30 text-base font-semibold"
+              >
+                Join Event
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>
