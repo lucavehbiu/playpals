@@ -17,7 +17,8 @@ import {
   Award,
   Star,
   Sparkles,
-  X
+  X,
+  Eye
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -458,18 +459,6 @@ const Feed = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <UserIcon className="h-3 w-3 text-gray-500 mr-1" />
-                          <span className="text-xs text-gray-700">
-                            <span className="font-medium">{event.currentParticipants}</span>/{event.maxParticipants}
-                          </span>
-                        </div>
-                        
-                        <Button size="sm" variant="outline" className="h-7 text-xs px-2 rounded-full">
-                          View Details
-                        </Button>
-                      </div>
                     </div>
                     
                     {/* Mobile-optimized image with location overlay and quick view */}
@@ -488,9 +477,25 @@ const Feed = () => {
                         />
                         {/* Gradient overlay with location */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
-                          <div className="absolute bottom-2 left-3 right-3 flex items-center text-white">
+                          {/* Location info bottom left */}
+                          <div className="absolute bottom-2 left-3 flex items-center text-white">
                             <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             <p className="text-xs font-medium line-clamp-1">{event.location}</p>
+                          </div>
+                          
+                          {/* Participants count bottom right */}
+                          <div className="absolute bottom-2 right-3 flex items-center text-white">
+                            <UserIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="text-xs font-medium">
+                              {event.currentParticipants}/{event.maxParticipants}
+                            </span>
+                          </div>
+                          
+                          {/* Quick view indicator center */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                            <div className="bg-black/40 rounded-full p-2">
+                              <Eye className="h-6 w-6 text-white" />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -522,6 +527,10 @@ const Feed = () => {
       {/* Quick view event dialog */}
       <Dialog open={!!quickViewEvent} onOpenChange={() => setQuickViewEvent(null)}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Event Details</DialogTitle>
+            <DialogDescription>Quick view of event information</DialogDescription>
+          </DialogHeader>
           {quickViewEvent && (
             <>
               <div className="relative">
