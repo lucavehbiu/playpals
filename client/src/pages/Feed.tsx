@@ -28,6 +28,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import StoriesViewer from "@/components/stories/StoriesViewer";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,8 @@ const Feed = () => {
   const [, setLocation] = useLocation();
   const [animateStories, setAnimateStories] = useState(false);
   const [quickViewEvent, setQuickViewEvent] = useState<Event | null>(null);
+  const [storiesViewerOpen, setStoriesViewerOpen] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   
   // Fetch events from users that current user follows - in a real app this would be a separate API endpoint
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
