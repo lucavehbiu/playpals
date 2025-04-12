@@ -4,14 +4,25 @@ import EventTabs from "@/components/event/EventTabs";
 import CreateEventButton from "@/components/event/CreateEventButton";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 const MyEvents = () => {
   const { toast } = useToast();
-  const userId = localStorage.getItem('userId') || '1'; // Default for demo
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   
   // Get events created by the user
   const { data: myEvents, isLoading, error, refetch } = useQuery<Event[]>({
-    queryKey: [`/api/events/user/${userId}`],
+    queryKey: [user ? `/api/events/user/${user.id}` : null],
+    enabled: !!user,
+  });
+  
+  // Get public events for the discover section
+  const { data: publicEvents, isLoading: isLoadingPublic } = useQuery<Event[]>({
+    queryKey: ['/api/events'],
   });
   
   const handleManageEvent = (eventId: number) => {
@@ -30,6 +41,10 @@ const MyEvents = () => {
   
   const handleEventCreated = () => {
     refetch();
+  };
+  
+  const goToDiscover = () => {
+    setLocation("/discover");
   };
   
   return (
@@ -70,88 +85,67 @@ const MyEvents = () => {
           ) : (
             <div className="col-span-3 text-center py-12 bg-gray-50 rounded-lg">
               <h3 className="text-lg font-medium text-gray-700 mb-2">You haven't created any events yet</h3>
-              <p className="text-gray-500 mb-6">Create your first event to get started!</p>
-              <CreateEventButton onEventCreated={handleEventCreated} />
+              <p className="text-gray-500 mb-6">
+                Create your first event to get started or explore events to join!
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <CreateEventButton onEventCreated={handleEventCreated} />
+                <Button 
+                  variant="outline" 
+                  onClick={goToDiscover}
+                  className="flex items-center gap-2"
+                >
+                  <span>Explore Events</span>
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
       )}
       
-      {/* Discover Nearby Events Section */}
-      <div className="mt-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-dark">Discover Nearby Events</h2>
-          <a href="/discover" className="text-primary text-sm font-medium hover:text-blue-700">View All</a>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* This would be populated with events from the discover feed in the full app */}
-          {/* For now, we'll show a few placeholder cards */}
-          <EventCard 
-            event={{
-              id: 4,
-              title: "Beach Volleyball Meetup",
-              sportType: "volleyball",
-              date: new Date(Date.now() + 86400000 * 7).toISOString(),
-              location: "Ocean Beach Volleyball Courts",
-              maxParticipants: 12,
-              currentParticipants: 6,
-              isPublic: true,
-              isFree: true,
-              creatorId: 2,
-              createdAt: new Date().toISOString(),
-              eventImage: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
-            }}
-            onJoin={(eventId) => toast({
-              title: "Joining Event",
-              description: `You're joining event #${eventId}.`,
-            })}
-          />
+      {/* Discover Nearby Events Section - Only show if user has no events */}
+      {(!myEvents || myEvents.length === 0) && (
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-dark">Discover Events Near You</h2>
+            <a href="/discover" className="text-primary text-sm font-medium hover:text-blue-700">View All</a>
+          </div>
           
-          <EventCard 
-            event={{
-              id: 5,
-              title: "City Park Morning Ride",
-              sportType: "cycling",
-              date: new Date(Date.now() + 86400000 * 3).toISOString(),
-              location: "City Park East Entrance",
-              maxParticipants: 20,
-              currentParticipants: 8,
-              isPublic: true,
-              isFree: true,
-              creatorId: 3,
-              createdAt: new Date().toISOString(),
-              eventImage: "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
-            }}
-            onJoin={(eventId) => toast({
-              title: "Joining Event",
-              description: `You're joining event #${eventId}.`,
-            })}
-          />
-          
-          <EventCard 
-            event={{
-              id: 6,
-              title: "Sunset Yoga at the Park",
-              sportType: "yoga",
-              date: new Date(Date.now() + 86400000 * 2).toISOString(),
-              location: "Lakeside Park Lawn",
-              maxParticipants: 15,
-              currentParticipants: 7,
-              isPublic: true,
-              isFree: false,
-              cost: 500,
-              creatorId: 4,
-              createdAt: new Date().toISOString(),
-              eventImage: "https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
-            }}
-            onJoin={(eventId) => toast({
-              title: "Joining Event",
-              description: `You're joining event #${eventId}.`,
-            })}
-          />
+          {isLoadingPublic ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="text-center">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading events...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publicEvents && publicEvents.length > 0 ? (
+                // Filter out the user's own events and display up to 3 public events
+                publicEvents
+                  .filter(event => !user || event.creatorId !== user.id)
+                  .slice(0, 3)
+                  .map((event) => (
+                    <EventCard 
+                      key={event.id} 
+                      event={event} 
+                      onJoin={(eventId) => toast({
+                        title: "Joining Event",
+                        description: `You're joining event #${eventId}.`,
+                      })}
+                    />
+                  ))
+              ) : (
+                <div className="col-span-3 text-center py-8 bg-gray-50 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No public events available</h3>
+                  <p className="text-gray-500">Check back later or create your own event!</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </>
   );
 };
