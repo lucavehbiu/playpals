@@ -128,17 +128,21 @@ const Feed = () => {
             <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
             
             <motion.div 
-              className="flex space-x-3 overflow-x-auto pb-2 px-4 sm:px-2 scrollbar-hidden"
+              className="flex space-x-3 overflow-x-auto pb-2 px-4 sm:px-2 scrollbar-hide snap-x-mandatory touch-pan-x"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, staggerChildren: 0.1 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
             >
               {/* Create Story Button - Instagram style */}
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer"
+                className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center"
               >
                 <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-primary to-blue-500 p-[2px]">
                   <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
@@ -157,7 +161,7 @@ const Feed = () => {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.05 * index }}
-                  className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer"
+                  className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center"
                   onClick={() => setLocation(`/events/${event.id}`)}
                 >
                   {/* Story ring with gradient border */}
@@ -205,9 +209,9 @@ const Feed = () => {
           >
             <div className="flex items-center">
               {/* Empty state with Instagram-like style */}
-              <div className="flex overflow-x-auto space-x-4 pb-1 px-1 -mx-1">
+              <div className="flex overflow-x-auto space-x-4 pb-1 px-1 -mx-1 scrollbar-hide snap-x-mandatory touch-pan-x">
                 {/* Create Story Button - Instagram style but empty state */}
-                <div className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer">
+                <div className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center">
                   <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-gray-200 to-gray-300 p-[2px]">
                     <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
                       <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
@@ -220,7 +224,7 @@ const Feed = () => {
 
                 {/* Empty story placeholders */}
                 {[...Array(4)].map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center opacity-50">
+                  <div key={index} className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center opacity-50 snap-center">
                     <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gray-100 p-[2px]">
                       <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center border-[3px] border-white">
                         {index % 2 === 0 ? (
