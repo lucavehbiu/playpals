@@ -187,12 +187,6 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
               className="w-full h-full object-cover opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
-            
-            {/* Location overlay at top */}
-            <div className="absolute top-20 left-4 right-4 flex items-center bg-black/20 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
-              <MapPin className="h-5 w-5 text-white/80 mr-2 flex-shrink-0" />
-              <p className="text-sm font-medium">{currentEvent.location}</p>
-            </div>
           </div>
           
           {/* Interaction areas for touch/click navigation */}
@@ -274,17 +268,8 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
               </div>
             </div>
             
-            {/* Event timing badge */}
-            <div className="mb-4 flex justify-center">
-              <span className="bg-primary/80 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium">
-                {new Date(currentEvent.date) > new Date() ? 
-                  `Happening in ${Math.ceil((new Date(currentEvent.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days` : 
-                  'Event already started'}
-              </span>
-            </div>
-            
             <Button 
-              className="w-full py-6 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white hover:from-primary/90 hover:to-blue-700 text-base font-semibold flex items-center justify-center shadow-lg"
+              className="w-full py-6 rounded-xl bg-white text-black hover:bg-white/90 text-base font-semibold flex items-center justify-center"
               onClick={handleViewEvent}
             >
               View Event <ExternalLink className="ml-2 h-4 w-4" />
