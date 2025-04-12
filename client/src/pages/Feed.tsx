@@ -451,10 +451,20 @@ const Feed = () => {
                             <CalendarIcon className="h-3 w-3 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-[10px] text-gray-500 mb-0.5">Date & Time</p>
-                            <p className="text-xs font-medium">
-                              {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                            <div className="flex justify-between">
+                              <div>
+                                <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
+                                <p className="text-xs font-medium">
+                                  {new Date(event.date).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-gray-500 mb-0.5">Time</p>
+                                <p className="text-xs font-medium">
+                                  {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -561,9 +571,15 @@ const Feed = () => {
                     {quickViewEvent.sportType}
                   </Badge>
                   <h3 className="text-xl font-bold mb-1">{quickViewEvent.title}</h3>
-                  <div className="flex items-center text-sm">
-                    <CalendarIcon className="h-4 w-4 mr-1" />
-                    {new Date(quickViewEvent.date).toLocaleDateString()} • {new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div className="flex items-center space-x-3 text-sm">
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-4 w-4 mr-1" />
+                      {new Date(quickViewEvent.date).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
                 </div>
               </div>
