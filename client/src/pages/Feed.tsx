@@ -398,78 +398,35 @@ const Feed = () => {
                 <Card className="overflow-hidden bg-white shadow-sm border-none hover:shadow-md transition-shadow duration-300">
                   <CardContent className="p-0">
                     {/* Post header */}
-                    <div className="p-5 border-b border-gray-100">
-                      <div className="flex items-start justify-between">
-                        <div className="flex">
-                          <Avatar className="h-10 w-10 mr-3">
+                    {/* Compact header for mobile */}
+                    <div className="p-3 sm:p-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
                             <AvatarFallback>{event.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-semibold text-gray-900">
-                              {event.creator?.name || 'Unknown'} 
-                              <span className="font-normal text-gray-500 ml-1">created an event</span>
+                            <h3 className="text-sm font-medium text-gray-900">
+                              {event.creator?.name?.split(' ')[0] || 'Unknown'}
+                              <Badge variant={event.sportType === 'basketball' ? 'default' : 
+                                       event.sportType === 'soccer' ? 'secondary' : 
+                                       event.sportType === 'tennis' ? 'outline' : 'default'} 
+                                className="ml-2 capitalize text-[10px] py-0 h-4">
+                                {event.sportType}
+                              </Badge>
                             </h3>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-[10px] text-gray-500">
                               {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
                             </p>
                           </div>
                         </div>
-                        <Badge variant={event.sportType === 'basketball' ? 'default' : 
-                                       event.sportType === 'soccer' ? 'secondary' : 
-                                       event.sportType === 'tennis' ? 'outline' : 'default'} 
-                               className="capitalize">
-                          {event.sportType}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    {/* Post content */}
-                    <div 
-                      className="px-5 py-4 cursor-pointer" 
-                      onClick={() => setLocation(`/events/${event.id}`)}
-                    >
-                      <h4 className="font-bold text-xl text-gray-900 mb-2">{event.title}</h4>
-                      <p className="text-gray-700 mb-4 line-clamp-2">{event.description}</p>
-                      
-                      <div className="flex flex-col gap-2 mb-4">
-                        <div className="bg-gray-50 rounded-lg p-3 flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-                            <CalendarIcon className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs text-gray-500">Date & Time</p>
-                            <p className="text-sm font-medium">
-                              {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gray-50 rounded-lg p-3 flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-                            <MapPinIcon className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs text-gray-500">Location</p>
-                            <p className="text-sm font-medium line-clamp-2">{event.location}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center">
-                          <UserIcon className="h-4 w-4 text-gray-500 mr-1" />
-                          <span className="text-sm text-gray-700">
-                            <span className="font-medium">{event.currentParticipants}</span>/{event.maxParticipants} Participants
-                          </span>
-                        </div>
-                        
                         <div>
                           {event.isFree ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              Free Event
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">
+                              Free
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">
                               ${(event.cost ? (event.cost / 100).toFixed(2) : '0.00')}
                             </Badge>
                           )}
@@ -477,7 +434,53 @@ const Feed = () => {
                       </div>
                     </div>
                     
-                    {/* Post image */}
+                    {/* Mobile-optimized content */}
+                    <div 
+                      className="p-3 sm:p-4 cursor-pointer" 
+                      onClick={() => setLocation(`/events/${event.id}`)}
+                    >
+                      <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
+                      <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
+                      
+                      <div className="flex flex-col gap-2 mb-3">
+                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            <CalendarIcon className="h-3 w-3 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500 mb-0.5">Date & Time</p>
+                            <p className="text-xs font-medium">
+                              {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            <MapPinIcon className="h-3 w-3 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500 mb-0.5">Location</p>
+                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <UserIcon className="h-3 w-3 text-gray-500 mr-1" />
+                          <span className="text-xs text-gray-700">
+                            <span className="font-medium">{event.currentParticipants}</span>/{event.maxParticipants}
+                          </span>
+                        </div>
+                        
+                        <Button size="sm" variant="outline" className="h-7 text-xs px-2 rounded-full">
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Mobile-optimized image */}
                     {event.eventImage && (
                       <div 
                         className="cursor-pointer relative overflow-hidden"
@@ -486,47 +489,25 @@ const Feed = () => {
                         <img 
                           src={event.eventImage} 
                           alt={event.title} 
-                          className="w-full h-auto object-cover max-h-[400px] hover:scale-105 transition-transform duration-700" 
+                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                     )}
                     
-                    {/* Post engagement metrics */}
-                    <div className="px-5 py-4 flex items-center justify-between border-t border-gray-100">
-                      <div className="flex items-center">
-                        <div className="flex -space-x-2 mr-3">
-                          {[...Array(3)].map((_, i) => (
-                            <Avatar key={i} className="h-7 w-7 border-2 border-white">
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                {String.fromCharCode(65 + i)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-primary font-medium">{event.currentParticipants + 5}</span> people interested
-                        </div>
-                      </div>
-                      
-                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
-                        Join Event
-                      </Button>
-                    </div>
-                    
-                    {/* Action buttons */}
+                    {/* Mobile-optimized action buttons */}
                     <div className="border-t border-gray-100 grid grid-cols-3 divide-x">
-                      <Button variant="ghost" className="rounded-none py-3 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary">
-                        <Heart className="h-4 w-4 mr-2" />
-                        Interested
+                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
+                        <Heart className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
+                        <span className="hidden xs:inline">Interested</span>
                       </Button>
-                      <Button variant="ghost" className="rounded-none py-3 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary">
-                        <MessageCircleIcon className="h-4 w-4 mr-2" />
-                        Comment
+                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
+                        <MessageCircleIcon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
+                        <span className="hidden xs:inline">Comment</span>
                       </Button>
-                      <Button variant="ghost" className="rounded-none py-3 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary">
-                        <Share2Icon className="h-4 w-4 mr-2" />
-                        Share
+                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
+                        <Share2Icon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
+                        <span className="hidden xs:inline">Share</span>
                       </Button>
                     </div>
                   </CardContent>
