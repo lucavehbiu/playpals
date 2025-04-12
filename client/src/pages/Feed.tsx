@@ -16,11 +16,7 @@ import {
   UserPlus,
   Award,
   Star,
-  Sparkles,
-  Users,
-  DollarSign,
-  ArrowRight,
-  X
+  Sparkles
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +24,7 @@ import { getQueryFn } from "@/lib/queryClient";
 import { Event } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -41,7 +37,6 @@ const Feed = () => {
   const [activeTab, setActiveTab] = useState<"trending" | "following" | "discover">("trending");
   const [, setLocation] = useLocation();
   const [animateStories, setAnimateStories] = useState(false);
-  const [activeEventModal, setActiveEventModal] = useState<Event | null>(null);
   
   // Fetch events from users that current user follows - in a real app this would be a separate API endpoint
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
@@ -374,108 +369,96 @@ const Feed = () => {
             <Card className="text-center p-6 bg-white shadow-sm border-none">
               <CardContent className="pt-6">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-8 w-8 text-primary" />
+                  <UserPlus className="h-8 w-8 text-primary/70" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No events found</h3>
-                <p className="text-gray-500 mb-4">
-                  {activeTab === 'trending' 
-                    ? 'No trending events right now' 
-                    : activeTab === 'following' 
-                    ? 'Follow users to see their events here' 
-                    : 'Discover new events by creating one'}
+                <h3 className="text-lg font-medium mb-2">No activity yet</h3>
+                <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                  Follow more users and join events to see their activities in your feed.
                 </p>
-                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white">
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  Create Event
+                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
+                  Find Users to Follow
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
         ) : (
-          <motion.div
+          <motion.div 
+            className="space-y-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.05 }}
+            transition={{ staggerChildren: 0.1 }}
           >
             {tabContent.map((event: Event, index) => (
               <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                key={event.id + '-' + index}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
-                <Card className="bg-white shadow-sm border-none overflow-hidden">
+                <Card className="overflow-hidden bg-white shadow-sm border-none hover:shadow-md transition-shadow duration-300">
                   <CardContent className="p-0">
-                    {/* Card header with user info */}
-                    <div className="p-4">
+                    {/* Post header */}
+                    {/* Compact header for mobile */}
+                    <div className="p-3 sm:p-4 border-b border-gray-100">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-9 w-9 border-2 border-white">
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {event.organizer?.charAt(0) || 'A'}
-                            </AvatarFallback>
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarFallback>{event.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="flex items-center">
-                              <p className="font-medium text-sm">{event.organizer}</p>
-                              <span className="mx-1.5 text-gray-300">•</span>
-                              <span className="text-xs text-gray-500">
-                                {formatDistanceToNow(new Date(event.date), { addSuffix: true })}
-                              </span>
-                            </div>
-                            <div className="flex items-center mt-0.5">
-                              <Badge 
-                                variant="secondary"
-                                className={`font-medium text-[9px] h-4 px-1.5 ${
-                                  event.sportType === 'basketball' ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 
-                                  event.sportType === 'soccer' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
-                                  'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                }`}
-                              >
+                            <h3 className="text-sm font-medium text-gray-900">
+                              {event.creator?.name?.split(' ')[0] || 'Unknown'}
+                              <Badge variant={event.sportType === 'basketball' ? 'default' : 
+                                       event.sportType === 'soccer' ? 'secondary' : 
+                                       event.sportType === 'tennis' ? 'outline' : 'default'} 
+                                className="ml-2 capitalize text-[10px] py-0 h-4">
                                 {event.sportType}
                               </Badge>
-                              
-                              {event.price > 0 && (
-                                <Badge variant="outline" className="ml-1 h-4 text-[9px] px-1.5 bg-gray-50 text-gray-700 flex items-center">
-                                  <DollarSign className="h-2 w-2 mr-0.5" />
-                                  {event.price}
-                                </Badge>
-                              )}
-                            </div>
+                            </h3>
+                            <p className="text-[10px] text-gray-500">
+                              {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          {event.isFree ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">
+                              Free
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">
+                              ${(event.cost ? (event.cost / 100).toFixed(2) : '0.00')}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Mobile-optimized content */}
+                    <div 
+                      className="p-3 sm:p-4 cursor-pointer" 
+                      onClick={() => setLocation(`/events/${event.id}`)}
+                    >
+                      <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
+                      <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
+                      
+                      <div className="flex flex-col gap-2 mb-3">
+                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            <CalendarIcon className="h-3 w-3 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500 mb-0.5">Date & Time</p>
+                            <p className="text-xs font-medium">
+                              {new Date(event.date).toLocaleDateString()} • {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
                           </div>
                         </div>
                         
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                          <ChevronRightIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      {/* Card content with event details */}
-                      <div className="mt-3">
-                        <h3 className="font-medium mb-1 text-sm sm:text-base line-clamp-1">{event.title}</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-3">
-                          {event.description}
-                        </p>
-                      </div>
-                      
-                      {/* Mobile-optimized event details */}
-                      <div className="flex mt-1.5 space-x-4 mb-2">
-                        <div className="flex items-start space-x-1.5">
-                          <CalendarIcon className="h-3.5 w-3.5 text-gray-500 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
-                            <p className="text-xs font-medium">{new Date(event.date).toLocaleDateString()}</p>
+                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            <MapPinIcon className="h-3 w-3 text-primary" />
                           </div>
-                        </div>
-                        <div className="flex items-start space-x-1.5">
-                          <Clock className="h-3.5 w-3.5 text-gray-500 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-[10px] text-gray-500 mb-0.5">Time</p>
-                            <p className="text-xs font-medium">{new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-1.5">
-                          <MapPinIcon className="h-3.5 w-3.5 text-gray-500 mt-0.5" />
                           <div className="flex-1">
                             <p className="text-[10px] text-gray-500 mb-0.5">Location</p>
                             <p className="text-xs font-medium line-clamp-1">{event.location}</p>
@@ -491,34 +474,24 @@ const Feed = () => {
                           </span>
                         </div>
                         
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 text-xs px-2 rounded-full"
-                          onClick={() => setLocation(`/events/${event.id}`)}
-                        >
-                          <ArrowRight className="h-3 w-3 mr-1" />
+                        <Button size="sm" variant="outline" className="h-7 text-xs px-2 rounded-full">
                           View Details
                         </Button>
                       </div>
                     </div>
                     
-                    {/* Mobile-optimized image with quick-view modal */}
+                    {/* Mobile-optimized image */}
                     {event.eventImage && (
                       <div 
                         className="cursor-pointer relative overflow-hidden"
-                        onClick={() => setActiveEventModal(event)}
+                        onClick={() => setLocation(`/events/${event.id}`)}
                       >
                         <img 
                           src={event.eventImage} 
                           alt={event.title} 
                           className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                          <div className="bg-white/80 backdrop-blur-sm rounded-full p-2">
-                            <span className="text-xs font-semibold text-primary">Quick View</span>
-                          </div>
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                     )}
                     
@@ -544,97 +517,6 @@ const Feed = () => {
           </motion.div>
         )}
       </div>
-
-      {/* Event Quick View Modal */}
-      {activeEventModal && (
-        <Dialog open={!!activeEventModal} onOpenChange={(open) => !open && setActiveEventModal(null)}>
-          <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
-            <DialogHeader className="p-4 pb-0">
-              <div className="flex justify-between items-start">
-                <DialogTitle className="text-xl">{activeEventModal.title}</DialogTitle>
-                <DialogClose className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
-                  <X className="h-4 w-4" />
-                </DialogClose>
-              </div>
-            </DialogHeader>
-            
-            {/* Event preview image */}
-            {activeEventModal.eventImage && (
-              <div className="relative">
-                <img 
-                  src={activeEventModal.eventImage} 
-                  alt={activeEventModal.title} 
-                  className="w-full h-auto object-cover max-h-[300px]" 
-                />
-                <div className="absolute bottom-3 right-3">
-                  <Badge 
-                    className={`font-medium ${
-                      activeEventModal.sportType === 'basketball' ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 
-                      activeEventModal.sportType === 'soccer' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
-                      'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                    }`}
-                  >
-                    {activeEventModal.sportType}
-                  </Badge>
-                </div>
-              </div>
-            )}
-            
-            <div className="p-4">
-              {/* Event details in compact form */}
-              <div className="mb-4 space-y-3">
-                <div className="flex items-start space-x-3">
-                  <CalendarIcon className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-sm">{new Date(activeEventModal.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <p className="text-xs text-gray-500">{new Date(activeEventModal.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <MapPinIcon className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-sm">{activeEventModal.location}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <UserIcon className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-sm">{activeEventModal.currentParticipants} attending</p>
-                    <p className="text-xs text-gray-500">{activeEventModal.maxParticipants - activeEventModal.currentParticipants} spots left</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Description preview */}
-              {activeEventModal.description && (
-                <div className="mb-3">
-                  <p className="text-sm line-clamp-2">{activeEventModal.description}</p>
-                </div>
-              )}
-              
-              {/* Call to action buttons */}
-              <div className="flex justify-between pt-3 border-t">
-                <Button variant="outline" size="sm" onClick={() => setActiveEventModal(null)}>
-                  Close
-                </Button>
-                <Button 
-                  className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white"
-                  size="sm"
-                  onClick={() => {
-                    setActiveEventModal(null);
-                    setLocation(`/events/${activeEventModal.id}`);
-                  }}
-                >
-                  <ArrowRight className="h-4 w-4 mr-1" />
-                  View Details
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };
