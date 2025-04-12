@@ -108,7 +108,7 @@ const Feed = () => {
         </div>
       </motion.div>
       
-      {/* Stories-like events scroller with animation */}
+      {/* Instagram-style stories scroller - optimized for mobile */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
@@ -122,80 +122,77 @@ const Feed = () => {
         </div>
         
         {upcomingEvents.length > 0 ? (
-          <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="relative px-1 -mx-4 sm:mx-0">
+            {/* Mobile-optimized gradient overlays for scroll indication */}
+            <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
             
             <motion.div 
-              className="flex space-x-4 overflow-x-auto pb-3 px-2 -mx-2 scrollbar-hidden"
+              className="flex space-x-3 overflow-x-auto pb-2 px-4 sm:px-2 scrollbar-hidden"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, staggerChildren: 0.1 }}
             >
-              {/* Create Event Story Card */}
+              {/* Create Story Button - Instagram style */}
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-b from-primary/20 to-white cursor-pointer"
+                className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer"
               >
-                <div className="h-[260px] flex flex-col items-center justify-center p-4 text-center">
-                  <div className="h-14 w-14 rounded-full bg-white shadow-inner flex items-center justify-center mb-3">
-                    <PlusIcon className="h-8 w-8 text-primary" />
+                <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-primary to-blue-500 p-[2px]">
+                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                      <PlusIcon className="h-5 w-5 text-white" />
+                    </div>
                   </div>
-                  <p className="font-semibold text-primary">Create New Event</p>
-                  <p className="text-xs text-gray-500 mt-2">Share your activity with others</p>
                 </div>
+                <p className="text-xs font-medium text-center leading-tight line-clamp-1">Create</p>
               </motion.div>
               
-              {/* Event Story Cards */}
+              {/* Event Story Items - Instagram style */}
               {upcomingEvents.map((event: Event, index: number) => (
                 <motion.div 
                   key={event.id}
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.1 * index }}
-                  className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 bg-white relative cursor-pointer group"
+                  transition={{ duration: 0.3, delay: 0.05 * index }}
+                  className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer"
                   onClick={() => setLocation(`/events/${event.id}`)}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
-                  <div className="h-[260px] bg-gray-200">
-                    {event.eventImage ? (
-                      <img 
-                        src={event.eventImage} 
-                        alt={event.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                        <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  {/* Story ring with gradient border */}
+                  <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gradient-to-br from-primary via-blue-500 to-purple-600 p-[2px] relative">
+                    {/* Story content preview */}
+                    <div className="w-full h-full rounded-full overflow-hidden border-[3px] border-white">
+                      {event.eventImage ? (
+                        <img 
+                          src={event.eventImage} 
+                          alt={event.title} 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
                           <CalendarIcon className="h-6 w-6 text-primary" />
                         </div>
+                      )}
+                    </div>
+                    
+                    {/* Sport type indicator */}
+                    <div className="absolute -right-1 -bottom-1 z-20 bg-white rounded-full p-[2px] shadow-md">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                        {event.sportType === 'basketball' ? 
+                          <Award className="h-3 w-3 text-primary" /> : 
+                          event.sportType === 'soccer' ? 
+                          <Zap className="h-3 w-3 text-primary" /> :
+                          <Star className="h-3 w-3 text-primary" />}
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="absolute top-3 right-3 z-20">
-                    <Badge className="bg-white text-primary border-0 font-medium">
-                      {event.sportType}
-                    </Badge>
-                  </div>
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <CalendarIcon className="h-3.5 w-3.5 text-white/80" />
-                      <p className="text-white/90 text-xs">
-                        {new Date(event.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <h3 className="text-white text-sm font-bold line-clamp-2 mb-1">{event.title}</h3>
-                    <div className="flex items-center mt-2">
-                      <Avatar className="h-6 w-6 border-2 border-white">
-                        <AvatarFallback>{event.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
-                      </Avatar>
-                      <div className="ml-2 text-xs font-medium text-white/90">{event.creator?.name?.split(' ')[0] || 'User'}</div>
                     </div>
                   </div>
+                  
+                  {/* Story title */}
+                  <p className="text-xs font-medium text-center leading-tight line-clamp-1">
+                    {event.title.split(' ')[0]} {event.title.split(' ')[1] || ''}
+                  </p>
                 </motion.div>
               ))}
             </motion.div>
@@ -204,17 +201,48 @@ const Feed = () => {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white shadow rounded-xl p-6 text-center"
+            className="bg-white shadow-sm rounded-xl p-4 mb-2"
           >
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CalendarIcon className="h-8 w-8 text-gray-400" />
+            <div className="flex items-center">
+              {/* Empty state with Instagram-like style */}
+              <div className="flex overflow-x-auto space-x-4 pb-1 px-1 -mx-1">
+                {/* Create Story Button - Instagram style but empty state */}
+                <div className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer">
+                  <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-gray-200 to-gray-300 p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <PlusIcon className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs font-medium text-center text-gray-400">Create</p>
+                </div>
+
+                {/* Empty story placeholders */}
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center opacity-50">
+                    <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gray-100 p-[2px]">
+                      <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center border-[3px] border-white">
+                        {index % 2 === 0 ? (
+                          <CalendarIcon className="h-6 w-6 text-gray-300" />
+                        ) : (
+                          <UserIcon className="h-6 w-6 text-gray-300" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="w-[60px] h-2 bg-gray-100 rounded-full"></div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h3 className="text-gray-800 font-semibold">No upcoming events</h3>
-            <p className="text-gray-500 mt-1 mb-4">Create your first event to get started!</p>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="h-4 w-4 mr-1" /> 
-              Create Event
-            </Button>
+            
+            <div className="text-center mt-2">
+              <p className="text-sm text-gray-500">No events yet. Create your first event!</p>
+              <Button size="sm" className="mt-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white">
+                <PlusIcon className="h-4 w-4 mr-1" /> 
+                New Event
+              </Button>
+            </div>
           </motion.div>
         )}
       </div>
