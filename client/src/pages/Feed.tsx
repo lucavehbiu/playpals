@@ -474,7 +474,11 @@ const Feed = () => {
                               <div className="flex items-center">
                                 <CalendarIcon className="h-3 w-3 mr-1 text-white" />
                                 <span className="text-xs font-medium text-white">
-                                  {new Date(event.date).toLocaleDateString()}
+                                  {new Date(event.date).toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: '2-digit'
+                                  })}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -519,7 +523,11 @@ const Feed = () => {
                               <div>
                                 <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
                                 <p className="text-xs font-medium">
-                                  {new Date(event.date).toLocaleDateString()}
+                                  {new Date(event.date).toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: '2-digit'
+                                  })}
                                 </p>
                               </div>
                               <div>
@@ -597,7 +605,11 @@ const Feed = () => {
                   <div className="flex items-center space-x-3 text-sm">
                     <div className="flex items-center">
                       <CalendarIcon className="h-4 w-4 mr-1" />
-                      {new Date(quickViewEvent.date).toLocaleDateString()}
+                      {new Date(quickViewEvent.date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: '2-digit'
+                      })}
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
