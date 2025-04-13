@@ -5,10 +5,11 @@ import CreateEventButton from "@/components/event/CreateEventButton";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation, Switch, Route } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, CalendarCheck, CalendarRange } from "lucide-react";
 import { motion } from "framer-motion";
+import React, { useState } from "react";
 
 // Component to display upcoming events
 const UpcomingEvents = ({ 
@@ -229,13 +230,8 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare }: any) => {
 const MyEvents = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [location, setLocation] = useLocation();
-  
-  // If path is just /myevents, redirect to /myevents/upcoming
-  if (location === "/myevents") {
-    setLocation("/myevents/upcoming");
-    return null;
-  }
+  const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState("upcoming");
   
   // Get events created by the user
   const { data: myEvents, isLoading, error, refetch } = useQuery<Event[]>({
@@ -267,6 +263,10 @@ const MyEvents = () => {
     setLocation("/discover");
   };
   
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+  
   const sharedProps = {
     events: myEvents,
     isLoading,
@@ -283,16 +283,13 @@ const MyEvents = () => {
   
   return (
     <>
-      <EventTabs />
+      <EventTabs activeTab={activeTab} onChange={handleTabChange} />
       
-      <Switch>
-        <Route path="/myevents/upcoming">
-          <UpcomingEvents {...sharedProps} />
-        </Route>
-        <Route path="/myevents/past">
-          <PastEvents {...sharedProps} />
-        </Route>
-      </Switch>
+      {activeTab === "upcoming" ? (
+        <UpcomingEvents {...sharedProps} />
+      ) : (
+        <PastEvents {...sharedProps} />
+      )}
     </>
   );
 };

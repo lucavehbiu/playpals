@@ -33,7 +33,9 @@ function Router() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4">
                 <Switch>
                   <ProtectedRoute path="/" component={Feed} />
-                  <ProtectedRoute path="/myevents" component={MyEvents} />
+                  <ProtectedRoute path="/myevents/*">
+                    <MyEvents />
+                  </ProtectedRoute>
                   <ProtectedRoute path="/discover" component={Discover} />
                   <ProtectedRoute path="/events/create" component={CreateEvent} />
                   <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
@@ -43,7 +45,7 @@ function Router() {
                   <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
                   <ProtectedRoute path="/invitations" component={Invitations} />
                   <ProtectedRoute path="/profile" component={Profile} />
-                  <Route component={NotFound} />
+                  <Route path="*" component={NotFound} />
                 </Switch>
               </div>
             </main>
