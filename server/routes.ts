@@ -429,14 +429,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rsvpId = parseInt(req.params.id);
       const authenticatedUser = (req as any).user as User;
       
-      // Get the RSVP
-      // Get the current RSVP to check status and verify ownership
-      const currentRsvps = await db
-        .select()
-        .from(rsvps)
-        .where(eq(rsvps.id, rsvpId));
-      
-      const rsvp = currentRsvps[0];
+      // Get the RSVP by ID to check ownership
+      const rsvp = await storage.getRSVPById(rsvpId);
       
       if (!rsvp) {
         console.error(`RSVP with id ${rsvpId} not found`);

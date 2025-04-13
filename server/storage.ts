@@ -96,6 +96,7 @@ export interface IStorage {
   deleteEvent(id: number): Promise<boolean>;
   
   // RSVP methods
+  getRSVPById(id: number): Promise<RSVP | undefined>;
   getRSVP(eventId: number, userId: number): Promise<RSVP | undefined>;
   getRSVPsByEvent(eventId: number): Promise<RSVP[]>;
   getRSVPsByUser(userId: number): Promise<RSVP[]>;
@@ -687,6 +688,10 @@ export class MemStorage implements IStorage {
   }
 
   // RSVP methods
+  async getRSVPById(id: number): Promise<RSVP | undefined> {
+    return this.rsvps.get(id);
+  }
+
   async getRSVP(eventId: number, userId: number): Promise<RSVP | undefined> {
     return Array.from(this.rsvps.values()).find(
       (rsvp) => rsvp.eventId === eventId && rsvp.userId === userId
@@ -2136,6 +2141,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // RSVP methods
+  async getRSVPById(id: number): Promise<RSVP | undefined> {
+    const [rsvp] = await db
+      .select()
+      .from(rsvps)
+      .where(eq(rsvps.id, id));
+    return rsvp || undefined;
+  }
+  
   async getRSVP(eventId: number, userId: number): Promise<RSVP | undefined> {
     const [rsvp] = await db
       .select()
