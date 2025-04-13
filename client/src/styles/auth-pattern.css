@@ -1,0 +1,8 @@
+/* Golden ratio pattern for the auth page */
+.bg-pattern {
+  background-image: radial-gradient(circle at 10px 10px, rgba(255, 255, 255, 0.1) 3px, transparent 0),
+                    radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.07) 5px, transparent 0),
+                    radial-gradient(circle at 38.2px 38.2px, rgba(255, 255, 255, 0.05) 8px, transparent 0),
+                    radial-gradient(circle at 61.8px 61.8px, rgba(255, 255, 255, 0.03) 13px, transparent 0);
+  background-size: 100px 100px;
+}

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="none">
+  <!-- Basketball -->
+  <g opacity="0.07">
+    <circle cx="100" cy="100" r="35" stroke="currentColor" stroke-width="2" />
+    <path d="M100 65C100 65 70 85 70 100C70 115 100 135 100 135" stroke="currentColor" stroke-width="2" />
+    <path d="M100 65C100 65 130 85 130 100C130 115 100 135 100 135" stroke="currentColor" stroke-width="2" />
+    <path d="M65 100H135" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Tennis Ball -->
+  <g opacity="0.07">
+    <circle cx="200" cy="150" r="30" stroke="currentColor" stroke-width="2" />
+    <path d="M180 130C180 130 190 150 190 165C190 180 200 190 210 190C220 190 230 180 230 165C230 150 220 130 220 130" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Football/Soccer -->
+  <g opacity="0.07">
+    <circle cx="300" cy="100" r="35" stroke="currentColor" stroke-width="2" />
+    <path d="M280 80L290 110L320 120L330 90L300 70L280 80Z" stroke="currentColor" stroke-width="2" />
+    <path d="M285 85L295 105L315 112L322 90L300 75L285 85Z" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Volleyball -->
+  <g opacity="0.07">
+    <circle cx="150" cy="250" r="32" stroke="currentColor" stroke-width="2" />
+    <path d="M150 218C150 218 130 230 125 250C120 270 140 282 150 282" stroke="currentColor" stroke-width="2" />
+    <path d="M150 218C150 218 170 230 175 250C180 270 160 282 150 282" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Badminton Shuttlecock -->
+  <g opacity="0.07">
+    <path d="M400 120C405 120 410 115 410 110C410 105 405 100 400 100C395 100 390 105 390 110C390 115 395 120 400 120Z" stroke="currentColor" stroke-width="2" />
+    <path d="M395 120L390 150" stroke="currentColor" stroke-width="2" />
+    <path d="M400 120L400 150" stroke="currentColor" stroke-width="2" />
+    <path d="M405 120L410 150" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Tennis Racket -->
+  <g opacity="0.07">
+    <ellipse cx="500" cy="100" rx="25" ry="35" stroke="currentColor" stroke-width="2" />
+    <path d="M500 135L500 180" stroke="currentColor" stroke-width="2" />
+    <path d="M485 100H515" stroke="currentColor" stroke-width="2" />
+    <path d="M490 85H510" stroke="currentColor" stroke-width="2" />
+    <path d="M490 115H510" stroke="currentColor" stroke-width="2" />
+    <path d="M485 70H515" stroke="currentColor" stroke-width="2" />
+    <path d="M485 130H515" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Golf -->
+  <g opacity="0.07">
+    <circle cx="250" cy="300" r="15" stroke="currentColor" stroke-width="2" />
+    <path d="M270 280L250 300" stroke="currentColor" stroke-width="2" />
+    <path d="M270 280L290 270" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Baseball -->
+  <g opacity="0.07">
+    <circle cx="350" cy="250" r="30" stroke="currentColor" stroke-width="2" />
+    <path d="M330 230C330 230 340 240 350 240C360 240 370 230 370 230" stroke="currentColor" stroke-width="2" />
+    <path d="M330 270C330 270 340 260 350 260C360 260 370 270 370 270" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Swimming -->
+  <g opacity="0.07">
+    <path d="M450 250C450 250 470 240 480 250C490 260 480 270 450 270C420 270 410 260 420 250C430 240 450 250 450 250Z" stroke="currentColor" stroke-width="2" />
+    <path d="M455 245C455 245 460 250 455 255" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Running -->
+  <g opacity="0.07">
+    <circle cx="550" cy="250" r="15" stroke="currentColor" stroke-width="2" />
+    <path d="M550 265L540 290" stroke="currentColor" stroke-width="2" />
+    <path d="M550 265L560 290" stroke="currentColor" stroke-width="2" />
+    <path d="M540 275L560 275" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Repeat patterns across the SVG -->
+  <!-- Basketball -->
+  <g opacity="0.07">
+    <circle cx="100" cy="400" r="35" stroke="currentColor" stroke-width="2" />
+    <path d="M100 365C100 365 70 385 70 400C70 415 100 435 100 435" stroke="currentColor" stroke-width="2" />
+    <path d="M100 365C100 365 130 385 130 400C130 415 100 435 100 435" stroke="currentColor" stroke-width="2" />
+    <path d="M65 400H135" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Tennis Ball -->
+  <g opacity="0.07">
+    <circle cx="600" cy="150" r="30" stroke="currentColor" stroke-width="2" />
+    <path d="M580 130C580 130 590 150 590 165C590 180 600 190 610 190C620 190 630 180 630 165C630 150 620 130 620 130" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Football/Soccer -->
+  <g opacity="0.07">
+    <circle cx="650" cy="300" r="35" stroke="currentColor" stroke-width="2" />
+    <path d="M630 280L640 310L670 320L680 290L650 270L630 280Z" stroke="currentColor" stroke-width="2" />
+    <path d="M635 285L645 305L665 312L672 290L650 275L635 285Z" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Volleyball -->
+  <g opacity="0.07">
+    <circle cx="450" cy="450" r="32" stroke="currentColor" stroke-width="2" />
+    <path d="M450 418C450 418 430 430 425 450C420 470 440 482 450 482" stroke="currentColor" stroke-width="2" />
+    <path d="M450 418C450 418 470 430 475 450C480 470 460 482 450 482" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Badminton Shuttlecock -->
+  <g opacity="0.07">
+    <path d="M500 480C505 480 510 475 510 470C510 465 505 460 500 460C495 460 490 465 490 470C490 475 495 480 500 480Z" stroke="currentColor" stroke-width="2" />
+    <path d="M495 480L490 510" stroke="currentColor" stroke-width="2" />
+    <path d="M500 480L500 510" stroke="currentColor" stroke-width="2" />
+    <path d="M505 480L510 510" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Tennis Racket -->
+  <g opacity="0.07">
+    <ellipse cx="200" cy="500" rx="25" ry="35" stroke="currentColor" stroke-width="2" />
+    <path d="M200 535L200 580" stroke="currentColor" stroke-width="2" />
+    <path d="M185 500H215" stroke="currentColor" stroke-width="2" />
+    <path d="M190 485H210" stroke="currentColor" stroke-width="2" />
+    <path d="M190 515H210" stroke="currentColor" stroke-width="2" />
+    <path d="M185 470H215" stroke="currentColor" stroke-width="2" />
+    <path d="M185 530H215" stroke="currentColor" stroke-width="2" />
+  </g>
+  
+  <!-- Baseball -->
+  <g opacity="0.07">
+    <circle cx="650" cy="500" r="30" stroke="currentColor" stroke-width="2" />
+    <path d="M630 480C630 480 640 490 650 490C660 490 670 480 670 480" stroke="currentColor" stroke-width="2" />
+    <path d="M630 520C630 520 640 510 650 510C660 510 670 520 670 520" stroke="currentColor" stroke-width="2" />
+  </g>
+</svg>
