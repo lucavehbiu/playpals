@@ -413,8 +413,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const rsvps = await storage.getRSVPsByEvent(eventId);
-      res.json(rsvps);
+      
+      // Get user data for each RSVP
+      const rsvpsWithUserData = await Promise.all(
+        rsvps.map(async (rsvp) => {
+          const user = await storage.getUser(rsvp.userId);
+          return {
+            ...rsvp,
+            user: user ? {
+              id: user.id,
+              username: user.username,
+              name: user.name,
+              profileImage: user.profileImage
+            } : null
+          };
+        })
+      );
+      
+      res.json(rsvpsWithUserData);
     } catch (error) {
+      console.error('Error fetching event RSVPs:', error);
       res.status(500).json({ message: "Error fetching RSVPs" });
     }
   });

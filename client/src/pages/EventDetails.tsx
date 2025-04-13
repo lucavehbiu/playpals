@@ -553,7 +553,9 @@ const EventDetails = () => {
                             </Avatar>
                             <div className="ml-3">
                               <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
-                              <p className="text-xs text-gray-500">Confirmed Participant</p>
+                              <p className="text-xs text-gray-500">
+                                Joined {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleDateString() : ''} at {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                              </p>
                             </div>
                           </div>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
@@ -592,7 +594,9 @@ const EventDetails = () => {
                               </Avatar>
                               <div className="ml-3">
                                 <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
-                                <p className="text-xs text-gray-500">Wants to join</p>
+                                <p className="text-xs text-gray-500">
+                                  Requested {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleDateString() : ''} at {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                </p>
                               </div>
                             </div>
                             <div className="flex gap-2">
