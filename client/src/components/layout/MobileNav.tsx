@@ -20,10 +20,11 @@ const MobileNav = () => {
       />
       
       <NavItem 
-        href="/myevents" 
-        icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
-        label="Events" 
-        isActive={location === '/myevents'} 
+        href="/invitations" 
+        icon={<BellIcon className="h-[22px] w-[22px]" />} 
+        label="Invites" 
+        isActive={location === '/invitations'}
+        badge={notificationCount} 
       />
       
       {/* Center "Create" button - more prominent */}
@@ -39,11 +40,10 @@ const MobileNav = () => {
       </div>
       
       <NavItem 
-        href="/invitations" 
-        icon={<BellIcon className="h-[22px] w-[22px]" />} 
-        label="Invites" 
-        isActive={location === '/invitations'}
-        badge={notificationCount} 
+        href="/myevents" 
+        icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
+        label="Events" 
+        isActive={location === '/myevents'} 
       />
       
       <NavItem 
