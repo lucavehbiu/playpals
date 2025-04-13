@@ -41,30 +41,37 @@ const EventDetails = () => {
   
   // Fetch event details
   const { data: eventResponse, isLoading, error } = useQuery({
-    queryKey: ['/api/events', eventId ? parseInt(eventId) : 0],
-    queryFn: async ({ queryKey }) => {
-      const eventId = queryKey[1];
-      console.log("Fetching event with ID:", eventId);
+    queryKey: ['/api/events/id', eventId],
+    queryFn: async () => {
+      if (!eventId) {
+        throw new Error("No event ID provided");
+      }
+      
+      // Log the event ID we're trying to fetch
+      console.log("Attempting to fetch event with ID:", eventId);
       
       try {
+        // Important: Make sure to use the correct API endpoint that works for the backend
         const response = await fetch(`/api/events/${eventId}`, {
           credentials: "include"
         });
         
         if (!response.ok) {
-          console.error("Failed to fetch event:", response.status, response.statusText);
+          console.error(`Failed to fetch event ${eventId}:`, response.status, response.statusText);
           throw new Error(`Failed to fetch event: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log("Received event data:", data);
+        console.log("Successfully received event data:", data);
         return data;
       } catch (error) {
-        console.error("Error fetching event:", error);
+        console.error(`Error fetching event ${eventId}:`, error);
         throw error;
       }
     },
     enabled: !!eventId,
+    retry: 1,
+    staleTime: 60000, // Cache for 1 minute
   });
   
   // Get the event object
@@ -81,8 +88,28 @@ const EventDetails = () => {
   
   // Fetch RSVPs for this event
   const { data: rsvps = [] } = useQuery<any[]>({
-    queryKey: ['/api/rsvps/event', eventId ? parseInt(eventId) : 0],
-    enabled: !!eventId,
+    queryKey: ['/api/rsvps/event', eventId],
+    enabled: !!eventId && !!event, // Only run this query if we have an event
+    queryFn: async () => {
+      if (!eventId) {
+        return [];
+      }
+      try {
+        const response = await fetch(`/api/rsvps/event/${eventId}`, {
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          console.error("Failed to fetch RSVPs:", response.status, response.statusText);
+          return [];
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching RSVPs:", error);
+        return [];
+      }
+    },
   });
   
   // Mutation for requesting to join an event
@@ -99,9 +126,9 @@ const EventDetails = () => {
     },
     onSuccess: () => {
       if (eventId) {
-        const eventIdNum = parseInt(eventId);
-        queryClient.invalidateQueries({ queryKey: ['/api/rsvps/event', eventIdNum] });
-        queryClient.invalidateQueries({ queryKey: ['/api/events', eventIdNum] });
+        // Use the exact same query key format that we're using in the queries
+        queryClient.invalidateQueries({ queryKey: ['/api/rsvps/event', eventId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/events/id', eventId] });
       }
       toast({
         title: "Request Sent",
