@@ -32,6 +32,11 @@ const Header = () => {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // Close mobile menu when location changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
+  
   const handleLogout = () => {
     logoutMutation.mutate();
   };
