@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifications } from "@/hooks/use-notifications";
 import { LogOut, Home, Search, Bell, Users, Calendar, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,15 +21,13 @@ type SearchResult = {
 const Header = () => {
   const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { pendingCount: notificationCount } = useNotifications();
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  
-  // For demo purposes we'll use a static count of notifications
-  const notificationCount = 3;
   
   const handleLogout = () => {
     logoutMutation.mutate();

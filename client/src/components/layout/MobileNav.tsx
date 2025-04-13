@@ -2,15 +2,13 @@ import { Link, useLocation } from "wouter";
 import { HomeIcon, SearchIcon, BellIcon, UsersIcon, CalendarIcon, PlusIcon, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifications } from "@/hooks/use-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MobileNav = () => {
   const [location] = useLocation();
   const { user } = useAuth();
-  
-  // For demo purposes we'll use a static count of notifications
-  // This would be fetched from an API in a real app
-  const notificationCount = 3;
+  const { pendingCount: notificationCount } = useNotifications();
   
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-50 safe-bottom">
@@ -22,11 +20,10 @@ const MobileNav = () => {
       />
       
       <NavItem 
-        href="/invitations" 
-        icon={<BellIcon className="h-[22px] w-[22px]" />} 
-        label="Invites" 
-        isActive={location === '/invitations'}
-        badge={notificationCount} 
+        href="/myevents" 
+        icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
+        label="Events" 
+        isActive={location === '/myevents'} 
       />
       
       {/* Center "Create" button - more prominent */}
@@ -42,10 +39,11 @@ const MobileNav = () => {
       </div>
       
       <NavItem 
-        href="/myevents" 
-        icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
-        label="Events" 
-        isActive={location === '/myevents'} 
+        href="/invitations" 
+        icon={<BellIcon className="h-[22px] w-[22px]" />} 
+        label="Invites" 
+        isActive={location === '/invitations'}
+        badge={notificationCount} 
       />
       
       <NavItem 
