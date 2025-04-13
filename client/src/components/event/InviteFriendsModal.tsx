@@ -142,8 +142,8 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         const userData = await userResponse.json();
         const currentUserId = userData.id;
         
-        // Fetch users via search API with a generic query to get all users
-        const response = await fetch('/api/users/search?q=a', {
+        // Fetch all users with our new API endpoint
+        const response = await fetch('/api/users/all', {
           credentials: 'include'
         });
         

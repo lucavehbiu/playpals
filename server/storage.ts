@@ -1870,6 +1870,16 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+  
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const allUsers = await db.select().from(users);
+      return allUsers;
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      return [];
+    }
+  }
 
   // Friendship methods
   async getFriendship(userId: number, friendId: number): Promise<Friendship | undefined> {

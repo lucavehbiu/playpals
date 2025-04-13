@@ -72,6 +72,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add user search endpoint for finding friends
   // Note: This must come BEFORE the specific user id route to avoid conflicts
+  app.get('/api/users/all', async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllUsers();
+      
+      // Don't return password hashes in the API
+      const sanitizedUsers = users.map(({ password, ...userData }: { password: string, [key: string]: any }) => userData);
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      res.status(500).json({ message: "Error fetching all users" });
+    }
+  });
+
   app.get('/api/users/search', async (req: Request, res: Response) => {
     try {
       const query = req.query.q as string;
