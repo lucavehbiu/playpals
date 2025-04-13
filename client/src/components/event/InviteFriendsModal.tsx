@@ -246,12 +246,33 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         return;
       }
       
-      // This would be an API call in a real application
-      console.log(`Sending invitations to users:`, allSelectedIds);
-      console.log(`For event ID: ${eventId}`);
+      // Create an array of promises for all invitations
+      const invitationPromises = allSelectedIds.map(async (userId) => {
+        // Create a pending RSVP for each user
+        const response = await fetch('/api/rsvps', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            eventId,
+            userId,
+            status: 'pending' // This creates a pending invitation
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.error(`Failed to invite user ${userId}:`, error);
+          throw new Error(`Failed to invite user ${userId}`);
+        }
+        
+        return response.json();
+      });
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Wait for all invitations to be processed
+      await Promise.all(invitationPromises);
       
       // Show success toast
       toast({

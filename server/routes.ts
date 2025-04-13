@@ -355,8 +355,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rsvpData = insertRSVPSchema.parse(req.body);
       const authenticatedUser = (req as any).user as User;
       
-      // Set user ID from authenticated user
-      rsvpData.userId = authenticatedUser.id;
+      // Check if the RSVP is for the current user or an invitation to another user
+      const isInvitation = rsvpData.userId && rsvpData.userId !== authenticatedUser.id;
+      
+      // If this is not an invitation, set userId to the authenticated user
+      if (!isInvitation) {
+        rsvpData.userId = authenticatedUser.id;
+      }
       
       // Check if event exists
       const event = await storage.getEvent(rsvpData.eventId);
@@ -365,8 +370,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      // Check if already RSVP'd
-      const existingRSVP = await storage.getRSVP(rsvpData.eventId, authenticatedUser.id);
+      // Only the event creator can send invitations to other users
+      if (isInvitation && event.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Only the event creator can send invitations" });
+      }
+      
+      // Check if userId is valid
+      if (isInvitation) {
+        const invitedUser = await storage.getUser(rsvpData.userId);
+        if (!invitedUser) {
+          return res.status(404).json({ message: "User to invite not found" });
+        }
+      }
+      
+      // Check if already RSVP'd - for self-RSVP or for invited user
+      const existingRSVP = await storage.getRSVP(rsvpData.eventId, rsvpData.userId);
       
       // Check if event is full (only if status is "approved")
       if (rsvpData.status === "approved" && event.currentParticipants >= event.maxParticipants) {
