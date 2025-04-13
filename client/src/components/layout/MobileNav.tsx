@@ -15,19 +15,35 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const createButtonRef = useRef<HTMLDivElement>(null);
+  
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isCreateMenuOpen && 
+          createButtonRef.current && 
+          !createButtonRef.current.contains(event.target as Node)) {
+        setIsCreateMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCreateMenuOpen]);
   
   return (
     <>
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-50 safe-bottom">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-30 safe-bottom">
         <NavItem 
           href="/" 
           icon={<HomeIcon className="h-[22px] w-[22px]" />} 
@@ -44,16 +60,81 @@ const MobileNav = () => {
         />
         
         {/* Center "Create" button - more prominent */}
-        <div className="relative flex-0 px-1">
+        <div className="relative flex-0 px-1" ref={createButtonRef}>
           <button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setIsCreateMenuOpen(prev => !prev)}
             className="flex flex-col items-center focus:outline-none"
           >
-            <div className="bg-primary text-white rounded-full p-3 shadow-lg transform -translate-y-3 hover:bg-primary/90 transition-all hover:scale-105">
+            <div className={`
+              bg-primary text-white rounded-full p-3 shadow-lg transform 
+              -translate-y-3 transition-all duration-200
+              ${isCreateMenuOpen ? 'rotate-45 scale-110' : 'hover:bg-primary/90 hover:scale-105'}
+            `}>
               <PlusIcon className="h-6 w-6" />
             </div>
             <span className="text-[11px] font-medium text-gray-600 -mt-1">Create</span>
           </button>
+          
+          {/* WhatsApp-style quick action menu */}
+          <AnimatePresence>
+            {isCreateMenuOpen && (
+              <motion.div 
+                className="absolute bottom-14 left-1/2 transform -translate-x-1/2 z-50"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                transition={{ type: "spring", damping: 25, stiffness: 500 }}
+              >
+                {/* Event option */}
+                <motion.button
+                  className="flex items-center gap-3 p-3 mb-2 bg-white rounded-xl shadow-lg w-52"
+                  onClick={() => {
+                    setIsCreateMenuOpen(false);
+                    setLocation("/myevents?create=true");
+                  }}
+                  whileHover={{ scale: 1.02, x: 3 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="bg-primary/10 rounded-full p-2">
+                    <CalendarPlusIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium block">New Event</span>
+                    <span className="text-xs text-gray-500">Create a sports event</span>
+                  </div>
+                </motion.button>
+                
+                {/* Post option */}
+                <motion.button
+                  className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-lg w-52"
+                  onClick={() => {
+                    setIsCreateMenuOpen(false);
+                    setLocation("/feed");
+                  }}
+                  whileHover={{ scale: 1.02, x: 3 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="bg-blue-500/10 rounded-full p-2">
+                    <Edit3Icon className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium block">New Post</span>
+                    <span className="text-xs text-gray-500">Share on your feed</span>
+                  </div>
+                </motion.button>
+                
+                {/* Background overlay to close the menu */}
+                <motion.div 
+                  className="fixed inset-0 bg-black/5 backdrop-blur-[1px] z-40"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsCreateMenuOpen(false)}
+                  style={{ zIndex: -1 }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         <NavItem 
@@ -78,63 +159,6 @@ const MobileNav = () => {
           isActive={location === '/profile'} 
         />
       </nav>
-      
-      {/* Apple-style Create Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white/80 backdrop-blur-xl rounded-2xl border-none shadow-2xl p-0 bottom-20 sm:bottom-auto">
-          <div className="relative px-2 py-4">
-            {/* Close button */}
-            <button 
-              className="absolute top-2 right-2 bg-gray-200/80 backdrop-blur-sm rounded-full p-1"
-              onClick={() => setIsCreateModalOpen(false)}
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
-            
-            <div className="mt-2 mb-3 text-center">
-              <h3 className="text-xl font-medium text-gray-900">Create New</h3>
-              <p className="text-sm text-gray-500 mt-1">Choose what you want to create</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 p-3">
-              {/* Create Event option */}
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-primary/20 rounded-xl p-4 shadow-sm transition-colors"
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  setLocation("/myevents?create=true");
-                }}
-              >
-                <div className="bg-primary/10 rounded-full p-3 mb-2">
-                  <CalendarPlusIcon className="h-7 w-7 text-primary" />
-                </div>
-                <span className="font-medium text-gray-900 text-sm">New Event</span>
-                <span className="text-xs text-gray-500 mt-1">Create a sports event</span>
-              </motion.button>
-              
-              {/* Create Post option */}
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-500/5 to-blue-500/20 rounded-xl p-4 shadow-sm transition-colors"
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  // For now, just go to feed page with a future post creation feature
-                  setLocation("/feed");
-                }}
-              >
-                <div className="bg-blue-500/10 rounded-full p-3 mb-2">
-                  <Edit3Icon className="h-7 w-7 text-blue-500" />
-                </div>
-                <span className="font-medium text-gray-900 text-sm">New Post</span>
-                <span className="text-xs text-gray-500 mt-1">Share on your feed</span>
-              </motion.button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
