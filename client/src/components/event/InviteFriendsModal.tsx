@@ -4,7 +4,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -43,6 +44,8 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
   eventId
 }) => {
   const { toast } = useToast();
+  // Initialize with "public" tab as default active
+  const [activeTab, setActiveTab] = useState<string>("public");
   const [teamMembers, setTeamMembers] = useState<User[]>([]);
   const [publicUsers, setPublicUsers] = useState<User[]>([]);
   const [teamSearch, setTeamSearch] = useState("");
@@ -50,16 +53,17 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
   const [selectedTeamUsers, setSelectedTeamUsers] = useState<number[]>([]);
   const [selectedPublicUsers, setSelectedPublicUsers] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [hasTeam, setHasTeam] = useState<boolean>(false);
+  
+  // Team state
   const [isLoadingTeam, setIsLoadingTeam] = useState<boolean>(true);
-
-  // Fetch user's teams and check if they belong to any
+  const [hasTeam, setHasTeam] = useState<boolean>(false);
+  
+  // Fetch team data
   useEffect(() => {
     const checkUserTeams = async () => {
       setIsLoadingTeam(true);
       try {
-        // Get the current user's ID first
+        // Get current user
         const userResponse = await fetch('/api/user', { 
           credentials: 'include'
         });
@@ -70,6 +74,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         
         const userData = await userResponse.json();
         const userId = userData.id;
+        console.log("Current user ID:", userId);
         
         // Fetch user's teams
         const teamsResponse = await fetch(`/api/teams/user/${userId}`, {
@@ -81,13 +86,13 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         }
         
         const teamsData = await teamsResponse.json();
+        console.log("User teams:", teamsData);
         
         // Check if user has any teams
         if (teamsData && teamsData.length > 0) {
           setHasTeam(true);
           
           // Fetch the team members of the first team for now
-          // In a real app, you might want to fetch members from all teams or let the user select a team
           const teamId = teamsData[0].id;
           const membersResponse = await fetch(`/api/teams/${teamId}/members`, {
             credentials: 'include'
@@ -95,6 +100,8 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
           
           if (membersResponse.ok) {
             const membersData = await membersResponse.json();
+            console.log("Team members:", membersData);
+            
             // Filter out current user from team members
             const filteredMembers = membersData
               .filter((member: any) => member.userId !== userId)
@@ -106,13 +113,18 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
               }));
             
             setTeamMembers(filteredMembers);
+            console.log("Filtered team members:", filteredMembers);
           }
         } else {
+          // No teams, ensure we're on the public tab
+          setActiveTab("public");
           setHasTeam(false);
           setTeamMembers([]);
         }
       } catch (error) {
         console.error("Error fetching team data:", error);
+        // In case of error, switch to public tab
+        setActiveTab("public");
         setHasTeam(false);
         setTeamMembers([]);
       } finally {
@@ -141,6 +153,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         
         const userData = await userResponse.json();
         const currentUserId = userData.id;
+        console.log("Current user ID:", currentUserId);
         
         // Fetch all users with our new API endpoint
         const response = await fetch('/api/users/all', {
@@ -152,6 +165,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         }
         
         const usersData = await response.json();
+        console.log("All users:", usersData);
         
         // Filter out the current user from the list
         const filteredUsers = usersData
@@ -163,6 +177,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
             profileImage: user.profileImage
           }));
         
+        console.log("Filtered public users:", filteredUsers);
         setPublicUsers(filteredUsers);
       } catch (error) {
         console.error("Error fetching public users:", error);
@@ -220,27 +235,52 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
     user.username.toLowerCase().includes(publicSearch.toLowerCase())
   );
 
-  const handleSendInvites = () => {
+  const handleSendInvites = async () => {
     setIsLoading(true);
     
-    // Combine all selected users
-    const allSelectedIds = [...selectedTeamUsers, ...selectedPublicUsers];
-    
-    // In a real application, you would make an API call here
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Combine all selected users
+      const allSelectedIds = [...selectedTeamUsers, ...selectedPublicUsers];
+      
+      if (allSelectedIds.length === 0) {
+        toast({
+          title: "No users selected",
+          description: "Please select at least one user to invite.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // This would be a real API call in a production application
+      // Mock a successful invitation for now
+      // In a real app, you would create an event invitation record in the database
+      console.log(`Sending invitations to users:`, allSelectedIds);
+      console.log(`For event ID: ${eventId}`);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       // Show success toast
       toast({
-        title: "Invitations Sent!",
-        description: `Sent ${allSelectedIds.length} invitations to your event.`,
+        title: "Invitations Sent Successfully!",
+        description: `Sent ${allSelectedIds.length} invitation${allSelectedIds.length > 1 ? 's' : ''} to your event.`,
       });
       
       // Close the modal and reset selections
       onOpenChange(false);
       setSelectedTeamUsers([]);
       setSelectedPublicUsers([]);
-    }, 1500);
+    } catch (error) {
+      console.error("Error sending invitations:", error);
+      toast({
+        title: "Failed to Send Invitations",
+        description: "There was a problem sending the invitations. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -248,13 +288,16 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
       <DialogContent className="sm:max-w-md md:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">Invite Friends to Your Event</DialogTitle>
+          <DialogDescription className="text-center text-sm text-gray-500">
+            Select friends from your team or invite other users to join your event.
+          </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="team" className="w-full">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="team" className="flex gap-2 items-center">
+            <TabsTrigger value="team" className="flex gap-2 items-center" disabled={!hasTeam}>
               <Users className="h-4 w-4" />
-              My Team
+              Team
               {selectedTeamUsers.length > 0 && (
                 <Badge variant="secondary" className="ml-1.5 py-0 px-1.5 h-5 min-w-5 flex items-center justify-center">
                   {selectedTeamUsers.length}
