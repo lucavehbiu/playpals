@@ -5,6 +5,7 @@ import { Event } from "@/lib/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -37,6 +38,9 @@ const EventDetails = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // State for invite friends modal
+  const [inviteFriendsModalOpen, setInviteFriendsModalOpen] = useState(false);
   
   console.log("URL Params:", params);
   console.log("Event ID from URL:", eventId);
@@ -460,17 +464,21 @@ const EventDetails = () => {
           <div className="flex gap-3 mb-6">
             <Button 
               className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg" 
-              onClick={() => {
-                toast({
-                  title: "Invite Friends",
-                  description: "Select friends to invite to this event",
-                });
-              }}
+              onClick={() => setInviteFriendsModalOpen(true)}
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Invite Friends
             </Button>
           </div>
+        )}
+        
+        {/* Invite Friends Modal */}
+        {eventData && (
+          <InviteFriendsModal
+            open={inviteFriendsModalOpen}
+            onOpenChange={setInviteFriendsModalOpen}
+            eventId={eventData.id}
+          />
         )}
         
         {/* Tabs with Details */}
