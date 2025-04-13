@@ -79,21 +79,21 @@ const MobileNav = () => {
           <AnimatePresence>
             {isCreateMenuOpen && (
               <motion.div 
-                className="absolute bottom-16 mx-auto z-50"
+                className="absolute bottom-16 z-50"
                 style={{
                   left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '170px' // Fixed width for the menu container
+                  transform: 'translateX(-50%)'
                 }}
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.9 }}
                 transition={{ type: "spring", damping: 25, stiffness: 500 }}
               >
-                <div className="flex justify-between items-center">
+                {/* Container for both buttons with a gap centered on the Create button */}
+                <div className="flex items-center" style={{ gap: '14px' }}>
                   {/* Event option */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[78px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[76px]"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setLocation("/myevents?create=true");
@@ -110,7 +110,7 @@ const MobileNav = () => {
                   
                   {/* Post option */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[78px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[76px]"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setLocation("/feed");
