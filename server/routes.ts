@@ -209,7 +209,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all public events (for discovery)
       const events = await storage.getPublicEvents();
       console.log("Fetched public events:", events ? events.length : 0);
-      res.json(events || []);
+      
+      // Add creator info to each event
+      const eventsWithCreators = await Promise.all(
+        events.map(async (event) => {
+          const creator = await storage.getUser(event.creatorId);
+          return {
+            ...event,
+            creator: creator ? {
+              id: creator.id,
+              username: creator.username,
+              name: creator.name,
+              profileImage: creator.profileImage
+            } : null
+          };
+        })
+      );
+      
+      res.json(eventsWithCreators || []);
     } catch (error) {
       console.error("Error fetching events:", error);
       res.status(500).json({ message: "Error fetching events" });
@@ -229,7 +246,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const events = await storage.getEventsByCreator(userId);
       console.log("Fetched user events:", events ? events.length : 0);
-      res.json(events || []);
+      
+      // Add creator info to each event
+      const eventsWithCreators = await Promise.all(
+        events.map(async (event) => {
+          const creator = await storage.getUser(event.creatorId);
+          return {
+            ...event,
+            creator: creator ? {
+              id: creator.id,
+              username: creator.username,
+              name: creator.name,
+              profileImage: creator.profileImage
+            } : null
+          };
+        })
+      );
+      
+      res.json(eventsWithCreators || []);
     } catch (error) {
       console.error("Error fetching user events:", error);
       res.status(500).json({ message: "Error fetching user events" });
