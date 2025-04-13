@@ -83,11 +83,13 @@ const Feed = () => {
   const tabContent = getTabContent();
   
   return (
-    <div className="max-w-4xl mx-auto">
-
+    <div className="max-w-4xl mx-auto relative">
+      {/* Premium subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" aria-hidden="true"></div>
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" aria-hidden="true"></div>
       
       {/* Instagram-style stories scroller - optimized for mobile */}
-      <div className="mb-4">
+      <div className="mb-4 relative z-10">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base font-medium text-gray-500 flex items-center">
             <span>Upcoming Events</span>
@@ -123,10 +125,12 @@ const Feed = () => {
                     setStoriesViewerOpen(true);
                   }}
                 >
-                  {/* Story ring with gradient border */}
-                  <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gradient-to-br from-primary via-blue-500 to-purple-600 p-[2px] relative">
+                  {/* Story ring with gradient border - enhanced with animation */}
+                  <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gradient-to-br from-primary via-blue-500 to-purple-600 p-[2px] relative group hover:scale-105 transition-all duration-300 shadow-sm hover:shadow-md">
+                    {/* Animated ring */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-600 opacity-0 group-hover:opacity-100 animate-[spin_4s_linear_infinite] blur-[1px] scale-[1.01] transition-opacity duration-300"></div>
                     {/* Story content preview */}
-                    <div className="w-full h-full rounded-full overflow-hidden border-[3px] border-white">
+                    <div className="w-full h-full rounded-full overflow-hidden border-[3px] border-white relative z-10">
                       {event.eventImage ? (
                         <img 
                           src={event.eventImage} 
@@ -216,8 +220,12 @@ const Feed = () => {
             {activeTab === 'trending' && (
               <motion.div 
                 layoutId="activeTabIndicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-blue-500 to-primary"
                 initial={false}
+                animate={{ 
+                  backgroundPosition: ["0% center", "100% center", "0% center"],
+                  transition: { duration: 5, ease: "linear", repeat: Infinity }
+                }}
               />
             )}
           </Button>
@@ -293,8 +301,10 @@ const Feed = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
-                <Card className="overflow-hidden bg-white shadow-sm border-none hover:shadow-md transition-shadow duration-300">
-                  <CardContent className="p-0">
+                <Card className="overflow-hidden bg-white/95 backdrop-blur-sm shadow-sm border-none hover:shadow-lg transition-all duration-300 will-change-transform hover:-translate-y-1">
+                  <CardContent className="p-0 relative">
+                    {/* Premium subtle highlight effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
                     {/* Post header */}
                     {/* Compact header for mobile */}
                     <div className="p-3 sm:p-4 border-b border-gray-100">
@@ -431,19 +441,31 @@ const Feed = () => {
                       </div>
                     )}
                     
-                    {/* Mobile-optimized action buttons */}
+                    {/* Premium action buttons with micro-interactions */}
                     <div className="border-t border-gray-100 grid grid-cols-3 divide-x">
-                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
-                        <Heart className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
-                        <span className="hidden xs:inline">Interested</span>
+                      <Button 
+                        variant="ghost" 
+                        className="rounded-none py-2 h-auto text-gray-600 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent hover:text-primary text-xs group relative overflow-hidden"
+                      >
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-300"></span>
+                        <Heart className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-300 relative z-10" />
+                        <span className="hidden xs:inline relative z-10 group-hover:font-medium transition-all duration-300">Interested</span>
                       </Button>
-                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
-                        <MessageCircleIcon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
-                        <span className="hidden xs:inline">Comment</span>
+                      <Button 
+                        variant="ghost" 
+                        className="rounded-none py-2 h-auto text-gray-600 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent hover:text-primary text-xs group relative overflow-hidden"
+                      >
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-300"></span>
+                        <MessageCircleIcon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-300 relative z-10" />
+                        <span className="hidden xs:inline relative z-10 group-hover:font-medium transition-all duration-300">Comment</span>
                       </Button>
-                      <Button variant="ghost" className="rounded-none py-2 h-auto text-gray-600 hover:bg-gray-50 hover:text-primary text-xs">
-                        <Share2Icon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
-                        <span className="hidden xs:inline">Share</span>
+                      <Button 
+                        variant="ghost" 
+                        className="rounded-none py-2 h-auto text-gray-600 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent hover:text-primary text-xs group relative overflow-hidden"
+                      >
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-300"></span>
+                        <Share2Icon className="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-300 relative z-10" />
+                        <span className="hidden xs:inline relative z-10 group-hover:font-medium transition-all duration-300">Share</span>
                       </Button>
                     </div>
                   </CardContent>
@@ -456,7 +478,7 @@ const Feed = () => {
       
       {/* Quick view event dialog */}
       <Dialog open={!!quickViewEvent} onOpenChange={() => setQuickViewEvent(null)}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white/90 backdrop-blur-md shadow-xl border-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Event Details</DialogTitle>
             <DialogDescription>Quick view of event information</DialogDescription>
@@ -538,16 +560,25 @@ const Feed = () => {
                 
                 <div className="flex space-x-3">
                   <Button 
-                    className="flex-1 bg-primary hover:bg-primary/90"
+                    className="flex-1 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/95 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 group"
                     onClick={() => {
                       setQuickViewEvent(null);
                       setLocation(`/events/${quickViewEvent.id}`);
                     }}
                   >
-                    View Details
+                    <span className="flex items-center justify-center">
+                      <Eye className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="group-hover:tracking-wide transition-all duration-300">View Details</span>
+                    </span>
                   </Button>
-                  <Button variant="outline" className="flex-1">
-                    Join Event
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 shadow-sm group transition-all duration-300"
+                  >
+                    <span className="flex items-center justify-center">
+                      <UserPlus className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="group-hover:tracking-wide transition-all duration-300">Join Event</span>
+                    </span>
                   </Button>
                 </div>
               </div>
