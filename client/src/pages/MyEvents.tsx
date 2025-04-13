@@ -231,6 +231,7 @@ const MyEvents = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  // Default to the upcoming tab
   const [activeTab, setActiveTab] = useState("upcoming");
   
   // Get events created by the user

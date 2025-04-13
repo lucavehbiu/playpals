@@ -33,7 +33,7 @@ function Router() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4">
                 <Switch>
                   <ProtectedRoute path="/" component={Feed} />
-                  <ProtectedRoute path="/myevents/*">
+                  <ProtectedRoute path="/myevents">
                     <MyEvents />
                   </ProtectedRoute>
                   <ProtectedRoute path="/discover" component={Discover} />
