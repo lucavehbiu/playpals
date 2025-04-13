@@ -354,20 +354,27 @@ const Header = () => {
             
             {/* User Actions - Right Side */}
             <div className="flex items-center space-x-2">
-              {/* Notifications - Only show on larger screens when nav is visible */}
-              <div className="hidden lg:block">
-                <div className="inline-block">
-                  <Link href="/invitations">
-                    <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 relative">
-                      <Bell className="h-5 w-5" />
-                      {notificationCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </button>
-                  </Link>
-                </div>
+              {/* Mobile Search Button */}
+              <div className="lg:hidden">
+                <Link href="/discover">
+                  <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300">
+                    <Search className="h-5 w-5" />
+                  </button>
+                </Link>
+              </div>
+              
+              {/* Notifications - Show on all screen sizes */}
+              <div className="inline-block">
+                <Link href="/invitations">
+                  <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 relative">
+                    <Bell className="h-5 w-5" />
+                    {notificationCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {notificationCount}
+                      </span>
+                    )}
+                  </button>
+                </Link>
               </div>
               
               {/* User profile - only visible on desktop */}
@@ -384,15 +391,6 @@ const Header = () => {
                       )}
                     </Avatar>
                   </div>
-                </Link>
-              </div>
-              
-              {/* Search button - only on mobile */}
-              <div className="md:hidden inline-block">
-                <Link href="/discover">
-                  <button type="button" className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200">
-                    <Search className="h-5 w-5" />
-                  </button>
                 </Link>
               </div>
             </div>

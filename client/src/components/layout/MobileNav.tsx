@@ -8,6 +8,10 @@ const MobileNav = () => {
   const [location] = useLocation();
   const { user } = useAuth();
   
+  // For demo purposes we'll use a static count of notifications
+  // This would be fetched from an API in a real app
+  const notificationCount = 3;
+  
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-50 safe-bottom">
       <NavItem 
@@ -18,10 +22,11 @@ const MobileNav = () => {
       />
       
       <NavItem 
-        href="/discover" 
-        icon={<SearchIcon className="h-[22px] w-[22px]" />} 
-        label="Discover" 
-        isActive={location === '/discover'} 
+        href="/invitations" 
+        icon={<BellIcon className="h-[22px] w-[22px]" />} 
+        label="Invites" 
+        isActive={location === '/invitations'}
+        badge={notificationCount} 
       />
       
       {/* Center "Create" button - more prominent */}
@@ -66,23 +71,30 @@ const NavItem = ({
   href, 
   icon, 
   label, 
-  isActive 
+  isActive,
+  badge 
 }: { 
   href: string; 
   icon: React.ReactNode; 
   label: string; 
   isActive: boolean;
+  badge?: number;
 }) => {
   return (
     <Link href={href}>
       <div className="flex flex-col items-center justify-center py-2 px-3">
         <div className={cn(
-          "flex items-center justify-center transition-all duration-200 mb-1",
+          "flex items-center justify-center transition-all duration-200 mb-1 relative",
           isActive 
             ? "text-primary" 
             : "text-gray-400 hover:text-gray-600"
         )}>
           {icon}
+          {badge && badge > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+              {badge > 9 ? '9+' : badge}
+            </span>
+          )}
         </div>
         <span className={cn(
           "text-[11px] font-medium transition-colors",
