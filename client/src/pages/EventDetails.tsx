@@ -1,14 +1,13 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { Event } from "@/lib/types";
-import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   CalendarIcon, 
   MapPinIcon, 
-  UserIcon, 
   Clock, 
   ArrowLeft, 
   Share2,
@@ -22,14 +21,12 @@ import {
   ImageIcon,
   CheckCircle,
   ChevronRight,
-  Calendar,
   MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
@@ -39,16 +36,17 @@ const EventDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Fetch event details using useState and useEffect for simplicity
-  const [event, setEvent] = useState<Event | null>(null);
+  // State for event data
+  const [eventData, setEventData] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [loadError, setLoadError] = useState<Error | null>(null);
+  const [rsvps, setRsvps] = useState<any[]>([]);
   
   // Load event data
   useEffect(() => {
     async function fetchEventData() {
       if (!eventId) {
-        setError(new Error("No event ID provided"));
+        setLoadError(new Error("No event ID provided"));
         setIsLoading(false);
         return;
       }
@@ -71,12 +69,29 @@ const EventDetails = () => {
         
         const data = await response.json();
         console.log("Successfully received event data:", data);
-        setEvent(data);
-        setError(null);
+        setEventData(data);
+        setLoadError(null);
+        
+        // After successfully loading the event, fetch RSVPs
+        try {
+          const rsvpResponse = await fetch(`/api/rsvps/event/${eventId}`, {
+            credentials: "include"
+          });
+          
+          if (rsvpResponse.ok) {
+            const rsvpData = await rsvpResponse.json();
+            setRsvps(rsvpData);
+          } else {
+            console.error("Failed to fetch RSVPs:", rsvpResponse.status, rsvpResponse.statusText);
+          }
+        } catch (rsvpErr) {
+          console.error("Error fetching RSVPs:", rsvpErr);
+        }
+        
       } catch (err) {
         console.error("Error fetching event:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-        setEvent(null);
+        setLoadError(err instanceof Error ? err : new Error(String(err)));
+        setEventData(null);
       } finally {
         setIsLoading(false);
       }
@@ -87,38 +102,12 @@ const EventDetails = () => {
   
   // Log event data for debugging
   useEffect(() => {
-    if (event) {
-      console.log("Event data received:", event);
-      console.log("Event creator:", event.creator);
-      console.log("Event image:", event.eventImage);
+    if (eventData) {
+      console.log("Event data received:", eventData);
+      console.log("Event creator:", eventData.creator);
+      console.log("Event image:", eventData.eventImage);
     }
-  }, [event]);
-  
-  // Fetch RSVPs for this event
-  const { data: rsvps = [] } = useQuery<any[]>({
-    queryKey: ['/api/rsvps/event', eventId],
-    enabled: !!eventId && !!event, // Only run this query if we have an event
-    queryFn: async () => {
-      if (!eventId) {
-        return [];
-      }
-      try {
-        const response = await fetch(`/api/rsvps/event/${eventId}`, {
-          credentials: "include"
-        });
-        
-        if (!response.ok) {
-          console.error("Failed to fetch RSVPs:", response.status, response.statusText);
-          return [];
-        }
-        
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching RSVPs:", error);
-        return [];
-      }
-    },
-  });
+  }, [eventData]);
   
   // Mutation for requesting to join an event
   const joinEventMutation = useMutation({
@@ -133,10 +122,9 @@ const EventDetails = () => {
       return await response.json();
     },
     onSuccess: () => {
+      // Refresh our RSVPs list
       if (eventId) {
-        // Use the exact same query key format that we're using in the queries
-        queryClient.invalidateQueries({ queryKey: ['/api/rsvps/event', eventId] });
-        queryClient.invalidateQueries({ queryKey: ['/api/events/id', eventId] });
+        fetchRsvps(eventId);
       }
       toast({
         title: "Request Sent",
@@ -151,6 +139,22 @@ const EventDetails = () => {
       });
     }
   });
+  
+  // Helper to fetch RSVPs
+  const fetchRsvps = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/rsvps/event/${eventId}`, {
+        credentials: "include"
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRsvps(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing RSVPs:", error);
+    }
+  };
   
   const handleJoin = () => {
     joinEventMutation.mutate();
@@ -201,14 +205,14 @@ const EventDetails = () => {
 
   // Reset image state when event changes
   useEffect(() => {
-    if (event) {
+    if (eventData) {
       setImageLoaded(false);
       setImageError(false);
     }
-  }, [event?.id]);
+  }, [eventData?.id]);
 
   // Determine if the current user is the creator of this event
-  const isCreator = user && event && user.id === (event.creatorId || event.creator?.id);
+  const isCreator = user && eventData && user.id === (eventData.creatorId || eventData.creator?.id);
   
   // Check if user has already RSVPd
   const userRSVP = rsvps?.find((rsvp: any) => rsvp.userId === user?.id);
@@ -245,12 +249,12 @@ const EventDetails = () => {
     );
   }
   
-  if (error || !event) {
+  if (loadError || !eventData) {
     return (
       <div className="text-center p-8 bg-red-50 rounded-lg">
         <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Event</h2>
         <p className="text-red-600 mb-4">
-          {error instanceof Error ? error.message : "Event not found"}
+          {loadError instanceof Error ? loadError.message : "Event not found"}
         </p>
         <Button onClick={handleBack} variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
@@ -285,7 +289,7 @@ const EventDetails = () => {
             <Button 
               variant="ghost"
               size="icon"
-              onClick={() => setLocation(`/myevents?manage=${event.id}`)}
+              onClick={() => setLocation(`/myevents?manage=${eventData.id}`)}
               className="h-9 w-9 rounded-full"
             >
               <Settings className="h-5 w-5 text-gray-700" />
@@ -308,22 +312,22 @@ const EventDetails = () => {
           {/* Error state */}
           {imageError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className={`rounded-xl h-16 w-16 flex items-center justify-center mb-4 ${getSportBadgeColor(event.sportType)}`}>
+              <div className={`rounded-xl h-16 w-16 flex items-center justify-center mb-4 ${getSportBadgeColor(eventData.sportType)}`}>
                 <ImageIcon className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-white font-medium">{event.sportType?.charAt(0).toUpperCase() + event.sportType?.slice(1) || 'Sport'}</h3>
+              <h3 className="text-white font-medium">{eventData.sportType?.charAt(0).toUpperCase() + eventData.sportType?.slice(1) || 'Sport'}</h3>
             </div>
           )}
           
           {/* Actual image with overlay */}
           <img 
-            src={event.eventImage || getEventImageUrl(event.sportType)}
-            alt={event.title || 'Event'} 
+            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
+            alt={eventData.title || 'Event'} 
             className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImageLoaded(true)}
             onError={() => {
               setImageError(true);
-              console.error("Failed to load image for event:", event.title);
+              console.error("Failed to load image for event:", eventData.title);
             }}
           />
           
@@ -334,35 +338,35 @@ const EventDetails = () => {
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
             {/* Event badges */}
             <div className="flex flex-wrap gap-2 mb-3">
-              {event.sportType && (
-                <Badge className={`${getSportBadgeColor(event.sportType)} hover:${getSportBadgeColor(event.sportType)} backdrop-blur-sm backdrop-saturate-150 border border-white/20 text-white px-3 py-1`}>
-                  {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
+              {eventData.sportType && (
+                <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} backdrop-blur-sm backdrop-saturate-150 border border-white/20 text-white px-3 py-1`}>
+                  {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
                 </Badge>
               )}
               <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {event.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
-                {event.isPublic ? "Public" : "Private"}
+                {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+                {eventData.isPublic ? "Public" : "Private"}
               </Badge>
               <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {event.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{event.cost || 0}</>}
+                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{eventData.cost || 0}</>}
               </Badge>
             </div>
             
             {/* Event title */}
-            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{event.title || "Event Title"}</h1>
+            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{eventData.title || "Event Title"}</h1>
             
             {/* Creator info */}
             <div className="flex items-center">
               <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                {event.creator?.profileImage ? (
-                  <AvatarImage src={event.creator.profileImage} />
+                {eventData.creator?.profileImage ? (
+                  <AvatarImage src={eventData.creator.profileImage} />
                 ) : (
-                  <AvatarFallback className="bg-primary text-white">{event.creator?.name?.[0] || "U"}</AvatarFallback>
+                  <AvatarFallback className="bg-primary text-white">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
                 )}
               </Avatar>
               <div className="ml-2.5">
                 <p className="text-white font-medium text-sm leading-tight">
-                  {event.creator?.name || event.creator?.username || "Unknown"}
+                  {eventData.creator?.name || eventData.creator?.username || "Unknown"}
                 </p>
                 <p className="text-white/70 text-xs">Organizer</p>
               </div>
@@ -375,27 +379,27 @@ const EventDetails = () => {
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <CalendarIcon className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Date & Time</p>
-            <p className="font-medium text-sm md:text-base">{formatEventDate(event.date)}</p>
-            <p className="text-sm text-gray-600">{formatEventTime(event.date)}</p>
+            <p className="font-medium text-sm md:text-base">{formatEventDate(eventData.date)}</p>
+            <p className="text-sm text-gray-600">{formatEventTime(eventData.date)}</p>
           </div>
           
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <MapPinIcon className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Location</p>
-            <p className="font-medium text-sm md:text-base break-words">{event.location}</p>
+            <p className="font-medium text-sm md:text-base break-words">{eventData.location}</p>
           </div>
           
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center col-span-2 md:col-span-1">
             <Users className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Participants</p>
             <p className="font-medium text-sm md:text-base">
-              {event.currentParticipants} of {event.maxParticipants}
+              {eventData.currentParticipants} of {eventData.maxParticipants}
             </p>
             <div className="w-full max-w-24 bg-gray-200 rounded-full h-1.5 mt-1.5">
               <div 
                 className="bg-primary h-1.5 rounded-full" 
                 style={{ 
-                  width: `${(event.currentParticipants / event.maxParticipants) * 100}%` 
+                  width: `${(eventData.currentParticipants / eventData.maxParticipants) * 100}%` 
                 }}
               ></div>
             </div>
@@ -471,7 +475,7 @@ const EventDetails = () => {
             <TabsTrigger value="participants" className="rounded-lg py-2.5">
               Participants 
               <span className="ml-1.5 bg-gray-200 text-gray-700 text-xs px-1.5 py-0.5 rounded-full">
-                {event.currentParticipants}
+                {eventData.currentParticipants}
               </span>
             </TabsTrigger>
             <TabsTrigger value="discussion" className="rounded-lg py-2.5">Discussion</TabsTrigger>
@@ -483,7 +487,7 @@ const EventDetails = () => {
                 <h3 className="text-xl font-semibold mb-3">About This Event</h3>
                 <div className="prose prose-gray max-w-none">
                   <p className="text-gray-700 leading-relaxed">
-                    {event.description || "No description provided."}
+                    {eventData.description || "No description provided."}
                   </p>
                 </div>
               </div>
@@ -495,15 +499,15 @@ const EventDetails = () => {
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <div className="flex items-start">
                     <Avatar className="h-12 w-12">
-                      {event.creator?.profileImage ? (
-                        <AvatarImage src={event.creator.profileImage} />
+                      {eventData.creator?.profileImage ? (
+                        <AvatarImage src={eventData.creator.profileImage} />
                       ) : (
-                        <AvatarFallback className="bg-primary text-white">{event.creator?.name?.[0] || "U"}</AvatarFallback>
+                        <AvatarFallback className="bg-primary text-white">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
                       )}
                     </Avatar>
                     <div className="ml-3">
-                      <p className="font-medium">{event.creator?.name || event.creator?.username || "Unknown"}</p>
-                      <p className="text-sm text-gray-500">{event.creator?.bio || "Event organizer"}</p>
+                      <p className="font-medium">{eventData.creator?.name || eventData.creator?.username || "Unknown"}</p>
+                      <p className="text-sm text-gray-500">{eventData.creator?.bio || "Event organizer"}</p>
                       <Button variant="ghost" size="sm" className="mt-1 h-8 px-3 text-xs">
                         <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Follow
                       </Button>
@@ -518,40 +522,81 @@ const EventDetails = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold mb-3">Event Participants</h3>
               
-              <div className="bg-gray-50 rounded-xl p-4">
-                {rsvps && rsvps.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {rsvps.map((rsvp: any) => (
-                      <div key={rsvp.id} className="flex items-center py-3 first:pt-0 last:pb-0">
-                        <Avatar className="h-10 w-10 border border-gray-100">
-                          <AvatarImage src={rsvp.user?.profileImage || undefined} />
-                          <AvatarFallback className="bg-primary/10">{rsvp.user?.name?.[0] || "U"}</AvatarFallback>
-                        </Avatar>
-                        <div className="ml-3 flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium">{rsvp.user?.name || "Unknown"}</p>
-                            <Badge className={
-                              rsvp.status === "approved" ? "bg-green-100 text-green-800 hover:bg-green-100" : 
-                              rsvp.status === "pending" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" :
-                              "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                            }>
-                              {rsvp.status === "approved" ? "Going" : 
-                              rsvp.status === "denied" ? "Not going" : 
-                              rsvp.status === "pending" ? "Pending" : "Maybe"}
-                            </Badge>
+              <div className="bg-gray-50 rounded-xl p-5">
+                {rsvps.length > 0 ? (
+                  <ul className="divide-y divide-gray-100">
+                    {rsvps.filter((rsvp: any) => rsvp.status === "approved").map((rsvp: any) => (
+                      <li key={rsvp.id} className="py-3 first:pt-0 last:pb-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <Avatar className="h-10 w-10">
+                              {rsvp.user?.profileImage ? (
+                                <AvatarImage src={rsvp.user.profileImage} />
+                              ) : (
+                                <AvatarFallback className="bg-primary/80 text-white">
+                                  {rsvp.user?.name?.[0] || "U"}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="ml-3">
+                              <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
+                              <p className="text-xs text-gray-500">Confirmed Participant</p>
+                            </div>
                           </div>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                          </Button>
                         </div>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-                    <p className="text-gray-600 font-medium">No participants yet</p>
-                    <p className="text-sm text-gray-500 mt-1">Be the first to join this event!</p>
+                  <div className="text-center py-6">
+                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 mb-1">No participants yet</p>
+                    <p className="text-sm text-gray-400">Be the first to join this event!</p>
                   </div>
                 )}
               </div>
+              
+              {isCreator && rsvps.some((rsvp: any) => rsvp.status === "pending") && (
+                <div className="mt-8">
+                  <h3 className="text-xl font-semibold mb-3">Pending Requests</h3>
+                  <div className="bg-gray-50 rounded-xl p-5">
+                    <ul className="divide-y divide-gray-100">
+                      {rsvps.filter((rsvp: any) => rsvp.status === "pending").map((rsvp: any) => (
+                        <li key={rsvp.id} className="py-3 first:pt-0 last:pb-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Avatar className="h-10 w-10">
+                                {rsvp.user?.profileImage ? (
+                                  <AvatarImage src={rsvp.user.profileImage} />
+                                ) : (
+                                  <AvatarFallback className="bg-primary/80 text-white">
+                                    {rsvp.user?.name?.[0] || "U"}
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="ml-3">
+                                <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
+                                <p className="text-xs text-gray-500">Wants to join</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" className="h-8">
+                                Decline
+                              </Button>
+                              <Button size="sm" className="h-8">
+                                Approve
+                              </Button>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
           
@@ -559,80 +604,20 @@ const EventDetails = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold mb-3">Event Discussion</h3>
               
-              <div className="bg-gray-50 p-6 rounded-xl text-center">
-                <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-700 font-medium">Discussion coming soon!</p>
-                <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
-                  Chat with other participants about this event. This feature will be available soon.
-                </p>
-                <Button variant="outline" className="mt-4" disabled>
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  New Discussion
-                </Button>
+              <div className="bg-gray-50 rounded-xl p-5">
+                <div className="text-center py-8">
+                  <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-1">No messages yet</p>
+                  <p className="text-sm text-gray-400 mb-6">Be the first to start a conversation!</p>
+                  <Button variant="outline" className="mx-auto">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Start Discussion
+                  </Button>
+                </div>
               </div>
             </div>
           </TabsContent>
         </Tabs>
-        
-        {/* Similar Events section */}
-        <section className="mt-10 pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold">Similar Events</h3>
-            <Button variant="ghost" size="sm" className="text-sm text-primary">
-              See all <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="bg-gray-50 rounded-xl p-8 text-center">
-            <div className="max-w-sm mx-auto">
-              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-700 font-medium">More events coming soon</p>
-              <p className="text-sm text-gray-500 mt-1">
-                We're finding more {event.sportType} events that you might be interested in.
-              </p>
-            </div>
-          </div>
-        </section>
-        
-        {/* Mobile Action Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-3 z-50 md:hidden">
-          {!isCreator && !hasRSVPd ? (
-            <Button 
-              className="w-full py-5 text-sm font-medium rounded-xl" 
-              onClick={handleJoin}
-              disabled={joinEventMutation.isPending}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              {joinEventMutation.isPending ? "Sending..." : "Request to Join"}
-            </Button>
-          ) : (
-            <>
-              <Button 
-                variant="outline" 
-                className="flex-1 py-5 text-sm font-medium rounded-xl" 
-                onClick={handleShare}
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-              
-              {isCreator && (
-                <Button 
-                  className="flex-1 py-5 text-sm font-medium rounded-xl"
-                  onClick={() => {
-                    toast({
-                      title: "Invite Friends",
-                      description: "Select friends to invite to this event",
-                    });
-                  }}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Invite
-                </Button>
-              )}
-            </>
-          )}
-        </div>
       </div>
     </div>
   );
