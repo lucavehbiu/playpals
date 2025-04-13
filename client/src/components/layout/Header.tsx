@@ -30,13 +30,6 @@ const Header = () => {
   // For demo purposes we'll use a static count of notifications
   const notificationCount = 3;
   
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Close mobile menu when location changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location]);
-  
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -377,7 +370,8 @@ const Header = () => {
                 </div>
               </div>
               
-              <div className="inline-block">
+              {/* User profile - only visible on desktop */}
+              <div className="hidden md:inline-block">
                 <Link href="/profile">
                   <div className="h-9 w-9 cursor-pointer">
                     <Avatar>
@@ -393,100 +387,16 @@ const Header = () => {
                 </Link>
               </div>
               
-              {/* Mobile menu button */}
-              <button 
-                type="button"
-                className="md:hidden inline-flex items-center justify-center rounded-md text-gray-500"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
+              {/* Search button - only on mobile */}
+              <div className="md:hidden inline-block">
+                <Link href="/discover">
+                  <button type="button" className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200">
+                    <Search className="h-5 w-5" />
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-          
-          {/* Mobile Navigation - Expandable Menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 py-2">
-              <div className="px-2 pb-2">
-                <div className="relative rounded-md bg-gray-100 pl-10 pr-4 py-2 w-full mb-3">
-                  <Search className="h-5 w-5 text-gray-500 absolute left-3 top-2" />
-                  <input 
-                    type="text" 
-                    placeholder="Search PlayPals" 
-                    className="bg-transparent border-none outline-none text-sm w-full"
-                    value={searchQuery}
-                    onChange={handleSearchInputChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1 px-2">
-                <div className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                  <Link href="/">
-                    <div className="flex items-center cursor-pointer">
-                      <Home className="h-5 w-5 mr-3" />
-                      Feed
-                    </div>
-                  </Link>
-                </div>
-                <div className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/discover' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                  <Link href="/discover">
-                    <div className="flex items-center cursor-pointer">
-                      <Search className="h-5 w-5 mr-3" />
-                      Discover
-                    </div>
-                  </Link>
-                </div>
-                <div className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/myevents' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                  <Link href="/myevents">
-                    <div className="flex items-center cursor-pointer">
-                      <Calendar className="h-5 w-5 mr-3" />
-                      My Events
-                    </div>
-                  </Link>
-                </div>
-                <div className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/teams' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                  <Link href="/teams">
-                    <div className="flex items-center cursor-pointer">
-                      <Users className="h-5 w-5 mr-3" />
-                      Teams
-                    </div>
-                  </Link>
-                </div>
-                <div className={`block px-3 py-2 rounded-md text-base font-medium ${location === '/invitations' ? 'bg-gray-100 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}>
-                  <Link href="/invitations">
-                    <div className="flex items-center cursor-pointer">
-                      <Bell className="h-5 w-5 mr-3" />
-                      Invitations
-                      {notificationCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-                <div className="pt-4 pb-2">
-                  <div className="border-t border-gray-200"></div>
-                </div>
-                <div className="px-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleLogout}
-                    disabled={logoutMutation.isPending}
-                    className="w-full flex items-center justify-center gap-1"
-                  >
-                    <LogOut className="h-4 w-4 mr-1" />
-                    <span>Logout</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </header>
     </>
