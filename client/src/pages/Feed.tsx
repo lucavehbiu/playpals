@@ -85,34 +85,7 @@ const Feed = () => {
   
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Hero section with welcome message and animation */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-6"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1 bg-gradient-to-r from-primary to-blue-600 text-transparent bg-clip-text">
-              Welcome back, {user?.name?.split(' ')[0] || 'Athlete'}!
-            </h1>
-            <p className="text-gray-600 pr-4">
-              Discover new events and connect with fellow sports enthusiasts.
-            </p>
-          </div>
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="hidden md:block"
-          >
-            <div className="h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center">
-              <Sparkles className="h-8 w-8 text-primary" />
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
+
       
       {/* Instagram-style stories scroller - optimized for mobile */}
       <div className="mb-8">
