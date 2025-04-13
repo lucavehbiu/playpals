@@ -1,16 +1,19 @@
 import { Link, useLocation } from "wouter";
-import { HomeIcon, SearchIcon, BellIcon, UsersIcon, CalendarIcon, PlusIcon } from "lucide-react";
+import { HomeIcon, SearchIcon, BellIcon, UsersIcon, CalendarIcon, PlusIcon, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MobileNav = () => {
   const [location] = useLocation();
+  const { user } = useAuth();
   
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg px-2 py-1 flex items-center justify-between z-50">
       <NavItem 
         href="/" 
         icon={<HomeIcon className="h-[22px] w-[22px]" />} 
-        label="Feed" 
+        label="Home" 
         isActive={location === '/'} 
       />
       
@@ -34,17 +37,25 @@ const MobileNav = () => {
       </div>
       
       <NavItem 
-        href="/invitations" 
-        icon={<BellIcon className="h-[22px] w-[22px]" />} 
-        label="Invites" 
-        isActive={location === '/invitations'} 
-      />
-      
-      <NavItem 
         href="/myevents" 
         icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
         label="Events" 
         isActive={location === '/myevents'} 
+      />
+      
+      <NavItem 
+        href="/profile" 
+        icon={
+          user?.profileImage ? (
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={user.profileImage} alt="Profile" />
+            </Avatar>
+          ) : (
+            <UserIcon className="h-[22px] w-[22px]" />
+          )
+        } 
+        label="Profile" 
+        isActive={location === '/profile'} 
       />
     </nav>
   );
