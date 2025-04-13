@@ -35,6 +35,7 @@ function Router() {
                   <ProtectedRoute path="/" component={Feed} />
                   <ProtectedRoute path="/myevents" component={MyEvents} />
                   <ProtectedRoute path="/discover" component={Discover} />
+                  <ProtectedRoute path="/events/create" component={CreateEvent} />
                   <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
                   <ProtectedRoute path="/events/:id/edit" component={EditEvent} />
                   <ProtectedRoute path="/events/:id" component={EventDetails} />

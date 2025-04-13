@@ -22,7 +22,7 @@ const CreateEvent = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sportType, setSportType] = useState("basketball");
-  const [location, setEventLocation] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState(60);
@@ -34,10 +34,7 @@ const CreateEvent = () => {
   // Mutation for creating an event
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
-      return apiRequest('/api/events', {
-        method: 'POST',
-        body: JSON.stringify(eventData),
-      });
+      return apiRequest('/api/events', 'POST', eventData);
     },
     onSuccess: () => {
       toast({
@@ -71,7 +68,7 @@ const CreateEvent = () => {
       return;
     }
     
-    if (!title || !sportType || !location || !date || !time) {
+    if (!title || !sportType || !eventLocation || !date || !time) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields.",
