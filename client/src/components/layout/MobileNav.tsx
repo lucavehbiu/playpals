@@ -104,7 +104,7 @@ const MobileNav = () => {
                     className="flex flex-col items-center justify-center p-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg w-[84px] border border-gray-100"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
-                      setLocation("/myevents?create=true");
+                      setLocation("/events/create");
                     }}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
@@ -217,7 +217,7 @@ const MobileNav = () => {
                   className="rounded-full border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/30"
                   onClick={() => {
                     setIsPostModalOpen(false);
-                    setLocation("/myevents?create=true");
+                    setLocation("/events/create");
                   }}
                 >
                   <CalendarIcon className="w-4 h-4 mr-1" />
