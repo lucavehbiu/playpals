@@ -236,30 +236,66 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
             </div>
             
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <CalendarIcon className="h-5 w-5 text-white/80 mr-3" />
-                <div>
+              <div className="rounded-lg p-3 flex items-center overflow-hidden relative">
+                {/* Background image for date section */}
+                <div className="absolute inset-0">
+                  <img 
+                    src={currentEvent.eventImage || `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`} 
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                </div>
+                <CalendarIcon className="h-5 w-5 text-white/80 mr-3 z-10" />
+                <div className="z-10">
                   <p className="text-xs text-white/60">Date</p>
                   <p className="font-medium">{formatEventDate(currentEvent.date)}</p>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <Clock className="h-5 w-5 text-white/80 mr-3" />
-                <div>
+              <div className="rounded-lg p-3 flex items-center overflow-hidden relative">
+                {/* Background image for time section */}
+                <div className="absolute inset-0">
+                  <img 
+                    src={currentEvent.eventImage || `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`} 
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                </div>
+                <Clock className="h-5 w-5 text-white/80 mr-3 z-10" />
+                <div className="z-10">
                   <p className="text-xs text-white/60">Time</p>
                   <p className="font-medium">{formatEventTime(currentEvent.date)}</p>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <MapPin className="h-5 w-5 text-white/80 mr-3" />
-                <div>
+              <div className="rounded-lg p-3 flex items-center overflow-hidden relative">
+                {/* Background image for location section */}
+                <div className="absolute inset-0">
+                  <img 
+                    src={currentEvent.eventImage || `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`} 
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                </div>
+                <MapPin className="h-5 w-5 text-white/80 mr-3 z-10" />
+                <div className="z-10">
                   <p className="text-xs text-white/60">Location</p>
                   <p className="font-medium line-clamp-1">{currentEvent.location}</p>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center">
-                <Users className="h-5 w-5 text-white/80 mr-3" />
-                <div>
+              <div className="rounded-lg p-3 flex items-center overflow-hidden relative">
+                {/* Background image for participants section */}
+                <div className="absolute inset-0">
+                  <img 
+                    src={currentEvent.eventImage || `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`} 
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                </div>
+                <Users className="h-5 w-5 text-white/80 mr-3 z-10" />
+                <div className="z-10">
                   <p className="text-xs text-white/60">Participants</p>
                   <p className="font-medium">
                     {currentEvent.currentParticipants} of {currentEvent.maxParticipants}
