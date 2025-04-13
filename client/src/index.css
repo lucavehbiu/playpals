@@ -18,6 +18,36 @@
     touch-action: pan-y; /* Only allow vertical scrolling */
   }
   
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 100px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 100px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+  
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.2) transparent;
+  }
+  
   /* Add bottom spacing for mobile nav */
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
