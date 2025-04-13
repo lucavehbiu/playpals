@@ -21,15 +21,15 @@ import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Switch>
         <Route path="/auth" component={AuthPage} />
         <Route>
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col overflow-hidden">
             <Header />
             
-            <main className="flex-grow pt-14"> {/* Added pt-14 to account for sticky navigation */}
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <main className="flex-grow pt-14 pb-safe"> {/* Added pt-14 for header and pb-safe for mobile nav */}
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4">
                 <Switch>
                   <ProtectedRoute path="/" component={Feed} />
                   <ProtectedRoute path="/myevents" component={MyEvents} />

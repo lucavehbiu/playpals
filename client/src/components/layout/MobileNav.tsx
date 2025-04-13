@@ -9,7 +9,7 @@ const MobileNav = () => {
   const { user } = useAuth();
   
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg px-2 py-1 flex items-center justify-between z-50">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-50 safe-bottom">
       <NavItem 
         href="/" 
         icon={<HomeIcon className="h-[22px] w-[22px]" />} 
