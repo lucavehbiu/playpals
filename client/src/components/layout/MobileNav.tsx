@@ -85,43 +85,41 @@ const MobileNav = () => {
                 exit={{ opacity: 0, y: 10, scale: 0.9 }}
                 transition={{ type: "spring", damping: 25, stiffness: 500 }}
               >
-                {/* Event option */}
-                <motion.button
-                  className="flex items-center gap-3 p-3 mb-2 bg-white rounded-xl shadow-lg w-52"
-                  onClick={() => {
-                    setIsCreateMenuOpen(false);
-                    setLocation("/myevents?create=true");
-                  }}
-                  whileHover={{ scale: 1.02, x: 3 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="bg-primary/10 rounded-full p-2">
-                    <CalendarPlusIcon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-medium block">New Event</span>
-                    <span className="text-xs text-gray-500">Create a sports event</span>
-                  </div>
-                </motion.button>
-                
-                {/* Post option */}
-                <motion.button
-                  className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-lg w-52"
-                  onClick={() => {
-                    setIsCreateMenuOpen(false);
-                    setLocation("/feed");
-                  }}
-                  whileHover={{ scale: 1.02, x: 3 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="bg-blue-500/10 rounded-full p-2">
-                    <Edit3Icon className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-medium block">New Post</span>
-                    <span className="text-xs text-gray-500">Share on your feed</span>
-                  </div>
-                </motion.button>
+                <div className="flex flex-row gap-3 justify-center">
+                  {/* Event option */}
+                  <motion.button
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-28"
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/myevents?create=true");
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="bg-primary/10 rounded-full p-2 mb-2">
+                      <CalendarPlusIcon className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium text-center">New Event</span>
+                    <span className="text-[10px] text-gray-500 text-center">Sports event</span>
+                  </motion.button>
+                  
+                  {/* Post option */}
+                  <motion.button
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-28"
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/feed");
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="bg-blue-500/10 rounded-full p-2 mb-2">
+                      <Edit3Icon className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <span className="text-sm font-medium text-center">New Post</span>
+                    <span className="text-[10px] text-gray-500 text-center">Share in feed</span>
+                  </motion.button>
+                </div>
                 
                 {/* Background overlay to close the menu */}
                 <motion.div 
