@@ -450,7 +450,65 @@ const Feed = () => {
                     >
                       <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
                       <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
-                      
+                    </div>
+                    
+                    {/* Mobile-optimized image with location overlay and quick view */}
+                    {event.eventImage ? (
+                      <div 
+                        className="cursor-pointer relative overflow-hidden"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setQuickViewEvent(event);
+                        }}
+                      >
+                        <img 
+                          src={event.eventImage} 
+                          alt={event.title} 
+                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
+                        />
+                        {/* Gradient overlay with location and date/time */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
+                          {/* Date and time in top-right */}
+                          <div className="absolute top-2 right-3 bg-black/40 rounded-lg p-2 backdrop-blur-sm">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center">
+                                <CalendarIcon className="h-3 w-3 mr-1 text-white" />
+                                <span className="text-xs font-medium text-white">
+                                  {new Date(event.date).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1 text-white" />
+                                <span className="text-xs font-medium text-white">
+                                  {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        
+                          {/* Location info bottom left */}
+                          <div className="absolute bottom-2 left-3 flex items-center text-white">
+                            <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
+                          </div>
+                          
+                          {/* Participants count bottom right */}
+                          <div className="absolute bottom-2 right-3 flex items-center text-white">
+                            <UserIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="text-xs font-medium">
+                              {event.currentParticipants}/{event.maxParticipants}
+                            </span>
+                          </div>
+                          
+                          {/* Quick view indicator center */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                            <div className="bg-black/40 rounded-full p-2">
+                              <Eye className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
                       <div className="mb-3">
                         <div className="bg-gray-50 rounded-lg p-2 flex items-center">
                           <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
@@ -470,47 +528,6 @@ const Feed = () => {
                                   {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                    </div>
-                    
-                    {/* Mobile-optimized image with location overlay and quick view */}
-                    {event.eventImage && (
-                      <div 
-                        className="cursor-pointer relative overflow-hidden"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setQuickViewEvent(event);
-                        }}
-                      >
-                        <img 
-                          src={event.eventImage} 
-                          alt={event.title} 
-                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
-                        />
-                        {/* Gradient overlay with location */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
-                          {/* Location info bottom left */}
-                          <div className="absolute bottom-2 left-3 flex items-center text-white">
-                            <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
-                          </div>
-                          
-                          {/* Participants count bottom right */}
-                          <div className="absolute bottom-2 right-3 flex items-center text-white">
-                            <UserIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <span className="text-xs font-medium">
-                              {event.currentParticipants}/{event.maxParticipants}
-                            </span>
-                          </div>
-                          
-                          {/* Quick view indicator center */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                            <div className="bg-black/40 rounded-full p-2">
-                              <Eye className="h-6 w-6 text-white" />
                             </div>
                           </div>
                         </div>
