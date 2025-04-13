@@ -90,10 +90,14 @@ const Feed = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <Zap className="h-5 w-5 mr-2 text-yellow-500" />
             <span>Upcoming Events</span>
           </h2>
-          <Button variant="ghost" size="sm" className="text-sm text-primary flex items-center group">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-sm text-primary flex items-center group"
+            onClick={() => setLocation("/discover")}
+          >
             See All 
             <ChevronRightIcon className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </Button>
