@@ -116,24 +116,6 @@ const Feed = () => {
               dragElastic={0.2}
               dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
             >
-              {/* Create Story Button - Instagram style */}
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center"
-                onClick={() => setLocation("/myevents/create")}
-              >
-                <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-primary to-blue-500 p-[2px]">
-                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                      <PlusIcon className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs font-medium text-center leading-tight line-clamp-1">Create</p>
-              </motion.div>
-              
               {/* Event Story Items - Instagram style */}
               {upcomingEvents.map((event: Event, index: number) => (
                 <motion.div 
@@ -193,20 +175,6 @@ const Feed = () => {
             <div className="flex items-center">
               {/* Empty state with Instagram-like style */}
               <div className="flex overflow-x-auto space-x-4 pb-1 px-1 -mx-1 scrollbar-hide snap-x-mandatory touch-pan-x">
-                {/* Create Story Button - Instagram style but empty state */}
-                <div 
-                  className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center cursor-pointer snap-center"
-                  onClick={() => setLocation("/myevents/create")}
-                >
-                  <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 relative bg-gradient-to-br from-gray-200 to-gray-300 p-[2px]">
-                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <PlusIcon className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs font-medium text-center text-gray-400">Create</p>
-                </div>
 
                 {/* Empty story placeholders */}
                 {[...Array(4)].map((_, index) => (
@@ -231,7 +199,7 @@ const Feed = () => {
               <Button 
                 size="sm" 
                 className="mt-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white"
-                onClick={() => setLocation("/myevents/create")}
+                onClick={() => setLocation("/myevents")}
               >
                 <PlusIcon className="h-4 w-4 mr-1" /> 
                 New Event
@@ -336,7 +304,7 @@ const Feed = () => {
                   size="sm"
                   onClick={() => {
                     setIsPostModalOpen(false);
-                    setLocation("/myevents/create");
+                    setLocation("/myevents");
                   }}
                 >
                   <CalendarIcon className="w-4 h-4 mr-1" />
