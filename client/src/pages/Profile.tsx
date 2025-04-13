@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -155,58 +156,93 @@ const Profile = () => {
         </div>
       </div>
       
-      {/* Tabs with motion inspired by golden ratio */}
-      <div className="border-b border-gray-200 bg-white dark:bg-gray-900">
+      {/* Premium Tabs with motion effects */}
+      <div className="border-b border-gray-200 bg-white dark:bg-gray-900 relative">
+        {/* Subtle background pattern for premium feel */}
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" aria-hidden="true"></div>
+        
         <div className="px-2 overflow-x-auto scrollbar-hide">
           <nav className="flex justify-around -mb-px">
-            <button
+            <motion.button
               className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'profile'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('profile')}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.98 }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
               <span>Profile</span>
               {activeTab === 'profile' && (
-                <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
+                <motion.div 
+                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
+                  layoutId="activeProfileTab"
+                  initial={false}
+                  animate={{ 
+                    backgroundPosition: ["0% center", "100% center", "0% center"],
+                    transition: { duration: 5, ease: "linear", repeat: Infinity }
+                  }}
+                />
               )}
-            </button>
-            <button
+            </motion.button>
+            
+            <motion.button
               className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'events'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('events')}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.98 }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
               </svg>
               <span>Events</span>
               {activeTab === 'events' && (
-                <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
+                <motion.div 
+                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
+                  layoutId="activeProfileTab"
+                  initial={false}
+                  animate={{ 
+                    backgroundPosition: ["0% center", "100% center", "0% center"],
+                    transition: { duration: 5, ease: "linear", repeat: Infinity }
+                  }}
+                />
               )}
-            </button>
-            <button
+            </motion.button>
+            
+            <motion.button
               className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'teams'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('teams')}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.98 }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
               <span>Teams</span>
               {activeTab === 'teams' && (
-                <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
+                <motion.div 
+                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
+                  layoutId="activeProfileTab"
+                  initial={false}
+                  animate={{ 
+                    backgroundPosition: ["0% center", "100% center", "0% center"],
+                    transition: { duration: 5, ease: "linear", repeat: Infinity }
+                  }}
+                />
               )}
-            </button>
+            </motion.button>
           </nav>
         </div>
       </div>
