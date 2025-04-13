@@ -39,43 +39,51 @@ const EventDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Fetch event details
-  const { data: eventResponse, isLoading, error } = useQuery({
-    queryKey: ['/api/events/id', eventId],
-    queryFn: async () => {
+  // Fetch event details using useState and useEffect for simplicity
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  
+  // Load event data
+  useEffect(() => {
+    async function fetchEventData() {
       if (!eventId) {
-        throw new Error("No event ID provided");
+        setError(new Error("No event ID provided"));
+        setIsLoading(false);
+        return;
       }
       
-      // Log the event ID we're trying to fetch
-      console.log("Attempting to fetch event with ID:", eventId);
-      
+      setIsLoading(true);
       try {
-        // Important: Make sure to use the correct API endpoint that works for the backend
+        console.log("Fetching event directly, ID:", eventId);
+        
         const response = await fetch(`/api/events/${eventId}`, {
-          credentials: "include"
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'include'
         });
         
         if (!response.ok) {
-          console.error(`Failed to fetch event ${eventId}:`, response.status, response.statusText);
-          throw new Error(`Failed to fetch event: ${response.statusText}`);
+          throw new Error(`Failed to fetch event: ${response.statusText} (${response.status})`);
         }
         
         const data = await response.json();
         console.log("Successfully received event data:", data);
-        return data;
-      } catch (error) {
-        console.error(`Error fetching event ${eventId}:`, error);
-        throw error;
+        setEvent(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching event:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setEvent(null);
+      } finally {
+        setIsLoading(false);
       }
-    },
-    enabled: !!eventId,
-    retry: 1,
-    staleTime: 60000, // Cache for 1 minute
-  });
-  
-  // Get the event object
-  const event = eventResponse as Event;
+    }
+    
+    fetchEventData();
+  }, [eventId]);
   
   // Log event data for debugging
   useEffect(() => {
