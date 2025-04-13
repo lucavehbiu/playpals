@@ -9,7 +9,8 @@ import {
   UserIcon,
   Edit3Icon,
   CalendarPlusIcon,
-  XIcon
+  XIcon,
+  MapPinIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,12 +18,16 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
   
   // Close menu when clicking outside
@@ -113,7 +118,7 @@ const MobileNav = () => {
                     className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[76px]"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
-                      setLocation("/feed");
+                      setIsPostModalOpen(true);
                     }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -162,6 +167,47 @@ const MobileNav = () => {
           isActive={location === '/profile'} 
         />
       </nav>
+
+      {/* Create Post Dialog */}
+      <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Create Post</DialogTitle>
+            <DialogDescription>
+              Share an update with your followers or create a new event
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-start space-x-3 py-4">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback>{user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}</AvatarFallback>
+              {user?.profileImage && <AvatarImage src={user.profileImage} alt="User" />}
+            </Avatar>
+            <Textarea placeholder="What's on your mind?" className="flex-1 resize-none min-h-[120px]" />
+          </div>
+          <DialogFooter className="flex justify-between">
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setIsPostModalOpen(false);
+                  setLocation("/myevents?create=true");
+                }}
+              >
+                <CalendarIcon className="w-4 h-4 mr-1" />
+                Event
+              </Button>
+              <Button variant="outline" size="sm">
+                <MapPinIcon className="w-4 h-4 mr-1" />
+                Location
+              </Button>
+            </div>
+            <Button type="submit" className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
+              Post
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -36,7 +36,6 @@ import { motion } from "framer-motion";
 
 const Feed = () => {
   const { user } = useAuth();
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"trending" | "following" | "discover">("trending");
   const [, setLocation] = useLocation();
   const [animateStories, setAnimateStories] = useState(false);
@@ -260,68 +259,7 @@ const Feed = () => {
         </div>
       </div>
       
-      {/* Post creation box */}
-      <motion.div 
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mb-8"
-      >
-        <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-          <DialogTrigger asChild>
-            <div className="flex items-center space-x-3 bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow duration-300">
-              <Avatar className="h-10 w-10">
-                {user?.profileImage ? (
-                  <AvatarImage src={user.profileImage} alt={`${user.name}'s profile`} />
-                ) : (
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {user?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div className="flex-1 rounded-full bg-gray-100 py-3 px-5 text-gray-500 text-sm hover:bg-gray-200 transition-colors">
-                Create a post or announce an event...
-              </div>
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>Create Post</DialogTitle>
-              <DialogDescription>
-                Share an update with your followers or create a new event
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-start space-x-3 py-4">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-              </Avatar>
-              <Textarea placeholder="What's on your mind?" className="flex-1 resize-none min-h-[120px]" />
-            </div>
-            <DialogFooter className="flex justify-between">
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setIsPostModalOpen(false);
-                    setLocation("/myevents");
-                  }}
-                >
-                  <CalendarIcon className="w-4 h-4 mr-1" />
-                  Event
-                </Button>
-                <Button variant="outline" size="sm">
-                  <MapPinIcon className="w-4 h-4 mr-1" />
-                  Location
-                </Button>
-              </div>
-              <Button type="submit" className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
-                Post
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </motion.div>
+
       
       {/* Feed content based on active tab */}
       <div className="mb-8 space-y-6">
