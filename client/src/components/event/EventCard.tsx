@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 interface EventCardProps {
   event: Event;
   isManageable?: boolean;
+  isPast?: boolean;
   onJoin?: (eventId: number) => void;
   onManage?: (eventId: number) => void;
   onShare?: (eventId: number) => void;
@@ -13,7 +14,8 @@ interface EventCardProps {
 
 const EventCard = ({ 
   event, 
-  isManageable = false, 
+  isManageable = false,
+  isPast = false,
   onJoin, 
   onManage, 
   onShare 
