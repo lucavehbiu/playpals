@@ -18,34 +18,44 @@
     touch-action: pan-y; /* Only allow vertical scrolling */
   }
   
-  /* Custom scrollbar styling */
-  ::-webkit-scrollbar {
+  /* Custom scrollbar styling - specifically for main content */
+  #main-content::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   
-  ::-webkit-scrollbar-track {
+  #main-content::-webkit-scrollbar-track {
     background: transparent;
   }
   
-  ::-webkit-scrollbar-thumb {
+  #main-content::-webkit-scrollbar-thumb {
     background: rgba(59, 130, 246, 0.2);
     border-radius: 100px;
     border: 1px solid transparent;
     background-clip: content-box;
   }
   
-  ::-webkit-scrollbar-thumb:hover {
+  #main-content::-webkit-scrollbar-thumb:hover {
     background: rgba(59, 130, 246, 0.4);
     border-radius: 100px;
     border: 1px solid transparent;
     background-clip: content-box;
   }
   
-  /* Firefox scrollbar */
-  * {
+  /* Firefox scrollbar for main content */
+  #main-content {
     scrollbar-width: thin;
     scrollbar-color: rgba(59, 130, 246, 0.2) transparent;
+  }
+  
+  /* Hide scrollbar on body/html but keep functionality */
+  html, body {
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  html::-webkit-scrollbar, 
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
   }
   
   /* Add bottom spacing for mobile nav */

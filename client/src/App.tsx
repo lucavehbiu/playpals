@@ -22,14 +22,14 @@ import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col">
       <Switch>
         <Route path="/auth" component={AuthPage} />
         <Route>
-          <div className="min-h-screen flex flex-col overflow-hidden">
+          <div className="min-h-screen flex flex-col">
             <Header />
             
-            <main className="flex-grow pt-14 pb-safe"> {/* Added pt-14 for header and pb-safe for mobile nav */}
+            <main className="flex-grow pt-14 pb-safe overflow-y-auto h-[calc(100vh-3.5rem)]" id="main-content"> {/* Content area with fixed height */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4">
                 <Switch>
                   <ProtectedRoute path="/" component={Feed} />
