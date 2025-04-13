@@ -26,7 +26,12 @@ const Invitations = () => {
   // Mutation for updating RSVP status
   const updateRSVPMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number, status: string }) => {
+      console.log("Updating RSVP:", id, status);
       const res = await apiRequest("PUT", `/api/rsvps/${id}`, { status });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update invitation status");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -38,6 +43,7 @@ const Invitations = () => {
       });
     },
     onError: (error: Error) => {
+      console.error("RSVP update error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update invitation status",

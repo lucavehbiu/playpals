@@ -430,9 +430,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedUser = (req as any).user as User;
       
       // Get the RSVP
-      const rsvp = await storage.getRSVP(req.body.eventId, authenticatedUser.id);
+      // Get the current RSVP to check status and verify ownership
+      const currentRsvps = await db
+        .select()
+        .from(rsvps)
+        .where(eq(rsvps.id, rsvpId));
+      
+      const rsvp = currentRsvps[0];
       
       if (!rsvp) {
+        console.error(`RSVP with id ${rsvpId} not found`);
         return res.status(404).json({ message: "RSVP not found" });
       }
       
@@ -441,9 +448,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden - You can only update your own RSVPs" });
       }
       
+      // We now have verified the RSVP exists and belongs to the user, so update it
       const updatedRSVP = await storage.updateRSVP(rsvpId, req.body);
       res.json(updatedRSVP);
     } catch (error) {
+      console.error("Error updating RSVP:", error);
       res.status(500).json({ message: "Error updating RSVP" });
     }
   });

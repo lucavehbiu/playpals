@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { NotificationBell } from "./NotificationsPopover";
 import playPalsLogo from "@/assets/playpals-logo.jpg";
 
 type SearchResult = {
@@ -364,16 +365,7 @@ const Header = () => {
               
               {/* Notifications - Show on all screen sizes */}
               <div className="inline-block">
-                <Link href="/invitations">
-                  <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 relative">
-                    <Bell className="h-5 w-5" />
-                    {notificationCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {notificationCount}
-                      </span>
-                    )}
-                  </button>
-                </Link>
+                <NotificationBell />
               </div>
               
               {/* User profile - only visible on desktop */}
