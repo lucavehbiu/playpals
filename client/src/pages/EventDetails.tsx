@@ -31,10 +31,15 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 const EventDetails = () => {
-  const { eventId } = useParams();
+  // Get the ID from the URL params
+  const params = useParams();
+  const eventId = params.id; // This matches the :id in the route path
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  console.log("URL Params:", params);
+  console.log("Event ID from URL:", eventId);
   
   // State for event data
   const [eventData, setEventData] = useState<Event | null>(null);
@@ -141,9 +146,9 @@ const EventDetails = () => {
   });
   
   // Helper to fetch RSVPs
-  const fetchRsvps = async (eventId: string) => {
+  const fetchRsvps = async (id: string) => {
     try {
-      const response = await fetch(`/api/rsvps/event/${eventId}`, {
+      const response = await fetch(`/api/rsvps/event/${id}`, {
         credentials: "include"
       });
       
