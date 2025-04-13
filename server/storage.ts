@@ -31,6 +31,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   searchUsers(query: string): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
   
   // Friendship methods
   getFriendship(userId: number, friendId: number): Promise<Friendship | undefined>;
@@ -230,6 +231,10 @@ export class MemStorage implements IStorage {
       user.name.toLowerCase().includes(lowerQuery) ||
       user.email.toLowerCase().includes(lowerQuery)
     );
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
   
   // Friendship methods
