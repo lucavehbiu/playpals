@@ -11,7 +11,7 @@ import {
   CalendarPlusIcon,
   XIcon,
   MapPinIcon,
-  Award
+  Award as AwardIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -205,7 +205,7 @@ const MobileNav = () => {
                 <MapPinIcon className="h-3 w-3 mr-1" /> Location
               </div>
               <div className="rounded-full bg-indigo-500/5 px-3 py-1 text-xs font-medium text-indigo-600 flex items-center">
-                <Award className="h-3 w-3 mr-1" /> Activity
+                <AwardIcon className="h-3 w-3 mr-1" /> Activity
               </div>
             </div>
             

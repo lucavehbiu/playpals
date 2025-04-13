@@ -12,6 +12,7 @@ import TeamDetails from "@/pages/TeamDetails";
 import EventDetails from "@/pages/EventDetails";
 import ManageEvent from "@/pages/ManageEvent";
 import EditEvent from "@/pages/EditEvent";
+import CreateEvent from "@/pages/CreateEvent";
 import Invitations from "@/pages/Invitations";
 import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/Header";
