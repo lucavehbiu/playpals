@@ -10,7 +10,8 @@ import {
   Edit3Icon,
   CalendarPlusIcon,
   XIcon,
-  MapPinIcon
+  MapPinIcon,
+  Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -71,13 +72,15 @@ const MobileNav = () => {
             className="flex flex-col items-center focus:outline-none"
           >
             <div className={`
-              bg-primary text-white rounded-full p-3 shadow-lg transform 
-              -translate-y-3 transition-all duration-200
-              ${isCreateMenuOpen ? 'rotate-45 scale-110' : 'hover:bg-primary/90 hover:scale-105'}
+              bg-gradient-to-r from-primary to-blue-600 text-white rounded-full p-3 shadow-lg transform 
+              -translate-y-3 transition-all duration-300
+              ${isCreateMenuOpen 
+                ? 'rotate-45 scale-110 shadow-primary/30' 
+                : 'hover:bg-primary/90 hover:scale-105 hover:shadow-lg hover:shadow-primary/20'}
             `}>
               <PlusIcon className="h-6 w-6" />
             </div>
-            <span className="text-[11px] font-medium text-gray-600 -mt-1">Create</span>
+            <span className="text-[11px] font-medium bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent -mt-1">Create</span>
           </button>
           
           {/* WhatsApp-style quick action menu */}
@@ -94,39 +97,39 @@ const MobileNav = () => {
                 exit={{ opacity: 0, y: 10, scale: 0.9 }}
                 transition={{ type: "spring", damping: 25, stiffness: 500 }}
               >
-                {/* Container for both buttons with a gap centered on the Create button */}
+                {/* Modern container for action buttons */}
                 <div className="flex items-center" style={{ gap: '14px' }}>
-                  {/* Event option */}
+                  {/* Event option - Modern design */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[76px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg w-[84px] border border-gray-100"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setLocation("/myevents?create=true");
                     }}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <div className="bg-primary/5 rounded-full p-3 mb-1.5 flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-3 mb-1.5 flex items-center justify-center shadow-sm">
                       <CalendarIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm font-medium text-center">Event</span>
+                    <span className="text-sm font-medium bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Event</span>
                     <span className="text-xs text-gray-500 text-center">Sports</span>
                   </motion.button>
                   
-                  {/* Post option */}
+                  {/* Post option - Modern design */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[76px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg w-[84px] border border-gray-100"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setIsPostModalOpen(true);
                     }}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <div className="bg-blue-500/5 rounded-full p-3 mb-1.5 flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-full p-3 mb-1.5 flex items-center justify-center shadow-sm">
                       <Edit3Icon className="h-5 w-5 text-blue-600" />
                     </div>
-                    <span className="text-sm font-medium text-center">Post</span>
+                    <span className="text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-500/80 bg-clip-text text-transparent">Post</span>
                     <span className="text-xs text-gray-500 text-center">Feed</span>
                   </motion.button>
                 </div>
@@ -168,44 +171,67 @@ const MobileNav = () => {
         />
       </nav>
 
-      {/* Create Post Dialog */}
+      {/* Create Post Dialog - Modern & Clean UI */}
       <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Create Post</DialogTitle>
-            <DialogDescription>
-              Share an update with your followers or create a new event
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-start space-x-3 py-4">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback>{user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}</AvatarFallback>
-              {user?.profileImage && <AvatarImage src={user.profileImage} alt="User" />}
-            </Avatar>
-            <Textarea placeholder="What's on your mind?" className="flex-1 resize-none min-h-[120px]" />
+        <DialogContent className="sm:max-w-[550px] p-0 border-none shadow-2xl overflow-hidden rounded-xl">
+          <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 p-5 pb-6">
+            <DialogHeader className="mb-2">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Create Post</DialogTitle>
+                <Avatar className="h-10 w-10 ring-2 ring-white/50 shadow-md">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white">
+                    {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                  {user?.profileImage && <AvatarImage src={user.profileImage} alt="User" />}
+                </Avatar>
+              </div>
+              <DialogDescription className="text-gray-600 mt-1">
+                Share a moment with your sports community
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Textarea 
+              placeholder="What's on your mind?" 
+              className="w-full resize-none min-h-[120px] mt-3 border-none bg-white/70 backdrop-blur-sm rounded-xl shadow-sm focus-visible:ring-primary"
+            />
           </div>
-          <DialogFooter className="flex justify-between">
-            <div className="flex space-x-2">
+          
+          <div className="p-3 px-5 bg-white">
+            <div className="flex flex-wrap gap-2 mb-3">
+              <div className="rounded-full bg-primary/5 px-3 py-1 text-xs font-medium text-primary flex items-center">
+                <CalendarIcon className="h-3 w-3 mr-1" /> Events
+              </div>
+              <div className="rounded-full bg-blue-500/5 px-3 py-1 text-xs font-medium text-blue-600 flex items-center">
+                <MapPinIcon className="h-3 w-3 mr-1" /> Location
+              </div>
+              <div className="rounded-full bg-indigo-500/5 px-3 py-1 text-xs font-medium text-indigo-600 flex items-center">
+                <Award className="h-3 w-3 mr-1" /> Activity
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="rounded-full border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                  onClick={() => {
+                    setIsPostModalOpen(false);
+                    setLocation("/myevents?create=true");
+                  }}
+                >
+                  <CalendarIcon className="w-4 h-4 mr-1" />
+                  Create Event
+                </Button>
+              </div>
               <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  setIsPostModalOpen(false);
-                  setLocation("/myevents?create=true");
-                }}
+                type="submit" 
+                className="rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
               >
-                <CalendarIcon className="w-4 h-4 mr-1" />
-                Event
-              </Button>
-              <Button variant="outline" size="sm">
-                <MapPinIcon className="w-4 h-4 mr-1" />
-                Location
+                Share Post
               </Button>
             </div>
-            <Button type="submit" className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
-              Post
-            </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
