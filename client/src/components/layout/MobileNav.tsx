@@ -152,7 +152,7 @@ const MobileNav = () => {
           href="/myevents" 
           icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
           label="Events" 
-          isActive={location === '/myevents'} 
+          isActive={location.startsWith('/myevents')} 
         />
         
         <NavItem 
