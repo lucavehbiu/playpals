@@ -19,7 +19,7 @@ const Profile = () => {
   const userId = urlUserId || authUser?.id.toString() || '';
   const isOwnProfile = authUser?.id.toString() === userId;
   
-  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'feed'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
   
   // Get user data
@@ -47,35 +47,7 @@ const Profile = () => {
     }
   }, [playerRating]);
   
-  // Mock posts data - in a real app, this would be fetched from an API
-  const posts: Post[] = userId ? [
-    {
-      id: 1,
-      user_id: parseInt(userId),
-      content: "Had an amazing time at the basketball tournament yesterday! Great teamwork everyone! 🏀",
-      image_url: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format",
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      likes: 24,
-      comments: 8
-    },
-    {
-      id: 2,
-      user_id: parseInt(userId),
-      content: "Just signed up for the charity marathon next month. Who else is joining? #RunForACause 🏃‍♂️",
-      created_at: new Date(Date.now() - 172800000).toISOString(),
-      likes: 15,
-      comments: 6
-    },
-    {
-      id: 3,
-      user_id: parseInt(userId),
-      content: "New personal best in swimming today! 200m in 2:05! All that training is paying off 🏊‍♂️",
-      image_url: "https://images.unsplash.com/photo-1560090995-01632a28895b?w=600&auto=format",
-      created_at: new Date(Date.now() - 259200000).toISOString(),
-      likes: 32,
-      comments: 12
-    }
-  ] : [];
+  // We don't need posts data anymore as we removed the feed tab
   
   if (userLoading) {
     return (
@@ -101,9 +73,9 @@ const Profile = () => {
     <div className="rounded-xl shadow-lg overflow-hidden bg-background">
       {/* Profile header with golden ratio background pattern */}
       <div 
-        className="relative bg-gradient-to-br from-primary/90 to-blue-600/95 p-6 pb-8 text-white overflow-hidden"
+        className="relative bg-gradient-to-br from-primary/95 to-blue-700 p-6 pb-8 text-white overflow-hidden"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 1000 1000' fill='none'%3E%3Cg opacity='0.07' stroke='white'%3E%3Cpath d='M500 500 C 500 310 690 310 690 500 C 690 690 500 690 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 380 620 380 620 500 C 620 620 500 620 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 420 580 420 580 500 C 580 580 500 580 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 450 550 450 550 500 C 550 550 500 550 500 500 Z' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 1000 1000' fill='none'%3E%3Cg opacity='0.1' stroke='white'%3E%3Cpath d='M500 500 C 500 310 690 310 690 500 C 690 690 500 690 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 380 620 380 620 500 C 620 620 500 620 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 420 580 420 580 500 C 580 580 500 580 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 450 550 450 550 500 C 550 550 500 550 500 500 Z' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -186,9 +158,9 @@ const Profile = () => {
       {/* Tabs with motion inspired by golden ratio */}
       <div className="border-b border-gray-200 bg-white dark:bg-gray-900">
         <div className="px-2 overflow-x-auto scrollbar-hide">
-          <nav className="flex -mb-px" style={{ paddingLeft: 'calc(100vw * 0.038)' }}>
+          <nav className="flex justify-around -mb-px">
             <button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center whitespace-nowrap transition-all duration-300 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'profile'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -198,13 +170,13 @@ const Profile = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
-              Profile
+              <span>Profile</span>
               {activeTab === 'profile' && (
                 <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
               )}
             </button>
             <button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center whitespace-nowrap transition-all duration-300 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'events'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -214,13 +186,13 @@ const Profile = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
               </svg>
-              {isOwnProfile ? "My Events" : "Events"}
+              <span>Events</span>
               {activeTab === 'events' && (
                 <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
               )}
             </button>
             <button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center whitespace-nowrap transition-all duration-300 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
                 activeTab === 'teams'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -230,25 +202,8 @@ const Profile = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
-              Teams
+              <span>Teams</span>
               {activeTab === 'teams' && (
-                <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
-              )}
-            </button>
-            <button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center whitespace-nowrap transition-all duration-300 ${
-                activeTab === 'feed'
-                  ? 'border-b-2 border-primary text-primary relative'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-              onClick={() => setActiveTab('feed')}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-              </svg>
-              Feed
-              {activeTab === 'feed' && (
                 <span className="absolute -bottom-[2px] left-0 w-full h-0.5 bg-primary" />
               )}
             </button>
@@ -284,9 +239,9 @@ const Profile = () => {
                   Contact Information
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-start rounded-lg bg-gray-50 dark:bg-gray-700/50 p-2.5">
-                    <span className="text-gray-500 dark:text-gray-400 w-18 font-medium">Email:</span>
-                    <span className="ml-2 text-gray-800 dark:text-gray-200">{user.email}</span>
+                  <div className="flex flex-col rounded-lg bg-gray-50 dark:bg-gray-700/50 p-2.5">
+                    <span className="text-gray-500 dark:text-gray-400 font-medium mb-1">Email:</span>
+                    <span className="text-gray-800 dark:text-gray-200 break-all">{user.email}</span>
                   </div>
                 </div>
               </div>
