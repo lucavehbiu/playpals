@@ -89,7 +89,7 @@ const Feed = () => {
       {/* Instagram-style stories scroller - optimized for mobile */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+          <h2 className="text-xl font-medium text-gray-600 flex items-center">
             <span>Upcoming Events</span>
           </h2>
         </div>
