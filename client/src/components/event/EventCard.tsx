@@ -26,7 +26,16 @@ const EventCard = ({
         (e.target as HTMLElement).closest('button')) {
       return;
     }
-    setLocation(`/events/${event.id}`);
+    
+    // Get the current page location to track where we're coming from
+    const currentPath = window.location.pathname;
+    
+    // Add the from parameter if coming from myevents page
+    if (currentPath.includes('/myevents')) {
+      setLocation(`/events/${event.id}?from=myevents`);
+    } else {
+      setLocation(`/events/${event.id}`);
+    }
   };
   
   const getSportBadgeColor = (sport: string) => {

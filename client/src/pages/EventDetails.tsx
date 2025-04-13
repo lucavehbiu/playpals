@@ -44,13 +44,25 @@ const EventDetails = () => {
     queryKey: ['/api/events', eventId ? parseInt(eventId) : 0],
     queryFn: async ({ queryKey }) => {
       const eventId = queryKey[1];
-      const response = await fetch(`/api/events/${eventId}`, {
-        credentials: "include"
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch event: ${response.statusText}`);
+      console.log("Fetching event with ID:", eventId);
+      
+      try {
+        const response = await fetch(`/api/events/${eventId}`, {
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          console.error("Failed to fetch event:", response.status, response.statusText);
+          throw new Error(`Failed to fetch event: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Received event data:", data);
+        return data;
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        throw error;
       }
-      return await response.json();
     },
     enabled: !!eventId,
   });
@@ -118,7 +130,17 @@ const EventDetails = () => {
   };
   
   const handleBack = () => {
-    setLocation("/discover");
+    // Check URL for a previous page parameter
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from');
+    
+    // Route based on where we came from
+    if (from === 'myevents') {
+      setLocation("/myevents");
+    } else {
+      // Default to discover
+      setLocation("/discover");
+    }
   };
   
   const formatEventTime = (dateString: string) => {
