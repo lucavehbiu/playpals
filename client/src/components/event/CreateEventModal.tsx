@@ -27,6 +27,7 @@ const createEventSchema = z.object({
     z.boolean().default(true)
   ),
   cost: z.number().optional(),
+  eventImage: z.string().optional(),
 });
 
 type CreateEventFormData = z.infer<typeof createEventSchema>;
@@ -56,6 +57,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       isPublic: true,
       isFree: true,
       cost: 0,
+      eventImage: "",
     }
   });
   
@@ -82,6 +84,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         isPublic: isPublic,
         isFree: isFree,
         cost: !isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
+        eventImage: data.eventImage || "",
         // The creatorId will be set from the authenticated user on the server
       };
       
@@ -355,6 +358,22 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     )}
                   </div>
                 )}
+
+                <div>
+                  <label htmlFor="eventImage" className="block text-sm font-medium text-gray-700">
+                    Event Image
+                  </label>
+                  <input
+                    type="text"
+                    id="eventImage"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    placeholder="Enter image URL"
+                    {...register("eventImage")}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Paste a URL to an image that represents your event. Leave blank for a default image based on sport type.
+                  </p>
+                </div>
               </form>
             </div>
           </div>
