@@ -87,20 +87,11 @@ const Feed = () => {
 
       
       {/* Instagram-style stories scroller - optimized for mobile */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
             <span>Upcoming Events</span>
           </h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-sm text-primary flex items-center group"
-            onClick={() => setLocation("/discover")}
-          >
-            See All 
-            <ChevronRightIcon className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-          </Button>
         </div>
         
         {upcomingEvents.length > 0 ? (
@@ -213,7 +204,7 @@ const Feed = () => {
       </div>
       
       {/* Feed Tabs */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="flex items-center space-x-1 border-b">
           <Button 
             variant="ghost" 
