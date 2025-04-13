@@ -93,7 +93,7 @@ const MobileNav = () => {
                 <div className="flex justify-between items-center">
                   {/* Event option */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[82px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[78px]"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setLocation("/myevents?create=true");
@@ -101,16 +101,16 @@ const MobileNav = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <div className="bg-primary/10 rounded-full p-2 mb-1.5">
-                      <CalendarPlusIcon className="h-5 w-5 text-primary" />
+                    <div className="bg-primary/5 rounded-full p-3 mb-1.5 flex items-center justify-center">
+                      <CalendarIcon className="h-5 w-5 text-primary" />
                     </div>
                     <span className="text-sm font-medium text-center">Event</span>
-                    <span className="text-[10px] text-gray-500 text-center">Sports</span>
+                    <span className="text-xs text-gray-500 text-center">Sports</span>
                   </motion.button>
                   
                   {/* Post option */}
                   <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[82px]"
+                    className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg w-[78px]"
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setLocation("/feed");
@@ -118,11 +118,11 @@ const MobileNav = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <div className="bg-blue-500/10 rounded-full p-2 mb-1.5">
-                      <Edit3Icon className="h-5 w-5 text-blue-500" />
+                    <div className="bg-blue-500/5 rounded-full p-3 mb-1.5 flex items-center justify-center">
+                      <Edit3Icon className="h-5 w-5 text-blue-600" />
                     </div>
                     <span className="text-sm font-medium text-center">Post</span>
-                    <span className="text-[10px] text-gray-500 text-center">Feed</span>
+                    <span className="text-xs text-gray-500 text-center">Feed</span>
                   </motion.button>
                 </div>
                 
