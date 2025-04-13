@@ -70,9 +70,16 @@ const EventCard = ({
   
   return (
     <div 
-      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300 relative"
+      className={`bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 relative ${isPast ? 'opacity-80 grayscale-[30%]' : ''} hover:opacity-100 hover:grayscale-0 ${isPast ? 'hover:-translate-y-1' : 'hover:-translate-y-0.5'}`}
       onClick={navigateToEventDetails}
     >
+      {/* Past event badge */}
+      {isPast && (
+        <div className="absolute top-2 left-2 z-10 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm">
+          Past Event
+        </div>
+      )}
+      
       <div className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1.5 shadow-sm">
         <ArrowUpRight className="h-4 w-4 text-primary" />
       </div>
@@ -120,10 +127,31 @@ const EventCard = ({
         </div>
         
         <div className="flex space-x-2">
-          {isManageable ? (
+          {isPast ? (
             <>
               <button 
-                className="flex-1 bg-primary text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-2 rounded-md text-sm font-medium hover:from-gray-600 hover:to-gray-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onManage && onManage(event.id);
+                }}
+              >
+                View Details
+              </button>
+              <button 
+                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare && onShare(event.id);
+                }}
+              >
+                Share
+              </button>
+            </>
+          ) : isManageable ? (
+            <>
+              <button 
+                className="flex-1 bg-gradient-to-r from-primary to-blue-600 text-white py-2 rounded-md text-sm font-medium hover:from-primary/90 hover:to-blue-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   onManage && onManage(event.id);
@@ -144,7 +172,7 @@ const EventCard = ({
           ) : (
             <>
               <button 
-                className="flex-1 bg-secondary text-white py-2 rounded-md text-sm font-medium hover:bg-green-700"
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white py-2 rounded-md text-sm font-medium hover:from-emerald-600 hover:to-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   onJoin && onJoin(event.id);
