@@ -11,7 +11,8 @@ import {
   CalendarPlusIcon,
   XIcon,
   MapPinIcon,
-  Award as AwardIcon
+  Award as AwardIcon,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,11 +26,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
   
   // Close menu when clicking outside
   useEffect(() => {

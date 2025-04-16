@@ -368,8 +368,8 @@ const Header = () => {
                 <NotificationBell />
               </div>
               
-              {/* User profile - only visible on desktop */}
-              <div className="hidden md:inline-block">
+              {/* User profile and logout - only visible on desktop */}
+              <div className="hidden md:flex items-center space-x-2">
                 <Link href="/profile">
                   <div className="h-9 w-9 cursor-pointer">
                     <Avatar>
@@ -383,6 +383,17 @@ const Header = () => {
                     </Avatar>
                   </div>
                 </Link>
+
+                {/* Logout button */}
+                <Button 
+                  onClick={handleLogout} 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600 hover:text-red-600 hover:bg-red-50 h-9"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Logout
+                </Button>
               </div>
             </div>
           </div>
