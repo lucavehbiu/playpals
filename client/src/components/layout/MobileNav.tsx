@@ -7,6 +7,7 @@ import {
   CalendarIcon, 
   PlusIcon, 
   UserIcon,
+  UserCircle as User,
   Edit3Icon,
   CalendarPlusIcon,
   XIcon,
@@ -58,15 +59,16 @@ const MobileNav = () => {
       }
     };
     
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isCreateMenuOpen, showLogout]);
   
   return (
     <>
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 shadow-xl px-2 py-1 flex items-center justify-between z-30 safe-bottom">
+      {/* Fixed Mobile Nav at Bottom - Styled like modern social apps */}
+      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t flex justify-around items-center px-1 z-40 md:hidden">
         <NavItem 
           href="/" 
           icon={<HomeIcon className="h-[22px] w-[22px]" />} 
@@ -75,95 +77,75 @@ const MobileNav = () => {
         />
         
         <NavItem 
-          href="/invitations" 
-          icon={<BellIcon className="h-[22px] w-[22px]" />} 
-          label="Invites" 
-          isActive={location === '/invitations'}
-          badge={notificationCount} 
+          href="/discover" 
+          icon={<SearchIcon className="h-[22px] w-[22px]" />} 
+          label="Discover" 
+          isActive={location === '/discover'} 
         />
         
-        {/* Center "Create" button - more prominent */}
-        <div className="relative flex-0 px-1" ref={createButtonRef}>
-          <button 
-            onClick={() => setIsCreateMenuOpen(prev => !prev)}
-            className="flex flex-col items-center focus:outline-none"
-          >
-            <div className={`
-              bg-gradient-to-r from-primary to-blue-600 text-white rounded-full p-3 shadow-lg transform 
-              -translate-y-3 transition-all duration-300
-              ${isCreateMenuOpen 
-                ? 'rotate-45 scale-110 shadow-primary/30' 
-                : 'hover:bg-primary/90 hover:scale-105 hover:shadow-lg hover:shadow-primary/20'}
-            `}>
-              <PlusIcon className="h-6 w-6" />
+        {/* Create Post Button - Center, Slightly Larger */}
+        <div ref={createButtonRef} className="relative">
+          <div className="flex flex-col items-center">
+            <div
+              onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
+              className={`rounded-full h-10 w-10 flex items-center justify-center shadow-md transition-all duration-200 ${
+                isCreateMenuOpen 
+                  ? "bg-red-500 rotate-45" 
+                  : "bg-primary"
+              }`}
+            >
+              <PlusIcon className="h-6 w-6 text-white" />
             </div>
-            <span className="text-[11px] font-medium bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent -mt-1">Create</span>
-          </button>
+            <span className="text-[10px] font-medium text-gray-500 mt-1">Create</span>
+          </div>
           
-          {/* WhatsApp-style quick action menu */}
+          {/* Create options popup */}
           <AnimatePresence>
             {isCreateMenuOpen && (
-              <motion.div 
-                className="absolute bottom-16 z-50"
-                style={{
-                  left: '50%',
-                  transform: 'translateX(-50%)'
-                }}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                transition={{ type: "spring", damping: 25, stiffness: 500 }}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute -top-36 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border p-3 w-48"
               >
-                {/* Modern container for action buttons */}
-                <div className="flex items-center" style={{ gap: '14px' }}>
-                  {/* Event option - Modern design */}
-                  <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg w-[84px] border border-gray-100"
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setLocation("/events/create");
-                    }}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-3 mb-1.5 flex items-center justify-center shadow-sm">
-                      <CalendarIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <span className="text-sm font-medium bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Event</span>
-                    <span className="text-xs text-gray-500 text-center">Sports</span>
-                  </motion.button>
-                  
-                  {/* Post option - Modern design */}
-                  <motion.button
-                    className="flex flex-col items-center justify-center p-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg w-[84px] border border-gray-100"
+                <div className="space-y-2">
+                  <button
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setIsPostModalOpen(true);
                     }}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
                   >
-                    <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-full p-3 mb-1.5 flex items-center justify-center shadow-sm">
-                      <Edit3Icon className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <span className="text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-500/80 bg-clip-text text-transparent">Post</span>
-                    <span className="text-xs text-gray-500 text-center">Feed</span>
-                  </motion.button>
+                    <Edit3Icon className="h-4 w-4 mr-2 text-primary" /> 
+                    Create Post
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/events/create");
+                    }}
+                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
+                  >
+                    <CalendarPlusIcon className="h-4 w-4 mr-2 text-primary" /> 
+                    Create Event
+                  </button>
                 </div>
                 
-                {/* Background overlay to close the menu */}
-                <motion.div 
-                  className="fixed inset-0 bg-black/5 backdrop-blur-[1px] z-40"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsCreateMenuOpen(false)}
-                  style={{ zIndex: -1 }}
-                />
+                {/* Arrow at bottom */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b"></div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
+        
+        <NavItem 
+          href="/invitations" 
+          icon={<BellIcon className="h-[22px] w-[22px]" />} 
+          label="Invites" 
+          isActive={location === '/invitations'} 
+          badge={notificationCount}
+        />
         
         <NavItem 
           href="/myevents" 
@@ -175,23 +157,34 @@ const MobileNav = () => {
         {/* Profile tab with options menu */}
         <div className="relative">
           <div 
-            className="profile-nav-item" 
+            className="profile-nav-item"
             onClick={() => setShowLogout(!showLogout)}
           >
-            <NavItem 
-              href="#" 
-              icon={
-                user?.profileImage ? (
+            <div className="flex flex-col items-center justify-center py-2 px-3">
+              <div className={cn(
+                "flex items-center justify-center transition-all duration-200 mb-1 relative",
+                location === '/profile' ? "text-primary" : "text-gray-400 hover:text-gray-600"
+              )}>
+                {user?.profileImage ? (
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={user.profileImage} alt="Profile" />
                   </Avatar>
                 ) : (
                   <UserIcon className="h-[22px] w-[22px]" />
-                )
-              } 
-              label="More" 
-              isActive={location === '/profile'} 
-            />
+                )}
+              </div>
+              <span className={cn(
+                "text-[11px] font-medium transition-colors",
+                location === '/profile' ? "text-primary" : "text-gray-500"
+              )}>
+                More
+              </span>
+              
+              {/* Active indicator dot */}
+              {location === '/profile' && (
+                <div className="w-1 h-1 rounded-full bg-primary mt-1"></div>
+              )}
+            </div>
           </div>
           
           {/* Profile options menu */}
