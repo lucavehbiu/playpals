@@ -28,8 +28,11 @@ import {
   ChevronsRight, 
   Lock, 
   Sparkles, 
-  CheckCircle2 
+  CheckCircle2
 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { BsApple } from "react-icons/bs";
+import playPalsLogo from "@/assets/playpals-logo.jpg";
 
 // Login schema
 const loginSchema = z.object({
@@ -200,8 +203,8 @@ export default function AuthPage() {
           >
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <div className="h-16 w-16 bg-primary rounded-full flex items-center justify-center">
-                  <Activity className="h-8 w-8 text-white" />
+                <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-primary shadow-md">
+                  <img src={playPalsLogo} alt="PlayPals Logo" className="h-full w-full object-cover" />
                 </div>
                 <motion.div 
                   className="absolute -right-1 -top-1 bg-white p-1 rounded-full shadow-md"
@@ -329,6 +332,25 @@ export default function AuthPage() {
                             style={{ opacity: 0.5, zIndex: 0 }}
                           />
                         </Button>
+                        
+                        <div className="mt-4">
+                          <div className="relative flex items-center py-2">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="flex-shrink mx-3 text-xs text-gray-500">OR CONTINUE WITH</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 mt-2">
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Google login coming soon!")}>
+                              <FcGoogle className="h-5 w-5 mr-2" />
+                              Google
+                            </Button>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Apple login coming soon!")}>
+                              <BsApple className="h-5 w-5 mr-2" />
+                              Apple
+                            </Button>
+                          </div>
+                        </div>
                       </CardFooter>
                     </form>
                   </Card>
@@ -482,6 +504,25 @@ export default function AuthPage() {
                             style={{ opacity: 0.5, zIndex: 0 }}
                           />
                         </Button>
+                        
+                        <div className="mt-4">
+                          <div className="relative flex items-center py-2">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="flex-shrink mx-3 text-xs text-gray-500">OR SIGN UP WITH</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 mt-2">
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Google signup coming soon!")}>
+                              <FcGoogle className="h-5 w-5 mr-2" />
+                              Google
+                            </Button>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Apple signup coming soon!")}>
+                              <BsApple className="h-5 w-5 mr-2" />
+                              Apple
+                            </Button>
+                          </div>
+                        </div>
                       </CardFooter>
                     </form>
                   </Card>

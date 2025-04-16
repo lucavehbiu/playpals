@@ -15,6 +15,7 @@ import EditEvent from "@/pages/EditEvent";
 import CreateEvent from "@/pages/CreateEvent";
 import Invitations from "@/pages/Invitations";
 import AuthPage from "@/pages/auth-page";
+import SportPreferencesPage from "@/pages/sports-preferences";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -25,6 +26,7 @@ function Router() {
     <div className="min-h-screen flex flex-col">
       <Switch>
         <Route path="/auth" component={AuthPage} />
+        <Route path="/sports-preferences" component={SportPreferencesPage} />
         <Route>
           <div className="min-h-screen flex flex-col">
             <Header />
