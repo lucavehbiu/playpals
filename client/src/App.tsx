@@ -26,7 +26,9 @@ function Router() {
     <div className="min-h-screen flex flex-col">
       <Switch>
         <Route path="/auth" component={AuthPage} />
-        <Route path="/sports-preferences" component={SportPreferencesPage} />
+        <Route path="/sports-preferences">
+          <SportPreferencesPage />
+        </Route>
         <Route>
           <div className="min-h-screen flex flex-col">
             <Header />
