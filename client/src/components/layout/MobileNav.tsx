@@ -172,26 +172,14 @@ const MobileNav = () => {
           isActive={location.startsWith('/myevents')} 
         />
         
-        {/* Profile NavItem with long-press support */}
+        {/* Profile tab with options menu */}
         <div className="relative">
           <div 
             className="profile-nav-item" 
-            onTouchStart={() => {
-              const timer = setTimeout(() => {
-                setShowLogout(true);
-              }, 800);
-              return () => clearTimeout(timer);
-            }}
-            onClick={() => {
-              if (showLogout) {
-                setShowLogout(false);
-              } else {
-                setShowLogout(true); // Toggle logout on click too (for non-touch devices)
-              }
-            }}
+            onClick={() => setShowLogout(!showLogout)}
           >
             <NavItem 
-              href="/profile" 
+              href="#" 
               icon={
                 user?.profileImage ? (
                   <Avatar className="h-6 w-6">
@@ -201,21 +189,63 @@ const MobileNav = () => {
                   <UserIcon className="h-[22px] w-[22px]" />
                 )
               } 
-              label="Profile" 
+              label="More" 
               isActive={location === '/profile'} 
             />
           </div>
           
-          {/* Logout popup */}
+          {/* Profile options menu */}
           {showLogout && (
-            <div className="logout-popup absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg p-3 w-32 border">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center text-red-500 font-medium text-sm py-2 px-1 hover:bg-red-50 rounded-md"
-              >
-                <LogOut className="h-4 w-4 mr-2" /> 
-                Logout
-              </button>
+            <div className="logout-popup absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg p-3 w-48 border">
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setShowLogout(false);
+                    setLocation("/profile");
+                  }}
+                  className="w-full flex items-center text-gray-700 font-medium text-sm py-2 px-1 hover:bg-gray-50 rounded-md"
+                >
+                  <User className="h-4 w-4 mr-2 text-gray-500" /> 
+                  View Profile
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowLogout(false);
+                    setLocation("/profile/edit");
+                  }}
+                  className="w-full flex items-center text-gray-700 font-medium text-sm py-2 px-1 hover:bg-gray-50 rounded-md"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Profile
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowLogout(false);
+                    setLocation("/settings");
+                  }}
+                  className="w-full flex items-center text-gray-700 font-medium text-sm py-2 px-1 hover:bg-gray-50 rounded-md"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Settings
+                </button>
+                
+                <div className="my-1 border-t"></div>
+                
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center text-red-600 font-medium text-sm py-2 px-1 hover:bg-red-50 rounded-md"
+                >
+                  <LogOut className="h-4 w-4 mr-2 text-red-500" /> 
+                  Logout
+                </button>
+              </div>
             </div>
           )}
         </div>

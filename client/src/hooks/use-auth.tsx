@@ -62,16 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Success!",
         description: `Welcome to PlayPals, ${user.name}! Let's set up your sports preferences.`,
       });
-      // Use a custom direct navigation approach for more reliable redirection
+      // Use a more reliable method for navigation by using window.location directly
       console.log("Registration successful, redirecting to sports preferences");
-      // Create a clickable element to navigate programmatically
-      const navLink = document.createElement('a');
-      navLink.href = '/sports-preferences';
-      navLink.style.display = 'none';
-      document.body.appendChild(navLink);
-      navLink.click();
-      // Clean up
-      setTimeout(() => document.body.removeChild(navLink), 100);
+      // Use a timeout to ensure the toast is displayed and data is properly set
+      setTimeout(() => {
+        window.location.href = '/sports-preferences';
+      }, 300);
     },
     onError: (error: Error) => {
       toast({
