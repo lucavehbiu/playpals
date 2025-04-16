@@ -28,10 +28,11 @@ export const NotificationBell = () => {
     enabled: !!user,
   });
   
-  // Filter for pending invitations
-  const pendingInvitations = rsvps?.filter(rsvp => 
-    rsvp.status === "maybe" || rsvp.status === "pending"
-  ) || [];
+  // Filter for pending invitations that belong to the current user only
+  const pendingInvitations = rsvps?.filter(rsvp => {
+    return (rsvp.status === "maybe" || rsvp.status === "pending") && 
+           rsvp.userId === user?.id;
+  }) || [];
   
   const notificationCount = pendingInvitations.length;
 
@@ -76,10 +77,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     enabled: !!user,
   });
   
-  // Filter for pending invitations
-  const pendingInvitations = rsvps?.filter(rsvp => 
-    rsvp.status === "maybe" || rsvp.status === "pending"
-  ) || [];
+  // Filter for pending invitations that belong to the current user only
+  const pendingInvitations = rsvps?.filter(rsvp => {
+    return (rsvp.status === "maybe" || rsvp.status === "pending") && 
+           rsvp.userId === user?.id;
+  }) || [];
 
   // Mutation for updating RSVP status
   const updateRSVPMutation = useMutation({

@@ -62,8 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Success!",
         description: `Welcome to PlayPals, ${user.name}! Let's set up your sports preferences.`,
       });
-      // Use a hard navigation to ensure the sports preferences page loads properly
-      window.location.href = "/sports-preferences";
+      // We'll use window.location.replace to ensure a clean navigation to the preferences page
+      console.log("Registration successful, redirecting to sports preferences");
+      setTimeout(() => {
+        window.location.replace("/sports-preferences");
+      }, 500);
     },
     onError: (error: Error) => {
       toast({

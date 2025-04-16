@@ -96,8 +96,12 @@ export default function SportPreferencesPage() {
   
   // Redirect to login if not authenticated
   useEffect(() => {
+    console.log("Sports preferences page - user:", user);
     if (!user) {
+      console.log("No user found, redirecting to auth page");
       navigate("/auth");
+    } else {
+      console.log("User authenticated, staying on sports preferences page");
     }
   }, [user, navigate]);
 
