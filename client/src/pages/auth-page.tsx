@@ -341,13 +341,13 @@ export default function AuthPage() {
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Google login coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Google login coming soon!")}>
                               <FcGoogle className="h-5 w-5 mr-2" />
-                              Google
+                              <span>Google</span>
                             </Button>
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Apple login coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Apple login coming soon!")}>
                               <BsApple className="h-5 w-5 mr-2" />
-                              Apple
+                              <span>Apple</span>
                             </Button>
                           </div>
                         </div>
@@ -513,13 +513,13 @@ export default function AuthPage() {
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Google signup coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Google signup coming soon!")}>
                               <FcGoogle className="h-5 w-5 mr-2" />
-                              Google
+                              <span>Google</span>
                             </Button>
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300" onClick={() => alert("Apple signup coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Apple signup coming soon!")}>
                               <BsApple className="h-5 w-5 mr-2" />
-                              Apple
+                              <span>Apple</span>
                             </Button>
                           </div>
                         </div>
