@@ -37,13 +37,24 @@ const MobileNav = () => {
     logoutMutation.mutate();
   };
   
-  // Close menu when clicking outside
+  // Close menu and logout dialog when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Close create menu when clicking outside
       if (isCreateMenuOpen && 
           createButtonRef.current && 
           !createButtonRef.current.contains(event.target as Node)) {
         setIsCreateMenuOpen(false);
+      }
+      
+      // Close logout popup when clicking outside
+      if (showLogout) {
+        const target = event.target as HTMLElement;
+        const profileClick = document.querySelector('.profile-nav-item')?.contains(target);
+        const logoutClick = document.querySelector('.logout-popup')?.contains(target);
+        if (!profileClick && !logoutClick) {
+          setShowLogout(false);
+        }
       }
     };
     
@@ -51,7 +62,7 @@ const MobileNav = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isCreateMenuOpen]);
+  }, [isCreateMenuOpen, showLogout]);
   
   return (
     <>
@@ -161,20 +172,53 @@ const MobileNav = () => {
           isActive={location.startsWith('/myevents')} 
         />
         
-        <NavItem 
-          href="/profile" 
-          icon={
-            user?.profileImage ? (
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={user.profileImage} alt="Profile" />
-              </Avatar>
-            ) : (
-              <UserIcon className="h-[22px] w-[22px]" />
-            )
-          } 
-          label="Profile" 
-          isActive={location === '/profile'} 
-        />
+        {/* Profile NavItem with long-press support */}
+        <div className="relative">
+          <div 
+            className="profile-nav-item" 
+            onTouchStart={() => {
+              const timer = setTimeout(() => {
+                setShowLogout(true);
+              }, 800);
+              return () => clearTimeout(timer);
+            }}
+            onClick={() => {
+              if (showLogout) {
+                setShowLogout(false);
+              } else {
+                setShowLogout(true); // Toggle logout on click too (for non-touch devices)
+              }
+            }}
+          >
+            <NavItem 
+              href="/profile" 
+              icon={
+                user?.profileImage ? (
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={user.profileImage} alt="Profile" />
+                  </Avatar>
+                ) : (
+                  <UserIcon className="h-[22px] w-[22px]" />
+                )
+              } 
+              label="Profile" 
+              isActive={location === '/profile'} 
+            />
+          </div>
+          
+          {/* Logout popup */}
+          {showLogout && (
+            <div className="logout-popup absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg p-3 w-32 border">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center text-red-500 font-medium text-sm py-2 px-1 hover:bg-red-50 rounded-md"
+              >
+                <LogOut className="h-4 w-4 mr-2" /> 
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Create Post Dialog - Modern & Clean UI */}
