@@ -82,7 +82,8 @@ type SportPreference = {
 };
 
 export default function SportPreferencesPage() {
-  const [location, navigate] = useLocation();
+  const [, setLocation] = useLocation();
+  const navigate = (to: string) => setLocation(to);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();

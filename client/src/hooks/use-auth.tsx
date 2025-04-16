@@ -60,8 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Success!",
-        description: `Welcome to PlayPals, ${user.name}!`,
+        description: `Welcome to PlayPals, ${user.name}! Let's set up your sports preferences.`,
       });
+      // Redirect to the sports preferences page after successful registration
+      window.location.href = "/sports-preferences";
     },
     onError: (error: Error) => {
       toast({
