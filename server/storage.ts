@@ -4,6 +4,7 @@ import {
   rsvps, type RSVP, type InsertRSVP,
   friendships, type Friendship, type InsertFriendship,
   userSportPreferences, type UserSportPreference, type InsertUserSportPreference,
+  userOnboardingPreferences, type UserOnboardingPreference, type InsertUserOnboardingPreference,
   playerRatings, type PlayerRating, type InsertPlayerRating,
   teams, type Team, type InsertTeam,
   teamMembers, type TeamMember, type InsertTeamMember,
@@ -118,6 +119,12 @@ export interface IStorage {
   updatePlayerRating(id: number, ratingData: Partial<PlayerRating>): Promise<PlayerRating | undefined>;
   deletePlayerRating(id: number): Promise<boolean>;
   getAveragePlayerRating(userId: number, sportType?: string): Promise<number>;
+  
+  // User onboarding preferences methods
+  getUserOnboardingPreference(userId: number): Promise<UserOnboardingPreference | undefined>;
+  createUserOnboardingPreference(preference: InsertUserOnboardingPreference): Promise<UserOnboardingPreference>;
+  updateUserOnboardingPreference(userId: number, preferenceData: Partial<UserOnboardingPreference>): Promise<UserOnboardingPreference | undefined>;
+  completeUserOnboarding(userId: number): Promise<UserOnboardingPreference | undefined>;
 
   // Session store
   sessionStore: session.Store;
