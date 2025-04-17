@@ -1,468 +1,329 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { motion } from "framer-motion";
-import { CheckCircle2, ChevronRight, Medal, Info, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { sportTypes, activityFrequencies, teamSizePreferences, teamStatusOptions } from '@shared/schema';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the sport types from schema
-const sportTypes = [
-  "basketball",
-  "soccer",
-  "tennis",
-  "volleyball",
-  "cycling",
-  "yoga",
-  "running",
-  "swimming",
-  "football",
-  "baseball",
-  "hiking",
-  "golf",
-  "other",
-] as const;
+// Define our onboarding slide interfaces
+interface OnboardingSlide {
+  id: string;
+  title: string;
+  component: React.ReactNode;
+}
 
-// Define skill levels and their descriptions as per the user's requirements
-const skillLevelDescriptions = {
-  beginner: {
-    title: "Beginner",
-    frequency: "Plays less than once a week",
-    experience: "Has been playing for less than 6 months",
-    skills: "Still learning the basic rules and techniques",
-    competition: "No experience in competitive or organized matches"
-  },
-  intermediate: {
-    title: "Intermediate",
-    frequency: "Plays 1–2 times per week",
-    experience: "Has 6 months to 2 years of experience",
-    skills: "Understands the rules and has decent control and movement",
-    competition: "Has played informal games or local matches"
-  },
-  advanced: {
-    title: "Advanced",
-    frequency: "Plays 2–4 times per week",
-    experience: "2+ years of consistent experience",
-    skills: "Strong technical and tactical understanding",
-    competition: "Plays regularly in amateur tournaments or structured games"
-  },
-  expert: {
-    title: "Expert / Competitive",
-    frequency: "Plays more than 4 times per week",
-    experience: "Over 3 years of serious practice",
-    skills: "Excellent technique and stamina",
-    competition: "Competes in semi-professional or high-level competitive events"
-  }
-};
-
-// Define the types for our form data
-type SportPreference = {
-  sportType: string;
-  skillLevel: string;
-  yearsExperience: number;
-};
-
-export default function SportPreferencesPage() {
-  const [, setLocation] = useLocation();
-  const navigate = (to: string) => setLocation(to);
+const SportsPreferencesPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
   
-  // State for tracking selected sports and their skill levels
-  const [selectedSport, setSelectedSport] = useState<string>(sportTypes[0]);
-  const [selectedSkillLevel, setSelectedSkillLevel] = useState<string>("beginner");
-  const [selectedYears, setSelectedYears] = useState<number>(0);
-  const [savedPreferences, setSavedPreferences] = useState<SportPreference[]>([]);
-  
-  // Redirect to login if not authenticated
+  // Sports preferences state
+  const [selectedSports, setSelectedSports] = useState<string[]>([]);
+  const [playFrequency, setPlayFrequency] = useState<string>('');
+  const [teamSizePreference, setTeamSizePreference] = useState<string>('');
+  const [teamStatus, setTeamStatus] = useState<string>('');
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-    console.log("Sports preferences page - user:", user);
-    if (!user) {
-      console.log("No user found, redirecting to auth page");
-      navigate("/auth");
-    } else {
-      console.log("User authenticated, staying on sports preferences page");
-    }
-  }, [user, navigate]);
+    // Calculate progress based on the current slide
+    const newProgress = ((currentSlideIndex + 1) / slides.length) * 100;
+    setProgress(newProgress);
+  }, [currentSlideIndex]);
 
-  // Mutation for saving sport preferences
-  const savePreferenceMutation = useMutation({
-    mutationFn: async (data: { userId: number; sportType: string; skillLevel: string; yearsExperience: number }) => {
-      const res = await apiRequest("POST", "/api/sport-preferences", data);
-      return res.json();
-    },
-    onSuccess: (data) => {
-      // Add the new preference to our local state
-      setSavedPreferences(prev => [...prev, {
-        sportType: data.sportType,
-        skillLevel: data.skillLevel,
-        yearsExperience: data.yearsExperience
-      }]);
-      
-      // Show success toast
-      toast({
-        title: "Preference saved!",
-        description: `Your ${data.sportType} preference has been saved.`,
-      });
-      
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: [`/api/sport-preferences/user/${user?.id}`] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error saving preference",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Complete profile and proceed to home
-  const completeProfileMutation = useMutation({
-    mutationFn: async () => {
-      // You could save a "profile complete" flag here if needed
-      return { success: true };
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile setup complete!",
-        description: "Welcome to PlayPals - you're all set to start playing!",
-      });
-      navigate("/");
-    }
-  });
-
-  const handleAddSport = () => {
-    if (!user) return;
-    
-    // Check if we already have this sport in our preferences
-    if (savedPreferences.some(pref => pref.sportType === selectedSport)) {
-      toast({
-        title: "Sport already added",
-        description: "You've already added this sport. Please select a different one.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    savePreferenceMutation.mutate({
-      userId: user.id,
-      sportType: selectedSport,
-      skillLevel: selectedSkillLevel,
-      yearsExperience: selectedYears
+  const handleSportSelection = (sport: string) => {
+    setSelectedSports(prev => {
+      if (prev.includes(sport)) {
+        return prev.filter(s => s !== sport);
+      } else {
+        return [...prev, sport];
+      }
     });
   };
-  
-  const handleContinue = () => {
-    if (savedPreferences.length === 0) {
+
+  const handleNext = () => {
+    // Validate the current slide
+    if (currentSlideIndex === 0 && selectedSports.length === 0) {
       toast({
-        title: "Add at least one sport",
-        description: "Please add at least one sport preference before continuing.",
-        variant: "destructive",
+        title: "Please select at least one sport",
+        description: "You need to select at least one sport to continue.",
+        variant: "destructive"
       });
       return;
     }
-    
-    completeProfileMutation.mutate();
+
+    if (currentSlideIndex === 1 && !playFrequency) {
+      toast({
+        title: "Please select how often you play",
+        description: "You need to select a play frequency to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentSlideIndex === 2 && !teamSizePreference) {
+      toast({
+        title: "Please select a team size preference",
+        description: "You need to select a team size preference to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentSlideIndex === 3 && !teamStatus) {
+      toast({
+        title: "Please select your team status",
+        description: "You need to select your current team status to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentSlideIndex < slides.length - 1) {
+      setCurrentSlideIndex(prev => prev + 1);
+    } else {
+      handleSubmit();
+    }
   };
-  
-  // Variants for animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-      },
-    },
+
+  const handlePrevious = () => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(prev => prev - 1);
+    }
   };
-  
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.4 }
-    },
+
+  const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to save your preferences.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Create onboarding preferences object
+      const preferenceData = {
+        userId: user.id,
+        preferredSports: selectedSports,
+        playFrequency,
+        teamSizePreference,
+        teamStatus,
+        additionalInfo: additionalInfo || null
+      };
+
+      // Submit to API
+      await apiRequest(
+        'POST',
+        '/api/onboarding-preferences',
+        preferenceData
+      );
+
+      // Mark as completed
+      await apiRequest(
+        'POST',
+        `/api/onboarding-preferences/${user.id}/complete`
+      );
+
+      toast({
+        title: "Profile completed!",
+        description: "Your sports preferences have been saved.",
+        variant: "default"
+      });
+
+      // Navigate to the home page
+      setLocation('/');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "Something went wrong",
+        description: "We couldn't save your preferences. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
-  // Skip to the main page if already logged in and preferences set
-  if (!user) {
-    console.log("No user in render, showing loading state");
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your profile...</p>
+
+  // Define all the slides
+  const slides: OnboardingSlide[] = [
+    {
+      id: 'sports',
+      title: 'Which sports do you play?',
+      component: (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+          {sportTypes.map(sport => (
+            <Button
+              key={sport}
+              variant={selectedSports.includes(sport) ? "default" : "outline"}
+              className={`flex flex-col h-20 items-center justify-center text-sm ${
+                selectedSports.includes(sport) ? 'bg-primary text-primary-foreground' : ''
+              }`}
+              onClick={() => handleSportSelection(sport)}
+            >
+              {selectedSports.includes(sport) && (
+                <CheckCircle className="w-5 h-5 absolute top-2 right-2" />
+              )}
+              <span className="capitalize">{sport}</span>
+            </Button>
+          ))}
         </div>
-      </div>
-    ); // Redirect will happen in useEffect
-  }
-  
+      )
+    },
+    {
+      id: 'frequency',
+      title: 'How often do you play sports?',
+      component: (
+        <div className="flex flex-col gap-3 mt-4">
+          {activityFrequencies.map(frequency => (
+            <Button
+              key={frequency}
+              variant={playFrequency === frequency ? "default" : "outline"}
+              className="justify-start text-left h-14"
+              onClick={() => setPlayFrequency(frequency)}
+            >
+              <span className="capitalize">
+                {frequency === 'rarely' && 'Rarely (a few times a year)'}
+                {frequency === 'occasionally' && 'Occasionally (once a month)'}
+                {frequency === 'regularly' && 'Regularly (a few times a month)'}
+                {frequency === 'frequently' && 'Frequently (multiple times a week)'}
+              </span>
+            </Button>
+          ))}
+        </div>
+      )
+    },
+    {
+      id: 'teamSize',
+      title: 'What size team do you prefer?',
+      component: (
+        <div className="flex flex-col gap-3 mt-4">
+          {teamSizePreferences.map(size => (
+            <Button
+              key={size}
+              variant={teamSizePreference === size ? "default" : "outline"}
+              className="justify-start text-left h-14"
+              onClick={() => setTeamSizePreference(size)}
+            >
+              <span className="capitalize">
+                {size === 'small' && 'Small teams (2-5 people)'}
+                {size === 'medium' && 'Medium teams (6-10 people)'}
+                {size === 'large' && 'Large teams (10+ people)'}
+                {size === 'any' && 'No preference'}
+              </span>
+            </Button>
+          ))}
+        </div>
+      )
+    },
+    {
+      id: 'teamStatus',
+      title: 'Do you already have a team?',
+      component: (
+        <div className="flex flex-col gap-3 mt-4">
+          {teamStatusOptions.map(status => (
+            <Button
+              key={status}
+              variant={teamStatus === status ? "default" : "outline"}
+              className="justify-start text-left h-14"
+              onClick={() => setTeamStatus(status)}
+            >
+              <span className="capitalize">
+                {status === 'solo' && 'No, I play solo'}
+                {status === 'has_team' && 'Yes, I already have a team'}
+                {status === 'looking_for_team' && "No, but I'm looking to join a team"}
+              </span>
+            </Button>
+          ))}
+        </div>
+      )
+    },
+    {
+      id: 'additionalInfo',
+      title: "Anything else you'd like to share?",
+      component: (
+        <div className="flex flex-col gap-3 mt-4">
+          <textarea
+            placeholder="Tell us about your sports experience, what you're looking for, or any other details that might help us match you with the right events and teams."
+            className="w-full h-32 p-3 border rounded-md"
+            value={additionalInfo}
+            onChange={(e) => setAdditionalInfo(e.target.value)}
+          />
+        </div>
+      )
+    }
+  ];
+
+  const currentSlide = slides[currentSlideIndex];
+  const isLastSlide = currentSlideIndex === slides.length - 1;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6">
-      <div className="max-w-2xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 text-center"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Set Your Sports Preferences</h1>
-          <p className="text-gray-600">
-            Tell us about the sports you enjoy and your skill level
-          </p>
-        </motion.div>
-        
-        <motion.div
-          className="grid gap-8 md:grid-cols-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Sport Selection Card */}
-          <motion.div variants={itemVariants} className="md:col-span-2">
-            <Card className="shadow-md border-none">
-              <CardHeader>
-                <CardTitle>Add Your Sports</CardTitle>
-                <CardDescription>Select sports you play and your skill level</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="sport-select">Select Sport</Label>
-                  <Select value={selectedSport} onValueChange={setSelectedSport}>
-                    <SelectTrigger id="sport-select" className="w-full">
-                      <SelectValue placeholder="Select a sport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sportTypes.map((sport) => (
-                        <SelectItem key={sport} value={sport}>
-                          {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="skill-level">Skill Level</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-gray-400 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="max-w-xs text-sm">
-                            Select based on your experience, frequency of play, and ability
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  
-                  <RadioGroup 
-                    value={selectedSkillLevel}
-                    onValueChange={setSelectedSkillLevel}
-                    className="grid gap-4 grid-cols-1 sm:grid-cols-2"
-                  >
-                    {Object.entries(skillLevelDescriptions).map(([level, desc]) => (
-                      <div key={level} className="relative">
-                        <RadioGroupItem
-                          value={level}
-                          id={`skill-${level}`}
-                          className="peer absolute opacity-0"
-                        />
-                        <Label
-                          htmlFor={`skill-${level}`}
-                          className="flex flex-col h-full p-4 border rounded-lg cursor-pointer hover:bg-slate-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                        >
-                          <span className="font-medium mb-1">{desc.title}</span>
-                          <span className="text-xs text-gray-500 block mb-1">{desc.frequency}</span>
-                          <span className="text-xs text-gray-500 block">{desc.experience}</span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="years-experience">Years of Experience</Label>
-                  <Select 
-                    value={selectedYears.toString()} 
-                    onValueChange={(val) => setSelectedYears(parseInt(val))}
-                  >
-                    <SelectTrigger id="years-experience">
-                      <SelectValue placeholder="Select years" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[...Array(20)].map((_, i) => (
-                        <SelectItem key={i} value={i.toString()}>
-                          {i === 0 ? "Less than 1 year" : `${i} year${i > 1 ? "s" : ""}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/auth")}
-                  className="gap-1"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <Button
-                  onClick={handleAddSport}
-                  disabled={savePreferenceMutation.isPending}
-                  className="gap-1"
-                >
-                  {savePreferenceMutation.isPending ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Adding...
-                    </>
-                  ) : (
-                    <>Add Sport</>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-          
-          {/* Selected Sports Card */}
-          <motion.div variants={itemVariants}>
-            <Card className="shadow-md border-none h-full">
-              <CardHeader>
-                <CardTitle>Your Sports</CardTitle>
-                <CardDescription>
-                  {savedPreferences.length 
-                    ? `${savedPreferences.length} sport${savedPreferences.length !== 1 ? 's' : ''} added` 
-                    : 'No sports added yet'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {savedPreferences.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Medal className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                    <p>Add sports you play to personalize your experience</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {savedPreferences.map((pref, index) => (
-                      <div key={index} className="border rounded-lg p-3 bg-slate-50">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium capitalize">
-                            {pref.sportType}
-                          </span>
-                          <span className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
-                            {skillLevelDescriptions[pref.skillLevel as keyof typeof skillLevelDescriptions]?.title}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {pref.yearsExperience === 0 
-                            ? "Less than 1 year experience" 
-                            : `${pref.yearsExperience} year${pref.yearsExperience !== 1 ? 's' : ''} experience`}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full gap-1"
-                  onClick={handleContinue}
-                  disabled={savedPreferences.length === 0 || completeProfileMutation.isPending}
-                >
-                  {completeProfileMutation.isPending ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      Continue <ChevronRight className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        </motion.div>
-        
-        <motion.div
-          variants={itemVariants}
-          className="mt-8"
-        >
-          <Card className="shadow-md border-none bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                Skill Level Descriptions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(skillLevelDescriptions).map(([level, desc], index) => (
-                  <div key={level}>
-                    <h3 className="font-bold text-gray-800">{desc.title}</h3>
-                    <ul className="mt-1 space-y-1 text-sm text-gray-600">
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{desc.frequency}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{desc.experience}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{desc.skills}</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{desc.competition}</span>
-                      </li>
-                    </ul>
-                    {index < Object.entries(skillLevelDescriptions).length - 1 && (
-                      <Separator className="my-3" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <Badge variant="outline" className="px-3 py-1">
+                Step {currentSlideIndex + 1} of {slides.length}
+              </Badge>
+            </div>
+            <Progress value={progress} className="h-2 mb-4" />
+            <CardTitle className="text-xl font-semibold">
+              {currentSlide.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {currentSlide.component}
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSlideIndex === 0}
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                "Saving..."
+              ) : isLastSlide ? (
+                "Complete Profile"
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
-}
+};
+
+export default SportsPreferencesPage;

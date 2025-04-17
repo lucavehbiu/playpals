@@ -644,6 +644,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // User onboarding preferences routes
+  app.get('/api/onboarding-preferences/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const preference = await storage.getUserOnboardingPreference(userId);
+      
+      if (!preference) {
+        return res.status(404).json({ message: "Onboarding preferences not found" });
+      }
+      
+      res.status(200).json(preference);
+    } catch (error) {
+      console.error('Error fetching onboarding preferences:', error);
+      res.status(500).json({ message: "Error fetching onboarding preferences" });
+    }
+  });
+  
+  app.post('/api/onboarding-preferences', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const preferenceData = { ...req.body, userId };
+      
+      // Validate with Zod schema
+      const validatedData = insertUserOnboardingPreferenceSchema.parse(preferenceData);
+      
+      // Check if preference already exists
+      const existing = await storage.getUserOnboardingPreference(userId);
+      if (existing) {
+        return res.status(400).json({ message: "You already have onboarding preferences set" });
+      }
+      
+      const preference = await storage.createUserOnboardingPreference(validatedData);
+      res.status(201).json(preference);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid onboarding data", errors: error.errors });
+      }
+      console.error('Error creating onboarding preferences:', error);
+      res.status(500).json({ message: "Error creating onboarding preferences" });
+    }
+  });
+  
+  app.put('/api/onboarding-preferences/:userId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userIdParam = parseInt(req.params.userId);
+      const authenticatedUserId = (req.user as any).id;
+      
+      // Ensure users can only update their own preferences
+      if (userIdParam !== authenticatedUserId) {
+        return res.status(403).json({ message: "Not authorized to update these preferences" });
+      }
+      
+      // Get the existing preference
+      const existingPreference = await storage.getUserOnboardingPreference(userIdParam);
+      if (!existingPreference) {
+        return res.status(404).json({ message: "Onboarding preferences not found" });
+      }
+      
+      const updated = await storage.updateUserOnboardingPreference(userIdParam, req.body);
+      res.status(200).json(updated);
+    } catch (error) {
+      console.error('Error updating onboarding preferences:', error);
+      res.status(500).json({ message: "Error updating onboarding preferences" });
+    }
+  });
+  
+  app.post('/api/onboarding-preferences/:userId/complete', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userIdParam = parseInt(req.params.userId);
+      const authenticatedUserId = (req.user as any).id;
+      
+      // Ensure users can only complete their own onboarding
+      if (userIdParam !== authenticatedUserId) {
+        return res.status(403).json({ message: "Not authorized to complete this onboarding" });
+      }
+      
+      // Get the existing preference
+      const existingPreference = await storage.getUserOnboardingPreference(userIdParam);
+      if (!existingPreference) {
+        return res.status(404).json({ message: "Onboarding preferences not found" });
+      }
+      
+      const completed = await storage.completeUserOnboarding(userIdParam);
+      res.status(200).json(completed);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      res.status(500).json({ message: "Error completing onboarding" });
+    }
+  });
+  
   // Player Ratings API Routes
   app.get('/api/player-ratings/user/:userId', async (req: Request, res: Response) => {
     try {
