@@ -46,6 +46,23 @@ async function pushSchema() {
       );
     `;
     
+    // Create user_onboarding_preferences table
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_onboarding_preferences (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        preferred_sports TEXT[] NOT NULL,
+        play_frequency TEXT NOT NULL,
+        team_size_preference TEXT NOT NULL,
+        team_status TEXT NOT NULL,
+        additional_info TEXT,
+        onboarding_completed BOOLEAN DEFAULT FALSE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(user_id)
+      );
+    `;
+    
     // Add sample sport preferences
     console.log('Adding sample sport preferences...');
     // Check if we already have preferences

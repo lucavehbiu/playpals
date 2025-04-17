@@ -32,6 +32,15 @@ export const scheduleResponseTypes = ["attending", "not_attending", "maybe"] as 
 // Skill levels for sports
 export const skillLevels = ["beginner", "intermediate", "advanced", "expert"] as const;
 
+// Activity frequency types
+export const activityFrequencies = ["rarely", "occasionally", "regularly", "frequently"] as const;
+
+// Team size preferences
+export const teamSizePreferences = ["small", "medium", "large", "any"] as const;
+
+// Team status options
+export const teamStatusOptions = ["solo", "has_team", "looking_for_team"] as const;
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -132,6 +141,23 @@ export const userSportPreferences = pgTable("user_sport_preferences", {
 }, (t) => ({
   // Ensure a user can only have one preference entry per sport
   uniqueSportPreference: unique().on(t.userId, t.sportType),
+}));
+
+// User Onboarding Preferences table
+export const userOnboardingPreferences = pgTable("user_onboarding_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  preferredSports: text("preferred_sports").array().notNull(), // Array of sport types
+  playFrequency: text("play_frequency").notNull(), // How often they play
+  teamSizePreference: text("team_size_preference").notNull(), // Size of teams they prefer
+  teamStatus: text("team_status").notNull(), // Whether they have a team already or not
+  additionalInfo: text("additional_info"), // Any other information they provide
+  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only have one onboarding preferences entry
+  uniqueUserOnboarding: unique().on(t.userId),
 }));
 
 // Player Ratings table
@@ -291,6 +317,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sentFriendships: many(friendships, { relationName: "user_sent_friendships" }),
   receivedFriendships: many(friendships, { relationName: "user_received_friendships" }),
   sportPreferences: many(userSportPreferences, { relationName: "user_sport_preferences" }),
+  onboardingPreferences: many(userOnboardingPreferences, { relationName: "user_onboarding_preferences" }),
   givenRatings: many(playerRatings, { relationName: "ratings_given" }),
   receivedRatings: many(playerRatings, { relationName: "ratings_received" }),
 }));
@@ -300,6 +327,15 @@ export const userSportPreferencesRelations = relations(userSportPreferences, ({ 
     fields: [userSportPreferences.userId],
     references: [users.id],
     relationName: "user_sport_preferences",
+  }),
+}));
+
+// User Onboarding Preferences relations
+export const userOnboardingPreferencesRelations = relations(userOnboardingPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userOnboardingPreferences.userId],
+    references: [users.id],
+    relationName: "user_onboarding_preferences",
   }),
 }));
 
@@ -424,6 +460,13 @@ export const insertUserSportPreferenceSchema = createInsertSchema(userSportPrefe
   createdAt: true,
 });
 
+export const insertUserOnboardingPreferenceSchema = createInsertSchema(userOnboardingPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  onboardingCompleted: true,
+});
+
 export const insertPlayerRatingSchema = createInsertSchema(playerRatings).omit({
   id: true,
   createdAt: true,
@@ -529,8 +572,14 @@ export type InsertUserSportPreference = z.infer<typeof insertUserSportPreference
 export type PlayerRating = typeof playerRatings.$inferSelect;
 export type InsertPlayerRating = z.infer<typeof insertPlayerRatingSchema>;
 
+export type UserOnboardingPreference = typeof userOnboardingPreferences.$inferSelect;
+export type InsertUserOnboardingPreference = z.infer<typeof insertUserOnboardingPreferenceSchema>;
+
 export type SportType = typeof sportTypes[number];
 export type RSVPStatus = typeof rsvpStatusTypes[number];
 export type TeamMemberRole = typeof teamMemberRoles[number];
 export type ScheduleResponseType = typeof scheduleResponseTypes[number];
 export type SkillLevel = typeof skillLevels[number];
+export type ActivityFrequency = typeof activityFrequencies[number];
+export type TeamSizePreference = typeof teamSizePreferences[number];
+export type TeamStatus = typeof teamStatusOptions[number];
