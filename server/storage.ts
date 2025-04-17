@@ -166,6 +166,7 @@ export class MemStorage implements IStorage {
     this.rsvps = new Map();
     this.friendships = new Map();
     this.userSportPreferences = new Map();
+    this.userOnboardingPreferences = new Map();
     this.playerRatings = new Map();
     this.teams = new Map();
     this.teamMembers = new Map();
@@ -178,6 +179,7 @@ export class MemStorage implements IStorage {
     this.rsvpIdCounter = 1;
     this.friendshipIdCounter = 1;
     this.sportPreferenceIdCounter = 1;
+    this.userOnboardingPrefIdCounter = 1;
     this.playerRatingIdCounter = 1;
     this.teamIdCounter = 1;
     this.teamMemberIdCounter = 1;
@@ -868,6 +870,62 @@ export class MemStorage implements IStorage {
     
     const sum = ratings.reduce((acc, rating) => acc + rating.rating, 0);
     return sum / ratings.length;
+  }
+  
+  // User onboarding preferences methods
+  private userOnboardingPreferences: Map<number, UserOnboardingPreference>;
+  private userOnboardingPrefIdCounter: number;
+  
+  async getUserOnboardingPreference(userId: number): Promise<UserOnboardingPreference | undefined> {
+    return Array.from(this.userOnboardingPreferences.values()).find(
+      preference => preference.userId === userId
+    );
+  }
+  
+  async createUserOnboardingPreference(preference: InsertUserOnboardingPreference): Promise<UserOnboardingPreference> {
+    const id = this.userOnboardingPrefIdCounter++;
+    const now = new Date();
+    const newPreference: UserOnboardingPreference = {
+      ...preference,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      onboardingCompleted: false
+    };
+    this.userOnboardingPreferences.set(id, newPreference);
+    return newPreference;
+  }
+  
+  async updateUserOnboardingPreference(userId: number, preferenceData: Partial<UserOnboardingPreference>): Promise<UserOnboardingPreference | undefined> {
+    const preference = Array.from(this.userOnboardingPreferences.values()).find(
+      pref => pref.userId === userId
+    );
+    
+    if (!preference) return undefined;
+    
+    const updatedPreference = { 
+      ...preference, 
+      ...preferenceData,
+      updatedAt: new Date()
+    };
+    this.userOnboardingPreferences.set(preference.id, updatedPreference);
+    return updatedPreference;
+  }
+  
+  async completeUserOnboarding(userId: number): Promise<UserOnboardingPreference | undefined> {
+    const preference = Array.from(this.userOnboardingPreferences.values()).find(
+      pref => pref.userId === userId
+    );
+    
+    if (!preference) return undefined;
+    
+    const completedPreference = { 
+      ...preference, 
+      onboardingCompleted: true,
+      updatedAt: new Date()
+    };
+    this.userOnboardingPreferences.set(preference.id, completedPreference);
+    return completedPreference;
   }
 
   // Initialize with sample data
@@ -2434,6 +2492,77 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting average player rating:', error);
       return 0;
+    }
+  }
+  
+  // User onboarding preferences methods
+  async getUserOnboardingPreference(userId: number): Promise<UserOnboardingPreference | undefined> {
+    try {
+      const [preference] = await db
+        .select()
+        .from(userOnboardingPreferences)
+        .where(eq(userOnboardingPreferences.userId, userId));
+      
+      return preference;
+    } catch (error) {
+      console.error("Error getting user onboarding preferences:", error);
+      return undefined;
+    }
+  }
+  
+  async createUserOnboardingPreference(preference: InsertUserOnboardingPreference): Promise<UserOnboardingPreference> {
+    try {
+      const now = new Date();
+      const [newPreference] = await db
+        .insert(userOnboardingPreferences)
+        .values({
+          ...preference,
+          createdAt: now,
+          updatedAt: now,
+          onboardingCompleted: false
+        })
+        .returning();
+      
+      return newPreference;
+    } catch (error) {
+      console.error("Error creating user onboarding preferences:", error);
+      throw error;
+    }
+  }
+  
+  async updateUserOnboardingPreference(userId: number, preferenceData: Partial<UserOnboardingPreference>): Promise<UserOnboardingPreference | undefined> {
+    try {
+      const [updatedPreference] = await db
+        .update(userOnboardingPreferences)
+        .set({
+          ...preferenceData,
+          updatedAt: new Date()
+        })
+        .where(eq(userOnboardingPreferences.userId, userId))
+        .returning();
+      
+      return updatedPreference;
+    } catch (error) {
+      console.error("Error updating user onboarding preferences:", error);
+      return undefined;
+    }
+  }
+  
+  async completeUserOnboarding(userId: number): Promise<UserOnboardingPreference | undefined> {
+    try {
+      const [updatedPreference] = await db
+        .update(userOnboardingPreferences)
+        .set({
+          onboardingCompleted: true,
+          updatedAt: new Date()
+        })
+        .where(eq(userOnboardingPreferences.userId, userId))
+        .returning();
+      
+      return updatedPreference;
+    } catch (error) {
+      console.error("Error completing user onboarding:", error);
+      return undefined;
     }
   }
 
