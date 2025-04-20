@@ -304,6 +304,34 @@ const TeamDetails = () => {
   const isUserMember = currentUserMember !== undefined;
   const isAdmin = userRole === 'admin' || (team && team.creatorId === user?.id);
   
+  // Query to check if user has a pending join request
+  const { data: joinRequestStatus, isLoading: isJoinRequestStatusLoading } = useQuery({
+    queryKey: [`/api/teams/${teamId}/join-request-status`, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      try {
+        const response = await fetch(`/api/teams/${teamId}/join-request-status?userId=${user.id}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            return null; // No request found
+          }
+          throw new Error('Failed to check join request status');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error checking join request status:', error);
+        return null;
+      }
+    },
+    enabled: !!user?.id && !isUserMember,
+  });
+  
+  // Check if user has a pending request
+  const hasPendingRequest = joinRequestStatus && joinRequestStatus.status === 'pending';
+  
   // Mutation to send team join request
   const joinTeamMutation = useMutation({
     mutationFn: async () => {
@@ -317,6 +345,9 @@ const TeamDetails = () => {
       return await response.json();
     },
     onSuccess: () => {
+      // Refresh the join request status
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/join-request-status`, user?.id] });
+      
       toast({
         title: "Join request sent",
         description: "Your request to join this team has been sent to the team admin.",
@@ -397,19 +428,36 @@ const TeamDetails = () => {
           <p className="text-gray-600 mb-4">
             You need to be a member to see team posts, schedules, and other details.
           </p>
-          <Button 
-            onClick={() => joinTeamMutation.mutate()} 
-            disabled={joinTeamMutation.isPending}
-          >
-            {joinTeamMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending Request...
-              </>
-            ) : (
-              'Request to Join'
-            )}
-          </Button>
+          
+          {isJoinRequestStatusLoading ? (
+            <div className="flex justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          ) : hasPendingRequest ? (
+            <div className="flex flex-col items-center gap-2">
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 py-2 px-3">
+                <Clock className="h-4 w-4 mr-2" />
+                Request Pending
+              </Badge>
+              <p className="text-sm text-gray-500">
+                Your request to join this team is waiting for admin approval
+              </p>
+            </div>
+          ) : (
+            <Button 
+              onClick={() => joinTeamMutation.mutate()} 
+              disabled={joinTeamMutation.isPending}
+            >
+              {joinTeamMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending Request...
+                </>
+              ) : (
+                'Request to Join'
+              )}
+            </Button>
+          )}
         </div>
       )}
       
