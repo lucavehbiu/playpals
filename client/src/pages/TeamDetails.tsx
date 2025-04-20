@@ -306,21 +306,34 @@ const TeamDetails = () => {
   
   // Query to check if user has a pending join request
   const { data: joinRequestStatus, isLoading: isJoinRequestStatusLoading } = useQuery({
-    queryKey: [`/api/teams/${teamId}/join-request-status`, user?.id],
+    queryKey: [`/api/teams/${teamId}/join-requests`, user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
       try {
-        const response = await fetch(`/api/teams/${teamId}/join-request-status?userId=${user.id}`);
+        // Check from the server if the user has a pending request for this team
+        const response = await fetch(`/api/teams/${teamId}/join-request-status?userId=${user.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
         if (!response.ok) {
           if (response.status === 404) {
             return null; // No request found
           }
-          throw new Error('Failed to check join request status');
+          console.warn('Failed to check join request status with status:', response.status);
+          return null; // Return null instead of throwing to prevent breaking the UI
         }
         
-        return await response.json();
+        // Parse the requests and look for the user's request
+        const requests = await response.json();
+        if (Array.isArray(requests)) {
+          const userRequest = requests.find(req => req.userId === user.id && req.status === 'pending');
+          return userRequest || null;
+        }
+        
+        return requests; // If it returned a specific request
       } catch (error) {
         console.error('Error checking join request status:', error);
         return null;
@@ -346,7 +359,7 @@ const TeamDetails = () => {
     },
     onSuccess: () => {
       // Refresh the join request status
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/join-request-status`, user?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/join-requests`, user?.id] });
       
       toast({
         title: "Join request sent",
