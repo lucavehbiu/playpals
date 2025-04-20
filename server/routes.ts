@@ -1785,5 +1785,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create and return the HTTP server
   const httpServer = createServer(app);
+  
+  // Create a WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store connected clients with their user IDs
+  const clients = new Map();
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    // Handle authentication message to associate the connection with a user
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'auth' && data.userId) {
+          // Store the connection with the user ID
+          clients.set(data.userId, ws);
+          console.log(`WebSocket authenticated for user ${data.userId}`);
+          
+          // Send confirmation
+          ws.send(JSON.stringify({ 
+            type: 'auth_success',
+            message: 'Connection authenticated' 
+          }));
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+    
+    // Handle disconnection
+    ws.on('close', () => {
+      // Remove the client from the clients map
+      for (const [userId, client] of clients.entries()) {
+        if (client === ws) {
+          clients.delete(userId);
+          console.log(`WebSocket disconnected for user ${userId}`);
+          break;
+        }
+      }
+    });
+  });
+  
+  // Function to send notification to a specific user
+  const sendNotification = (userId: number, notification: any) => {
+    const client = clients.get(userId);
+    if (client && client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(notification));
+      return true;
+    }
+    return false;
+  };
+  
+  // Modify the team join request endpoint to send WebSocket notification
+  const originalCreateTeamJoinRequest = storage.createTeamJoinRequest;
+  storage.createTeamJoinRequest = async (data) => {
+    const joinRequest = await originalCreateTeamJoinRequest(data);
+    
+    if (joinRequest) {
+      // Get the team to find admin users
+      const team = await storage.getTeam(joinRequest.teamId);
+      if (team) {
+        // Get the requester's info
+        const requester = await storage.getUser(joinRequest.userId);
+        
+        // Notify the team creator about the join request
+        sendNotification(team.creatorId, {
+          type: 'join_request',
+          teamId: team.id,
+          teamName: team.name,
+          requestId: joinRequest.id,
+          requester: requester ? {
+            id: requester.id,
+            name: requester.name,
+            username: requester.username,
+            profileImage: requester.profileImage
+          } : null,
+          message: `${requester?.name || 'Someone'} requested to join your team ${team.name}`
+        });
+        
+        // Also notify team admins
+        const teamMembers = await storage.getTeamMembers(team.id);
+        const adminMembers = teamMembers.filter(member => member.role === 'admin' && member.userId !== team.creatorId);
+        
+        adminMembers.forEach(admin => {
+          sendNotification(admin.userId, {
+            type: 'join_request',
+            teamId: team.id,
+            teamName: team.name,
+            requestId: joinRequest.id,
+            requester: requester ? {
+              id: requester.id,
+              name: requester.name,
+              username: requester.username,
+              profileImage: requester.profileImage
+            } : null,
+            message: `${requester?.name || 'Someone'} requested to join your team ${team.name}`
+          });
+        });
+      }
+    }
+    
+    return joinRequest;
+  };
+  
+  // Modify the update team join request endpoint to send WebSocket notification when request is accepted/rejected
+  const originalUpdateTeamJoinRequest = storage.updateTeamJoinRequest;
+  storage.updateTeamJoinRequest = async (requestId, status) => {
+    const updatedRequest = await originalUpdateTeamJoinRequest(requestId, status);
+    
+    if (updatedRequest && (status === 'accepted' || status === 'rejected')) {
+      // Get team information
+      const team = await storage.getTeam(updatedRequest.teamId);
+      
+      // Notify the user who requested to join
+      sendNotification(updatedRequest.userId, {
+        type: 'join_request_update',
+        requestId: updatedRequest.id,
+        teamId: updatedRequest.teamId,
+        teamName: team?.name || 'the team',
+        status: status,
+        message: `Your request to join ${team?.name || 'the team'} has been ${status}`
+      });
+    }
+    
+    return updatedRequest;
+  };
+  
   return httpServer;
 }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './use-auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { RSVP } from '@/lib/types';
+import { useWebSocket, WebSocketNotification } from './use-websocket';
 
 interface RSVPWithEvent extends RSVP {
   event?: any;
@@ -25,7 +26,9 @@ interface TeamJoinRequest {
 
 export const useNotifications = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [pendingCount, setPendingCount] = useState(0);
+  const { notifications: wsNotifications } = useWebSocket();
   
   // Fetch RSVPs for the current user
   const { data: rsvps } = useQuery<RSVPWithEvent[]>({
@@ -100,6 +103,28 @@ export const useNotifications = () => {
     enabled: !!user,
   });
   
+  // Process WebSocket notifications when they come in
+  useEffect(() => {
+    if (wsNotifications && wsNotifications.length > 0) {
+      // When we receive a WebSocket notification, invalidate relevant queries to refresh data
+      wsNotifications.forEach((notification: WebSocketNotification) => {
+        if (notification.type === 'join_request') {
+          // Invalidate team join requests when a new request comes in
+          queryClient.invalidateQueries({ queryKey: ['/api/teams/join-requests'] });
+        } else if (notification.type === 'join_request_update') {
+          // Invalidate team member notifications when a request is updated
+          queryClient.invalidateQueries({ queryKey: ['/api/teams/notifications'] });
+          
+          // Also invalidate the user's teams as they may now be a member of a new team
+          if (notification.status === 'accepted' && user?.id) {
+            queryClient.invalidateQueries({ queryKey: [`/api/teams/user/${user.id}`] });
+          }
+        }
+      });
+    }
+  }, [wsNotifications, queryClient, user]);
+  
+  // Calculate total notification count
   useEffect(() => {
     let count = 0;
     
@@ -121,14 +146,75 @@ export const useNotifications = () => {
       count += teamMemberNotifications.length;
     }
     
+    // Add real-time WebSocket notifications
+    const realtimeNotifications = wsNotifications.filter((n: WebSocketNotification) => 
+      // Only count notifications that would need user attention
+      (n.type === 'join_request' || n.type === 'join_request_update') && 
+      // Don't double count ones that are already in our API-fetched lists
+      !joinRequests.some((req: any) => req.id === n.requestId) && 
+      !teamMemberNotifications.some((notify: any) => notify.id === n.requestId)
+    );
+    
+    count += realtimeNotifications.length;
+    
     setPendingCount(count);
-  }, [rsvps, joinRequests, teamMemberNotifications]);
+  }, [rsvps, joinRequests, teamMemberNotifications, wsNotifications]);
+  
+  // Mark a notification as viewed
+  const markNotificationViewed = async (notificationId: number) => {
+    try {
+      await fetch(`/api/teams/join-notifications/${notificationId}/viewed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Invalidate the notifications query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/notifications'] });
+    } catch (error) {
+      console.error('Error marking notification as viewed:', error);
+    }
+  };
+  
+  // Combine API notifications with WebSocket notifications
+  const allNotifications = [
+    ...teamMemberNotifications,
+    ...wsNotifications.filter((n: WebSocketNotification) => 
+      n.type === 'join_request_update' && 
+      !teamMemberNotifications.some((notify: any) => notify.id === n.requestId)
+    )
+  ];
+  
+  // Combine join requests with WebSocket notifications
+  const allJoinRequests = [
+    ...joinRequests,
+    ...wsNotifications.filter((n: WebSocketNotification) => 
+      n.type === 'join_request' && 
+      !joinRequests.some((req: any) => req.id === n.requestId)
+    ).map((n: WebSocketNotification) => ({
+      id: n.requestId,
+      teamId: n.teamId,
+      userId: n.requester?.id,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      team: {
+        name: n.teamName,
+        sportType: 'Unknown' // We don't have this in the notification
+      },
+      user: n.requester ? {
+        name: n.requester.name,
+        username: n.requester.username
+      } : undefined
+    }))
+  ];
   
   return {
     pendingCount,
     rsvps,
-    joinRequests,
-    teamMemberNotifications,
+    joinRequests: allJoinRequests,
+    teamMemberNotifications: allNotifications,
+    markNotificationViewed,
     isLoading: !rsvps
   };
 };

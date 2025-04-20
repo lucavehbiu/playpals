@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, CheckIcon, XIcon, Eye } from 'lucide-react';
+import { Bell, CheckIcon, XIcon, Eye, Users, UserPlus } from 'lucide-react';
 import { Link } from 'wouter';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/use-notifications';
 
 interface NotificationDropdownProps {
   isOpen: boolean;
