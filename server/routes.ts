@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from 'ws';
 import { storage } from "./storage";
 import { 
   insertUserSchema, 
@@ -1711,6 +1712,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating team join request:', error);
       res.status(500).json({ message: "Error updating team join request" });
+    }
+  });
+  
+  // Get team join notifications for a user (e.g., accepted requests)
+  app.get('/api/teams/join-notifications/:userId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Verify the user is requesting their own notifications
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only access your own notifications" });
+      }
+      
+      // Get accepted join requests that haven't been viewed yet
+      const notifications = await storage.getAcceptedTeamJoinRequests(userId);
+      
+      // Add team information to each notification
+      const notificationsWithTeamInfo = await Promise.all(
+        notifications.map(async (notification) => {
+          const team = await storage.getTeam(notification.teamId);
+          return {
+            ...notification,
+            team: team ? {
+              id: team.id,
+              name: team.name,
+              sportType: team.sportType,
+              description: team.description
+            } : null
+          };
+        })
+      );
+      
+      res.json(notificationsWithTeamInfo);
+    } catch (error) {
+      console.error('Error fetching join notifications:', error);
+      res.status(500).json({ message: "Error fetching join notifications" });
+    }
+  });
+  
+  // Mark join notification as viewed
+  app.post('/api/teams/join-notifications/:notificationId/viewed', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const notificationId = parseInt(req.params.notificationId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      // Verify the notification belongs to the authenticated user
+      const notification = await storage.getTeamJoinRequestById(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - This notification doesn't belong to you" });
+      }
+      
+      // Mark notification as viewed
+      const updatedNotification = await storage.markTeamJoinRequestAsViewed(notificationId);
+      
+      res.json(updatedNotification);
+    } catch (error) {
+      console.error('Error marking notification as viewed:', error);
+      res.status(500).json({ message: "Error marking notification as viewed" });
     }
   });
 
