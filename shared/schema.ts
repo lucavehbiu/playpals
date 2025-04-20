@@ -230,6 +230,7 @@ export const teamJoinRequests = pgTable("team_join_requests", {
   teamId: integer("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  viewed: boolean("viewed").default(false).notNull(), // For notification purposes
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({
   // Ensure a user can only have one active request per team

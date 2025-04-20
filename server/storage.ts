@@ -1827,12 +1827,33 @@ export class DatabaseStorage implements IStorage {
       ));
     return request;
   }
+  
+  async getTeamJoinRequestById(id: number): Promise<TeamJoinRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(teamJoinRequests)
+      .where(eq(teamJoinRequests.id, id));
+    return request;
+  }
 
   async getTeamJoinRequests(teamId: number): Promise<TeamJoinRequest[]> {
     const requests = await db
       .select()
       .from(teamJoinRequests)
       .where(eq(teamJoinRequests.teamId, teamId));
+    return requests;
+  }
+  
+  async getAcceptedTeamJoinRequests(userId: number): Promise<TeamJoinRequest[]> {
+    const requests = await db
+      .select()
+      .from(teamJoinRequests)
+      .where(and(
+        eq(teamJoinRequests.userId, userId),
+        eq(teamJoinRequests.status, 'accepted'),
+        eq(teamJoinRequests.viewed, false)
+      ))
+      .orderBy(desc(teamJoinRequests.createdAt));
     return requests;
   }
 
@@ -1848,6 +1869,15 @@ export class DatabaseStorage implements IStorage {
     const [updatedRequest] = await db
       .update(teamJoinRequests)
       .set({ status })
+      .where(eq(teamJoinRequests.id, id))
+      .returning();
+    return updatedRequest;
+  }
+  
+  async markTeamJoinRequestAsViewed(id: number): Promise<TeamJoinRequest | undefined> {
+    const [updatedRequest] = await db
+      .update(teamJoinRequests)
+      .set({ viewed: true })
       .where(eq(teamJoinRequests.id, id))
       .returning();
     return updatedRequest;
