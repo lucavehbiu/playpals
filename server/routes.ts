@@ -1633,6 +1633,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Check user join request status
+  app.get('/api/teams/:teamId/join-request-status', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = parseInt(req.query.userId as string);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(teamId) || isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      // Verify user is checking their own request
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: "Not authorized to check this user's join request" });
+      }
+      
+      // Check if user has a pending request for this team
+      const joinRequest = await storage.getTeamJoinRequest(teamId, userId);
+      
+      if (!joinRequest) {
+        return res.status(404).json({ message: "No join request found" });
+      }
+      
+      res.json(joinRequest);
+    } catch (error) {
+      console.error('Error checking join request status:', error);
+      res.status(500).json({ message: "Error checking join request status" });
+    }
+  });
+  
   app.get('/api/teams/:teamId/join-requests', authenticateUser, async (req: Request, res: Response) => {
     try {
       const teamId = parseInt(req.params.teamId);
