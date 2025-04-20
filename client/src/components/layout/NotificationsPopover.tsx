@@ -20,23 +20,10 @@ export const NotificationBell = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Get user info
+  // Get user info and notifications
   const { user } = useAuth();
+  const { pendingCount } = useNotifications();
   
-  // Fetch RSVPs for the current user (invitations)
-  const { data: rsvps, isLoading } = useQuery<any[]>({
-    queryKey: [`/api/rsvps/user/${user?.id}`],
-    enabled: !!user,
-  });
-  
-  // Filter for pending invitations that belong to the current user only
-  const pendingInvitations = rsvps?.filter(rsvp => {
-    return (rsvp.status === "maybe" || rsvp.status === "pending") && 
-           rsvp.userId === user?.id;
-  }) || [];
-  
-  const notificationCount = pendingInvitations.length;
-
   // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,9 +44,9 @@ export const NotificationBell = () => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell className="h-5 w-5" />
-        {notificationCount > 0 && (
+        {pendingCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {notificationCount}
+            {pendingCount}
           </span>
         )}
       </button>
@@ -71,12 +58,13 @@ export const NotificationBell = () => {
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  
-  // Fetch RSVPs for the current user (invitations)
-  const { data: rsvps, isLoading } = useQuery<any[]>({
-    queryKey: [`/api/rsvps/user/${user?.id}`],
-    enabled: !!user,
-  });
+  const { 
+    rsvps, 
+    joinRequests, 
+    teamMemberNotifications, 
+    markNotificationViewed, 
+    isLoading 
+  } = useNotifications();
   
   // Filter for pending invitations that belong to the current user only
   const pendingInvitations = rsvps?.filter(rsvp => {
@@ -112,11 +100,63 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     }
   });
   
+  // Mutation for responding to team join requests (for admin)
+  const respondToJoinRequestMutation = useMutation({
+    mutationFn: async ({ teamId, requestId, status }: { teamId: number, requestId: number, status: string }) => {
+      const res = await apiRequest("PUT", `/api/teams/${teamId}/join-requests/${requestId}`, { status });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update join request");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      // Refresh join requests and team data
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/join-requests'] });
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/user/${user.id}`] });
+      }
+      toast({
+        title: "Success",
+        description: "Team join request updated",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Join request update error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update join request",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Function to mark team member notification as viewed
+  const handleMarkAsViewed = async (notificationId: number) => {
+    if (markNotificationViewed) {
+      await markNotificationViewed(notificationId);
+    }
+  };
+  
+  // Function to handle event invitation response
   const handleRSVPResponse = (id: number, status: string, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     updateRSVPMutation.mutate({ id, status });
   };
+  
+  // Function to handle team join request response (for admin)
+  const handleJoinRequestResponse = (teamId: number, requestId: number, status: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    respondToJoinRequestMutation.mutate({ teamId, requestId, status });
+  };
+
+  // Get total notification count
+  const totalNotifications = (pendingInvitations?.length || 0) + 
+                            (joinRequests?.length || 0) + 
+                            (teamMemberNotifications?.length || 0);
 
   if (isLoading) {
     return (
@@ -134,15 +174,22 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       <div className="border-b p-3 flex justify-between items-center">
         <h3 className="font-semibold">Notifications</h3>
         <Badge variant="outline" className="bg-primary/10 text-primary">
-          {pendingInvitations.length} New
+          {totalNotifications} New
         </Badge>
       </div>
       
       <div className="max-h-80 overflow-y-auto">
-        {pendingInvitations.length > 0 ? (
+        {totalNotifications > 0 ? (
           <div>
-            {pendingInvitations.map((invitation) => (
-              <div key={invitation.id} className="p-3 hover:bg-gray-50 border-b">
+            {/* Event invitations */}
+            {pendingInvitations && pendingInvitations.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Event Invitations</h4>
+              </div>
+            )}
+            
+            {pendingInvitations && pendingInvitations.map((invitation) => (
+              <div key={`event-${invitation.id}`} className="p-3 hover:bg-gray-50 border-b">
                 <div className="flex items-start">
                   <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
                     {invitation.event?.creator?.profileImage ? (
@@ -199,6 +246,115 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                 </div>
               </div>
             ))}
+            
+            {/* Join requests (for team admins) */}
+            {joinRequests && joinRequests.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Team Join Requests</h4>
+              </div>
+            )}
+            
+            {joinRequests && joinRequests.map((request) => (
+              <div key={`join-${request.id}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                    <UserPlus className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      <span className="text-primary">{request.user?.name || 'Someone'}</span>
+                      {' '}wants to join your team{' '}
+                      <span className="text-primary">{request.team?.name || 'team'}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
+                    </p>
+                    
+                    {/* Action buttons */}
+                    <div className="flex mt-2 space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
+                        disabled={respondToJoinRequestMutation.isPending}
+                        onClick={(e) => handleJoinRequestResponse(request.teamId, request.id, "rejected", e)}
+                      >
+                        <XIcon className="h-3 w-3 mr-1" />
+                        Decline
+                      </Button>
+                      <Button 
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 px-2 py-1 h-7 text-xs"
+                        disabled={respondToJoinRequestMutation.isPending}
+                        onClick={(e) => handleJoinRequestResponse(request.teamId, request.id, "accepted", e)}
+                      >
+                        <CheckIcon className="h-3 w-3 mr-1" />
+                        Accept
+                      </Button>
+                      <Link href={`/teams/${request.teamId}`} onClick={onClose}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="px-2 py-1 h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Team membership notifications */}
+            {teamMemberNotifications && teamMemberNotifications.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Team Notifications</h4>
+              </div>
+            )}
+            
+            {teamMemberNotifications && teamMemberNotifications.map((notification, index) => (
+              <div key={`team-${notification.id || index}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      Your request to join{' '}
+                      <span className="text-primary">{notification.team?.name || 'the team'}</span>
+                      {' '}has been accepted
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                    </p>
+                    
+                    {/* Action buttons */}
+                    <div className="flex mt-2 space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="px-2 py-1 h-7 text-xs"
+                        onClick={() => handleMarkAsViewed(notification.id)}
+                      >
+                        <CheckIcon className="h-3 w-3 mr-1" />
+                        Dismiss
+                      </Button>
+                      <Link href={`/teams/${notification.teamId}`} onClick={onClose}>
+                        <Button 
+                          size="sm"
+                          className="px-2 py-1 h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Team
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="p-4 text-center">
@@ -208,16 +364,28 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       </div>
       
       <div className="p-2 border-t">
-        <Link href="/invitations">
-          <Button 
-            variant="ghost" 
-            className="w-full text-primary text-sm" 
-            size="sm"
-            onClick={onClose}
-          >
-            View All Notifications
-          </Button>
-        </Link>
+        <div className="flex justify-between">
+          <Link href="/invitations">
+            <Button 
+              variant="ghost" 
+              className="text-primary text-sm" 
+              size="sm"
+              onClick={onClose}
+            >
+              View Events
+            </Button>
+          </Link>
+          <Link href="/teams">
+            <Button 
+              variant="ghost" 
+              className="text-primary text-sm" 
+              size="sm"
+              onClick={onClose}
+            >
+              View Teams
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

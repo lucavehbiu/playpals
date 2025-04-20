@@ -19,6 +19,7 @@ import SportPreferencesPage from "@/pages/sports-preferences";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
 import { AuthProvider } from "@/hooks/use-auth";
+import { WebSocketProvider } from "@/hooks/WebSocketProvider";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -66,8 +67,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <WebSocketProvider>
+          <Router />
+          <Toaster />
+        </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
