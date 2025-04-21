@@ -49,13 +49,18 @@ export function useWebSocket() {
           
           if (data.type === 'auth_success') {
             console.log('WebSocket authenticated successfully');
-          } else if (data.type === 'join_request' || data.type === 'join_request_update') {
+          } else if (data.type === 'join_request' || data.type === 'join_request_update' || data.type === 'rsvp_approved') {
             // Add notification to state
             setNotifications(prev => [data, ...prev]);
             
             // Show toast notification
+            let title = 'Notification';
+            if (data.type === 'join_request') title = 'New Join Request';
+            else if (data.type === 'join_request_update') title = 'Join Request Update';
+            else if (data.type === 'rsvp_approved') title = 'Event RSVP Update';
+            
             toast({
-              title: data.type === 'join_request' ? 'New Join Request' : 'Join Request Update',
+              title: title,
               description: data.message,
               variant: 'default',
             });

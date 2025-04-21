@@ -557,7 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               type: 'rsvp_approved',
               eventId: event.id,
               eventTitle: event.title,
-              rsvpId: updatedRSVP.id,
+              rsvpId: updatedRSVP?.id,
               user: {
                 id: authenticatedUser.id,
                 name: authenticatedUser.name,
