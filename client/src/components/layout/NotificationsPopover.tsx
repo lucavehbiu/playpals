@@ -11,6 +11,25 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/use-notifications';
 
+interface TeamJoinRequest {
+  id: number;
+  teamId: number;
+  userId: number;
+  status: string;
+  createdAt: string;
+  teamName?: string; // For WebSocket notifications
+  team?: {
+    name: string;
+    sportType: string;
+  };
+  user?: {
+    id: number;
+    name: string;
+    username: string;
+    profileImage?: string;
+  };
+}
+
 interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
@@ -263,8 +282,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">
                       <span className="text-primary">{request.user?.name || 'Someone'}</span>
-                      {' '}wants to join your team{' '}
-                      <span className="text-primary">{request.team?.name || 'team'}</span>
+                      {' '}wants to join
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                      Team: "{request.team?.name || request.teamName || 'team'}"
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
@@ -322,9 +343,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">
-                      Your request to join{' '}
-                      <span className="text-primary">{notification.team?.name || 'the team'}</span>
-                      {' '}has been accepted
+                      Your request to join has been accepted
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                      Team: "{notification.team?.name || notification.teamName || 'the team'}"
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
