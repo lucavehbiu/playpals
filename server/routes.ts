@@ -1742,7 +1742,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const requests = await storage.getTeamJoinRequests(teamId);
-      res.json(requests);
+      
+      // Enhance join requests with user data
+      const enhancedRequests = await Promise.all(
+        requests.map(async (request) => {
+          const user = await storage.getUser(request.userId);
+          return {
+            ...request,
+            user: user ? {
+              id: user.id,
+              name: user.name,
+              username: user.username,
+              profileImage: user.profileImage
+            } : null
+          };
+        })
+      );
+      
+      console.log(`Returning ${enhancedRequests.length} join requests for team ${teamId}`);
+      res.json(enhancedRequests);
     } catch (error) {
       console.error('Error fetching team join requests:', error);
       res.status(500).json({ message: "Error fetching team join requests" });

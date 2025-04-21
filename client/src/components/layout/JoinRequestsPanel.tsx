@@ -53,22 +53,35 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
   const [selectedTab, setSelectedTab] = useState('pending');
 
   // Fetch team join requests
-  const { data: joinRequests = [], isLoading } = useQuery<TeamJoinRequest[]>({
+  const { data: joinRequests = [], isLoading, refetch } = useQuery<TeamJoinRequest[]>({
     queryKey: ['/api/teams', teamId, 'join-requests'],
     queryFn: async () => {
       try {
+        console.log(`Fetching join requests for team ${teamId}`);
         const res = await fetch(`/api/teams/${teamId}/join-requests`);
         if (!res.ok) {
           throw new Error('Failed to fetch join requests');
         }
-        return await res.json();
+        const data = await res.json();
+        console.log(`Received ${data.length} join requests:`, data);
+        return data;
       } catch (error) {
         console.error('Error fetching join requests:', error);
         return [];
       }
     },
     enabled: !!teamId && !!user?.id,
+    refetchInterval: 10000, // Refetch every 10 seconds to ensure we don't miss any requests
+    refetchOnWindowFocus: true, // Refetch when the user focuses the window
   });
+  
+  // Effect to refetch when notifications change
+  React.useEffect(() => {
+    if (notifications.some(n => n.type === 'join_request' && n.teamId === teamId)) {
+      console.log('New join request notification detected, refetching...');
+      refetch();
+    }
+  }, [notifications, teamId, refetch]);
 
   // Filter requests by status
   const pendingRequests = joinRequests.filter(req => req.status === 'pending');
