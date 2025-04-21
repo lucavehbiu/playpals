@@ -73,11 +73,37 @@ export function useWebSocket() {
       newSocket.onerror = (error) => {
         console.error('WebSocket error:', error);
         setStatus('error');
+        
+        // Show toast with error to help with debugging
+        toast({
+          title: 'WebSocket Connection Error',
+          description: 'There was an issue connecting to the notification system. Will try to reconnect automatically.',
+          variant: 'destructive',
+        });
+        
+        // Try to reconnect after a delay
+        setTimeout(() => {
+          if (user && user.id) {
+            console.log('Attempting to reconnect WebSocket...');
+            connect();
+          }
+        }, 5000);
       };
       
-      newSocket.onclose = () => {
-        console.log('WebSocket connection closed');
+      newSocket.onclose = (event) => {
+        console.log('WebSocket connection closed', event.code, event.reason);
         setStatus('disconnected');
+        
+        // Only attempt to reconnect if the close wasn't intentional (e.g., by component unmounting)
+        // We should have user, and it wasn't a normal closure (code 1000)
+        if (user && user.id && event.code !== 1000) {
+          console.log('WebSocket connection lost. Attempting to reconnect in 3 seconds...');
+          // Try to reconnect after a delay
+          setTimeout(() => {
+            console.log('Attempting to reconnect WebSocket...');
+            connect();
+          }, 3000);
+        }
       };
       
       setSocket(newSocket);

@@ -285,7 +285,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                       {' '}wants to join
                     </p>
                     <p className="text-sm font-semibold text-primary">
-                      Team: "{request.team?.name || request.teamName || 'team'}"
+                      Team: "{request.team?.name || (request as any).teamName || 'team'}"
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
@@ -346,7 +346,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                       Your request to join has been accepted
                     </p>
                     <p className="text-sm font-semibold text-primary">
-                      Team: "{notification.team?.name || notification.teamName || 'the team'}"
+                      Team: "{notification.team?.name || (notification as any).teamName || 'the team'}"
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}

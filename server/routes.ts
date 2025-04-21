@@ -2020,7 +2020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId: updatedRequest.teamId,
         teamName: team?.name || 'the team',
         status: status,
-        message: `Your request to join ${team?.name || 'the team'} has been ${status}`
+        message: `Your request to join team "${team?.name || 'the team'}" has been ${status}`
       });
     }
     
