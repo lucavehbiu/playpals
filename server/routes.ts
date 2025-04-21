@@ -1889,14 +1889,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create and return the HTTP server
   const httpServer = createServer(app);
   
-  // Create a WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Create a WebSocket server with more robust error handling
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    // Add ping-pong for keeping connections alive
+    clientTracking: true,
+    perMessageDeflate: {
+      zlibDeflateOptions: {
+        chunkSize: 1024,
+        memLevel: 7,
+        level: 3
+      },
+      zlibInflateOptions: {
+        chunkSize: 10 * 1024
+      },
+      concurrencyLimit: 10,
+      threshold: 1024
+    }
+  });
   
   // Store connected clients with their user IDs
   const clients = new Map();
   
-  wss.on('connection', (ws) => {
+  // Handle server errors
+  wss.on('error', (error) => {
+    console.error('WebSocket server error:', error);
+  });
+  
+  // Set up heartbeat to detect dead connections
+  function noop() {}
+  function heartbeat(this: WebSocket & { isAlive?: boolean }) {
+    this.isAlive = true;
+  }
+  
+  const interval = setInterval(function ping() {
+    wss.clients.forEach(function each(ws: any) {
+      if (ws.isAlive === false) return ws.terminate();
+      
+      ws.isAlive = false;
+      ws.ping(noop);
+    });
+  }, 30000); // every 30 seconds
+  
+  wss.on('close', function close() {
+    clearInterval(interval);
+  });
+  
+  wss.on('connection', (ws: WebSocket & { isAlive?: boolean }) => {
     console.log('WebSocket client connected');
+    
+    // Set up heartbeat
+    ws.isAlive = true;
+    ws.on('pong', heartbeat);
     
     // Handle authentication message to associate the connection with a user
     ws.on('message', (message) => {
@@ -1919,6 +1964,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
+    // Handle errors on the websocket connection
+    ws.on('error', (error) => {
+      console.error('WebSocket connection error:', error);
+    });
+    
     // Handle disconnection
     ws.on('close', () => {
       // Remove the client from the clients map
@@ -1932,9 +1982,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Store recent notifications for fallback polling mechanism
+  const recentNotifications = new Map<number, {timestamp: number, notifications: any[]}>();
+  
   // Function to send notification to a specific user
   const sendNotification = (userId: number, notification: any) => {
     console.log(`Attempting to send notification to user ${userId}:`, notification);
+    
+    // Store notification for polling fallback
+    if (!recentNotifications.has(userId)) {
+      recentNotifications.set(userId, { timestamp: Date.now(), notifications: [] });
+    }
+    
+    const userNotifications = recentNotifications.get(userId);
+    if (userNotifications) {
+      // Add timestamp to the notification for sorting
+      const notificationWithTimestamp = { ...notification, timestamp: Date.now() };
+      userNotifications.notifications.push(notificationWithTimestamp);
+      
+      // Keep only last 100 notifications to prevent memory issues
+      if (userNotifications.notifications.length > 100) {
+        userNotifications.notifications = userNotifications.notifications.slice(-100);
+      }
+    }
+    
+    // Try to send via WebSocket if available
     const client = clients.get(userId);
     if (client && client.readyState === WebSocket.OPEN) {
       console.log(`WebSocket client found for user ${userId}, sending notification`);
@@ -1951,6 +2023,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return false;
     }
   };
+  
+  // Endpoint to support polling fallback for notifications
+  app.get('/api/users/:userId/notifications', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Check if this is just a test request
+      if (req.query.check === 'true') {
+        return res.status(200).json({ message: 'Notification polling endpoint available' });
+      }
+      
+      // Authentication check
+      if (req.user && (req.user as any).id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized access to notifications' });
+      }
+      
+      // Get 'since' timestamp from query params, default to 1 hour ago
+      const since = req.query.since 
+        ? parseInt(req.query.since as string) 
+        : (Date.now() - 60 * 60 * 1000); // Default to 1 hour ago
+      
+      // Get stored notifications for this user
+      const userNotifications = recentNotifications.get(userId);
+      
+      if (!userNotifications || userNotifications.notifications.length === 0) {
+        return res.json([]);
+      }
+      
+      // Filter notifications newer than 'since' timestamp and sort by timestamp (newest first)
+      const recentNotifs = userNotifications.notifications
+        .filter(notif => notif.timestamp > since)
+        .sort((a, b) => b.timestamp - a.timestamp);
+      
+      res.json(recentNotifs);
+    } catch (error) {
+      console.error('Error retrieving notifications:', error);
+      res.status(500).json({ message: 'Failed to retrieve notifications' });
+    }
+  });
   
   // Modify the team join request endpoint to send WebSocket notification
   const originalCreateTeamJoinRequest = storage.createTeamJoinRequest;
