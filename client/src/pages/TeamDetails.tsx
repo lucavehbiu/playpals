@@ -18,11 +18,13 @@ import {
   Send,
   Settings,
   User,
+  UserPlus,
   CalendarIcon,
   CheckCircle,
   XCircle,
   Clock,
 } from "lucide-react";
+import JoinRequestsPanel from "@/components/layout/JoinRequestsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -495,6 +497,18 @@ const TeamDetails = () => {
               <div className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-2" />
                 Schedule
+              </div>
+            </Tab>
+          )}
+          {isAdmin && (
+            <Tab className={({ selected }) =>
+              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+               ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
+               focus:outline-none focus:ring-0`
+            }>
+              <div className="flex items-center justify-center">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Join Requests
               </div>
             </Tab>
           )}
