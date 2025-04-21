@@ -16,7 +16,7 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 // Initial reconnect delay (will be doubled with each attempt)
 const INITIAL_RECONNECT_DELAY = 2000;
 // Polling interval when WebSocket fails (milliseconds)
-const POLLING_INTERVAL = 5000;
+const POLLING_INTERVAL = 30000; // Increased to 30 seconds to reduce server load
 
 export function useWebSocket() {
   const { user } = useAuth();
@@ -65,11 +65,17 @@ export function useWebSocket() {
     });
   }, [toast]);
   
+  // Flag to prevent multiple concurrent polling requests
+  const isPolling = useRef(false);
+  
   // Fallback polling function when WebSocket is not available
   const pollNotifications = useCallback(async () => {
-    if (!user || !user.id) return;
+    if (!user || !user.id || isPolling.current) return;
     
     try {
+      // Set polling flag to prevent concurrent requests
+      isPolling.current = true;
+      
       // Make HTTP request to get new notifications since last fetch
       const response = await apiRequest('GET', `/api/users/${user.id}/notifications?since=${lastFetchTime.current}`);
       
@@ -80,42 +86,41 @@ export function useWebSocket() {
       }
     } catch (error) {
       console.error('Error polling notifications:', error);
+    } finally {
+      // Reset polling flag
+      isPolling.current = false;
+      
+      // Continue polling with the specified interval
+      if (pollingTimer.current) {
+        clearTimeout(pollingTimer.current);
+      }
+      pollingTimer.current = setTimeout(pollNotifications, POLLING_INTERVAL);
     }
-    
-    // Continue polling
-    pollingTimer.current = setTimeout(pollNotifications, POLLING_INTERVAL);
   }, [user, handleNotifications]);
   
   // Start fallback polling when WebSocket fails
   const startPolling = useCallback(() => {
+    // Emergency fix: Don't use polling at all for now as it's causing too many requests
+    setStatus('fallback');
+    console.log('WebSocket disconnected. Notifications temporarily disabled to prevent browser crashes.');
+    
+    // Show a toast to inform the user
+    toast({
+      title: 'Notification System',
+      description: 'Notification system is temporarily unavailable. Please refresh the page in a few moments.',
+      variant: 'default',
+      duration: 5000,
+    });
+    
     // Clear any existing timer
     if (pollingTimer.current) {
       clearTimeout(pollingTimer.current);
+      pollingTimer.current = null;
     }
     
-    setStatus('fallback');
-    console.log('Switching to polling fallback for notifications');
-    
-    // Reset the last fetch time to now
-    lastFetchTime.current = Date.now();
-    
-    // Start polling
-    pollingTimer.current = setTimeout(pollNotifications, 500); // Start immediately
-    
-    // Create a new endpoint if one doesn't exist
-    // This will handle returning notifications since the given timestamp
-    // For backward compatibility, we'll check if this endpoint exists before using it
-    apiRequest('GET', `/api/users/${user?.id}/notifications?check=true`)
-      .then(response => {
-        if (response.status === 404) {
-          console.warn('Notification polling endpoint not available. Using regular polling methods.');
-        }
-      })
-      .catch(() => {
-        // If the check fails, we'll just use regular query invalidation via use-notifications.tsx
-        console.warn('Fallback to regular notification refreshing.');
-      });
-  }, [user, pollNotifications]);
+    // Don't start polling - this is an emergency fix to prevent flooding the server
+    // We'll reconnect when the user refreshes or changes pages
+  }, [toast]);
   
   // Function to connect to WebSocket with exponential backoff
   const connect = useCallback(() => {
@@ -326,13 +331,11 @@ export function useWebSocket() {
       // If we have a user but no connection, try to reconnect
       if (user && user.id) {
         if (status === 'fallback') {
-          // If we're in fallback mode, just trigger a poll
-          if (pollingTimer.current) {
-            clearTimeout(pollingTimer.current);
-          }
-          pollNotifications();
+          // Don't try polling in fallback mode (emergency fix to prevent flooding)
+          console.log('In fallback mode, not starting polling to prevent crashes');
         } else if (!socket || (socket.readyState !== WebSocket.OPEN && socket.readyState !== WebSocket.CONNECTING)) {
-          // If WebSocket is disconnected, try to reconnect
+          // Only try to reconnect via WebSocket, not through polling
+          console.log('Trying to reconnect WebSocket on window focus');
           reconnectAttempts.current = 0; // Reset counter on manual reconnect
           connect();
         }
@@ -344,7 +347,7 @@ export function useWebSocket() {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, [user, socket, connect, status, pollNotifications]);
+  }, [user, socket, connect, status]);
   
   // Function to clear a notification
   const clearNotification = useCallback((index: number) => {
