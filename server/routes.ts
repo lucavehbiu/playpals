@@ -433,6 +433,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingRSVP) {
         // Update the existing RSVP instead of creating a new one
         newRSVP = await storage.updateRSVP(existingRSVP.id, { status: rsvpData.status });
+        
+        // If the RSVP status has changed to approved, notify the event creator
+        if (rsvpData.status === 'approved' && event.creatorId !== rsvpData.userId) {
+          try {
+            // Get the user details
+            const user = await storage.getUser(rsvpData.userId);
+            
+            if (user) {
+              // Send notification to event creator
+              sendNotification(event.creatorId, {
+                type: 'rsvp_approved',
+                eventId: event.id,
+                eventTitle: event.title,
+                rsvpId: newRSVP?.id,
+                user: {
+                  id: user.id,
+                  name: user.name,
+                  username: user.username,
+                  profileImage: user.profileImage
+                },
+                message: `${user.name || user.username} has accepted your invitation to ${event.title}`
+              });
+            }
+          } catch (error) {
+            console.error('Error sending RSVP notification:', error);
+          }
+        }
       } else {
         // Create a new RSVP if none exists
         newRSVP = await storage.createRSVP(rsvpData);
@@ -517,6 +544,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // We now have verified the RSVP exists and belongs to the user, so update it
       const updatedRSVP = await storage.updateRSVP(rsvpId, req.body);
+      
+      // If the RSVP status has changed to approved, notify the event creator
+      if (req.body.status === 'approved') {
+        try {
+          // Get the event details
+          const event = await storage.getEvent(rsvp.eventId);
+          
+          if (event && event.creatorId !== authenticatedUser.id) {
+            // Send notification to event creator
+            sendNotification(event.creatorId, {
+              type: 'rsvp_approved',
+              eventId: event.id,
+              eventTitle: event.title,
+              rsvpId: updatedRSVP.id,
+              user: {
+                id: authenticatedUser.id,
+                name: authenticatedUser.name,
+                username: authenticatedUser.username,
+                profileImage: authenticatedUser.profileImage
+              },
+              message: `${authenticatedUser.name || authenticatedUser.username} has accepted your invitation to ${event.title}`
+            });
+          }
+        } catch (error) {
+          console.error('Error sending RSVP notification:', error);
+        }
+      }
+      
       res.json(updatedRSVP);
     } catch (error) {
       console.error("Error updating RSVP:", error);
