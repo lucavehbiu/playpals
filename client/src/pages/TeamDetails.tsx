@@ -1042,6 +1042,13 @@ const TeamDetails = () => {
             </Tab.Panel>
           )}
           
+          {/* Join Requests Panel - Only visible to admins */}
+          {isAdmin && (
+            <Tab.Panel>
+              <JoinRequestsPanel teamId={teamId} />
+            </Tab.Panel>
+          )}
+          
           {/* Members Panel */}
           <Tab.Panel>
             {isMembersLoading ? (
