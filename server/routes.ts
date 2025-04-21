@@ -1916,12 +1916,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Function to send notification to a specific user
   const sendNotification = (userId: number, notification: any) => {
+    console.log(`Attempting to send notification to user ${userId}:`, notification);
     const client = clients.get(userId);
     if (client && client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(notification));
-      return true;
+      console.log(`WebSocket client found for user ${userId}, sending notification`);
+      try {
+        client.send(JSON.stringify(notification));
+        console.log(`Notification sent successfully to user ${userId}`);
+        return true;
+      } catch (error) {
+        console.error(`Error sending notification to user ${userId}:`, error);
+        return false;
+      }
+    } else {
+      console.log(`No active WebSocket connection found for user ${userId}`);
+      return false;
     }
-    return false;
   };
   
   // Modify the team join request endpoint to send WebSocket notification
