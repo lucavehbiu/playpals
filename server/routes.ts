@@ -1976,7 +1976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: requester.username,
             profileImage: requester.profileImage
           } : null,
-          message: `${requester?.name || 'Someone'} requested to join your team ${team.name}`
+          message: `${requester?.name || 'Someone'} requested to join team: "${team.name}"`
         });
         
         // Also notify team admins
@@ -1995,7 +1995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               username: requester.username,
               profileImage: requester.profileImage
             } : null,
-            message: `${requester?.name || 'Someone'} requested to join your team ${team.name}`
+            message: `${requester?.name || 'Someone'} requested to join team: "${team.name}"`
           });
         });
       }
