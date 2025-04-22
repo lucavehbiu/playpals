@@ -272,6 +272,14 @@ const TeamDetails = () => {
         throw new Error('No schedule selected');
       }
       
+      // Check if user has already responded to this schedule
+      const hasResponded = selectedSchedule.responses && 
+        selectedSchedule.responses.some((r: any) => r.userId === user?.id);
+      
+      if (hasResponded) {
+        throw new Error('You have already responded to this schedule');
+      }
+      
       // Create a clean request payload
       const payload = {
         scheduleId: selectedSchedule.id,
@@ -316,6 +324,19 @@ const TeamDetails = () => {
     },
     onError: (error: Error) => {
       console.error('Schedule response error:', error);
+      
+      // Special handling for "already responded" error
+      if (error.message.includes('already responded')) {
+        setResponseDialogOpen(false);
+        setSelectedSchedule(null);
+        toast({
+          title: "Already Responded",
+          description: "You have already submitted a response to this schedule. Updating responses will be available soon.",
+          variant: "default",
+        });
+        return;
+      }
+      
       toast({
         title: "Error",
         description: error.message || "Failed to submit response. Please try again.",
