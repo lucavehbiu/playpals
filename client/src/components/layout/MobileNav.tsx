@@ -68,27 +68,51 @@ const MobileNav = () => {
   return (
     <>
       {/* Fixed Mobile Nav at Bottom - Styled like modern social apps */}
-      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t flex justify-around items-center px-1 z-40 md:hidden">
-        <NavItem 
-          href="/" 
-          icon={<HomeIcon className="h-[22px] w-[22px]" />} 
-          label="Home" 
-          isActive={location === '/'} 
-        />
+      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t flex items-center px-1 z-40 md:hidden">
+        <div className="grid grid-cols-5 w-full">
+          <NavItem 
+            href="/" 
+            icon={<HomeIcon className="h-[22px] w-[22px]" />} 
+            label="Home" 
+            isActive={location === '/'} 
+          />
+          
+          <NavItem 
+            href="/discover" 
+            icon={<SearchIcon className="h-[22px] w-[22px]" />} 
+            label="Discover" 
+            isActive={location === '/discover'} 
+          />
+          
+          <NavItem 
+            href="/invitations" 
+            icon={<BellIcon className="h-[22px] w-[22px]" />} 
+            label="Invites" 
+            isActive={location === '/invitations'} 
+            badge={notificationCount}
+          />
+          
+          <NavItem 
+            href="/teams" 
+            icon={<UsersIcon className="h-[22px] w-[22px]" />} 
+            label="Teams" 
+            isActive={location.startsWith('/teams')} 
+          />
+          
+          <NavItem 
+            href="/myevents" 
+            icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
+            label="Events" 
+            isActive={location.startsWith('/myevents')} 
+          />
+        </div>
         
-        <NavItem 
-          href="/discover" 
-          icon={<SearchIcon className="h-[22px] w-[22px]" />} 
-          label="Discover" 
-          isActive={location === '/discover'} 
-        />
-        
-        {/* Create Post Button - Center, Slightly Larger */}
-        <div ref={createButtonRef} className="relative">
+        {/* Create Post Button - Center, Positioned between Invites and Teams */}
+        <div ref={createButtonRef} className="absolute left-1/2 -translate-x-1/2 -top-5">
           <div className="flex flex-col items-center">
             <div
               onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
-              className={`rounded-full h-10 w-10 flex items-center justify-center shadow-md transition-all duration-200 ${
+              className={`rounded-full h-12 w-12 flex items-center justify-center shadow-md transition-all duration-200 ${
                 isCreateMenuOpen 
                   ? "bg-red-500 rotate-45" 
                   : "bg-primary"
@@ -138,28 +162,6 @@ const MobileNav = () => {
             )}
           </AnimatePresence>
         </div>
-        
-        <NavItem 
-          href="/invitations" 
-          icon={<BellIcon className="h-[22px] w-[22px]" />} 
-          label="Invites" 
-          isActive={location === '/invitations'} 
-          badge={notificationCount}
-        />
-        
-        <NavItem 
-          href="/teams" 
-          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-          label="Teams" 
-          isActive={location.startsWith('/teams')} 
-        />
-        
-        <NavItem 
-          href="/myevents" 
-          icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
-          label="Events" 
-          isActive={location.startsWith('/myevents')} 
-        />
         
         {/* Profile tab with options menu */}
         <div className="relative">
