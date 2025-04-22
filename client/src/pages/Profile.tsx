@@ -110,12 +110,12 @@ const Profile = () => {
             
             {/* User information with golden ratio spacing */}
             <div className="mt-4 sm:mt-0 sm:ml-5 max-w-[180px] sm:max-w-full">
-              <h1 className="text-2xl font-bold tracking-tight truncate text-white">{user.name}</h1>
-              <p className="text-blue-100 font-medium truncate">@{user.username}</p>
+              <h1 className="text-2xl font-bold tracking-tight truncate text-white shadow-sm">{user.name}</h1>
+              <p className="text-blue-100 font-medium truncate shadow-sm">@{user.username}</p>
               <div className="flex items-center mt-1.5">
-                <div className="flex items-center bg-white/20 rounded-full px-2 py-0.5">
+                <div className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm">
                   <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                  <span className="text-yellow-100 font-medium">{averageRating ? averageRating.toFixed(1) : "4.7"}</span>
+                  <span className="text-white font-medium">{averageRating ? averageRating.toFixed(1) : "4.7"}</span>
                 </div>
                 {user.headline && (
                   <div className="ml-3 text-sm text-blue-100 max-w-[200px] sm:max-w-full">
