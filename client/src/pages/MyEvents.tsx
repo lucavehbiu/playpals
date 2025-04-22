@@ -41,7 +41,9 @@ const UpcomingEvents = ({
           <CalendarRange className="h-5 w-5 mr-2 text-primary" />
           Upcoming Events
         </h1>
-        <CreateEventButton onEventCreated={onEventCreated} />
+        <CreateEventButton 
+          onEventCreated={onEventCreated} 
+        />
       </div>
       
       {isLoading ? (
@@ -86,7 +88,10 @@ const UpcomingEvents = ({
                 You don't have any upcoming events scheduled. Create one or explore events to join!
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <CreateEventButton onEventCreated={onEventCreated} />
+                <CreateEventButton 
+                  onEventCreated={onEventCreated} 
+                  centered={true}
+                />
                 <Button 
                   variant="outline" 
                   onClick={goToDiscover}
@@ -147,7 +152,11 @@ const UpcomingEvents = ({
               ) : (
                 <div className="col-span-3 text-center p-8 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-800 mb-2">No public events available</h3>
-                  <p className="text-gray-500">Check back later or create your own event!</p>
+                  <p className="text-gray-500 mb-6">Check back later or create your own event!</p>
+                  <CreateEventButton 
+                    onEventCreated={onEventCreated} 
+                    centered={true}
+                  />
                 </div>
               )}
             </div>
