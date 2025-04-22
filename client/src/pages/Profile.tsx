@@ -80,8 +80,9 @@ const Profile = () => {
     <div className="rounded-xl shadow-lg overflow-hidden bg-background">
       {/* Profile header with golden ratio background pattern */}
       <div 
-        className="relative bg-gradient-to-br from-primary/95 to-blue-700 p-6 pb-8 text-white overflow-hidden"
+        className="relative bg-gradient-to-br from-primary/95 to-blue-900 p-6 pb-8 text-white overflow-hidden"
         style={{
+          backgroundColor: '#003366',
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 1000 1000' fill='none'%3E%3Cg opacity='0.1' stroke='white'%3E%3Cpath d='M500 500 C 500 310 690 310 690 500 C 690 690 500 690 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 380 620 380 620 500 C 620 620 500 620 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 420 580 420 580 500 C 580 580 500 580 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 450 550 450 550 500 C 550 550 500 550 500 500 Z' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
