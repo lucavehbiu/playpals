@@ -1140,7 +1140,7 @@ const TeamDetails = () => {
                 
                 {isAdmin && (
                   <div className="mt-6 flex justify-center">
-                    <Button variant="outline">
+                    <Button variant="outline" className="mx-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       Invite Members
                     </Button>
