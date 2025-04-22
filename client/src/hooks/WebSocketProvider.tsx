@@ -1,15 +1,30 @@
 import React, { createContext, useContext } from 'react';
-import { useWebSocket } from './use-websocket';
+import type { WebSocketNotification } from './use-websocket';
 
-// Create context
-export const WebSocketContext = createContext<ReturnType<typeof useWebSocket> | null>(null);
+// Create mock WebSocket interface with dummy functions
+type WebSocketContextType = {
+  status: 'disconnected' | 'connected' | 'connecting' | 'error' | 'fallback';
+  notifications: WebSocketNotification[];
+  clearNotification: (index: number) => void;
+  clearAllNotifications: () => void;
+};
 
-// Provider component
+// Mock implementation that does nothing
+const mockWebSocketContext: WebSocketContextType = {
+  status: 'disconnected',
+  notifications: [],
+  clearNotification: () => {},
+  clearAllNotifications: () => {}
+};
+
+// Create context with the mock implementation
+export const WebSocketContext = createContext<WebSocketContextType>(mockWebSocketContext);
+
+// Provider component that uses the mock implementation
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const webSocket = useWebSocket();
-  
+  // Use mock implementation instead of actual WebSocket
   return (
-    <WebSocketContext.Provider value={webSocket}>
+    <WebSocketContext.Provider value={mockWebSocketContext}>
       {children}
     </WebSocketContext.Provider>
   );
@@ -17,9 +32,5 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 // Hook for using the WebSocket context
 export const useWebSocketContext = () => {
-  const context = useContext(WebSocketContext);
-  if (!context) {
-    throw new Error('useWebSocketContext must be used within a WebSocketProvider');
-  }
-  return context;
+  return useContext(WebSocketContext);
 };
