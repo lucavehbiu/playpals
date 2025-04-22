@@ -27,18 +27,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  const { user } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [showLogout, setShowLogout] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
   
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
-  
-  // Close menu and logout dialog when clicking outside
+  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Close create menu when clicking outside
@@ -47,47 +42,35 @@ const MobileNav = () => {
           !createButtonRef.current.contains(event.target as Node)) {
         setIsCreateMenuOpen(false);
       }
-      
-      // Close logout popup when clicking outside
-      if (showLogout) {
-        const target = event.target as HTMLElement;
-        const profileClick = document.querySelector('.profile-nav-item')?.contains(target);
-        const logoutClick = document.querySelector('.logout-popup')?.contains(target);
-        if (!profileClick && !logoutClick) {
-          setShowLogout(false);
-        }
-      }
     };
     
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isCreateMenuOpen, showLogout]);
+  }, [isCreateMenuOpen]);
   
   return (
     <>
       {/* Fixed Mobile Nav at Bottom */}
       <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden">
-        {/* Left Nav Items */}
-        <div className="flex space-x-5">
-          <NavItem 
-            href="/" 
-            icon={<HomeIcon className="h-[22px] w-[22px]" />} 
-            label="Home" 
-            isActive={location === '/'} 
-          />
-          
-          <NavItem 
-            href="/discover" 
-            icon={<SearchIcon className="h-[22px] w-[22px]" />} 
-            label="Discover" 
-            isActive={location === '/discover'} 
-          />
-        </div>
+        {/* Nav Items */}
+        <NavItem 
+          href="/" 
+          icon={<HomeIcon className="h-[22px] w-[22px]" />} 
+          label="Home" 
+          isActive={location === '/'} 
+        />
+        
+        <NavItem 
+          href="/myevents" 
+          icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
+          label="Events" 
+          isActive={location.startsWith('/myevents')} 
+        />
         
         {/* Create Button */}
-        <div ref={createButtonRef} className="absolute left-1/2 transform -translate-x-1/2 -translate-y-4">
+        <div ref={createButtonRef} className="relative -top-5">
           <div className="flex flex-col items-center">
             <div
               onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
@@ -142,23 +125,25 @@ const MobileNav = () => {
           </AnimatePresence>
         </div>
         
-        {/* Right Nav Items */}
-        <div className="flex space-x-5">
-          <NavItem 
-            href="/invitations" 
-            icon={<BellIcon className="h-[22px] w-[22px]" />} 
-            label="Invites" 
-            isActive={location === '/invitations'} 
-            badge={notificationCount}
-          />
-          
-          <NavItem 
-            href="/teams" 
-            icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-            label="Teams" 
-            isActive={location.startsWith('/teams')} 
-          />
-        </div>
+        <NavItem 
+          href="/teams" 
+          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
+          label="Teams" 
+          isActive={location.startsWith('/teams')} 
+        />
+        
+        <NavItem 
+          href="/profile" 
+          icon={user?.profileImage ? (
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={user.profileImage} alt="Profile" />
+            </Avatar>
+          ) : (
+            <UserIcon className="h-[22px] w-[22px]" />
+          )} 
+          label="Profile" 
+          isActive={location === '/profile'} 
+        />
       </nav>
 
       {/* Create Post Dialog - Modern & Clean UI */}
