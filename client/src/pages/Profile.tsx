@@ -41,6 +41,12 @@ const Profile = () => {
     enabled: !!userId,
   });
   
+  // Get teams the user is a member of
+  const { data: userTeams = [], isLoading: teamsLoading } = useQuery({
+    queryKey: [`/api/teams/user/${userId}`],
+    enabled: !!userId,
+  });
+  
   // Set average rating when player rating data is loaded
   useEffect(() => {
     if (playerRating?.average) {
