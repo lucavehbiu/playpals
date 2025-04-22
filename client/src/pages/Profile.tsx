@@ -20,7 +20,7 @@ const Profile = () => {
   const userId = urlUserId || authUser?.id.toString() || '';
   const isOwnProfile = authUser?.id.toString() === userId;
   
-  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
   
   // Get user data
@@ -171,7 +171,7 @@ const Profile = () => {
         <div className="px-2 overflow-x-auto scrollbar-hide">
           <nav className="flex justify-around -mb-px">
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'profile'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -198,7 +198,7 @@ const Profile = () => {
             </motion.button>
             
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'events'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -225,7 +225,7 @@ const Profile = () => {
             </motion.button>
             
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/3 ${
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'teams'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -239,6 +239,33 @@ const Profile = () => {
               </svg>
               <span>Teams</span>
               {activeTab === 'teams' && (
+                <motion.div 
+                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
+                  layoutId="activeProfileTab"
+                  initial={false}
+                  animate={{ 
+                    backgroundPosition: ["0% center", "100% center", "0% center"],
+                    transition: { duration: 5, ease: "linear", repeat: Infinity }
+                  }}
+                />
+              )}
+            </motion.button>
+
+            <motion.button
+              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+                activeTab === 'friends'
+                  ? 'border-b-2 border-primary text-primary relative'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab('friends')}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span>Friends</span>
+              {activeTab === 'friends' && (
                 <motion.div 
                   className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
                   layoutId="activeProfileTab"
