@@ -387,7 +387,7 @@ const Teams = () => {
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>{memberCount} members</span>
                     <span>
-                      You: {userRole || 'member'}
+                      {userRole ? `You: ${userRole}` : 'Not a member'}
                     </span>
                   </div>
                   
