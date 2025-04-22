@@ -299,87 +299,31 @@ const Profile = () => {
                   <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
                     <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <path d="M12 2C12 2 7 7 7 12C7 17 12 22 12 22" stroke="currentColor" strokeWidth="2" />
-                      <path d="M12 2C12 2 17 7 17 12C17 17 12 22 12 22" stroke="currentColor" strokeWidth="2" />
-                      <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="6" fill="currentColor" />
                     </svg>
                     Basketball
                   </span>
                   <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
                     <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <path d="M6 8L10 12L18 6" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="6" fill="currentColor" />
                     </svg>
                     Soccer
                   </span>
                   <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
                     <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22Z" fill="none" stroke="currentColor" strokeWidth="2" />
-                      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <circle cx="12" cy="12" r="6" fill="currentColor" />
                     </svg>
-                    Yoga
+                    Volleyball
                   </span>
                   <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
                     <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="6" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
-                      <path d="M12 10V22" stroke="currentColor" strokeWidth="2" />
-                      <path d="M6 14H18" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <circle cx="12" cy="12" r="6" fill="currentColor" />
                     </svg>
                     Tennis
                   </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Activity metrics with golden ratio proportions */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm9 4a1 1 0 10-2 0v6a1 1 0 102 0V7zm-3 2a1 1 0 10-2 0v4a1 1 0 102 0V9zm-3 3a1 1 0 10-2 0v1a1 1 0 102 0v-1z" clipRule="evenodd" />
-                </svg>
-                Activity Dashboard
-              </h3>
-              <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow p-5 border border-gray-100 dark:border-gray-700">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-                    <div className="mb-2 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-primary">{events?.length || 0}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Events Created</div>
-                  </div>
-                  
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-                    <div className="mb-2 w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">15</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Events Joined</div>
-                  </div>
-                  
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-                    <div className="mb-2 w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">4.8</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Rating</div>
-                  </div>
-                  
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-                    <div className="mb-2 w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">3</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Teams</div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -388,66 +332,62 @@ const Profile = () => {
         
         {activeTab === 'events' && (
           <div>
-            <h2 className="text-xl font-bold mb-4">{isOwnProfile ? "My Events" : `${user.name}'s Events`}</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              {isOwnProfile ? "My Events" : `${user.name}'s Events`}
+            </h2>
             
             {eventsLoading ? (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading events...</p>
+              <div className="flex justify-center items-center h-40">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="mt-3 text-gray-600">Loading events...</p>
+                </div>
               </div>
             ) : events && events.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {events.map(event => (
-                  <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">{event.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        event.sportType === 'basketball' ? 'bg-green-100 text-green-800' :
-                        event.sportType === 'soccer' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
+                  <div key={event.id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">{event.title}</h3>
+                      <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                        {event.sport}
                       </span>
                     </div>
-                    <div className="mt-2 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {new Date(event.date).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </div>
-                      <div className="flex items-center mt-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-3">{event.date} • {event.time}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">{event.description}</p>
+                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                         </svg>
                         {event.location}
                       </div>
-                    </div>
-                    <div className="mt-3 flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{event.currentParticipants}/{event.maxParticipants} participants</span>
-                      <button 
-                        className="text-primary text-sm font-medium hover:text-blue-700"
-                        onClick={() => toast({
-                          title: "View Event",
-                          description: `Viewing details for ${event.title}`
-                        })}
+                      <a 
+                        href={`/events/${event.id}`} 
+                        className="text-primary text-sm font-medium flex items-center hover:underline"
                       >
                         View Details
-                      </button>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </a>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <div className="text-center bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                
                 <h3 className="text-lg font-medium text-gray-700 mb-2">
                   {isOwnProfile 
                     ? "You haven't created any events yet" 
@@ -478,76 +418,118 @@ const Profile = () => {
           <div>
             <h2 className="text-xl font-bold mb-4 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 014 15v3H1v-3a3 3 0 013.75-2.906z" />
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
               {isOwnProfile ? "My Teams" : `${user.name}'s Teams`}
             </h2>
             
-            <div className="relative overflow-hidden bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl shadow p-8 border border-gray-200 dark:border-gray-700">
-              {/* Decorative elements inspired by golden ratio */}
-              <div className="absolute top-0 right-0 w-32 h-32 opacity-10" 
-                style={{
-                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' fill='none'%3E%3Cpath d='M70 30C70 15 55 15 55 30C55 45 70 45 70 30Z' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E\")",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "top right"
-                }}
-              />
-              
-              <div className="text-center relative">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 014 15v3H1v-3a3 3 0 013.75-2.906z" />
-                    </svg>
-                  </div>
+            {teamsLoading ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="mt-3 text-gray-600">Loading teams...</p>
                 </div>
-                
-                <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
-                  {isOwnProfile 
-                    ? "You're not part of any team yet" 
-                    : `${user.name} is not part of any team yet`}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                  {isOwnProfile 
-                    ? "Teams help you organize your sports activities with friends and compete together in events and tournaments." 
-                    : "Teams that they join will appear here. You can invite them to join your team."}
-                </p>
-                
-                {isOwnProfile && (
-                  <div className="space-y-3">
-                    <button 
-                      className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 
-                      transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
-                      inline-flex items-center justify-center"
-                      onClick={() => toast({
-                        title: "Create Team",
-                        description: "This would open the team creation form in the full app."
-                      })}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                      </svg>
-                      Create a Team
-                    </button>
-                    
-                    <div className="flex justify-center mt-4">
-                      <button 
-                        className="text-primary text-sm font-medium hover:text-blue-700 border border-primary/20 hover:border-primary/40 px-6 py-2 rounded-full bg-white dark:bg-gray-800"
-                        onClick={() => toast({
-                          title: "Find Teams",
-                          description: "This would open the team discovery page in the full app."
-                        })}
+              </div>
+            ) : userTeams && userTeams.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userTeams.map((team: any) => (
+                  <div key={team.id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-5 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+                    <div className="flex items-start space-x-4">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">{team.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{team.description || "No description provided"}</p>
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                            {team.sport}
+                          </span>
+                          <span className="mx-2">•</span>
+                          <span>{team.memberRole === "admin" ? "Admin" : "Member"}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <a 
+                        href={`/teams/${team.id}`} 
+                        className="text-primary text-sm font-medium flex items-center hover:underline"
                       >
-                        Find Teams to Join
-                      </button>
+                        View Team
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </a>
                     </div>
                   </div>
-                )}
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="relative overflow-hidden bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl shadow p-8 border border-gray-200 dark:border-gray-700">
+                {/* Decorative elements inspired by golden ratio */}
+                <div className="absolute top-0 right-0 w-32 h-32 opacity-10" 
+                  style={{
+                    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' fill='none'%3E%3Cpath d='M70 30C70 15 55 15 55 30C55 45 70 45 70 30Z' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E\")",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "top right"
+                  }}
+                />
+                
+                <div className="text-center relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
+                    {isOwnProfile 
+                      ? "You're not part of any team yet" 
+                      : `${user.name} is not part of any team yet`}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    {isOwnProfile 
+                      ? "Teams help you organize your sports activities with friends and compete together in events and tournaments." 
+                      : "Teams that they join will appear here. You can invite them to join your team."}
+                  </p>
+                  
+                  {isOwnProfile && (
+                    <div className="space-y-3">
+                      <button 
+                        className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 
+                        transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
+                        inline-flex items-center justify-center"
+                        onClick={() => toast({
+                          title: "Create Team",
+                          description: "This would open the team creation form in the full app."
+                        })}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                        </svg>
+                        Create a Team
+                      </button>
+                      <a 
+                        href="/teams" 
+                        className="mt-2 bg-white text-primary border border-primary px-6 py-2.5 rounded-full text-sm font-medium
+                        hover:bg-primary/5 transition-all duration-200 shadow-sm inline-flex items-center justify-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                        </svg>
+                        Browse Teams
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
-        
       </div>
     </div>
   );
