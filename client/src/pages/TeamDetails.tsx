@@ -259,22 +259,47 @@ const TeamDetails = () => {
   // Mutation to respond to a schedule
   const respondToScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Submitting schedule response with data:', {
+        scheduleId: selectedSchedule?.id,
+        userId: user?.id,
+        response: data.response,
+        notes: data.notes,
+        maybeDeadline: data.response === 'maybe' ? data.maybeDeadline : null,
+      });
+      
+      // Make sure we have a selected schedule
+      if (!selectedSchedule || !selectedSchedule.id) {
+        throw new Error('No schedule selected');
+      }
+      
+      // Create a clean request payload
+      const payload = {
+        scheduleId: selectedSchedule.id,
+        userId: user?.id,
+        response: data.response,
+        notes: data.notes || null,
+        maybeDeadline: data.response === 'maybe' ? new Date(data.maybeDeadline).toISOString() : null,
+      };
+      
       const response = await fetch(`/api/schedules/${selectedSchedule.id}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          scheduleId: selectedSchedule.id,
-          userId: user?.id,
-          response: data.response,
-          notes: data.notes || null,
-          maybeDeadline: data.response === 'maybe' ? new Date(data.maybeDeadline).toISOString() : null,
-        }),
+        body: JSON.stringify(payload),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to respond to schedule');
+        // Try to get the detailed error
+        let errorMessage = 'Failed to respond to schedule';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error('Schedule response error details:', errorData);
+        } catch (e) {
+          console.error('Could not parse error response:', e);
+        }
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -289,10 +314,11 @@ const TeamDetails = () => {
         description: "Your response has been submitted successfully.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
+      console.error('Schedule response error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit response. Please try again.",
+        description: error.message || "Failed to submit response. Please try again.",
         variant: "destructive",
       });
     },

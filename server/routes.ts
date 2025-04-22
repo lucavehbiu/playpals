@@ -1539,6 +1539,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scheduleId = parseInt(req.params.scheduleId);
       const authenticatedUser = (req as any).user as User;
       
+      // Debug the incoming request data
+      console.log('Schedule response request:', {
+        params: req.params,
+        body: req.body,
+        userId: authenticatedUser.id
+      });
+      
       if (isNaN(scheduleId)) {
         return res.status(400).json({ message: "Invalid schedule ID" });
       }
@@ -1570,15 +1577,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: authenticatedUser.id
       };
       
+      // Debug the response data before validation
+      console.log('Response data before validation:', responseData);
+      
       if (typeof responseData.maybeDeadline === 'string') {
         responseData.maybeDeadline = new Date(responseData.maybeDeadline);
       }
       
       // Validate with Zod schema
-      const validatedData = insertTeamScheduleResponseSchema.parse(responseData);
-      
-      const response = await storage.createTeamScheduleResponse(validatedData);
-      res.status(201).json(response);
+      try {
+        const validatedData = insertTeamScheduleResponseSchema.parse(responseData);
+        console.log('Validated data:', validatedData);
+        
+        const response = await storage.createTeamScheduleResponse(validatedData);
+        return res.status(201).json(response);
+      } catch (validationError) {
+        console.error('Validation error:', validationError);
+        return res.status(400).json({ message: "Invalid response data", details: validationError });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid response data", errors: error.errors });
