@@ -2832,8 +2832,7 @@ export class DatabaseStorage implements IStorage {
 // Initialize storage - switch to MemStorage for now since we have database issues
 export const storage = new MemStorage();
 
-// Don't automatically initialize sample data
-// We'll initialize a sample user manually
+// Initialize sample data for testing
 const adminUser: InsertUser = {
   username: "admin",
   password: "admin123", // Plain text for testing only
@@ -2841,9 +2840,101 @@ const adminUser: InsertUser = {
   email: "admin@example.com"
 };
 
-// Create a test user
+// Create a test user and sample data
 storage.createUser(adminUser).then(user => {
   console.log("Created test user:", user.username);
+  
+  // Create some sample events
+  const sampleEvents = [
+    {
+      title: "Basketball Pickup Game",
+      description: "Casual basketball game at the local park",
+      sportType: "basketball",
+      date: new Date(Date.now() + 86400000), // Tomorrow
+      location: "Central Park Courts",
+      locationCoordinates: { lat: 40.785091, lng: -73.968285 },
+      maxParticipants: 10,
+      currentParticipants: 1,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: user.id,
+      eventImage: null
+    },
+    {
+      title: "Weekly Soccer Match",
+      description: "Regular weekend soccer game, all levels welcome",
+      sportType: "soccer",
+      date: new Date(Date.now() + 172800000), // Two days from now
+      location: "Riverside Fields",
+      locationCoordinates: { lat: 40.800909, lng: -73.972222 },
+      maxParticipants: 22,
+      currentParticipants: 1,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: user.id,
+      eventImage: null
+    },
+    {
+      title: "Tennis Doubles Tournament",
+      description: "Friendly tournament for doubles teams",
+      sportType: "tennis",
+      date: new Date(Date.now() + 604800000), // One week from now
+      location: "City Tennis Club",
+      locationCoordinates: { lat: 40.758896, lng: -73.985130 },
+      maxParticipants: 16,
+      currentParticipants: 1,
+      isPublic: true,
+      isFree: false,
+      cost: 20,
+      creatorId: user.id,
+      eventImage: null
+    }
+  ];
+  
+  // Sample teams to create
+  const sampleTeams = [
+    {
+      name: "Downtown Dribblers",
+      sportType: "basketball",
+      description: "Casual basketball team for weekend games and practices",
+      logo: null,
+      creatorId: user.id,
+      isPublic: true
+    },
+    {
+      name: "City Kickers FC",
+      sportType: "soccer",
+      description: "Recreational soccer team looking for friendly matches",
+      logo: null,
+      creatorId: user.id,
+      isPublic: true
+    },
+    {
+      name: "Ace Smashers",
+      sportType: "tennis",
+      description: "Tennis club for doubles and singles competitive play",
+      logo: null,
+      creatorId: user.id,
+      isPublic: true
+    }
+  ];
+
+  // Add sample events
+  Promise.all(sampleEvents.map(event => storage.createEvent(event)))
+    .then(events => {
+      console.log(`Created ${events.length} sample events`);
+      
+      // Now create teams
+      return Promise.all(sampleTeams.map(team => storage.createTeam(team)));
+    })
+    .then(teams => {
+      console.log(`Created ${teams.length} sample teams`);
+    })
+    .catch(error => {
+      console.error("Failed to create sample data:", error);
+    });
 }).catch(error => {
   console.error("Failed to create test user:", error);
 });
