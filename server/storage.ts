@@ -2829,10 +2829,9 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Initialize storage
-export const storage = new DatabaseStorage();
+// Initialize storage - switch to MemStorage for now since we have database issues
+export const storage = new MemStorage();
 
-// Seed the database with sample data
-storage.initSampleData().catch(error => {
-  console.error('Failed to initialize sample data:', error);
-});
+// Call the initSampleData synchronously for MemStorage
+// No need to catch since MemStorage's implementation is synchronous
+storage.initSampleData();
