@@ -2832,6 +2832,18 @@ export class DatabaseStorage implements IStorage {
 // Initialize storage - switch to MemStorage for now since we have database issues
 export const storage = new MemStorage();
 
-// Call the initSampleData synchronously for MemStorage
-// No need to catch since MemStorage's implementation is synchronous
-storage.initSampleData();
+// Don't automatically initialize sample data
+// We'll initialize a sample user manually
+const adminUser: InsertUser = {
+  username: "admin",
+  password: "admin123", // Plain text for testing only
+  name: "Admin User",
+  email: "admin@example.com"
+};
+
+// Create a test user
+storage.createUser(adminUser).then(user => {
+  console.log("Created test user:", user.username);
+}).catch(error => {
+  console.error("Failed to create test user:", error);
+});
