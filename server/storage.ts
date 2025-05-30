@@ -1112,6 +1112,16 @@ export class MemStorage implements IStorage {
     return newGroup;
   }
 
+  async getSportsGroupMembers(groupId: number): Promise<SportsGroupMember[]> {
+    const members: SportsGroupMember[] = [];
+    for (const member of this.sportsGroupMembers.values()) {
+      if (member.groupId === groupId) {
+        members.push(member);
+      }
+    }
+    return members;
+  }
+
   async updateSportsGroup(id: number, data: Partial<SportsGroup>): Promise<SportsGroup | undefined> {
     const group = this.sportsGroups.get(id);
     if (!group) return undefined;

@@ -1911,10 +1911,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const groups = await storage.getAllSportsGroups();
       
+      // Add member count and admin info to each group
+      const groupsWithDetails = await Promise.all(groups.map(async (group) => {
+        const members = await storage.getSportsGroupMembers(group.id);
+        const admin = await storage.getUser(group.adminId);
+        
+        return {
+          ...group,
+          memberCount: members.length,
+          admin: admin ? {
+            id: admin.id,
+            name: admin.name,
+            profileImage: admin.profileImage
+          } : null
+        };
+      }));
+      
       // Filter by sport type if provided
-      let filteredGroups = groups;
+      let filteredGroups = groupsWithDetails;
       if (sportType && sportType !== 'all') {
-        filteredGroups = groups.filter(group => group.sportType === sportType);
+        filteredGroups = groupsWithDetails.filter(group => group.sportType === sportType);
       }
       
       // Filter by search query if provided
@@ -1943,7 +1959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminId: authenticatedUser.id
       });
       
-      // Create the sports group
+      // Create the sports group (automatically adds creator as admin member)
       const newGroup = await storage.createSportsGroup(validatedData);
       
       res.status(201).json(newGroup);
