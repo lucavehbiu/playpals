@@ -41,6 +41,12 @@ export const teamSizePreferences = ["small", "medium", "large", "any"] as const;
 // Team status options
 export const teamStatusOptions = ["solo", "has_team", "looking_for_team"] as const;
 
+// Sports group member roles
+export const sportsGroupRoles = ["admin", "member"] as const;
+
+// Poll response types
+export const pollResponseTypes = ["available", "unavailable", "maybe"] as const;
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -237,6 +243,95 @@ export const teamJoinRequests = pgTable("team_join_requests", {
   uniqueJoinRequest: unique().on(t.teamId, t.userId),
 }));
 
+// Sports Groups table
+export const sportsGroups = pgTable("sports_groups", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sportType: text("sport_type").notNull(),
+  adminId: integer("admin_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  maxMembers: integer("max_members").default(20),
+  isPrivate: boolean("is_private").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sports Group Members table
+export const sportsGroupMembers = pgTable("sports_group_members", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // "admin", "member"
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}, (t) => ({
+  groupUserUnique: unique().on(t.groupId, t.userId),
+}));
+
+// Sports Group Chat Messages table
+export const sportsGroupMessages = pgTable("sports_group_messages", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sports Group Events table
+export const sportsGroupEvents = pgTable("sports_group_events", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  groupEventUnique: unique().on(t.groupId, t.eventId),
+}));
+
+// Sports Group Polls table
+export const sportsGroupPolls = pgTable("sports_group_polls", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  createdBy: integer("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  minMembers: integer("min_members").default(2),
+  duration: integer("duration").default(60), // in minutes
+  endDate: timestamp("end_date").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sports Group Poll Time Slots table
+export const sportsGroupPollTimeSlots = pgTable("sports_group_poll_time_slots", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull().references(() => sportsGroupPolls.id, { onDelete: "cascade" }),
+  dayOfWeek: integer("day_of_week").notNull(), // 0 = Sunday, 1 = Monday, etc.
+  startTime: text("start_time").notNull(), // "09:00"
+  endTime: text("end_time").notNull(), // "11:00"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sports Group Poll Responses table
+export const sportsGroupPollResponses = pgTable("sports_group_poll_responses", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull().references(() => sportsGroupPolls.id, { onDelete: "cascade" }),
+  timeSlotId: integer("time_slot_id").notNull().references(() => sportsGroupPollTimeSlots.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  response: text("response").notNull(), // "available", "unavailable", "maybe"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  pollUserTimeSlotUnique: unique().on(t.pollId, t.timeSlotId, t.userId),
+}));
+
+// Sports Group Join Requests table
+export const sportsGroupJoinRequests = pgTable("sports_group_join_requests", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // "pending", "accepted", "rejected"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  groupUserUnique: unique().on(t.groupId, t.userId),
+}));
+
 // Define relations
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -416,6 +511,114 @@ export const teamScheduleResponsesRelations = relations(teamScheduleResponses, (
   }),
 }));
 
+// Sports Groups relations
+export const sportsGroupsRelations = relations(sportsGroups, ({ one, many }) => ({
+  admin: one(users, {
+    fields: [sportsGroups.adminId],
+    references: [users.id],
+    relationName: "sports_group_admin",
+  }),
+  members: many(sportsGroupMembers, { relationName: "sports_group_members" }),
+  messages: many(sportsGroupMessages, { relationName: "sports_group_messages" }),
+  events: many(sportsGroupEvents, { relationName: "sports_group_events" }),
+  polls: many(sportsGroupPolls, { relationName: "sports_group_polls" }),
+  joinRequests: many(sportsGroupJoinRequests, { relationName: "sports_group_join_requests" }),
+}));
+
+export const sportsGroupMembersRelations = relations(sportsGroupMembers, ({ one }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupMembers.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_members",
+  }),
+  user: one(users, {
+    fields: [sportsGroupMembers.userId],
+    references: [users.id],
+    relationName: "user_sports_group_memberships",
+  }),
+}));
+
+export const sportsGroupMessagesRelations = relations(sportsGroupMessages, ({ one }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupMessages.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_messages",
+  }),
+  user: one(users, {
+    fields: [sportsGroupMessages.userId],
+    references: [users.id],
+    relationName: "user_sports_group_messages",
+  }),
+}));
+
+export const sportsGroupEventsRelations = relations(sportsGroupEvents, ({ one }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupEvents.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_events",
+  }),
+  event: one(events, {
+    fields: [sportsGroupEvents.eventId],
+    references: [events.id],
+    relationName: "sports_group_event_link",
+  }),
+}));
+
+export const sportsGroupPollsRelations = relations(sportsGroupPolls, ({ one, many }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupPolls.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_polls",
+  }),
+  creator: one(users, {
+    fields: [sportsGroupPolls.createdBy],
+    references: [users.id],
+    relationName: "user_sports_group_polls",
+  }),
+  timeSlots: many(sportsGroupPollTimeSlots, { relationName: "poll_time_slots" }),
+  responses: many(sportsGroupPollResponses, { relationName: "poll_responses" }),
+}));
+
+export const sportsGroupPollTimeSlotsRelations = relations(sportsGroupPollTimeSlots, ({ one, many }) => ({
+  poll: one(sportsGroupPolls, {
+    fields: [sportsGroupPollTimeSlots.pollId],
+    references: [sportsGroupPolls.id],
+    relationName: "poll_time_slots",
+  }),
+  responses: many(sportsGroupPollResponses, { relationName: "time_slot_responses" }),
+}));
+
+export const sportsGroupPollResponsesRelations = relations(sportsGroupPollResponses, ({ one }) => ({
+  poll: one(sportsGroupPolls, {
+    fields: [sportsGroupPollResponses.pollId],
+    references: [sportsGroupPolls.id],
+    relationName: "poll_responses",
+  }),
+  timeSlot: one(sportsGroupPollTimeSlots, {
+    fields: [sportsGroupPollResponses.timeSlotId],
+    references: [sportsGroupPollTimeSlots.id],
+    relationName: "time_slot_responses",
+  }),
+  user: one(users, {
+    fields: [sportsGroupPollResponses.userId],
+    references: [users.id],
+    relationName: "user_poll_responses",
+  }),
+}));
+
+export const sportsGroupJoinRequestsRelations = relations(sportsGroupJoinRequests, ({ one }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupJoinRequests.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_join_requests",
+  }),
+  user: one(users, {
+    fields: [sportsGroupJoinRequests.userId],
+    references: [users.id],
+    relationName: "user_sports_group_join_requests",
+  }),
+}));
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -515,6 +718,52 @@ export const insertTeamJoinRequestSchema = createInsertSchema(teamJoinRequests).
   createdAt: true,
 });
 
+// Sports Groups insert schemas
+export const insertSportsGroupSchema = createInsertSchema(sportsGroups).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportsGroupMemberSchema = createInsertSchema(sportsGroupMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertSportsGroupMessageSchema = createInsertSchema(sportsGroupMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportsGroupEventSchema = createInsertSchema(sportsGroupEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportsGroupPollSchema = createInsertSchema(sportsGroupPolls).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  endDate: z.preprocess(
+    (val) => (typeof val === 'string' ? new Date(val) : val),
+    z.date()
+  ),
+});
+
+export const insertSportsGroupPollTimeSlotSchema = createInsertSchema(sportsGroupPollTimeSlots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportsGroupPollResponseSchema = createInsertSchema(sportsGroupPollResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportsGroupJoinRequestSchema = createInsertSchema(sportsGroupJoinRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -576,6 +825,31 @@ export type InsertPlayerRating = z.infer<typeof insertPlayerRatingSchema>;
 export type UserOnboardingPreference = typeof userOnboardingPreferences.$inferSelect;
 export type InsertUserOnboardingPreference = z.infer<typeof insertUserOnboardingPreferenceSchema>;
 
+// Sports Groups types
+export type SportsGroup = typeof sportsGroups.$inferSelect;
+export type InsertSportsGroup = z.infer<typeof insertSportsGroupSchema>;
+
+export type SportsGroupMember = typeof sportsGroupMembers.$inferSelect;
+export type InsertSportsGroupMember = z.infer<typeof insertSportsGroupMemberSchema>;
+
+export type SportsGroupMessage = typeof sportsGroupMessages.$inferSelect;
+export type InsertSportsGroupMessage = z.infer<typeof insertSportsGroupMessageSchema>;
+
+export type SportsGroupEvent = typeof sportsGroupEvents.$inferSelect;
+export type InsertSportsGroupEvent = z.infer<typeof insertSportsGroupEventSchema>;
+
+export type SportsGroupPoll = typeof sportsGroupPolls.$inferSelect;
+export type InsertSportsGroupPoll = z.infer<typeof insertSportsGroupPollSchema>;
+
+export type SportsGroupPollTimeSlot = typeof sportsGroupPollTimeSlots.$inferSelect;
+export type InsertSportsGroupPollTimeSlot = z.infer<typeof insertSportsGroupPollTimeSlotSchema>;
+
+export type SportsGroupPollResponse = typeof sportsGroupPollResponses.$inferSelect;
+export type InsertSportsGroupPollResponse = z.infer<typeof insertSportsGroupPollResponseSchema>;
+
+export type SportsGroupJoinRequest = typeof sportsGroupJoinRequests.$inferSelect;
+export type InsertSportsGroupJoinRequest = z.infer<typeof insertSportsGroupJoinRequestSchema>;
+
 export type SportType = typeof sportTypes[number];
 export type RSVPStatus = typeof rsvpStatusTypes[number];
 export type TeamMemberRole = typeof teamMemberRoles[number];
@@ -584,3 +858,5 @@ export type SkillLevel = typeof skillLevels[number];
 export type ActivityFrequency = typeof activityFrequencies[number];
 export type TeamSizePreference = typeof teamSizePreferences[number];
 export type TeamStatus = typeof teamStatusOptions[number];
+export type SportsGroupRole = typeof sportsGroupRoles[number];
+export type PollResponseType = typeof pollResponseTypes[number];
