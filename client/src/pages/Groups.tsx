@@ -318,7 +318,7 @@ export default function Groups() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map((group: any) => (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow">
+              <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/groups/${group.id}`)}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
