@@ -12,7 +12,15 @@ import {
   teamPostComments, type TeamPostComment, type InsertTeamPostComment,
   teamSchedules, type TeamSchedule, type InsertTeamSchedule,
   teamScheduleResponses, type TeamScheduleResponse, type InsertTeamScheduleResponse,
-  teamJoinRequests, type TeamJoinRequest, type InsertTeamJoinRequest
+  teamJoinRequests, type TeamJoinRequest, type InsertTeamJoinRequest,
+  sportsGroups, type SportsGroup, type InsertSportsGroup,
+  sportsGroupMembers, type SportsGroupMember, type InsertSportsGroupMember,
+  sportsGroupMessages, type SportsGroupMessage, type InsertSportsGroupMessage,
+  sportsGroupEvents, type SportsGroupEvent, type InsertSportsGroupEvent,
+  sportsGroupPolls, type SportsGroupPoll, type InsertSportsGroupPoll,
+  sportsGroupPollTimeSlots, type SportsGroupPollTimeSlot, type InsertSportsGroupPollTimeSlot,
+  sportsGroupPollResponses, type SportsGroupPollResponse, type InsertSportsGroupPollResponse,
+  sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, like, avg, sql } from "drizzle-orm";
@@ -132,6 +140,58 @@ export interface IStorage {
   createTeamJoinRequest(request: InsertTeamJoinRequest): Promise<TeamJoinRequest>;
   updateTeamJoinRequest(id: number, requestData: Partial<TeamJoinRequest>): Promise<TeamJoinRequest | undefined>;
   deleteTeamJoinRequest(id: number): Promise<boolean>;
+
+  // Sports Groups methods
+  getSportsGroup(id: number): Promise<SportsGroup | undefined>;
+  getSportsGroupsByUser(userId: number): Promise<SportsGroup[]>;
+  getAllSportsGroups(sportType?: string, nameQuery?: string): Promise<SportsGroup[]>;
+  createSportsGroup(group: InsertSportsGroup): Promise<SportsGroup>;
+  updateSportsGroup(id: number, groupData: Partial<SportsGroup>): Promise<SportsGroup | undefined>;
+  deleteSportsGroup(id: number): Promise<boolean>;
+
+  // Sports Group Members methods
+  getSportsGroupMember(groupId: number, userId: number): Promise<SportsGroupMember | undefined>;
+  getSportsGroupMembers(groupId: number): Promise<SportsGroupMember[]>;
+  addSportsGroupMember(member: InsertSportsGroupMember): Promise<SportsGroupMember>;
+  updateSportsGroupMember(id: number, memberData: Partial<SportsGroupMember>): Promise<SportsGroupMember | undefined>;
+  removeSportsGroupMember(id: number): Promise<boolean>;
+
+  // Sports Group Messages methods
+  getSportsGroupMessages(groupId: number): Promise<SportsGroupMessage[]>;
+  createSportsGroupMessage(message: InsertSportsGroupMessage): Promise<SportsGroupMessage>;
+  updateSportsGroupMessage(id: number, messageData: Partial<SportsGroupMessage>): Promise<SportsGroupMessage | undefined>;
+  deleteSportsGroupMessage(id: number): Promise<boolean>;
+
+  // Sports Group Events methods
+  getSportsGroupEvents(groupId: number): Promise<SportsGroupEvent[]>;
+  addSportsGroupEvent(groupEvent: InsertSportsGroupEvent): Promise<SportsGroupEvent>;
+  removeSportsGroupEvent(id: number): Promise<boolean>;
+
+  // Sports Group Polls methods
+  getSportsGroupPolls(groupId: number): Promise<SportsGroupPoll[]>;
+  getSportsGroupPoll(id: number): Promise<SportsGroupPoll | undefined>;
+  createSportsGroupPoll(poll: InsertSportsGroupPoll): Promise<SportsGroupPoll>;
+  updateSportsGroupPoll(id: number, pollData: Partial<SportsGroupPoll>): Promise<SportsGroupPoll | undefined>;
+  deleteSportsGroupPoll(id: number): Promise<boolean>;
+
+  // Sports Group Poll Time Slots methods
+  getSportsGroupPollTimeSlots(pollId: number): Promise<SportsGroupPollTimeSlot[]>;
+  createSportsGroupPollTimeSlot(timeSlot: InsertSportsGroupPollTimeSlot): Promise<SportsGroupPollTimeSlot>;
+  deleteSportsGroupPollTimeSlot(id: number): Promise<boolean>;
+
+  // Sports Group Poll Responses methods
+  getSportsGroupPollResponses(pollId: number): Promise<SportsGroupPollResponse[]>;
+  getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<SportsGroupPollResponse[]>;
+  createSportsGroupPollResponse(response: InsertSportsGroupPollResponse): Promise<SportsGroupPollResponse>;
+  updateSportsGroupPollResponse(id: number, responseData: Partial<SportsGroupPollResponse>): Promise<SportsGroupPollResponse | undefined>;
+  deleteSportsGroupPollResponse(id: number): Promise<boolean>;
+
+  // Sports Group Join Requests methods
+  getSportsGroupJoinRequests(groupId: number): Promise<SportsGroupJoinRequest[]>;
+  getSportsGroupJoinRequest(groupId: number, userId: number): Promise<SportsGroupJoinRequest | undefined>;
+  createSportsGroupJoinRequest(request: InsertSportsGroupJoinRequest): Promise<SportsGroupJoinRequest>;
+  updateSportsGroupJoinRequest(id: number, requestData: Partial<SportsGroupJoinRequest>): Promise<SportsGroupJoinRequest | undefined>;
+  deleteSportsGroupJoinRequest(id: number): Promise<boolean>;
 
   // Session store
   sessionStore: session.Store;

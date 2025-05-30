@@ -351,6 +351,14 @@ const Header = () => {
                 </Link>
               </div>
               <div className="w-[85px]">
+                <Link href="/groups">
+                  <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location === '/groups' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                    <Users className="h-6 w-6 mx-auto" />
+                    <span className="text-xs font-medium mt-1 block">Groups</span>
+                  </div>
+                </Link>
+              </div>
+              <div className="w-[85px]">
                 <Link href="/invitations">
                   <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location === '/invitations' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
                     <Bell className="h-6 w-6 mx-auto" />
