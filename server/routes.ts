@@ -1909,11 +1909,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sportType, search } = req.query;
       
-      // For now, return empty array since we haven't implemented the storage methods yet
-      // This will allow the frontend to load without errors
-      const groups: any[] = [];
+      const groups = await storage.getAllSportsGroups();
       
-      res.json(groups);
+      // Filter by sport type if provided
+      let filteredGroups = groups;
+      if (sportType && sportType !== 'all') {
+        filteredGroups = groups.filter(group => group.sportType === sportType);
+      }
+      
+      // Filter by search query if provided
+      if (search) {
+        const searchLower = (search as string).toLowerCase();
+        filteredGroups = filteredGroups.filter(group => 
+          group.name.toLowerCase().includes(searchLower) ||
+          (group.description && group.description.toLowerCase().includes(searchLower))
+        );
+      }
+      
+      res.json(filteredGroups);
     } catch (error) {
       console.error('Error fetching sports groups:', error);
       res.status(500).json({ message: "Error fetching sports groups" });
@@ -1930,19 +1943,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminId: authenticatedUser.id
       });
       
-      // For now, return a mock response since storage methods aren't implemented yet
-      const newGroup = {
-        id: Date.now(), // Temporary ID
-        ...validatedData,
-        createdAt: new Date(),
-        admin: {
-          id: authenticatedUser.id,
-          name: authenticatedUser.name,
-          profileImage: authenticatedUser.profileImage
-        },
-        memberCount: 1,
-        messageCount: 0
-      };
+      // Create the sports group
+      const newGroup = await storage.createSportsGroup(validatedData);
       
       res.status(201).json(newGroup);
     } catch (error) {

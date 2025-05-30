@@ -213,6 +213,14 @@ export class MemStorage implements IStorage {
   private teamScheduleResponses: Map<number, TeamScheduleResponse>;
   private teamJoinRequests: Map<number, TeamJoinRequest>;
   private userOnboardingPreferences: Map<number, UserOnboardingPreference>;
+  private sportsGroups: Map<number, SportsGroup>;
+  private sportsGroupMembers: Map<number, SportsGroupMember>;
+  private sportsGroupPosts: Map<number, SportsGroupPost>;
+  private sportsGroupPostComments: Map<number, SportsGroupPostComment>;
+  private sportsGroupPolls: Map<number, SportsGroupPoll>;
+  private sportsGroupPollOptions: Map<number, SportsGroupPollOption>;
+  private sportsGroupPollVotes: Map<number, SportsGroupPollVote>;
+  private sportsGroupAvailability: Map<number, SportsGroupAvailability>;
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
@@ -246,6 +254,14 @@ export class MemStorage implements IStorage {
     this.teamSchedules = new Map();
     this.teamScheduleResponses = new Map();
     this.teamJoinRequests = new Map();
+    this.sportsGroups = new Map();
+    this.sportsGroupMembers = new Map();
+    this.sportsGroupPosts = new Map();
+    this.sportsGroupPostComments = new Map();
+    this.sportsGroupPolls = new Map();
+    this.sportsGroupPollOptions = new Map();
+    this.sportsGroupPollVotes = new Map();
+    this.sportsGroupAvailability = new Map();
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
@@ -3051,3 +3067,280 @@ storage.createUser(adminUser).then(user => {
 }).catch(error => {
   console.error("Failed to create test user:", error);
 });
+
+  // Sports Groups methods
+  async getAllSportsGroups(): Promise<SportsGroup[]> {
+    return Array.from(this.sportsGroups.values());
+  }
+
+  async getSportsGroup(id: number): Promise<SportsGroup | undefined> {
+    return this.sportsGroups.get(id);
+  }
+
+  async getSportsGroupsByUser(userId: number): Promise<SportsGroup[]> {
+    const userGroups: SportsGroup[] = [];
+    
+    // Get groups where user is admin
+    for (const group of this.sportsGroups.values()) {
+      if (group.adminId === userId) {
+        userGroups.push(group);
+      }
+    }
+    
+    // Get groups where user is a member
+    for (const member of this.sportsGroupMembers.values()) {
+      if (member.userId === userId) {
+        const group = this.sportsGroups.get(member.groupId);
+        if (group && !userGroups.find(g => g.id === group.id)) {
+          userGroups.push(group);
+        }
+      }
+    }
+    
+    return userGroups;
+  }
+
+  async createSportsGroup(data: Omit<SportsGroup, 'id' | 'createdAt'>): Promise<SportsGroup> {
+    const id = Date.now();
+    const newGroup: SportsGroup = {
+      id,
+      ...data,
+      createdAt: new Date(),
+    };
+    
+    this.sportsGroups.set(id, newGroup);
+    
+    // Add the admin as the first member
+    const memberData = {
+      id: Date.now() + 1,
+      groupId: id,
+      userId: data.adminId,
+      role: 'admin' as const,
+      joinedAt: new Date(),
+    };
+    this.sportsGroupMembers.set(memberData.id, memberData);
+    
+    return newGroup;
+  }
+
+  async updateSportsGroup(id: number, data: Partial<SportsGroup>): Promise<SportsGroup | undefined> {
+    const group = this.sportsGroups.get(id);
+    if (!group) return undefined;
+    
+    const updatedGroup = { ...group, ...data };
+    this.sportsGroups.set(id, updatedGroup);
+    return updatedGroup;
+  }
+
+  async deleteSportsGroup(id: number): Promise<boolean> {
+    return this.sportsGroups.delete(id);
+  }
+
+  // Sports Group Members methods
+  async getSportsGroupMembers(groupId: number): Promise<SportsGroupMember[]> {
+    return Array.from(this.sportsGroupMembers.values()).filter(member => member.groupId === groupId);
+  }
+
+  async createSportsGroupMember(data: Omit<SportsGroupMember, 'id' | 'joinedAt'>): Promise<SportsGroupMember> {
+    const id = Date.now();
+    const newMember: SportsGroupMember = {
+      id,
+      ...data,
+      joinedAt: new Date(),
+    };
+    
+    this.sportsGroupMembers.set(id, newMember);
+    return newMember;
+  }
+
+  async updateSportsGroupMember(id: number, data: Partial<SportsGroupMember>): Promise<SportsGroupMember | undefined> {
+    const member = this.sportsGroupMembers.get(id);
+    if (!member) return undefined;
+    
+    const updatedMember = { ...member, ...data };
+    this.sportsGroupMembers.set(id, updatedMember);
+    return updatedMember;
+  }
+
+  async deleteSportsGroupMember(id: number): Promise<boolean> {
+    return this.sportsGroupMembers.delete(id);
+  }
+
+  // Sports Group Posts methods
+  async getSportsGroupPosts(groupId: number): Promise<SportsGroupPost[]> {
+    return Array.from(this.sportsGroupPosts.values()).filter(post => post.groupId === groupId);
+  }
+
+  async createSportsGroupPost(data: Omit<SportsGroupPost, 'id' | 'createdAt'>): Promise<SportsGroupPost> {
+    const id = Date.now();
+    const newPost: SportsGroupPost = {
+      id,
+      ...data,
+      createdAt: new Date(),
+    };
+    
+    this.sportsGroupPosts.set(id, newPost);
+    return newPost;
+  }
+
+  async updateSportsGroupPost(id: number, data: Partial<SportsGroupPost>): Promise<SportsGroupPost | undefined> {
+    const post = this.sportsGroupPosts.get(id);
+    if (!post) return undefined;
+    
+    const updatedPost = { ...post, ...data };
+    this.sportsGroupPosts.set(id, updatedPost);
+    return updatedPost;
+  }
+
+  async deleteSportsGroupPost(id: number): Promise<boolean> {
+    return this.sportsGroupPosts.delete(id);
+  }
+
+  // Sports Group Post Comments methods
+  async getSportsGroupPostComments(postId: number): Promise<SportsGroupPostComment[]> {
+    return Array.from(this.sportsGroupPostComments.values()).filter(comment => comment.postId === postId);
+  }
+
+  async createSportsGroupPostComment(data: Omit<SportsGroupPostComment, 'id' | 'createdAt'>): Promise<SportsGroupPostComment> {
+    const id = Date.now();
+    const newComment: SportsGroupPostComment = {
+      id,
+      ...data,
+      createdAt: new Date(),
+    };
+    
+    this.sportsGroupPostComments.set(id, newComment);
+    return newComment;
+  }
+
+  async updateSportsGroupPostComment(id: number, data: Partial<SportsGroupPostComment>): Promise<SportsGroupPostComment | undefined> {
+    const comment = this.sportsGroupPostComments.get(id);
+    if (!comment) return undefined;
+    
+    const updatedComment = { ...comment, ...data };
+    this.sportsGroupPostComments.set(id, updatedComment);
+    return updatedComment;
+  }
+
+  async deleteSportsGroupPostComment(id: number): Promise<boolean> {
+    return this.sportsGroupPostComments.delete(id);
+  }
+
+  // Sports Group Polls methods
+  async getSportsGroupPolls(groupId: number): Promise<SportsGroupPoll[]> {
+    return Array.from(this.sportsGroupPolls.values()).filter(poll => poll.groupId === groupId);
+  }
+
+  async createSportsGroupPoll(data: Omit<SportsGroupPoll, 'id' | 'createdAt'>): Promise<SportsGroupPoll> {
+    const id = Date.now();
+    const newPoll: SportsGroupPoll = {
+      id,
+      ...data,
+      createdAt: new Date(),
+    };
+    
+    this.sportsGroupPolls.set(id, newPoll);
+    return newPoll;
+  }
+
+  async updateSportsGroupPoll(id: number, data: Partial<SportsGroupPoll>): Promise<SportsGroupPoll | undefined> {
+    const poll = this.sportsGroupPolls.get(id);
+    if (!poll) return undefined;
+    
+    const updatedPoll = { ...poll, ...data };
+    this.sportsGroupPolls.set(id, updatedPoll);
+    return updatedPoll;
+  }
+
+  async deleteSportsGroupPoll(id: number): Promise<boolean> {
+    return this.sportsGroupPolls.delete(id);
+  }
+
+  // Sports Group Poll Options methods
+  async getSportsGroupPollOptions(pollId: number): Promise<SportsGroupPollOption[]> {
+    return Array.from(this.sportsGroupPollOptions.values()).filter(option => option.pollId === pollId);
+  }
+
+  async createSportsGroupPollOption(data: Omit<SportsGroupPollOption, 'id'>): Promise<SportsGroupPollOption> {
+    const id = Date.now();
+    const newOption: SportsGroupPollOption = {
+      id,
+      ...data,
+    };
+    
+    this.sportsGroupPollOptions.set(id, newOption);
+    return newOption;
+  }
+
+  async updateSportsGroupPollOption(id: number, data: Partial<SportsGroupPollOption>): Promise<SportsGroupPollOption | undefined> {
+    const option = this.sportsGroupPollOptions.get(id);
+    if (!option) return undefined;
+    
+    const updatedOption = { ...option, ...data };
+    this.sportsGroupPollOptions.set(id, updatedOption);
+    return updatedOption;
+  }
+
+  async deleteSportsGroupPollOption(id: number): Promise<boolean> {
+    return this.sportsGroupPollOptions.delete(id);
+  }
+
+  // Sports Group Poll Votes methods
+  async getSportsGroupPollVotes(optionId: number): Promise<SportsGroupPollVote[]> {
+    return Array.from(this.sportsGroupPollVotes.values()).filter(vote => vote.optionId === optionId);
+  }
+
+  async createSportsGroupPollVote(data: Omit<SportsGroupPollVote, 'id' | 'votedAt'>): Promise<SportsGroupPollVote> {
+    const id = Date.now();
+    const newVote: SportsGroupPollVote = {
+      id,
+      ...data,
+      votedAt: new Date(),
+    };
+    
+    this.sportsGroupPollVotes.set(id, newVote);
+    return newVote;
+  }
+
+  async updateSportsGroupPollVote(id: number, data: Partial<SportsGroupPollVote>): Promise<SportsGroupPollVote | undefined> {
+    const vote = this.sportsGroupPollVotes.get(id);
+    if (!vote) return undefined;
+    
+    const updatedVote = { ...vote, ...data };
+    this.sportsGroupPollVotes.set(id, updatedVote);
+    return updatedVote;
+  }
+
+  async deleteSportsGroupPollVote(id: number): Promise<boolean> {
+    return this.sportsGroupPollVotes.delete(id);
+  }
+
+  // Sports Group Availability methods
+  async getSportsGroupAvailability(groupId: number): Promise<SportsGroupAvailability[]> {
+    return Array.from(this.sportsGroupAvailability.values()).filter(availability => availability.groupId === groupId);
+  }
+
+  async createSportsGroupAvailability(data: Omit<SportsGroupAvailability, 'id' | 'createdAt'>): Promise<SportsGroupAvailability> {
+    const id = Date.now();
+    const newAvailability: SportsGroupAvailability = {
+      id,
+      ...data,
+      createdAt: new Date(),
+    };
+    
+    this.sportsGroupAvailability.set(id, newAvailability);
+    return newAvailability;
+  }
+
+  async updateSportsGroupAvailability(id: number, data: Partial<SportsGroupAvailability>): Promise<SportsGroupAvailability | undefined> {
+    const availability = this.sportsGroupAvailability.get(id);
+    if (!availability) return undefined;
+    
+    const updatedAvailability = { ...availability, ...data };
+    this.sportsGroupAvailability.set(id, updatedAvailability);
+    return updatedAvailability;
+  }
+
+  async deleteSportsGroupAvailability(id: number): Promise<boolean> {
+    return this.sportsGroupAvailability.delete(id);
+  }
