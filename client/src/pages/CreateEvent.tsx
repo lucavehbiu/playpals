@@ -101,13 +101,13 @@ const CreateEvent = () => {
       description,
       sportType,
       location: eventLocation,
-      startTime: startDateTime.toISOString(),
-      endTime: endDateTime.toISOString(),
+      date: startDateTime.toISOString(),
       maxParticipants,
       creatorId: user.id,
-      isPrivate,
-      price: parseFloat(price) || 0,
-      imageUrl: imageUrl || undefined,
+      isPublic: !isPrivate,
+      isFree: parseFloat(price) === 0,
+      cost: Math.round((parseFloat(price) || 0) * 100), // Convert to cents for backend
+      eventImage: imageUrl || undefined,
     };
     
     createEventMutation.mutate(eventData);
@@ -316,7 +316,7 @@ const CreateEvent = () => {
                 id="price"
                 type="number"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => setPrice(e.target.value || "0")}
                 min="0"
                 step="0.01"
                 placeholder="0.00"
