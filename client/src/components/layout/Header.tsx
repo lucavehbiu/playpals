@@ -317,7 +317,7 @@ const Header = () => {
             </div>
             
             {/* Main Navigation - Desktop */}
-            <nav className="hidden md:flex items-center justify-between flex-1 px-4 lg:px-10 max-w-3xl mx-auto">
+            <nav className="hidden md:flex items-center justify-between flex-1 px-4 lg:px-10 max-w-4xl mx-auto">
               <div className="w-[85px]">
                 <Link href="/">
                   <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location === '/' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>

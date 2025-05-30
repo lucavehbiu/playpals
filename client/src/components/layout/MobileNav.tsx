@@ -69,6 +69,13 @@ const MobileNav = () => {
           isActive={location.startsWith('/myevents')} 
         />
         
+        <NavItem 
+          href="/groups" 
+          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
+          label="Groups" 
+          isActive={location === '/groups'} 
+        />
+        
         {/* Create Button */}
         <div ref={createButtonRef} className="relative -top-5">
           <div className="flex flex-col items-center">
