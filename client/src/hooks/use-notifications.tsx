@@ -75,10 +75,48 @@ export const useNotifications = () => {
     };
   }, [user, queryClient]);
   
-  // Fetch RSVPs for the current user
+  // Fetch RSVPs for the current user (invitations TO the user)
   const { data: rsvps = [] } = useQuery<RSVPWithEvent[]>({
     queryKey: [`/api/rsvps/user/${user?.id}`],
     enabled: !!user?.id,
+  });
+
+  // Fetch events created by the user to check for responses
+  const { data: userEvents = [] } = useQuery<any[]>({
+    queryKey: [`/api/events/user/${user?.id}`],
+    enabled: !!user?.id,
+  });
+
+  // Fetch RSVPs for events created by the user (responses TO user's events)
+  const { data: eventResponses = [] } = useQuery<RSVPWithEvent[]>({
+    queryKey: ['/api/event-responses', user?.id],
+    queryFn: async () => {
+      if (!user?.id || !userEvents || userEvents.length === 0) return [];
+      
+      const responses: RSVPWithEvent[] = [];
+      for (const event of userEvents) {
+        try {
+          const res = await fetch(`/api/rsvps/event/${event.id}`);
+          if (res.ok) {
+            const eventRsvps = await res.json();
+            // Only include approved responses (people who accepted invitations)
+            const approvedResponses = eventRsvps.filter((rsvp: any) => 
+              rsvp.status === 'approved' && rsvp.userId !== user.id
+            );
+            responses.push(...approvedResponses.map((rsvp: any) => ({
+              ...rsvp,
+              event: event
+            })));
+          }
+        } catch (error) {
+          console.error(`Error fetching RSVPs for event ${event.id}:`, error);
+        }
+      }
+      
+      return responses;
+    },
+    enabled: !!user?.id && userEvents.length > 0,
+    staleTime: 30000
   });
   
   // Get teams the user belongs to 
@@ -156,11 +194,14 @@ export const useNotifications = () => {
   useEffect(() => {
     let count = 0;
     
-    // Count pending RSVP invitations
+    // Count pending RSVP invitations (invitations TO the user)
     const pendingInvitations = rsvps.filter((rsvp: RSVPWithEvent) => {
       return rsvp.status === "maybe" || rsvp.status === "pending";
     });
     count += pendingInvitations.length;
+    
+    // Count event responses (people who accepted user's event invitations)
+    count += eventResponses.length;
     
     // Count pending team join requests
     count += joinRequests.length;
@@ -169,7 +210,7 @@ export const useNotifications = () => {
     count += teamMemberNotifications.length;
     
     setPendingCount(count);
-  }, [rsvps, joinRequests, teamMemberNotifications]);
+  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications]);
   
   // Mark a notification as viewed
   const markNotificationViewed = async (notificationId: number) => {
@@ -191,6 +232,7 @@ export const useNotifications = () => {
   return {
     pendingCount,
     rsvps,
+    eventResponses,
     joinRequests,
     teamMemberNotifications,
     markNotificationViewed,
