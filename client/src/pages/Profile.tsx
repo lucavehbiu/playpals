@@ -1,16 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
+import { Star, MessageCircle, ThumbsUp, Share2, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { apiRequest } from "@/lib/queryClient";
 
 const Profile = () => {
   const { toast } = useToast();
-  const { user: authUser } = useAuth();
-  const [location] = useLocation();
+  const { user: authUser, logout } = useAuth();
+  const [location, setLocation] = useLocation();
   
   // Get userId from URL query parameter if available
   const urlParams = new URLSearchParams(window.location.search);
@@ -22,6 +23,30 @@ const Profile = () => {
   
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/logout', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      logout();
+      setLocation('/');
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
   
   // Get user data
   const { data: user, isLoading: userLoading } = useQuery<UserProfile>({
