@@ -3090,10 +3090,151 @@ export class DatabaseStorage implements IStorage {
       await this.createPlayerRating(rating);
     }
   }
+
+  // Sports Groups methods
+  async getAllSportsGroups(): Promise<SportsGroup[]> {
+    return db.select().from(sportsGroups).orderBy(desc(sportsGroups.createdAt));
+  }
+
+  async getSportsGroup(id: number): Promise<SportsGroup | undefined> {
+    const [group] = await db.select().from(sportsGroups).where(eq(sportsGroups.id, id));
+    return group;
+  }
+
+  async createSportsGroup(data: Omit<SportsGroup, 'id' | 'createdAt'>): Promise<SportsGroup> {
+    const [newGroup] = await db.insert(sportsGroups).values({
+      ...data,
+      createdAt: new Date(),
+    }).returning();
+
+    // Add the admin as the first member
+    await db.insert(sportsGroupMembers).values({
+      groupId: newGroup.id,
+      userId: data.adminId,
+      role: 'admin',
+      joinedAt: new Date(),
+    });
+
+    return newGroup;
+  }
+
+  async getSportsGroupMembers(groupId: number): Promise<SportsGroupMember[]> {
+    return db.select().from(sportsGroupMembers).where(eq(sportsGroupMembers.groupId, groupId));
+  }
+
+  async updateSportsGroup(id: number, data: Partial<SportsGroup>): Promise<SportsGroup | undefined> {
+    const [updatedGroup] = await db
+      .update(sportsGroups)
+      .set(data)
+      .where(eq(sportsGroups.id, id))
+      .returning();
+    return updatedGroup;
+  }
+
+  async deleteSportsGroup(id: number): Promise<boolean> {
+    const result = await db
+      .delete(sportsGroups)
+      .where(eq(sportsGroups.id, id))
+      .returning({ id: sportsGroups.id });
+    return result.length > 0;
+  }
+
+  // Placeholder methods for other sports groups features (to be implemented later)
+  async getSportsGroupMember(groupId: number, userId: number): Promise<SportsGroupMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(sportsGroupMembers)
+      .where(and(eq(sportsGroupMembers.groupId, groupId), eq(sportsGroupMembers.userId, userId)));
+    return member;
+  }
+
+  async addSportsGroupMember(member: InsertSportsGroupMember): Promise<SportsGroupMember> {
+    const [newMember] = await db.insert(sportsGroupMembers).values(member).returning();
+    return newMember;
+  }
+
+  async removeSportsGroupMember(id: number): Promise<boolean> {
+    const result = await db
+      .delete(sportsGroupMembers)
+      .where(eq(sportsGroupMembers.id, id))
+      .returning({ id: sportsGroupMembers.id });
+    return result.length > 0;
+  }
+
+  async updateSportsGroupMember(id: number, memberData: Partial<SportsGroupMember>): Promise<SportsGroupMember | undefined> {
+    const [updatedMember] = await db
+      .update(sportsGroupMembers)
+      .set(memberData)
+      .where(eq(sportsGroupMembers.id, id))
+      .returning();
+    return updatedMember;
+  }
+
+  async getSportsGroupsByUser(userId: number): Promise<SportsGroup[]> {
+    // Get groups where user is admin
+    const adminGroups = await db.select().from(sportsGroups).where(eq(sportsGroups.adminId, userId));
+    
+    // Get groups where user is a member
+    const memberGroupIds = await db
+      .select({ groupId: sportsGroupMembers.groupId })
+      .from(sportsGroupMembers)
+      .where(eq(sportsGroupMembers.userId, userId));
+
+    const memberGroupIdsArray = memberGroupIds.map(item => item.groupId);
+    
+    if (memberGroupIdsArray.length === 0) {
+      return adminGroups;
+    }
+
+    const memberGroups = await db
+      .select()
+      .from(sportsGroups)
+      .where(
+        and(
+          or(...memberGroupIdsArray.map(groupId => eq(sportsGroups.id, groupId))),
+          sql`${sportsGroups.adminId} != ${userId}`
+        )
+      );
+
+    // Combine and deduplicate
+    const allGroups = [...adminGroups, ...memberGroups];
+    const uniqueGroups = allGroups.filter((group, index, self) => 
+      index === self.findIndex(g => g.id === group.id)
+    );
+
+    return uniqueGroups;
+  }
+
+  // Placeholder methods for features to be implemented later
+  async getSportsGroupMessages(groupId: number): Promise<any[]> { return []; }
+  async createSportsGroupMessage(message: any): Promise<any> { return message; }
+  async updateSportsGroupMessage(id: number, messageData: any): Promise<any> { return messageData; }
+  async deleteSportsGroupMessage(id: number): Promise<boolean> { return true; }
+  async getSportsGroupEvents(groupId: number): Promise<any[]> { return []; }
+  async addSportsGroupEvent(groupEvent: any): Promise<any> { return groupEvent; }
+  async removeSportsGroupEvent(id: number): Promise<boolean> { return true; }
+  async getSportsGroupPolls(groupId: number): Promise<any[]> { return []; }
+  async getSportsGroupPoll(id: number): Promise<any> { return null; }
+  async createSportsGroupPoll(poll: any): Promise<any> { return poll; }
+  async updateSportsGroupPoll(id: number, pollData: any): Promise<any> { return pollData; }
+  async deleteSportsGroupPoll(id: number): Promise<boolean> { return true; }
+  async getSportsGroupPollTimeSlots(pollId: number): Promise<any[]> { return []; }
+  async createSportsGroupPollTimeSlot(timeSlot: any): Promise<any> { return timeSlot; }
+  async deleteSportsGroupPollTimeSlot(id: number): Promise<boolean> { return true; }
+  async getSportsGroupPollResponses(pollId: number): Promise<any[]> { return []; }
+  async getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<any[]> { return []; }
+  async createSportsGroupPollResponse(response: any): Promise<any> { return response; }
+  async updateSportsGroupPollResponse(id: number, responseData: any): Promise<any> { return responseData; }
+  async deleteSportsGroupPollResponse(id: number): Promise<boolean> { return true; }
+  async getSportsGroupJoinRequests(groupId: number): Promise<any[]> { return []; }
+  async getSportsGroupJoinRequest(groupId: number, userId: number): Promise<any> { return null; }
+  async createSportsGroupJoinRequest(request: any): Promise<any> { return request; }
+  async updateSportsGroupJoinRequest(id: number, requestData: any): Promise<any> { return requestData; }
+  async deleteSportsGroupJoinRequest(id: number): Promise<boolean> { return true; }
 }
 
-// Initialize storage - switch to MemStorage for now since we have database issues
-export const storage = new MemStorage();
+// Initialize storage - use DatabaseStorage for persistent data
+export const storage = new DatabaseStorage();
 
 // Initialize sample data for testing
 const adminUser: InsertUser = {
