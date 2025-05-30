@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 const Profile = () => {
   const { toast } = useToast();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logoutMutation } = useAuth();
   const [location, setLocation] = useLocation();
   
   // Get userId from URL query parameter if available
@@ -24,29 +24,14 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('/api/logout', {
-        method: 'POST',
-      });
-    },
-    onSuccess: () => {
-      logout();
-      setLocation('/');
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account."
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
+  // Handle logout with navigation
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        setLocation('/');
+      }
+    });
+  };
   
   // Get user data
   const { data: user, isLoading: userLoading } = useQuery<UserProfile>({
@@ -153,22 +138,33 @@ const Profile = () => {
             </div>
           </div>
           
-          {/* Action button with glass morphism */}
-          <div className="mt-4 sm:mt-0">
+          {/* Action buttons with glass morphism */}
+          <div className="mt-4 sm:mt-0 flex gap-2">
             {isOwnProfile ? (
-              <button 
-                className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
-                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
-                onClick={() => toast({
-                  title: "Edit Profile",
-                  description: "This would open the profile editor in the full app."
-                })}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-                Edit Profile
-              </button>
+              <>
+                <button 
+                  className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-4 rounded-full text-sm font-medium 
+                  hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
+                  onClick={() => toast({
+                    title: "Edit Profile",
+                    description: "This would open the profile editor in the full app."
+                  })}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                  Edit Profile
+                </button>
+                <button 
+                  className="bg-red-500/80 backdrop-blur-md border border-red-400/50 text-white py-2 px-4 rounded-full text-sm font-medium 
+                  hover:bg-red-600/90 transition-all duration-300 shadow-md flex items-center justify-center"
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="h-4 w-4 mr-1.5" />
+                  {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                </button>
+              </>
             ) : (
               <button 
                 className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
