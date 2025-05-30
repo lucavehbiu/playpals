@@ -1949,6 +1949,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/sports-groups/:id', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const group = await storage.getSportsGroup(groupId);
+      
+      if (!group) {
+        return res.status(404).json({ message: 'Sports group not found' });
+      }
+      
+      res.json(group);
+    } catch (error) {
+      console.error('Error fetching sports group:', error);
+      res.status(500).json({ message: 'Error fetching sports group' });
+    }
+  });
+
+  app.get('/api/sports-groups/:id/members', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const members = await storage.getSportsGroupMembers(groupId);
+      
+      // Get user details for each member
+      const membersWithUsers = await Promise.all(
+        members.map(async (member) => {
+          const user = await storage.getUser(member.userId);
+          return {
+            ...member,
+            user
+          };
+        })
+      );
+      
+      res.json(membersWithUsers);
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      res.status(500).json({ message: 'Error fetching group members' });
+    }
+  });
+
+  app.get('/api/sports-groups/:id/messages', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const messages = await storage.getSportsGroupMessages(groupId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching group messages:', error);
+      res.status(500).json({ message: 'Error fetching group messages' });
+    }
+  });
+
+  app.post('/api/sports-groups/:id/messages', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const { content } = req.body;
+      const userId = req.user!.id;
+      
+      // Check if user is a member of the group
+      const member = await storage.getSportsGroupMember(groupId, userId);
+      if (!member) {
+        return res.status(403).json({ message: 'You must be a member to post messages' });
+      }
+      
+      const messageData = {
+        groupId,
+        userId,
+        content,
+        createdAt: new Date().toISOString()
+      };
+      
+      const newMessage = await storage.createSportsGroupMessage(messageData);
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error('Error posting group message:', error);
+      res.status(500).json({ message: 'Error posting group message' });
+    }
+  });
+
   app.post('/api/sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {
       const authenticatedUser = (req as any).user as User;

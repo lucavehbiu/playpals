@@ -93,3 +93,35 @@ export interface ApiResponse<T> {
   message?: string;
   errors?: Array<{ field: string; message: string }>;
 }
+
+export interface User {
+  id: number;
+  username: string;
+  name: string | null;
+  email: string;
+  profileImage: string | null;
+  bio: string | null;
+  createdAt: string;
+  headline: string | null;
+  location: string | null;
+}
+
+export interface SportsGroup {
+  id: number;
+  name: string;
+  sportType: string;
+  description: string | null;
+  adminId: number;
+  maxMembers: number | null;
+  isPrivate: boolean;
+  createdAt: string;
+}
+
+export interface SportsGroupMember {
+  id: number;
+  groupId: number;
+  userId: number;
+  role: string;
+  joinedAt: string;
+  user?: User;
+}

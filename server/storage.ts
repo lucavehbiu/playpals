@@ -3205,9 +3205,60 @@ export class DatabaseStorage implements IStorage {
     return uniqueGroups;
   }
 
-  // Placeholder methods for features to be implemented later
-  async getSportsGroupMessages(groupId: number): Promise<any[]> { return []; }
-  async createSportsGroupMessage(message: any): Promise<any> { return message; }
+  // Sports Group Messages methods
+  async getSportsGroupMessages(groupId: number): Promise<any[]> {
+    const messages = await db
+      .select({
+        id: sql`sports_group_messages.id`,
+        groupId: sql`sports_group_messages.group_id`,
+        userId: sql`sports_group_messages.user_id`,
+        content: sql`sports_group_messages.content`,
+        createdAt: sql`sports_group_messages.created_at`,
+        user: {
+          id: sql`users.id`,
+          username: sql`users.username`,
+          name: sql`users.name`,
+          profileImage: sql`users.profile_image`
+        }
+      })
+      .from(sql`sports_group_messages`)
+      .leftJoin(sql`users`, sql`sports_group_messages.user_id = users.id`)
+      .where(sql`sports_group_messages.group_id = ${groupId}`)
+      .orderBy(sql`sports_group_messages.created_at DESC`);
+    
+    return messages;
+  }
+
+  async createSportsGroupMessage(message: any): Promise<any> {
+    const [newMessage] = await db.execute(sql`
+      INSERT INTO sports_group_messages (group_id, user_id, content, created_at)
+      VALUES (${message.groupId}, ${message.userId}, ${message.content}, NOW())
+      RETURNING *
+    `);
+    
+    // Get the message with user details
+    const messageWithUser = await db
+      .select({
+        id: sql`sports_group_messages.id`,
+        groupId: sql`sports_group_messages.group_id`,
+        userId: sql`sports_group_messages.user_id`,
+        content: sql`sports_group_messages.content`,
+        createdAt: sql`sports_group_messages.created_at`,
+        user: {
+          id: sql`users.id`,
+          username: sql`users.username`,
+          name: sql`users.name`,
+          profileImage: sql`users.profile_image`
+        }
+      })
+      .from(sql`sports_group_messages`)
+      .leftJoin(sql`users`, sql`sports_group_messages.user_id = users.id`)
+      .where(sql`sports_group_messages.user_id = ${message.userId} AND sports_group_messages.group_id = ${message.groupId}`)
+      .orderBy(sql`sports_group_messages.created_at DESC`)
+      .limit(1);
+    
+    return messageWithUser[0] || newMessage;
+  }
   async updateSportsGroupMessage(id: number, messageData: any): Promise<any> { return messageData; }
   async deleteSportsGroupMessage(id: number): Promise<boolean> { return true; }
   async getSportsGroupEvents(groupId: number): Promise<any[]> { return []; }
