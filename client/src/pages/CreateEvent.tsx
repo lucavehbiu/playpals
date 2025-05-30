@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, CalendarIcon, MapPinIcon, Users, Clock, Globe, Lock } from "lucide-react";
+import { ArrowLeft, CalendarIcon, MapPinIcon, Users, Clock, Globe, Lock, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
+import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 
 const CreateEvent = () => {
   const { toast } = useToast();
@@ -31,12 +32,17 @@ const CreateEvent = () => {
   const [price, setPrice] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
   
+  // Friend invitation modal state
+  const [inviteFriendsModalOpen, setInviteFriendsModalOpen] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState<number | null>(null);
+  
   // Mutation for creating an event
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
-      return apiRequest('/api/events', 'POST', eventData);
+      const response = await apiRequest('POST', '/api/events', eventData);
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast({
         title: "Success!",
         description: "Your event has been created.",
@@ -45,7 +51,14 @@ const CreateEvent = () => {
       if (user) {
         queryClient.invalidateQueries({ queryKey: [`/api/events/user/${user.id}`] });
       }
-      setLocation("/myevents");
+      
+      // If it's a private event, show invite friends modal
+      if (isPrivate && data?.id) {
+        setCreatedEventId(data.id);
+        setInviteFriendsModalOpen(true);
+      } else {
+        setLocation("/myevents");
+      }
     },
     onError: (error: any) => {
       toast({
@@ -101,6 +114,12 @@ const CreateEvent = () => {
   };
   
   const goBack = () => {
+    setLocation("/myevents");
+  };
+
+  const handleInviteFriendsClose = () => {
+    setInviteFriendsModalOpen(false);
+    setCreatedEventId(null);
     setLocation("/myevents");
   };
   
@@ -259,23 +278,36 @@ const CreateEvent = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="isPrivate" className="text-base">Private Event</Label>
-                <p className="text-sm text-gray-500">Only invited users can see and join</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="isPrivate" className="text-base">Private Event</Label>
+                  <p className="text-sm text-gray-500">Only invited users can see and join</p>
+                </div>
+                <div className="flex items-center">
+                  {isPrivate ? (
+                    <Lock className="mr-2 h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Globe className="mr-2 h-4 w-4 text-gray-500" />
+                  )}
+                  <Switch
+                    id="isPrivate"
+                    checked={isPrivate}
+                    onCheckedChange={setIsPrivate}
+                  />
+                </div>
               </div>
-              <div className="flex items-center">
-                {isPrivate ? (
-                  <Lock className="mr-2 h-4 w-4 text-gray-500" />
-                ) : (
-                  <Globe className="mr-2 h-4 w-4 text-gray-500" />
-                )}
-                <Switch
-                  id="isPrivate"
-                  checked={isPrivate}
-                  onCheckedChange={setIsPrivate}
-                />
-              </div>
+              {isPrivate && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center text-blue-800 mb-2">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    <span className="text-sm font-medium">Friend Invitations</span>
+                  </div>
+                  <p className="text-blue-700 text-sm mb-3">
+                    After creating your private event, you'll be able to invite friends to join.
+                  </p>
+                </div>
+              )}
             </div>
             
             <div className="space-y-3">
@@ -312,6 +344,15 @@ const CreateEvent = () => {
           </Button>
         </div>
       </form>
+
+      {/* Invite Friends Modal */}
+      {createdEventId && (
+        <InviteFriendsModal
+          open={inviteFriendsModalOpen}
+          onOpenChange={handleInviteFriendsClose}
+          eventId={createdEventId}
+        />
+      )}
     </div>
   );
 };
