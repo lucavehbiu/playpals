@@ -75,7 +75,7 @@ export default function GroupDetails() {
     postMessageMutation.mutate(newMessage);
   };
 
-  if (groupLoading || !group) {
+  if (groupLoading || !group || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
@@ -94,7 +94,7 @@ export default function GroupDetails() {
     );
   }
 
-  const isAdmin = members.find(m => m.userId === user?.id)?.role === 'admin';
+  const isAdmin = user && members.find(m => m.userId === user.id)?.role === 'admin';
   const memberCount = members.length;
 
   return (
