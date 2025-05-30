@@ -16,6 +16,7 @@ import {
   insertTeamScheduleSchema,
   insertTeamScheduleResponseSchema,
   insertTeamJoinRequestSchema,
+  insertSportsGroupSchema,
   type User,
   type Event,
   type RSVP,
@@ -28,6 +29,7 @@ import {
   type TeamPostComment,
   type TeamSchedule,
   type TeamScheduleResponse,
+  type SportsGroup,
   type TeamJoinRequest,
   type InsertTeamJoinRequest,
   playerRatings,
@@ -1899,6 +1901,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error marking notification as viewed:', error);
       res.status(500).json({ message: "Error marking notification as viewed" });
+    }
+  });
+
+  // Sports Groups routes
+  app.get('/api/sports-groups', async (req: Request, res: Response) => {
+    try {
+      const { sportType, search } = req.query;
+      
+      // For now, return empty array since we haven't implemented the storage methods yet
+      // This will allow the frontend to load without errors
+      const groups: any[] = [];
+      
+      res.json(groups);
+    } catch (error) {
+      console.error('Error fetching sports groups:', error);
+      res.status(500).json({ message: "Error fetching sports groups" });
+    }
+  });
+
+  app.post('/api/sports-groups', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const authenticatedUser = (req as any).user as User;
+      
+      // Validate request body
+      const validatedData = insertSportsGroupSchema.parse({
+        ...req.body,
+        adminId: authenticatedUser.id
+      });
+      
+      // For now, return a mock response since storage methods aren't implemented yet
+      const newGroup = {
+        id: Date.now(), // Temporary ID
+        ...validatedData,
+        createdAt: new Date(),
+        admin: {
+          id: authenticatedUser.id,
+          name: authenticatedUser.name,
+          profileImage: authenticatedUser.profileImage
+        },
+        memberCount: 1,
+        messageCount: 0
+      };
+      
+      res.status(201).json(newGroup);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid group data", errors: error.errors });
+      }
+      console.error('Error creating sports group:', error);
+      res.status(500).json({ message: "Error creating sports group" });
     }
   });
 
