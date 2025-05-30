@@ -126,6 +126,13 @@ export interface IStorage {
   updateUserOnboardingPreference(userId: number, preferenceData: Partial<UserOnboardingPreference>): Promise<UserOnboardingPreference | undefined>;
   completeUserOnboarding(userId: number): Promise<UserOnboardingPreference | undefined>;
 
+  // Team join request methods
+  getTeamJoinRequests(teamId: number): Promise<TeamJoinRequest[]>;
+  getAcceptedTeamJoinRequests(userId: number): Promise<TeamJoinRequest[]>;
+  createTeamJoinRequest(request: InsertTeamJoinRequest): Promise<TeamJoinRequest>;
+  updateTeamJoinRequest(id: number, requestData: Partial<TeamJoinRequest>): Promise<TeamJoinRequest | undefined>;
+  deleteTeamJoinRequest(id: number): Promise<boolean>;
+
   // Session store
   sessionStore: session.Store;
 }
@@ -144,6 +151,8 @@ export class MemStorage implements IStorage {
   private teamPostComments: Map<number, TeamPostComment>;
   private teamSchedules: Map<number, TeamSchedule>;
   private teamScheduleResponses: Map<number, TeamScheduleResponse>;
+  private teamJoinRequests: Map<number, TeamJoinRequest>;
+  private userOnboardingPreferences: Map<number, UserOnboardingPreference>;
   private userIdCounter: number;
   private eventIdCounter: number;
   private rsvpIdCounter: number;
@@ -156,6 +165,8 @@ export class MemStorage implements IStorage {
   private teamPostCommentIdCounter: number;
   private teamScheduleIdCounter: number;
   private teamScheduleResponseIdCounter: number;
+  private teamJoinRequestIdCounter: number;
+  private userOnboardingPrefIdCounter: number;
   
   // Session store for authentication
   public sessionStore: session.Store;
@@ -174,6 +185,7 @@ export class MemStorage implements IStorage {
     this.teamPostComments = new Map();
     this.teamSchedules = new Map();
     this.teamScheduleResponses = new Map();
+    this.teamJoinRequests = new Map();
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
     this.rsvpIdCounter = 1;
@@ -187,6 +199,7 @@ export class MemStorage implements IStorage {
     this.teamPostCommentIdCounter = 1;
     this.teamScheduleIdCounter = 1;
     this.teamScheduleResponseIdCounter = 1;
+    this.teamJoinRequestIdCounter = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -926,6 +939,46 @@ export class MemStorage implements IStorage {
     };
     this.userOnboardingPreferences.set(preference.id, completedPreference);
     return completedPreference;
+  }
+
+  // Team join request methods
+  async getTeamJoinRequests(teamId: number): Promise<TeamJoinRequest[]> {
+    return Array.from(this.teamJoinRequests.values()).filter(
+      request => request.teamId === teamId
+    );
+  }
+
+  async getAcceptedTeamJoinRequests(userId: number): Promise<TeamJoinRequest[]> {
+    return Array.from(this.teamJoinRequests.values()).filter(
+      request => request.userId === userId && request.status === "accepted"
+    );
+  }
+
+  async createTeamJoinRequest(request: InsertTeamJoinRequest): Promise<TeamJoinRequest> {
+    const id = this.teamJoinRequestIdCounter++;
+    const now = new Date();
+    const newRequest: TeamJoinRequest = {
+      ...request,
+      id,
+      createdAt: now,
+      status: request.status || 'pending',
+      viewed: request.viewed || false
+    };
+    this.teamJoinRequests.set(id, newRequest);
+    return newRequest;
+  }
+
+  async updateTeamJoinRequest(id: number, requestData: Partial<TeamJoinRequest>): Promise<TeamJoinRequest | undefined> {
+    const request = this.teamJoinRequests.get(id);
+    if (!request) return undefined;
+    
+    const updatedRequest = { ...request, ...requestData };
+    this.teamJoinRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  async deleteTeamJoinRequest(id: number): Promise<boolean> {
+    return this.teamJoinRequests.delete(id);
   }
 
   // Initialize with sample data
