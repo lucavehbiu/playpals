@@ -79,6 +79,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   const { user } = useAuth();
   const { 
     rsvps, 
+    eventResponses,
     joinRequests, 
     teamMemberNotifications, 
     markNotificationViewed, 
@@ -174,6 +175,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
 
   // Get total notification count
   const totalNotifications = (pendingInvitations?.length || 0) + 
+                            (eventResponses?.length || 0) +
                             (joinRequests?.length || 0) + 
                             (teamMemberNotifications?.length || 0);
 
@@ -258,6 +260,53 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                         >
                           <Eye className="h-3 w-3 mr-1" />
                           View
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Event responses (when people accept your event invitations) */}
+            {eventResponses && eventResponses.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Event Responses</h4>
+              </div>
+            )}
+            
+            {eventResponses && eventResponses.map((response) => (
+              <div key={`response-${response.id}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
+                    {response.user?.profileImage ? (
+                      <AvatarImage src={response.user.profileImage} alt={response.user?.name || 'User'} />
+                    ) : (
+                      <AvatarFallback>
+                        {response.user?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      <span className="text-primary">{response.user?.name || 'Someone'}</span>
+                      {' '}accepted your invitation to{' '}
+                      <span className="text-primary">{response.event?.title || 'your event'}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(new Date(response.createdAt), { addSuffix: true })}
+                    </p>
+                    
+                    {/* Action button */}
+                    <div className="flex mt-2">
+                      <Link href={`/events/${response.event?.id}`} onClick={onClose}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="px-2 py-1 h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Event
                         </Button>
                       </Link>
                     </div>
