@@ -50,6 +50,7 @@ function Router() {
                   <ProtectedRoute path="/teams" component={Teams} />
                   <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
                   <ProtectedRoute path="/groups" component={Groups} />
+                  <ProtectedRoute path="/groups/:groupId" component={Groups} />
                   <ProtectedRoute path="/invitations" component={Invitations} />
                   <ProtectedRoute path="/profile" component={Profile} />
                   <Route path="*" component={NotFound} />

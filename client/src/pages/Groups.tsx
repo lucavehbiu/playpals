@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -33,9 +33,14 @@ type CreateGroupForm = z.infer<typeof createGroupSchema>;
 export default function Groups() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
+  const [match, params] = useRoute("/groups/:groupId");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+
+  // Check if we're viewing a specific group
+  const isViewingGroup = match && params?.groupId;
 
   const form = useForm<CreateGroupForm>({
     resolver: zodResolver(createGroupSchema),
@@ -313,8 +318,7 @@ export default function Groups() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map((group: any) => (
-              <Link key={group.id} href={`/groups/${group.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card key={group.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -373,7 +377,6 @@ export default function Groups() {
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
             ))}
           </div>
         )}
