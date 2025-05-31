@@ -44,7 +44,7 @@ export default function GroupDetails() {
 
   // Fetch group messages (feed)
   const { data: messages = [], isLoading: messagesLoading } = useQuery<GroupMessage[]>({
-    queryKey: ['/api/sports-groups', groupId, 'messages'],
+    queryKey: [`/api/sports-groups/${groupId}/messages`],
     enabled: !!groupId,
   });
 
@@ -61,7 +61,7 @@ export default function GroupDetails() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sports-groups', groupId, 'messages'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/sports-groups/${groupId}/messages`] });
       setNewMessage("");
       toast({ title: "Message posted successfully!" });
     },
