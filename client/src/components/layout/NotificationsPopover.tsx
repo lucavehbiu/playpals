@@ -358,24 +358,31 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
             )}
             
             {groupNotifications && groupNotifications.map((notification, index) => (
-              <div key={`group-${notification.groupId}-${notification.type}-${index}`} className="p-3 hover:bg-gray-50 border-b">
-                <div className="flex items-start">
-                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">
-                      {notification.count} new {notification.type === 'message' ? 'messages' : 'events'} in{' '}
-                      <span className="text-primary">{notification.groupName}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Click to view group activity
-                    </p>
-                    
-
+              <Link 
+                key={`group-${notification.groupId}-${notification.type}-${index}`} 
+                href={`/groups/${notification.groupId}`} 
+                onClick={() => {
+                  markNotificationsViewed.mutate({ groupId: notification.groupId, type: notification.type });
+                  onClose();
+                }}
+              >
+                <div className="p-3 hover:bg-gray-50 border-b cursor-pointer">
+                  <div className="flex items-start">
+                    <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">
+                        {notification.count} new {notification.type === 'message' ? 'messages' : 'events'} in{' '}
+                        <span className="text-primary">{notification.groupName}</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click to view group activity
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
             
           </div>
