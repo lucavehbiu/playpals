@@ -119,30 +119,9 @@ export default function GroupDetails() {
           </div>
         </div>
         
-        {/* Compact Quick Actions Toolbar */}
-        <div className="flex gap-2 p-3 bg-gray-50 rounded-lg">
-          <Button variant="outline" size="sm" className="flex-1">
-            <Calendar className="h-4 w-4 mr-2" />
-            Event
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            <Clock className="h-4 w-4 mr-2" />
-            Poll
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Invite
-          </Button>
-          {isAdmin && (
-            <Button variant="outline" size="sm" className="flex-1">
-              <Settings className="h-4 w-4 mr-2" />
-              Manage
-            </Button>
-          )}
-        </div>
       </div>
 
-      {/* Members Dropdown */}
+      {/* Members Dropdown - Moved after header */}
       {showMembers && (
         <Card className="mb-6 p-4">
           <h3 className="font-medium mb-3">Group Members</h3>
@@ -165,6 +144,30 @@ export default function GroupDetails() {
           </div>
         </Card>
       )}
+
+      {/* Compact Quick Actions Toolbar */}
+      <div className="mb-6">
+        <div className="flex gap-2 p-3 bg-gray-50 rounded-lg overflow-x-auto">
+          <Button variant="outline" size="sm" className="flex-shrink-0 min-w-0">
+            <Calendar className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Event</span>
+          </Button>
+          <Button variant="outline" size="sm" className="flex-shrink-0 min-w-0">
+            <Clock className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Poll</span>
+          </Button>
+          <Button variant="outline" size="sm" className="flex-shrink-0 min-w-0">
+            <UserPlus className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Invite</span>
+          </Button>
+          {isAdmin && (
+            <Button variant="outline" size="sm" className="flex-shrink-0 min-w-0">
+              <Settings className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Manage</span>
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Group Feed - Full Width */}
       <div className="space-y-6">
