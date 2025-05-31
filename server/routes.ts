@@ -2003,7 +2003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sports-groups/:id/messages', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
-      const { content } = req.body;
+      const { content, parentMessageId } = req.body;
       const userId = req.user!.id;
       
       // Check if user is a member of the group
@@ -2016,6 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId,
         userId,
         content,
+        parentMessageId,
         createdAt: new Date().toISOString()
       };
       
