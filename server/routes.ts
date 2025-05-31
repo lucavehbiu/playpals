@@ -2055,6 +2055,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId
       });
 
+      // Get event details for notification
+      const event = await storage.getEvent(eventId);
+      if (event) {
+        // Get all group members except the event creator
+        const members = await storage.getSportsGroupMembers(groupId);
+        const membersToNotify = members.filter(m => m.userId !== userId);
+        
+        // Create notifications for all group members
+        for (const member of membersToNotify) {
+          await storage.createSportsGroupNotification({
+            groupId,
+            userId: member.userId,
+            type: 'event',
+            title: 'New Event Added',
+            message: `${event.title} has been added to the group`,
+            referenceId: eventId
+          });
+        }
+      }
+
       // Create notifications for all group members except the creator
       try {
         const event = await storage.getEvent(eventId);
