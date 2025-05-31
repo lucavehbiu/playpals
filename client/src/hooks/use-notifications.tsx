@@ -198,17 +198,22 @@ export const useNotifications = () => {
     const pendingInvitations = rsvps.filter((rsvp: RSVPWithEvent) => {
       return rsvp.status === "maybe" || rsvp.status === "pending";
     });
+    console.log('Pending invitations:', pendingInvitations.length, pendingInvitations);
     count += pendingInvitations.length;
     
     // Count event responses (people who accepted user's event invitations)
+    console.log('Event responses:', eventResponses.length, eventResponses);
     count += eventResponses.length;
     
     // Count pending team join requests
+    console.log('Join requests:', joinRequests.length, joinRequests);
     count += joinRequests.length;
     
     // Count team member notifications
+    console.log('Team member notifications:', teamMemberNotifications.length, teamMemberNotifications);
     count += teamMemberNotifications.length;
     
+    console.log('Total notification count:', count);
     setPendingCount(count);
   }, [rsvps, eventResponses, joinRequests, teamMemberNotifications]);
   
