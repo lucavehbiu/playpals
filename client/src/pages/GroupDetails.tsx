@@ -181,13 +181,13 @@ export default function GroupDetails() {
                     <div className="flex items-start gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback>
-                          {message.user.name?.charAt(0) || message.user.username.charAt(0).toUpperCase()}
+                          {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">
-                            {message.user.name || message.user.username}
+                            {message.user?.name || message.user?.username || 'Unknown User'}
                           </span>
                           <span className="text-xs text-gray-500">
                             {new Date(message.createdAt).toLocaleDateString()}
