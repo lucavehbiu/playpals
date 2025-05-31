@@ -10,6 +10,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useGroupNotifications } from '@/hooks/use-group-notifications';
 
 interface TeamJoinRequest {
   id: number;
@@ -42,6 +43,10 @@ export const NotificationBell = () => {
   // Get user info and notifications
   const { user } = useAuth();
   const { pendingCount } = useNotifications();
+  const { getTotalNotificationCount } = useGroupNotifications();
+  
+  // Calculate total notification count
+  const totalNotificationCount = pendingCount + getTotalNotificationCount();
   
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -63,9 +68,9 @@ export const NotificationBell = () => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell className="h-5 w-5" />
-        {pendingCount > 0 && (
+        {totalNotificationCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {pendingCount}
+            {totalNotificationCount}
           </span>
         )}
       </button>
@@ -85,6 +90,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     markNotificationViewed, 
     isLoading 
   } = useNotifications();
+  const { notifications: groupNotifications, markNotificationsViewed } = useGroupNotifications();
   
   // Filter for pending invitations that belong to the current user only
   const pendingInvitations = rsvps?.filter(rsvp => {
