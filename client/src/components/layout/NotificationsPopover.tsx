@@ -432,6 +432,50 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                 </div>
               </div>
             ))}
+            
+            {/* Sports Group notifications */}
+            {groupNotifications && groupNotifications.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Group Activities</h4>
+              </div>
+            )}
+            
+            {groupNotifications && groupNotifications.map((notification, index) => (
+              <div key={`group-${notification.groupId}-${notification.type}-${index}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      {notification.count} new {notification.type === 'message' ? 'messages' : 'events'} in{' '}
+                      <span className="text-primary">{notification.groupName}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Click to view group activity
+                    </p>
+                    
+                    {/* Action button */}
+                    <div className="flex mt-2">
+                      <Link href={`/groups/${notification.groupId}`} onClick={() => {
+                        markNotificationsViewed.mutate({ groupId: notification.groupId, type: notification.type });
+                        onClose();
+                      }}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="px-2 py-1 h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Group
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
           </div>
         ) : (
           <div className="p-4 text-center">
