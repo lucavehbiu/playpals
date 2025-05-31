@@ -27,6 +27,7 @@ export default function GroupDetails() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [newMessage, setNewMessage] = useState("");
+  const [showMembers, setShowMembers] = useState(false);
 
   const groupId = parseInt(id || "0");
 
@@ -98,62 +99,101 @@ export default function GroupDetails() {
   const memberCount = members.length;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Group Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+    <div className="container mx-auto px-4 py-6">
+      {/* Compact Group Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-3xl font-bold">{group.name}</h1>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold">{group.name}</h1>
+            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
               <Badge variant="secondary">{group.sportType}</Badge>
-              <div className="flex items-center gap-1">
+              <button 
+                className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                onClick={() => setShowMembers(!showMembers)}
+              >
                 <Users className="h-4 w-4" />
                 <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
-              </div>
+              </button>
               {group.isPrivate && <Badge variant="outline">Private</Badge>}
             </div>
           </div>
+        </div>
+        
+        {/* Compact Quick Actions Toolbar */}
+        <div className="flex gap-2 p-3 bg-gray-50 rounded-lg">
+          <Button variant="outline" size="sm" className="flex-1">
+            <Calendar className="h-4 w-4 mr-2" />
+            Event
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1">
+            <Clock className="h-4 w-4 mr-2" />
+            Poll
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite
+          </Button>
           {isAdmin && (
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="flex-1">
               <Settings className="h-4 w-4 mr-2" />
-              Manage Group
+              Manage
             </Button>
           )}
         </div>
-        {group.description && (
-          <p className="text-gray-700">{group.description}</p>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Group Feed */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Post Message */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Group Feed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="Share something with the group..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="min-h-20"
-                />
-                <Button 
-                  onClick={handlePostMessage}
-                  disabled={!newMessage.trim() || postMessageMutation.isPending}
-                  className="w-full"
-                >
-                  {postMessageMutation.isPending ? "Posting..." : "Post Message"}
-                </Button>
+      {/* Members Dropdown */}
+      {showMembers && (
+        <Card className="mb-6 p-4">
+          <h3 className="font-medium mb-3">Group Members</h3>
+          <div className="grid gap-3">
+            {members.map((member) => (
+              <div key={member.id} className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    {member.user?.name?.charAt(0) || member.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-sm">
+                    {member.user?.name || member.user?.username || 'Unknown User'}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">{member.role}</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Group Feed - Full Width */}
+      <div className="space-y-6">
+        {/* Post Message */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Group Feed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Share something with the group..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="min-h-20"
+              />
+              <Button 
+                onClick={handlePostMessage}
+                disabled={!newMessage.trim() || postMessageMutation.isPending}
+                className="w-full"
+              >
+                {postMessageMutation.isPending ? "Posting..." : "Post Message"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
           {/* Messages Feed */}
           <div className="space-y-4">
