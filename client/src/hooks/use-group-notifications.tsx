@@ -15,6 +15,8 @@ export function useGroupNotifications() {
   const { data: notifications = [], isLoading } = useQuery<GroupNotification[]>({
     queryKey: ['/api/users', user?.id, 'group-notifications'],
     enabled: !!user?.id,
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
   });
 
   const markNotificationsViewed = useMutation({
