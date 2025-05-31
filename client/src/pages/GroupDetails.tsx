@@ -154,7 +154,7 @@ export default function GroupDetails() {
             className="flex items-center justify-center gap-2"
             onClick={() => {
               // Navigate to create event with group pre-selected
-              window.location.href = `/create-event?groupId=${group.id}`;
+              window.location.href = `/events/create?groupId=${group.id}`;
             }}
           >
             <Calendar className="h-4 w-4" />
