@@ -148,20 +148,52 @@ export default function GroupDetails() {
       {/* Compact Quick Actions Toolbar */}
       <div className="mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg">
-          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center justify-center gap-2"
+            onClick={() => {
+              // Navigate to create event with group pre-selected
+              window.location.href = `/create-event?groupId=${group.id}`;
+            }}
+          >
             <Calendar className="h-4 w-4" />
             <span>Event</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center justify-center gap-2"
+            onClick={() => {
+              // TODO: Open poll creation modal
+              alert('Poll creation coming soon!');
+            }}
+          >
             <Clock className="h-4 w-4" />
             <span>Poll</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center justify-center gap-2"
+            onClick={() => {
+              // TODO: Open invite members modal
+              alert('Invite members coming soon!');
+            }}
+          >
             <UserPlus className="h-4 w-4" />
             <span>Invite</span>
           </Button>
           {isAdmin && (
-            <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center justify-center gap-2"
+              onClick={() => {
+                // TODO: Open group management modal
+                alert('Group management coming soon!');
+              }}
+            >
               <Settings className="h-4 w-4" />
               <span>Manage</span>
             </Button>
