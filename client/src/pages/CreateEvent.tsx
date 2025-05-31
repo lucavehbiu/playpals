@@ -19,6 +19,10 @@ const CreateEvent = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   
+  // Get groupId from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupId = urlParams.get('groupId') ? parseInt(urlParams.get('groupId')!) : null;
+  
   // Event form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -40,16 +44,28 @@ const CreateEvent = () => {
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
       const response = await apiRequest('POST', '/api/events', eventData);
-      return response.json();
+      const result = await response.json();
+      
+      // If event was created for a group, link it to the group
+      if (groupId && result?.id) {
+        await apiRequest('POST', `/api/sports-groups/${groupId}/events`, {
+          eventId: result.id
+        });
+      }
+      
+      return result;
     },
     onSuccess: (data: any) => {
       toast({
         title: "Success!",
-        description: "Your event has been created.",
+        description: groupId ? "Your group event has been created." : "Your event has been created.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       if (user) {
         queryClient.invalidateQueries({ queryKey: [`/api/events/user/${user.id}`] });
+      }
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/sports-groups/${groupId}/events`] });
       }
       
       // If it's a private event, show invite friends modal
@@ -57,7 +73,8 @@ const CreateEvent = () => {
         setCreatedEventId(data.id);
         setInviteFriendsModalOpen(true);
       } else {
-        setLocation("/myevents");
+        // Navigate back to group if created from group, otherwise to my events
+        setLocation(groupId ? `/groups/${groupId}` : "/myevents");
       }
     },
     onError: (error: any) => {

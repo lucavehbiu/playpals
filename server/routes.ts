@@ -2026,6 +2026,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/sports-groups/:id/events', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const events = await storage.getSportsGroupEvents(groupId);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching group events:', error);
+      res.status(500).json({ message: 'Error fetching group events' });
+    }
+  });
+
+  app.post('/api/sports-groups/:id/events', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const { eventId } = req.body;
+      const userId = req.user!.id;
+      
+      // Check if user is a member of the group
+      const member = await storage.getSportsGroupMember(groupId, userId);
+      if (!member) {
+        return res.status(403).json({ message: 'You must be a member to add events to this group' });
+      }
+      
+      const groupEvent = await storage.addSportsGroupEvent({
+        groupId,
+        eventId,
+        addedBy: userId,
+        addedAt: new Date().toISOString()
+      });
+      
+      res.status(201).json(groupEvent);
+    } catch (error) {
+      console.error('Error adding event to group:', error);
+      res.status(500).json({ message: 'Error adding event to group' });
+    }
+  });
+
   app.post('/api/sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {
       const authenticatedUser = (req as any).user as User;

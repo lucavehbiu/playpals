@@ -3261,8 +3261,49 @@ export class DatabaseStorage implements IStorage {
   }
   async updateSportsGroupMessage(id: number, messageData: any): Promise<any> { return messageData; }
   async deleteSportsGroupMessage(id: number): Promise<boolean> { return true; }
-  async getSportsGroupEvents(groupId: number): Promise<any[]> { return []; }
-  async addSportsGroupEvent(groupEvent: any): Promise<any> { return groupEvent; }
+  async getSportsGroupEvents(groupId: number): Promise<any[]> {
+    try {
+      const groupEvents = await db
+        .select({
+          event: events,
+          user: {
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            profileImage: users.profileImage,
+          },
+        })
+        .from(sportsGroupEvents)
+        .innerJoin(events, eq(sportsGroupEvents.eventId, events.id))
+        .innerJoin(users, eq(events.creatorId, users.id))
+        .where(eq(sportsGroupEvents.groupId, groupId))
+        .orderBy(desc(events.createdAt));
+
+      return groupEvents.map(({ event, user }) => ({
+        ...event,
+        creator: user,
+      }));
+    } catch (error) {
+      console.error('Error fetching group events:', error);
+      return [];
+    }
+  }
+  async addSportsGroupEvent(groupEvent: any): Promise<any> {
+    try {
+      const [result] = await db
+        .insert(sportsGroupEvents)
+        .values({
+          groupId: groupEvent.groupId,
+          eventId: groupEvent.eventId,
+          addedAt: new Date(),
+        })
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error adding event to group:', error);
+      throw error;
+    }
+  }
   async removeSportsGroupEvent(id: number): Promise<boolean> { return true; }
   async getSportsGroupPolls(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupPoll(id: number): Promise<any> { return null; }
