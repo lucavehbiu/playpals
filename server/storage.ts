@@ -3288,6 +3288,19 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+  async createSportsGroupNotification(notification: any): Promise<any> {
+    try {
+      const result = await pool.query(
+        'INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id, viewed, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
+        [notification.groupId, notification.userId, notification.type, notification.title, notification.message, notification.referenceId, notification.viewed || false]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating sports group notification:', error);
+      throw error;
+    }
+  }
+
   async addSportsGroupEvent(groupEvent: any): Promise<any> {
     try {
       const [result] = await db
