@@ -1,17 +1,20 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
+import { useNotifications } from '@/hooks/use-notifications';
+import { useGroupNotifications } from '@/hooks/use-group-notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Users, MessageSquare, Calendar, CheckCircle } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface NotificationItem {
   id: string;
-  type: 'team_acceptance' | 'group_event' | 'group_message' | 'team_join_request';
+  type: 'team_acceptance' | 'group_event' | 'group_message' | 'team_join_request' | 'event_response' | 'event_invitation';
   title: string;
   description: string;
   createdAt: string;
@@ -19,58 +22,89 @@ interface NotificationItem {
   actionable: boolean;
   relatedId?: number;
   relatedType?: 'team' | 'group' | 'event';
+  user?: any;
+  event?: any;
+  team?: any;
 }
 
 export default function NotificationHistory() {
   const { user } = useAuth();
+  
+  // Get real notification data from hooks
+  const { rsvps, eventResponses, joinRequests, teamMemberNotifications } = useNotifications();
 
-  // Mock notification history data - in real app this would come from API
-  const notificationHistory: NotificationItem[] = [
-    {
-      id: '1',
-      type: 'team_acceptance',
-      title: 'Team Join Request Accepted',
-      description: 'Your request to join "Neighborhood Ballers" has been accepted',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      viewed: true,
-      actionable: false,
-      relatedId: 1,
-      relatedType: 'team'
-    },
-    {
-      id: '2',
-      type: 'group_event',
-      title: 'New Event in Padel Group',
-      description: '2 new events have been posted in the padel group',
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      viewed: true,
-      actionable: false,
-      relatedId: 1,
-      relatedType: 'group'
-    },
-    {
-      id: '3',
-      type: 'group_message',
-      title: 'New Messages in Padel Group',
-      description: '2 new messages in the group chat',
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-      viewed: true,
-      actionable: false,
-      relatedId: 1,
-      relatedType: 'group'
-    },
-    {
-      id: '4',
-      type: 'team_join_request',
-      title: 'New Team Join Request',
-      description: 'John Doe wants to join your team "City Runners"',
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-      viewed: false,
-      actionable: true,
-      relatedId: 4,
-      relatedType: 'team'
-    }
-  ];
+  // Combine all notifications into a single chronological list
+  const allNotifications = React.useMemo(() => {
+    const notifications: NotificationItem[] = [];
+
+    // Add event responses (people who accepted your invitations)
+    eventResponses.forEach((response: any) => {
+      notifications.push({
+        id: `event-response-${response.id}`,
+        type: 'event_response',
+        title: 'Event Invitation Accepted',
+        description: `${response.user?.name || 'Someone'} accepted your invitation to "${response.event?.title || 'your event'}"`,
+        createdAt: response.createdAt,
+        viewed: true,
+        actionable: false,
+        relatedId: response.event?.id,
+        relatedType: 'event',
+        user: response.user,
+        event: response.event
+      });
+    });
+
+    // Add pending RSVP invitations
+    rsvps.filter((rsvp: any) => rsvp.status === 'pending' || rsvp.status === 'maybe').forEach((rsvp: any) => {
+      notifications.push({
+        id: `rsvp-${rsvp.id}`,
+        type: 'event_invitation',
+        title: 'Event Invitation',
+        description: `You've been invited to "${rsvp.event?.title || 'an event'}"`,
+        createdAt: rsvp.createdAt,
+        viewed: false,
+        actionable: true,
+        relatedId: rsvp.event?.id,
+        relatedType: 'event',
+        event: rsvp.event
+      });
+    });
+
+    // Add team join requests
+    joinRequests.forEach((request: any) => {
+      notifications.push({
+        id: `join-request-${request.id}`,
+        type: 'team_join_request',
+        title: 'Team Join Request',
+        description: `${request.user?.name || 'Someone'} wants to join your team "${request.team?.name || 'your team'}"`,
+        createdAt: request.createdAt,
+        viewed: false,
+        actionable: true,
+        relatedId: request.teamId,
+        relatedType: 'team',
+        user: request.user,
+        team: request.team
+      });
+    });
+
+    // Add team member notifications (acceptances)
+    teamMemberNotifications.forEach((notification: any) => {
+      notifications.push({
+        id: `team-notification-${notification.id}`,
+        type: 'team_acceptance',
+        title: 'Team Join Request Accepted',
+        description: `Your request to join "${notification.teamName || 'the team'}" has been accepted`,
+        createdAt: notification.createdAt,
+        viewed: true,
+        actionable: false,
+        relatedId: notification.teamId,
+        relatedType: 'team'
+      });
+    });
+
+    // Sort by creation date (newest first)
+    return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -78,9 +112,12 @@ export default function NotificationHistory() {
       case 'team_join_request':
         return <Users className="h-5 w-5" />;
       case 'group_event':
+      case 'event_invitation':
         return <Calendar className="h-5 w-5" />;
       case 'group_message':
         return <MessageSquare className="h-5 w-5" />;
+      case 'event_response':
+        return <CheckCircle className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
     }
@@ -93,9 +130,12 @@ export default function NotificationHistory() {
       case 'team_join_request':
         return 'text-blue-500 bg-blue-100';
       case 'group_event':
+      case 'event_invitation':
         return 'text-purple-500 bg-purple-100';
       case 'group_message':
         return 'text-orange-500 bg-orange-100';
+      case 'event_response':
+        return 'text-green-500 bg-green-100';
       default:
         return 'text-gray-500 bg-gray-100';
     }
@@ -106,6 +146,8 @@ export default function NotificationHistory() {
       return `/teams/${item.relatedId}`;
     } else if (item.relatedType === 'group') {
       return `/groups/${item.relatedId}`;
+    } else if (item.relatedType === 'event') {
+      return `/events/${item.relatedId}`;
     }
     return '#';
   };
@@ -126,14 +168,14 @@ export default function NotificationHistory() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {notificationHistory.length === 0 ? (
+            {allNotifications.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
                 <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>No notifications yet</p>
               </div>
             ) : (
               <div className="divide-y">
-                {notificationHistory.map((notification, index) => (
+                {allNotifications.map((notification: NotificationItem, index: number) => (
                   <div 
                     key={notification.id}
                     className={`p-4 hover:bg-gray-50 transition-colors ${
