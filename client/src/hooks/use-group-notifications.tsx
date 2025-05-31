@@ -13,10 +13,11 @@ export function useGroupNotifications() {
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery<GroupNotification[]>({
-    queryKey: ['/api/users', user?.id, 'group-notifications'],
+    queryKey: [`/api/users/${user?.id}/group-notifications`],
     enabled: !!user?.id,
     staleTime: 0,
     refetchInterval: 30000,
+    retry: 1,
   });
 
   // Debug logging
@@ -30,6 +31,7 @@ export function useGroupNotifications() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ groupId, type }),
+        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -40,7 +42,7 @@ export function useGroupNotifications() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/users', user?.id, 'group-notifications'],
+        queryKey: [`/api/users/${user?.id}/group-notifications`],
       });
     },
   });
