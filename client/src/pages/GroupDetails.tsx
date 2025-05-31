@@ -147,23 +147,23 @@ export default function GroupDetails() {
 
       {/* Compact Quick Actions Toolbar */}
       <div className="mb-6">
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg">
-          <Button variant="outline" size="sm" className="flex items-center justify-center">
-            <Calendar className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Event</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg">
+          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span>Event</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center justify-center">
-            <Clock className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Poll</span>
+          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span>Poll</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center justify-center">
-            <UserPlus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Invite</span>
+          <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            <span>Invite</span>
           </Button>
           {isAdmin && (
-            <Button variant="outline" size="sm" className="flex items-center justify-center">
-              <Settings className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Manage</span>
+            <Button variant="outline" size="sm" className="flex items-center justify-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span>Manage</span>
             </Button>
           )}
         </div>
