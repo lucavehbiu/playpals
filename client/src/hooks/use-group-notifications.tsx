@@ -15,9 +15,12 @@ export function useGroupNotifications() {
   const { data: notifications = [], isLoading } = useQuery<GroupNotification[]>({
     queryKey: ['/api/users', user?.id, 'group-notifications'],
     enabled: !!user?.id,
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 0,
+    refetchInterval: 30000,
   });
+
+  // Debug logging
+  console.log('Notifications hook - user:', user?.id, 'notifications:', notifications, 'loading:', isLoading);
 
   const markNotificationsViewed = useMutation({
     mutationFn: async ({ groupId, type }: { groupId: number; type?: string }) => {
@@ -43,6 +46,7 @@ export function useGroupNotifications() {
   });
 
   const getNotificationCount = (groupId: number, type?: string) => {
+    if (!Array.isArray(notifications)) return 0;
     const groupNotifications = notifications.filter((n: GroupNotification) => n.groupId === groupId);
     if (type) {
       return groupNotifications.find((n: GroupNotification) => n.type === type)?.count || 0;
@@ -51,6 +55,7 @@ export function useGroupNotifications() {
   };
 
   const getTotalNotificationCount = () => {
+    if (!Array.isArray(notifications)) return 0;
     return notifications.reduce((sum: number, n: GroupNotification) => sum + n.count, 0);
   };
 
