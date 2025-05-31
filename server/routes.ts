@@ -2020,6 +2020,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const newMessage = await storage.createSportsGroupMessage(messageData);
+      
+      // Create notifications for all group members except the poster
+      const groupMembers = await storage.getSportsGroupMembers(groupId);
+      const group = await storage.getSportsGroup(groupId);
+      
+      for (const groupMember of groupMembers) {
+        if (groupMember.userId !== userId) {
+          const notificationData = {
+            groupId,
+            userId: groupMember.userId,
+            type: 'message',
+            title: 'New Message Posted',
+            message: `New message posted in ${group?.name}`,
+            referenceId: newMessage.id,
+            viewed: false,
+            createdAt: new Date()
+          };
+          await storage.createSportsGroupNotification(notificationData);
+        }
+      }
+      
       res.status(201).json(newMessage);
     } catch (error) {
       console.error('Error posting group message:', error);
