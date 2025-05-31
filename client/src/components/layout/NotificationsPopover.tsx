@@ -179,9 +179,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     respondToJoinRequestMutation.mutate({ teamId, requestId, status });
   };
 
-  // Get total notification count
+  // Get total notification count (only actionable notifications)
   const totalNotifications = (pendingInvitations?.length || 0) + 
-                            (eventResponses?.length || 0) +
                             (joinRequests?.length || 0) + 
                             (teamMemberNotifications?.length || 0);
 
