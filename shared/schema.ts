@@ -272,6 +272,7 @@ export const sportsGroupMessages = pgTable("sports_group_messages", {
   groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
+  parentMessageId: integer("parent_message_id").references(() => sportsGroupMessages.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

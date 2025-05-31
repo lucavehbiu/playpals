@@ -3213,6 +3213,7 @@ export class DatabaseStorage implements IStorage {
         sgm.group_id as "groupId",
         sgm.user_id as "userId",
         sgm.content,
+        sgm.parent_message_id as "parentMessageId",
         sgm.created_at as "createdAt",
         json_build_object(
           'id', u.id,
@@ -3232,8 +3233,8 @@ export class DatabaseStorage implements IStorage {
   async createSportsGroupMessage(message: any): Promise<any> {
     // Insert the message using raw SQL
     const result = await pool.query(
-      'INSERT INTO sports_group_messages (group_id, user_id, content, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id',
-      [message.groupId, message.userId, message.content]
+      'INSERT INTO sports_group_messages (group_id, user_id, content, parent_message_id, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
+      [message.groupId, message.userId, message.content, message.parentMessageId || null]
     );
     
     const messageId = result.rows[0].id;
@@ -3245,6 +3246,7 @@ export class DatabaseStorage implements IStorage {
         sgm.group_id as "groupId",
         sgm.user_id as "userId",
         sgm.content,
+        sgm.parent_message_id as "parentMessageId",
         sgm.created_at as "createdAt",
         json_build_object(
           'id', u.id,

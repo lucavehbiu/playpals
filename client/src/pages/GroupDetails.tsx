@@ -19,6 +19,7 @@ interface GroupMessage {
   groupId: number;
   userId: number;
   content: string;
+  parentMessageId?: number;
   createdAt: string;
   user: User;
 }
