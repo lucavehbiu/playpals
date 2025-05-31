@@ -22,7 +22,8 @@ import {
   ImageIcon,
   CheckCircle,
   ChevronRight,
-  MessageCircle
+  MessageCircle,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -118,7 +119,7 @@ const EventDetails = () => {
     }
   }, [eventData]);
   
-  // Mutation for requesting to join an event
+  // Mutation for joining an event (immediate approval for group events)
   const joinEventMutation = useMutation({
     mutationFn: async () => {
       if (!eventId) throw new Error("No event ID provided");
@@ -126,7 +127,7 @@ const EventDetails = () => {
       const response = await apiRequest("POST", "/api/rsvps", {
         eventId: eventIdNum,
         userId: user?.id,
-        status: "pending" // Set to pending instead of approved
+        status: "approved" // Direct approval for group events
       });
       return await response.json();
     },
@@ -136,14 +137,40 @@ const EventDetails = () => {
         fetchRsvps(eventId);
       }
       toast({
-        title: "Request Sent",
-        description: "Your request to join this event has been sent to the organizer!",
+        title: "Joined Event",
+        description: "You have successfully joined this event!",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send join request",
+        description: error instanceof Error ? error.message : "Failed to join event",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation for declining/leaving an event
+  const declineEventMutation = useMutation({
+    mutationFn: async () => {
+      if (!userRSVP) throw new Error("No RSVP found");
+      const response = await apiRequest("DELETE", `/api/rsvps/${userRSVP.id}`);
+      return response;
+    },
+    onSuccess: () => {
+      // Refresh our RSVPs list
+      if (eventId) {
+        fetchRsvps(eventId);
+      }
+      toast({
+        title: "Left Event",
+        description: "You have left this event.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to leave event",
         variant: "destructive",
       });
     }
@@ -415,46 +442,50 @@ const EventDetails = () => {
           </div>
         </div>
         
-        {/* Join Event Button - Prominent CTA */}
+        {/* Join/Decline Buttons for Group Events */}
         {!isCreator && !hasRSVPd && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-            <Button 
-              className="w-full py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02]" 
-              onClick={handleJoin}
-              disabled={joinEventMutation.isPending}
-            >
-              <Users className="mr-2.5 h-5 w-5" />
-              {joinEventMutation.isPending ? "Sending Request..." : "Request to Join"}
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700" 
+                onClick={handleJoin}
+                disabled={joinEventMutation.isPending}
+              >
+                <Users className="mr-2.5 h-5 w-5" />
+                {joinEventMutation.isPending ? "Joining..." : "Join Event"}
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] border-red-200 text-red-600 hover:bg-red-50" 
+                onClick={() => toast({ title: "Declined", description: "You declined to join this event." })}
+              >
+                <X className="mr-2.5 h-5 w-5" />
+                Decline
+              </Button>
+            </div>
           </div>
         )}
         
-        {/* RSVP Status */}
-        {!isCreator && hasRSVPd && (
-          <div className={`mb-6 p-4 rounded-xl ${
-            rsvpStatus === "approved" ? "bg-green-50 border border-green-100" : 
-            "bg-blue-50 border border-blue-100"
-          }`}>
-            <div className="flex items-center">
-              {rsvpStatus === "approved" ? (
-                <CheckCircle className={`h-6 w-6 mr-3 text-green-600`} />
-              ) : (
-                <Clock className={`h-6 w-6 mr-3 text-blue-600`} />
-              )}
-              <div>
-                <p className={`font-medium ${
-                  rsvpStatus === "approved" ? "text-green-800" : "text-blue-800"
-                }`}>
-                  {rsvpStatus === "approved" ? "You're going to this event" : "Your request is pending"}
-                </p>
-                <p className={`text-sm ${
-                  rsvpStatus === "approved" ? "text-green-600" : "text-blue-600"
-                }`}>
-                  {rsvpStatus === "approved" 
-                    ? "You're confirmed to attend this event" 
-                    : "Waiting for the organizer to approve your request"}
-                </p>
+        {/* RSVP Status - Already Joined */}
+        {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
+          <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CheckCircle className="h-6 w-6 mr-3 text-green-600" />
+                <div>
+                  <p className="font-medium text-green-800">You're going to this event</p>
+                  <p className="text-sm text-green-600">You're confirmed to attend this event</p>
+                </div>
               </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                className="border-red-200 text-red-600 hover:bg-red-50"
+                onClick={() => declineEventMutation.mutate()}
+                disabled={declineEventMutation.isPending}
+              >
+                {declineEventMutation.isPending ? "Leaving..." : "Leave Event"}
+              </Button>
             </div>
           </div>
         )}
