@@ -2053,11 +2053,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId,
         eventId
       });
+
+      // Create notifications for all group members except the creator
+      try {
+        const event = await storage.getEvent(eventId);
+        const members = await storage.getSportsGroupMembers(groupId);
+        
+        for (const member of members) {
+          if (member.userId !== userId) {
+            await db.execute(sql`
+              INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id)
+              VALUES (${groupId}, ${member.userId}, 'event', 'New event in group', ${`${event?.title || 'New event'} has been added to the group`}, ${eventId})
+              ON CONFLICT (group_id, user_id, type, reference_id) DO NOTHING
+            `);
+          }
+        }
+      } catch (notifError) {
+        console.error('Error creating event notifications:', notifError);
+        // Don't fail the request if notifications fail
+      }
       
       res.status(201).json(groupEvent);
     } catch (error) {
       console.error('Error adding event to group:', error);
       res.status(500).json({ message: 'Error adding event to group' });
+    }
+  });
+
+  // Get user's group notifications
+  app.get('/api/users/:userId/group-notifications', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (req.user!.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      // Get unread notification counts grouped by group and type
+      const result = await db.execute(sql`
+        SELECT 
+          sgn.group_id as "groupId",
+          sgn.type,
+          COUNT(*) as count,
+          sg.name as "groupName"
+        FROM sports_group_notifications sgn
+        JOIN sports_groups sg ON sgn.group_id = sg.id
+        WHERE sgn.user_id = ${userId} 
+        AND sgn.viewed = false
+        GROUP BY sgn.group_id, sgn.type, sg.name
+      `);
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching group notifications:', error);
+      res.status(500).json({ message: 'Error fetching notifications' });
+    }
+  });
+
+  // Mark group notifications as viewed
+  app.post('/api/users/:userId/group-notifications/view', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { groupId, type } = req.body;
+      
+      if (req.user!.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      await db.execute(sql`
+        UPDATE sports_group_notifications 
+        SET viewed = true 
+        WHERE user_id = ${userId} 
+        AND group_id = ${groupId}
+        ${type ? sql`AND type = ${type}` : sql``}
+      `);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notifications as viewed:', error);
+      res.status(500).json({ message: 'Error updating notifications' });
     }
   });
 
