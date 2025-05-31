@@ -202,8 +202,15 @@ export const useNotifications = () => {
     count += pendingInvitations.length;
     
     // Count event responses (people who accepted user's event invitations)
-    console.log('Event responses:', eventResponses.length, eventResponses);
-    count += eventResponses.length;
+    // Only count recent event responses (within last 24 hours) as these are informational
+    const recentEventResponses = eventResponses.filter((response: any) => {
+      const responseDate = new Date(response.createdAt);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - responseDate.getTime()) / (1000 * 60 * 60);
+      return hoursDiff <= 24; // Only show responses from last 24 hours
+    });
+    console.log('Event responses:', eventResponses.length, 'Recent:', recentEventResponses.length, recentEventResponses);
+    count += recentEventResponses.length;
     
     // Count pending team join requests
     console.log('Join requests:', joinRequests.length, joinRequests);
