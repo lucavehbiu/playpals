@@ -174,11 +174,16 @@ export default function GroupDetails() {
           <Button 
             variant={activeTab === 'events' ? 'default' : 'outline'}
             size="sm" 
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 relative"
             onClick={() => setActiveTab('events')}
           >
             <Calendar className="h-4 w-4" />
             <span>Events</span>
+            {getNotificationCount(groupId, 'event') > 0 && (
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {getNotificationCount(groupId, 'event')}
+              </Badge>
+            )}
           </Button>
           <Button 
             variant={activeTab === 'polls' ? 'default' : 'outline'}

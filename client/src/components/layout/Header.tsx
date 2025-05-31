@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
+import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { LogOut, Home, Search, Bell, Users, Calendar, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +24,7 @@ const Header = () => {
   const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
+  const { getTotalNotificationCount } = useGroupNotifications();
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
@@ -352,9 +354,14 @@ const Header = () => {
               </div>
               <div className="w-[85px]">
                 <Link href="/groups">
-                  <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location === '/groups' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <div className={`px-6 py-2 rounded-md text-center cursor-pointer relative ${location === '/groups' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
                     <Users className="h-6 w-6 mx-auto" />
                     <span className="text-xs font-medium mt-1 block">Groups</span>
+                    {getTotalNotificationCount() > 0 && (
+                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {getTotalNotificationCount()}
+                      </div>
+                    )}
                   </div>
                 </Link>
               </div>
