@@ -42,6 +42,7 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [pendingCount, setPendingCount] = useState(0);
+  const [viewedEventResponses, setViewedEventResponses] = useState<Set<number>>(new Set());
   
   // Automatic polling timer
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -198,29 +199,16 @@ export const useNotifications = () => {
     const pendingInvitations = rsvps.filter((rsvp: RSVPWithEvent) => {
       return rsvp.status === "maybe" || rsvp.status === "pending";
     });
-    console.log('Pending invitations:', pendingInvitations.length, pendingInvitations);
     count += pendingInvitations.length;
     
-    // Count event responses (people who accepted user's event invitations)
-    // Only count recent event responses (within last 24 hours) as these are informational
-    const recentEventResponses = eventResponses.filter((response: any) => {
-      const responseDate = new Date(response.createdAt);
-      const now = new Date();
-      const hoursDiff = (now.getTime() - responseDate.getTime()) / (1000 * 60 * 60);
-      return hoursDiff <= 24; // Only show responses from last 24 hours
-    });
-    console.log('Event responses:', eventResponses.length, 'Recent:', recentEventResponses.length, recentEventResponses);
-    count += recentEventResponses.length;
+    // Don't count event responses in notifications - they are informational only
+    // These will be shown in notification history instead
     
     // Count pending team join requests
-    console.log('Join requests:', joinRequests.length, joinRequests);
     count += joinRequests.length;
     
     // Count team member notifications
-    console.log('Team member notifications:', teamMemberNotifications.length, teamMemberNotifications);
     count += teamMemberNotifications.length;
-    
-    console.log('Total notification count:', count);
     setPendingCount(count);
   }, [rsvps, eventResponses, joinRequests, teamMemberNotifications]);
   
@@ -241,6 +229,11 @@ export const useNotifications = () => {
     }
   };
   
+  // Mark event response as viewed
+  const markEventResponseViewed = (responseId: number) => {
+    setViewedEventResponses(prev => new Set([...prev, responseId]));
+  };
+
   return {
     pendingCount,
     rsvps,
@@ -248,6 +241,7 @@ export const useNotifications = () => {
     joinRequests,
     teamMemberNotifications,
     markNotificationViewed,
+    markEventResponseViewed,
     isLoading: !rsvps
   };
 };
