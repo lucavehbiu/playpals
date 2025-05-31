@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin } from "lucide-react";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -61,6 +61,14 @@ export default function GroupDetails() {
   // Fetch unread event IDs for highlighting
   const { data: unreadEventIds = [], isLoading: unreadEventsLoading } = useQuery<number[]>({
     queryKey: [`/api/users/${user?.id}/unread-events/${groupId}`],
+    enabled: !!user?.id && !!groupId,
+    staleTime: 0,
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
+  // Fetch unread message IDs for highlighting
+  const { data: unreadMessageIds = [], isLoading: unreadMessagesLoading } = useQuery<number[]>({
+    queryKey: [`/api/users/${user?.id}/unread-messages/${groupId}`],
     enabled: !!user?.id && !!groupId,
     staleTime: 0,
     refetchInterval: 10000, // Refetch every 10 seconds
@@ -268,30 +276,63 @@ export default function GroupDetails() {
                   ))}
                 </div>
               ) : messages.length > 0 ? (
-                messages.map((message) => (
-                  <Card key={message.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">
-                              {message.user?.name || message.user?.username || 'Unknown User'}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(message.createdAt).toLocaleDateString()}
-                            </span>
+                messages.map((message) => {
+                  const isUnread = unreadMessageIds.includes(message.id);
+                  return (
+                    <Card key={message.id} className={isUnread ? 'border-blue-500 border-2 bg-blue-50' : ''}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>
+                              {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">
+                                {message.user?.name || message.user?.username || 'Unknown User'}
+                              </span>
+                              {isUnread && (
+                                <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                                  NEW
+                                </span>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {new Date(message.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 mb-3">{message.content}</p>
+                            
+                            {/* Message interaction buttons */}
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              <button 
+                                className="flex items-center gap-1 hover:text-green-600 transition-colors"
+                                onClick={() => {/* TODO: Implement like functionality */}}
+                              >
+                                <ThumbsUp className="h-4 w-4" />
+                                <span>Like</span>
+                              </button>
+                              <button 
+                                className="flex items-center gap-1 hover:text-red-600 transition-colors"
+                                onClick={() => {/* TODO: Implement dislike functionality */}}
+                              >
+                                <ThumbsDown className="h-4 w-4" />
+                                <span>Dislike</span>
+                              </button>
+                              <button 
+                                className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                                onClick={() => {/* TODO: Implement reply functionality */}}
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                                <span>Reply</span>
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-gray-700">{message.content}</p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               ) : (
                 <Card>
                   <CardContent className="p-8 text-center">
