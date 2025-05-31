@@ -182,7 +182,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   // Get total notification count (only actionable notifications)
   const totalNotifications = (pendingInvitations?.length || 0) + 
                             (joinRequests?.length || 0) + 
-                            (teamMemberNotifications?.length || 0);
+                            (teamMemberNotifications?.length || 0) +
+                            (groupNotifications?.length || 0);
 
   if (isLoading) {
     return (
