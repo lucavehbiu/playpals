@@ -391,12 +391,36 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
             )}
             
             {teamMemberNotifications && teamMemberNotifications.map((notification, index) => (
-              <TeamNotificationItem 
-                key={`team-${notification.id || index}`}
-                notification={notification}
-                onMarkAsViewed={handleMarkAsViewed}
-                onClose={onClose}
-              />
+              <div key={`team-${notification.id || index}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      Your request to join has been accepted
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                      Team: "{(notification as any).teamName || 'the team'}"
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                    </p>
+                    
+                    <div className="flex mt-2">
+                      <Link href={`/teams/${notification.teamId}`} onClick={onClose}>
+                        <Button 
+                          size="sm"
+                          className="px-2 py-1 h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Team
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
             
             {/* Sports Group notifications */}
@@ -462,18 +486,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               View Events
             </Button>
           </Link>
-          <Button 
-            variant="ghost" 
-            className="text-primary text-sm" 
-            size="sm"
-            onClick={() => {
-              // TODO: Implement notification history view
-              console.log('Show notification history');
-              onClose();
-            }}
-          >
-            View History
-          </Button>
+          <Link href="/notifications">
+            <Button 
+              variant="ghost" 
+              className="text-primary text-sm" 
+              size="sm"
+              onClick={onClose}
+            >
+              View History
+            </Button>
+          </Link>
           <Link href="/groups">
             <Button 
               variant="ghost" 
