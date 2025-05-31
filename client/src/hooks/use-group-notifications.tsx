@@ -51,14 +51,14 @@ export function useGroupNotifications() {
     if (!Array.isArray(notifications)) return 0;
     const groupNotifications = notifications.filter((n: GroupNotification) => n.groupId === groupId);
     if (type) {
-      return groupNotifications.find((n: GroupNotification) => n.type === type)?.count || 0;
+      return parseInt(groupNotifications.find((n: GroupNotification) => n.type === type)?.count || '0');
     }
-    return groupNotifications.reduce((sum: number, n: GroupNotification) => sum + n.count, 0);
+    return groupNotifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(n.count || '0'), 0);
   };
 
   const getTotalNotificationCount = () => {
     if (!Array.isArray(notifications)) return 0;
-    return notifications.reduce((sum: number, n: GroupNotification) => sum + n.count, 0);
+    return notifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(n.count || '0'), 0);
   };
 
   return {
