@@ -2086,9 +2086,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const members = await storage.getSportsGroupMembers(groupId);
         const membersToNotify = members.filter(m => m.userId !== userId);
         
-        // Create sports group notifications for all group members using direct SQL
+        // Create RSVP invitations and notifications for all group members
         for (const member of membersToNotify) {
           try {
+            // Create RSVP invitation with "pending" status
+            await storage.createRSVP({
+              eventId: eventId,
+              userId: member.userId,
+              status: 'pending'
+            });
+            
+            // Create sports group notifications
             await (storage as any).db.execute(sql`
               INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id)
               VALUES (${groupId}, ${member.userId}, 'event', 'New Event Added', ${`${event.title} has been added to the group`}, ${eventId})
