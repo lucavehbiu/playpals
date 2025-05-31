@@ -2213,7 +2213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Unauthorized' });
       }
 
-      await (storage as any).db.execute(sql`
+      await db.execute(sql`
         UPDATE sports_group_notifications 
         SET viewed = true 
         WHERE user_id = ${userId} 
