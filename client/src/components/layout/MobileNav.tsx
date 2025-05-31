@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
+import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +30,7 @@ const MobileNav = () => {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
+  const { getTotalNotificationCount } = useGroupNotifications();
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
@@ -73,7 +75,8 @@ const MobileNav = () => {
           href="/groups" 
           icon={<UsersIcon className="h-[22px] w-[22px]" />} 
           label="Groups" 
-          isActive={location === '/groups'} 
+          isActive={location === '/groups'}
+          badge={getTotalNotificationCount()}
         />
         
         {/* Create Button */}
