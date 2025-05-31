@@ -258,16 +258,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                         <CheckIcon className="h-3 w-3 mr-1" />
                         Accept
                       </Button>
-                      <Link href={`/events/${invitation.event?.id}`} onClick={onClose}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="px-2 py-1 h-7 text-xs"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </Link>
+
                     </div>
                   </div>
                 </div>
