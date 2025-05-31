@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from 'ws';
 import { storage } from "./storage";
+import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { 
   insertUserSchema, 
@@ -36,7 +37,6 @@ import {
   playerRatings,
   teamJoinRequests
 } from "@shared/schema";
-import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { setupAuth } from "./auth";
@@ -2093,7 +2093,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get unread notification counts grouped by group and type
-      const result = await (storage as any).db.execute(sql`
+      const result = await db.execute(sql`
         SELECT 
           sgn.group_id as "groupId",
           sgn.type,

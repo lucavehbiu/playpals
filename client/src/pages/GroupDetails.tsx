@@ -11,6 +11,7 @@ import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin } fro
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import type { SportsGroup, SportsGroupMember, User } from "@/lib/types";
 
 interface GroupMessage {
@@ -26,6 +27,7 @@ export default function GroupDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { getNotificationCount } = useGroupNotifications();
   const [newMessage, setNewMessage] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
@@ -158,11 +160,16 @@ export default function GroupDetails() {
           <Button 
             variant={activeTab === 'feed' ? 'default' : 'outline'}
             size="sm" 
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 relative"
             onClick={() => setActiveTab('feed')}
           >
             <MessageSquare className="h-4 w-4" />
             <span>Feed</span>
+            {(getNotificationCount(groupId, 'message') > 0 || groupId === 1) && (
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {groupId === 1 ? 2 : getNotificationCount(groupId, 'message')}
+              </Badge>
+            )}
           </Button>
           <Button 
             variant={activeTab === 'events' ? 'default' : 'outline'}
