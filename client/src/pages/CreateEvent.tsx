@@ -30,8 +30,8 @@ const CreateEvent = () => {
   const [eventLocation, setEventLocation] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [duration, setDuration] = useState(60);
-  const [maxParticipants, setMaxParticipants] = useState(10);
+  const [duration, setDuration] = useState("60");
+  const [maxParticipants, setMaxParticipants] = useState("10");
   const [isPrivate, setIsPrivate] = useState(false);
   const [price, setPrice] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
@@ -111,7 +111,7 @@ const CreateEvent = () => {
     const startDateTime = new Date(`${date}T${time}`);
     
     // Calculate end time based on duration
-    const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+    const endDateTime = new Date(startDateTime.getTime() + parseInt(duration) * 60000);
     
     const eventData = {
       title,
@@ -119,7 +119,7 @@ const CreateEvent = () => {
       sportType,
       location: eventLocation,
       date: startDateTime.toISOString(),
-      maxParticipants,
+      maxParticipants: parseInt(maxParticipants) || 10,
       creatorId: user.id,
       isPublic: !isPrivate,
       isFree: parseFloat(price) === 0,
@@ -250,7 +250,7 @@ const CreateEvent = () => {
               <Label htmlFor="duration">Duration (minutes)</Label>
               <Select 
                 value={duration.toString()} 
-                onValueChange={(val) => setDuration(parseInt(val))}
+                onValueChange={(val) => setDuration(val)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="How long is the event?" />
@@ -273,7 +273,7 @@ const CreateEvent = () => {
                   id="maxParticipants"
                   type="number"
                   value={maxParticipants}
-                  onChange={(e) => setMaxParticipants(parseInt(e.target.value))}
+                  onChange={(e) => setMaxParticipants(e.target.value)}
                   min={2}
                   max={100}
                   className="w-full pl-10"
