@@ -99,6 +99,27 @@ export default function GroupDetails() {
     },
   });
 
+  // Reply to message mutation
+  const replyMessageMutation = useMutation({
+    mutationFn: async ({ content, parentMessageId }: { content: string; parentMessageId: number }) => {
+      const response = await fetch(`/api/sports-groups/${groupId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, parentMessageId }),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to post reply');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/sports-groups/${groupId}/messages`] });
+      toast({ title: "Reply posted successfully!" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to post reply", variant: "destructive" });
+    },
+  });
+
   const handlePostMessage = () => {
     if (!newMessage.trim()) return;
     postMessageMutation.mutate(newMessage);
@@ -348,12 +369,15 @@ export default function GroupDetails() {
                                   size="sm"
                                   onClick={() => {
                                     if (replyContent.trim()) {
-                                      postMessageMutation.mutate(`@${message.user?.name || message.user?.username} ${replyContent}`);
+                                      replyMessageMutation.mutate({
+                                        content: `@${message.user?.name || message.user?.username} ${replyContent}`,
+                                        parentMessageId: message.id
+                                      });
                                       setReplyContent("");
                                       setReplyingTo(null);
                                     }
                                   }}
-                                  disabled={!replyContent.trim() || postMessageMutation.isPending}
+                                  disabled={!replyContent.trim() || replyMessageMutation.isPending}
                                 >
                                   Reply
                                 </Button>
