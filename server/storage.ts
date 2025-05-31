@@ -3207,57 +3207,57 @@ export class DatabaseStorage implements IStorage {
 
   // Sports Group Messages methods
   async getSportsGroupMessages(groupId: number): Promise<any[]> {
-    const messages = await db
-      .select({
-        id: sql`sports_group_messages.id`,
-        groupId: sql`sports_group_messages.group_id`,
-        userId: sql`sports_group_messages.user_id`,
-        content: sql`sports_group_messages.content`,
-        createdAt: sql`sports_group_messages.created_at`,
-        user: {
-          id: sql`users.id`,
-          username: sql`users.username`,
-          name: sql`users.name`,
-          profileImage: sql`users.profile_image`
-        }
-      })
-      .from(sql`sports_group_messages`)
-      .leftJoin(sql`users`, sql`sports_group_messages.user_id = users.id`)
-      .where(sql`sports_group_messages.group_id = ${groupId}`)
-      .orderBy(sql`sports_group_messages.created_at DESC`);
+    const result = await pool.query(`
+      SELECT 
+        sgm.id,
+        sgm.group_id as "groupId",
+        sgm.user_id as "userId",
+        sgm.content,
+        sgm.created_at as "createdAt",
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'name', u.name,
+          'profileImage', u.profile_image
+        ) as user
+      FROM sports_group_messages sgm
+      LEFT JOIN users u ON sgm.user_id = u.id
+      WHERE sgm.group_id = $1
+      ORDER BY sgm.created_at DESC
+    `, [groupId]);
     
-    return messages;
+    return result.rows;
   }
 
   async createSportsGroupMessage(message: any): Promise<any> {
-    const [newMessage] = await db.execute(sql`
-      INSERT INTO sports_group_messages (group_id, user_id, content, created_at)
-      VALUES (${message.groupId}, ${message.userId}, ${message.content}, NOW())
-      RETURNING *
-    `);
+    // Insert the message using raw SQL
+    const result = await pool.query(
+      'INSERT INTO sports_group_messages (group_id, user_id, content, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id',
+      [message.groupId, message.userId, message.content]
+    );
+    
+    const messageId = result.rows[0].id;
     
     // Get the message with user details
-    const messageWithUser = await db
-      .select({
-        id: sql`sports_group_messages.id`,
-        groupId: sql`sports_group_messages.group_id`,
-        userId: sql`sports_group_messages.user_id`,
-        content: sql`sports_group_messages.content`,
-        createdAt: sql`sports_group_messages.created_at`,
-        user: {
-          id: sql`users.id`,
-          username: sql`users.username`,
-          name: sql`users.name`,
-          profileImage: sql`users.profile_image`
-        }
-      })
-      .from(sql`sports_group_messages`)
-      .leftJoin(sql`users`, sql`sports_group_messages.user_id = users.id`)
-      .where(sql`sports_group_messages.user_id = ${message.userId} AND sports_group_messages.group_id = ${message.groupId}`)
-      .orderBy(sql`sports_group_messages.created_at DESC`)
-      .limit(1);
+    const messageWithUser = await pool.query(`
+      SELECT 
+        sgm.id,
+        sgm.group_id as "groupId",
+        sgm.user_id as "userId",
+        sgm.content,
+        sgm.created_at as "createdAt",
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'name', u.name,
+          'profileImage', u.profile_image
+        ) as user
+      FROM sports_group_messages sgm
+      LEFT JOIN users u ON sgm.user_id = u.id
+      WHERE sgm.id = $1
+    `, [messageId]);
     
-    return messageWithUser[0] || newMessage;
+    return messageWithUser.rows[0];
   }
   async updateSportsGroupMessage(id: number, messageData: any): Promise<any> { return messageData; }
   async deleteSportsGroupMessage(id: number): Promise<boolean> { return true; }
