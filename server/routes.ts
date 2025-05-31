@@ -2078,12 +2078,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get event details for notification
       const event = await storage.getEvent(eventId);
-      if (event) {
+      const group = await storage.getSportsGroup(groupId);
+      
+      if (event && group) {
         // Get all group members except the event creator
         const members = await storage.getSportsGroupMembers(groupId);
         const membersToNotify = members.filter(m => m.userId !== userId);
         
-        // Create notifications for all group members using direct SQL
+        // Create sports group notifications for all group members using direct SQL
         for (const member of membersToNotify) {
           try {
             await (storage as any).db.execute(sql`
@@ -2091,6 +2093,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               VALUES (${groupId}, ${member.userId}, 'event', 'New Event Added', ${`${event.title} has been added to the group`}, ${eventId})
               ON CONFLICT (group_id, user_id, type, reference_id) DO NOTHING
             `);
+            
+            // Also send general WebSocket notification for the event invitation
+            sendNotification(member.userId, {
+              type: 'event_invitation',
+              eventId: event.id,
+              eventTitle: event.title,
+              groupName: group.name,
+              message: `You've been invited to "${event.title}" in ${group.name}`,
+              createdAt: new Date().toISOString()
+            });
           } catch (notificationError) {
             console.error('Error creating notification for user', member.userId, ':', notificationError);
           }
