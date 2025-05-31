@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from 'ws';
 import { storage } from "./storage";
+import { sql } from "drizzle-orm";
 import { 
   insertUserSchema, 
   insertEventSchema, 
@@ -2061,7 +2062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         for (const member of members) {
           if (member.userId !== userId) {
-            await db.execute(sql`
+            await (storage as any).db.execute(sql`
               INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id)
               VALUES (${groupId}, ${member.userId}, 'event', 'New event in group', ${`${event?.title || 'New event'} has been added to the group`}, ${eventId})
               ON CONFLICT (group_id, user_id, type, reference_id) DO NOTHING
