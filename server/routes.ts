@@ -2062,36 +2062,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const members = await storage.getSportsGroupMembers(groupId);
         const membersToNotify = members.filter(m => m.userId !== userId);
         
-        // Create notifications for all group members
+        // Create notifications for all group members using direct SQL
         for (const member of membersToNotify) {
-          await storage.createSportsGroupNotification({
-            groupId,
-            userId: member.userId,
-            type: 'event',
-            title: 'New Event Added',
-            message: `${event.title} has been added to the group`,
-            referenceId: eventId
-          });
-        }
-      }
-
-      // Create notifications for all group members except the creator
-      try {
-        const event = await storage.getEvent(eventId);
-        const members = await storage.getSportsGroupMembers(groupId);
-        
-        for (const member of members) {
-          if (member.userId !== userId) {
+          try {
             await (storage as any).db.execute(sql`
               INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id)
-              VALUES (${groupId}, ${member.userId}, 'event', 'New event in group', ${`${event?.title || 'New event'} has been added to the group`}, ${eventId})
+              VALUES (${groupId}, ${member.userId}, 'event', 'New Event Added', ${`${event.title} has been added to the group`}, ${eventId})
               ON CONFLICT (group_id, user_id, type, reference_id) DO NOTHING
             `);
+          } catch (notificationError) {
+            console.error('Error creating notification for user', member.userId, ':', notificationError);
           }
         }
-      } catch (notifError) {
-        console.error('Error creating event notifications:', notifError);
-        // Don't fail the request if notifications fail
       }
       
       res.status(201).json(groupEvent);
