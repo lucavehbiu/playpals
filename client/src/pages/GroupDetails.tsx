@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Users, MessageSquare, Calendar, Settings } from "lucide-react";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -249,78 +249,6 @@ export default function GroupDetails() {
               </Card>
             )}
           </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Members */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Members ({memberCount})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {membersLoading ? (
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 animate-pulse">
-                      <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {member.user?.name?.charAt(0) || member.user?.username.charAt(0).toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">
-                          {member.user?.name || member.user?.username || 'Unknown User'}
-                        </div>
-                        {member.role === 'admin' && (
-                          <Badge variant="secondary" className="text-xs">Admin</Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-2" />
-                Create Event
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Schedule Poll
-              </Button>
-              {isAdmin && (
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Users className="h-4 w-4 mr-2" />
-                  Invite Members
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
