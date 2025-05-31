@@ -313,16 +313,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                         <CheckIcon className="h-3 w-3 mr-1" />
                         Accept
                       </Button>
-                      <Link href={`/teams/${request.teamId}`} onClick={onClose}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="px-2 py-1 h-7 text-xs"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </Link>
+
                     </div>
                   </div>
                 </div>
@@ -353,17 +344,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                     </p>
                     
-                    <div className="flex mt-2">
-                      <Link href={`/teams/${notification.teamId}`} onClick={onClose}>
-                        <Button 
-                          size="sm"
-                          className="px-2 py-1 h-7 text-xs"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View Team
-                        </Button>
-                      </Link>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -391,22 +372,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                       Click to view group activity
                     </p>
                     
-                    {/* Action button */}
-                    <div className="flex mt-2">
-                      <Link href={`/groups/${notification.groupId}`} onClick={() => {
-                        markNotificationsViewed.mutate({ groupId: notification.groupId, type: notification.type });
-                        onClose();
-                      }}>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="px-2 py-1 h-7 text-xs"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View Group
-                        </Button>
-                      </Link>
-                    </div>
+
                   </div>
                 </div>
               </div>
