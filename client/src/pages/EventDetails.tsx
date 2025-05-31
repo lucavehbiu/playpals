@@ -448,7 +448,7 @@ const EventDetails = () => {
           </div>
         </div>
         
-        {/* Join/Decline Buttons for Group Events */}
+        {/* Join/Decline Buttons for Group Events - No RSVP yet */}
         {!isCreator && !hasRSVPd && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
@@ -467,6 +467,52 @@ const EventDetails = () => {
               >
                 <X className="mr-2.5 h-5 w-5" />
                 Decline
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Join/Decline Buttons for Group Events - Pending RSVP */}
+        {!isCreator && hasRSVPd && rsvpStatus === "pending" && (
+          <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+            <div className="flex gap-3">
+              <Button 
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700" 
+                onClick={() => {
+                  // Update existing RSVP to approved status
+                  if (userRSVP) {
+                    apiRequest("PUT", `/api/rsvps/${userRSVP.id}`, { status: "approved" })
+                      .then(() => {
+                        if (eventId) {
+                          fetchRsvps(eventId);
+                        }
+                        toast({
+                          title: "Joined Event",
+                          description: "You have successfully joined this event!",
+                        });
+                      })
+                      .catch((error) => {
+                        toast({
+                          title: "Error",
+                          description: "Failed to join event",
+                          variant: "destructive",
+                        });
+                      });
+                  }
+                }}
+                disabled={joinEventMutation.isPending}
+              >
+                <Users className="mr-2.5 h-5 w-5" />
+                Join Event
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] border-red-200 text-red-600 hover:bg-red-50" 
+                onClick={() => declineEventMutation.mutate()}
+                disabled={declineEventMutation.isPending}
+              >
+                <X className="mr-2.5 h-5 w-5" />
+                {declineEventMutation.isPending ? "Declining..." : "Decline"}
               </Button>
             </div>
           </div>
