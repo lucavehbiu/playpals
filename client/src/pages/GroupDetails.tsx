@@ -300,105 +300,129 @@ export default function GroupDetails() {
                   ))}
                 </div>
               ) : messages.length > 0 ? (
-                messages.map((message) => {
-                  const isUnread = unreadMessageIds.includes(message.id);
-                  return (
-                    <Card key={message.id} className={isUnread ? 'border-blue-500 border-2 bg-blue-50' : ''}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback>
-                              {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">
-                                {message.user?.name || message.user?.username || 'Unknown User'}
-                              </span>
-                              {isUnread && (
-                                <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                                  NEW
+                (() => {
+                  // Organize messages into parent-child structure
+                  const topLevelMessages = messages.filter(m => !m.parentMessageId);
+                  const repliesByParent = messages.reduce((acc, message) => {
+                    if (message.parentMessageId) {
+                      if (!acc[message.parentMessageId]) {
+                        acc[message.parentMessageId] = [];
+                      }
+                      acc[message.parentMessageId].push(message);
+                    }
+                    return acc;
+                  }, {} as Record<number, any[]>);
+
+                  const renderMessage = (message: any, isReply = false) => {
+                    const isUnread = unreadMessageIds.includes(message.id);
+                    return (
+                      <Card key={message.id} className={`${isUnread ? 'border-blue-500 border-2 bg-blue-50' : ''} ${isReply ? 'ml-8 mt-2' : ''}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>
+                                {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-sm">
+                                  {message.user?.name || message.user?.username || 'Unknown User'}
                                 </span>
-                              )}
-                              <span className="text-xs text-gray-500">
-                                {new Date(message.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-gray-700 mb-3">{message.content}</p>
-                            
-                            {/* Message interaction buttons */}
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                              <button 
-                                className="flex items-center gap-1 hover:text-green-600 transition-colors"
-                                onClick={() => {/* TODO: Implement like functionality */}}
-                              >
-                                <ThumbsUp className="h-4 w-4" />
-                                <span>Like</span>
-                              </button>
-                              <button 
-                                className="flex items-center gap-1 hover:text-red-600 transition-colors"
-                                onClick={() => {/* TODO: Implement dislike functionality */}}
-                              >
-                                <ThumbsDown className="h-4 w-4" />
-                                <span>Dislike</span>
-                              </button>
-                              <button 
-                                className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                                onClick={() => setReplyingTo(message.id)}
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                                <span>Reply</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Reply interface */}
-                        {replyingTo === message.id && (
-                          <div className="mt-3 pl-8 border-l-2 border-blue-200">
-                            <div className="flex gap-2">
-                              <Textarea
-                                placeholder={`Reply to ${message.user?.name || message.user?.username}...`}
-                                value={replyContent}
-                                onChange={(e) => setReplyContent(e.target.value)}
-                                className="flex-1 min-h-[60px]"
-                              />
-                              <div className="flex flex-col gap-1">
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    if (replyContent.trim()) {
-                                      replyMessageMutation.mutate({
-                                        content: `@${message.user?.name || message.user?.username} ${replyContent}`,
-                                        parentMessageId: message.id
-                                      });
-                                      setReplyContent("");
-                                      setReplyingTo(null);
-                                    }
-                                  }}
-                                  disabled={!replyContent.trim() || replyMessageMutation.isPending}
+                                {isUnread && (
+                                  <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                                    NEW
+                                  </span>
+                                )}
+                                <span className="text-xs text-gray-500">
+                                  {new Date(message.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 mb-3">{message.content}</p>
+                              
+                              {/* Message interaction buttons */}
+                              <div className="flex items-center gap-4 text-sm text-gray-500">
+                                <button 
+                                  className="flex items-center gap-1 hover:text-green-600 transition-colors"
+                                  onClick={() => {/* TODO: Implement like functionality */}}
                                 >
-                                  Reply
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setReplyingTo(null);
-                                    setReplyContent("");
-                                  }}
+                                  <ThumbsUp className="h-4 w-4" />
+                                  <span>Like</span>
+                                </button>
+                                <button 
+                                  className="flex items-center gap-1 hover:text-red-600 transition-colors"
+                                  onClick={() => {/* TODO: Implement dislike functionality */}}
                                 >
-                                  Cancel
-                                </Button>
+                                  <ThumbsDown className="h-4 w-4" />
+                                  <span>Dislike</span>
+                                </button>
+                                <button 
+                                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                                  onClick={() => setReplyingTo(message.id)}
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                  <span>Reply</span>
+                                </button>
                               </div>
                             </div>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                          
+                          {/* Reply interface */}
+                          {replyingTo === message.id && (
+                            <div className="mt-3 pl-8 border-l-2 border-blue-200">
+                              <div className="flex gap-2">
+                                <Textarea
+                                  placeholder={`Reply to ${message.user?.name || message.user?.username}...`}
+                                  value={replyContent}
+                                  onChange={(e) => setReplyContent(e.target.value)}
+                                  className="flex-1 min-h-[60px]"
+                                />
+                                <div className="flex flex-col gap-1">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      if (replyContent.trim()) {
+                                        replyMessageMutation.mutate({
+                                          content: `@${message.user?.name || message.user?.username} ${replyContent}`,
+                                          parentMessageId: message.id
+                                        });
+                                        setReplyContent("");
+                                        setReplyingTo(null);
+                                      }
+                                    }}
+                                    disabled={!replyContent.trim() || replyMessageMutation.isPending}
+                                  >
+                                    Reply
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setReplyingTo(null);
+                                      setReplyContent("");
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  };
+
+                  return topLevelMessages.map((message) => (
+                    <div key={message.id}>
+                      {renderMessage(message)}
+                      {/* Render replies */}
+                      {repliesByParent[message.id]?.map((reply) => (
+                        renderMessage(reply, true)
+                      ))}
+                    </div>
+                  ));
+                })()
               ) : (
                 <Card>
                   <CardContent className="p-8 text-center">
