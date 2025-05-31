@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get unread notification counts grouped by group and type
-      const result = await db.execute(sql`
+      const result = await (storage as any).db.execute(sql`
         SELECT 
           sgn.group_id as "groupId",
           sgn.type,
@@ -2121,7 +2121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Unauthorized' });
       }
 
-      await db.execute(sql`
+      await (storage as any).db.execute(sql`
         UPDATE sports_group_notifications 
         SET viewed = true 
         WHERE user_id = ${userId} 

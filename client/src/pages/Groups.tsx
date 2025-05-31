@@ -17,6 +17,7 @@ import { z } from "zod";
 import { Link, useRoute, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { queryClient } from "@/lib/queryClient";
 import { sportTypes } from "@shared/schema";
 
@@ -38,6 +39,7 @@ export default function Groups() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } = useGroupNotifications();
 
   // Check if we're viewing a specific group
   const isViewingGroup = match && params?.groupId;
@@ -322,7 +324,14 @@ export default function Groups() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-lg mb-1">{group.name}</CardTitle>
+                        <div className="flex items-center gap-2 mb-1">
+                          <CardTitle className="text-lg">{group.name}</CardTitle>
+                          {getNotificationCount(group.id) > 0 && (
+                            <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center text-xs">
+                              {getNotificationCount(group.id)}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">
                             {group.sportType.charAt(0).toUpperCase() + group.sportType.slice(1)}
