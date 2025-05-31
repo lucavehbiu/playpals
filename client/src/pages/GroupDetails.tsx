@@ -208,9 +208,9 @@ export default function GroupDetails() {
           >
             <MessageSquare className="h-4 w-4" />
             <span>Feed</span>
-            {(getNotificationCount(groupId, 'message') > 0 || groupId === 1) && (
+            {getNotificationCount(groupId, 'message') > 0 && (
               <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                {groupId === 1 ? 2 : getNotificationCount(groupId, 'message')}
+                {getNotificationCount(groupId, 'message')}
               </Badge>
             )}
           </Button>
