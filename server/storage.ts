@@ -3295,7 +3295,6 @@ export class DatabaseStorage implements IStorage {
         .values({
           groupId: groupEvent.groupId,
           eventId: groupEvent.eventId,
-          addedAt: new Date(),
         })
         .returning();
       return result;

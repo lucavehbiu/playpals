@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus } from "lucide-react";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -28,6 +28,7 @@ export default function GroupDetails() {
   const { toast } = useToast();
   const [newMessage, setNewMessage] = useState("");
   const [showMembers, setShowMembers] = useState(false);
+  const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
 
   const groupId = parseInt(id || "0");
 
@@ -46,6 +47,12 @@ export default function GroupDetails() {
   // Fetch group messages (feed)
   const { data: messages = [], isLoading: messagesLoading } = useQuery<GroupMessage[]>({
     queryKey: [`/api/sports-groups/${groupId}/messages`],
+    enabled: !!groupId,
+  });
+
+  // Fetch group events
+  const { data: events = [], isLoading: eventsLoading } = useQuery<any[]>({
+    queryKey: [`/api/sports-groups/${groupId}/events`],
     enabled: !!groupId,
   });
 
@@ -145,90 +152,254 @@ export default function GroupDetails() {
         </Card>
       )}
 
-      {/* Compact Quick Actions Toolbar */}
+      {/* Navigation Tabs */}
       <div className="mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg">
           <Button 
-            variant="outline" 
+            variant={activeTab === 'feed' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2"
-            onClick={() => {
-              // Navigate to create event with group pre-selected
-              window.location.href = `/events/create?groupId=${group.id}`;
-            }}
+            onClick={() => setActiveTab('feed')}
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Feed</span>
+          </Button>
+          <Button 
+            variant={activeTab === 'events' ? 'default' : 'outline'}
+            size="sm" 
+            className="flex items-center justify-center gap-2"
+            onClick={() => setActiveTab('events')}
           >
             <Calendar className="h-4 w-4" />
-            <span>Event</span>
+            <span>Events</span>
           </Button>
           <Button 
-            variant="outline" 
+            variant={activeTab === 'polls' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2"
-            onClick={() => {
-              // TODO: Open poll creation modal
-              alert('Poll creation coming soon!');
-            }}
+            onClick={() => setActiveTab('polls')}
           >
             <Clock className="h-4 w-4" />
-            <span>Poll</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex items-center justify-center gap-2"
-            onClick={() => {
-              // TODO: Open invite members modal
-              alert('Invite members coming soon!');
-            }}
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Invite</span>
+            <span>Polls</span>
           </Button>
           {isAdmin && (
             <Button 
-              variant="outline" 
+              variant={activeTab === 'settings' ? 'default' : 'outline'}
               size="sm" 
               className="flex items-center justify-center gap-2"
-              onClick={() => {
-                // TODO: Open group management modal
-                alert('Group management coming soon!');
-              }}
+              onClick={() => setActiveTab('settings')}
             >
               <Settings className="h-4 w-4" />
-              <span>Manage</span>
+              <span>Settings</span>
             </Button>
           )}
         </div>
       </div>
 
-      {/* Group Feed - Full Width */}
+      {/* Tab Content */}
       <div className="space-y-6">
-        {/* Post Message */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Group Feed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Feed Tab */}
+        {activeTab === 'feed' && (
+          <>
+            {/* Post Message */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Group Feed
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Share something with the group..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="min-h-20"
+                  />
+                  <Button 
+                    onClick={handlePostMessage}
+                    disabled={!newMessage.trim() || postMessageMutation.isPending}
+                    className="w-full"
+                  >
+                    {postMessageMutation.isPending ? "Posting..." : "Post Message"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Messages Feed */}
             <div className="space-y-4">
-              <Textarea
-                placeholder="Share something with the group..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="min-h-20"
-              />
-              <Button 
-                onClick={handlePostMessage}
-                disabled={!newMessage.trim() || postMessageMutation.isPending}
-                className="w-full"
-              >
-                {postMessageMutation.isPending ? "Posting..." : "Post Message"}
-              </Button>
+              {messagesLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Card key={i}>
+                      <CardContent className="p-4">
+                        <div className="animate-pulse space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                          </div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : messages.length > 0 ? (
+                messages.map((message) => (
+                  <Card key={message.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm">
+                              {message.user?.name || message.user?.username || 'Unknown User'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(message.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-700">{message.content}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                    <p className="text-gray-500">Be the first to post in this group!</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </>
+        )}
+
+        {/* Events Tab */}
+        {activeTab === 'events' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Group Events
+                </div>
+                <Button 
+                  onClick={() => {
+                    window.location.href = `/events/create?groupId=${groupId}`;
+                  }}
+                  size="sm"
+                >
+                  Create Event
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {eventsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No events yet</p>
+                  <p className="text-sm">Be the first to create an event for this group!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {events.map((event: any) => (
+                    <div key={event.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{event.title}</h3>
+                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {new Date(event.startTime).toLocaleDateString()}
+                            </span>
+                            {event.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {event.location}
+                              </span>
+                            )}
+                          </div>
+                          {event.creator && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Created by {event.creator.name}
+                            </p>
+                          )}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            window.location.href = `/events/${event.id}`;
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Polls Tab */}
+        {activeTab === 'polls' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Group Polls
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-gray-500">
+                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Polls feature coming soon!</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Group Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-gray-500">
+                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Group management coming soon!</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
           {/* Messages Feed */}
           <div className="space-y-4">

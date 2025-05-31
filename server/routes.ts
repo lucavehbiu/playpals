@@ -2051,9 +2051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const groupEvent = await storage.addSportsGroupEvent({
         groupId,
-        eventId,
-        addedBy: userId,
-        addedAt: new Date().toISOString()
+        eventId
       });
       
       res.status(201).json(groupEvent);
