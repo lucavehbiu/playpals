@@ -16,6 +16,7 @@ import ManageEvent from "@/pages/ManageEvent";
 import EditEvent from "@/pages/EditEvent";
 import CreateEvent from "@/pages/CreateEvent";
 import Invitations from "@/pages/Invitations";
+import NotificationHistory from "@/pages/NotificationHistory";
 import AuthPage from "@/pages/auth-page";
 import SportPreferencesPage from "@/pages/sports-preferences";
 import Header from "@/components/layout/Header";
@@ -53,6 +54,7 @@ function Router() {
                   <ProtectedRoute path="/groups" component={Groups} />
                   <ProtectedRoute path="/groups/:id" component={GroupDetails} />
                   <ProtectedRoute path="/invitations" component={Invitations} />
+                  <ProtectedRoute path="/notifications" component={NotificationHistory} />
                   <ProtectedRoute path="/profile" component={Profile} />
                   <Route path="*" component={NotFound} />
                 </Switch>
