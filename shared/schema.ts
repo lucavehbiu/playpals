@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -332,6 +332,21 @@ export const sportsGroupJoinRequests = pgTable("sports_group_join_requests", {
   groupUserUnique: unique().on(t.groupId, t.userId),
 }));
 
+// Sports Group Notifications table
+export const sportsGroupNotifications = pgTable("sports_group_notifications", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // 'event', 'message', 'poll'
+  title: text("title").notNull(),
+  message: text("message"),
+  referenceId: integer("reference_id"), // ID of the event/message/poll that triggered the notification
+  viewed: boolean("viewed").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  groupUserTypeRefUnique: unique().on(t.groupId, t.userId, t.type, t.referenceId),
+}));
+
 // Define relations
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -523,6 +538,7 @@ export const sportsGroupsRelations = relations(sportsGroups, ({ one, many }) => 
   events: many(sportsGroupEvents, { relationName: "sports_group_events" }),
   polls: many(sportsGroupPolls, { relationName: "sports_group_polls" }),
   joinRequests: many(sportsGroupJoinRequests, { relationName: "sports_group_join_requests" }),
+  notifications: many(sportsGroupNotifications, { relationName: "sports_group_notifications" }),
 }));
 
 export const sportsGroupMembersRelations = relations(sportsGroupMembers, ({ one }) => ({
@@ -616,6 +632,19 @@ export const sportsGroupJoinRequestsRelations = relations(sportsGroupJoinRequest
     fields: [sportsGroupJoinRequests.userId],
     references: [users.id],
     relationName: "user_sports_group_join_requests",
+  }),
+}));
+
+export const sportsGroupNotificationsRelations = relations(sportsGroupNotifications, ({ one }) => ({
+  group: one(sportsGroups, {
+    fields: [sportsGroupNotifications.groupId],
+    references: [sportsGroups.id],
+    relationName: "sports_group_notifications",
+  }),
+  user: one(users, {
+    fields: [sportsGroupNotifications.userId],
+    references: [users.id],
+    relationName: "user_sports_group_notifications",
   }),
 }));
 
