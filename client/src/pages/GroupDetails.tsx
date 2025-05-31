@@ -58,6 +58,14 @@ export default function GroupDetails() {
     enabled: !!groupId,
   });
 
+  // Fetch unread event IDs for highlighting
+  const { data: unreadEventIds = [], isLoading: unreadEventsLoading } = useQuery<number[]>({
+    queryKey: [`/api/users/${user?.id}/unread-events/${groupId}`],
+    enabled: !!user?.id && !!groupId,
+    staleTime: 0,
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
   // Post new message mutation
   const postMessageMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -334,42 +342,65 @@ export default function GroupDetails() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {events.map((event: any) => (
-                    <div key={event.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{event.title}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(event.startTime).toLocaleDateString()}
-                            </span>
-                            {event.location && (
+                  {events.map((event: any) => {
+                    const isNewEvent = unreadEventIds.includes(event.id);
+                    return (
+                      <div 
+                        key={event.id} 
+                        className={`border rounded-lg p-4 hover:bg-gray-50 relative ${
+                          isNewEvent ? 'border-blue-200 bg-blue-50/50' : ''
+                        }`}
+                      >
+                        {isNewEvent && (
+                          <div className="absolute -top-2 -right-2">
+                            <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                              NEW
+                            </Badge>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className={`font-semibold ${isNewEvent ? 'text-blue-700' : ''}`}>
+                                {event.title}
+                              </h3>
+                              {isNewEvent && (
+                                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
-                                {event.location}
+                                <Calendar className="h-4 w-4" />
+                                {new Date(event.startTime).toLocaleDateString()}
                               </span>
+                              {event.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {event.location}
+                                </span>
+                              )}
+                            </div>
+                            {event.creator && (
+                              <p className="text-xs text-gray-400 mt-2">
+                                Created by {event.creator.name}
+                              </p>
                             )}
                           </div>
-                          {event.creator && (
-                            <p className="text-xs text-gray-400 mt-2">
-                              Created by {event.creator.name}
-                            </p>
-                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              window.location.href = `/events/${event.id}`;
+                            }}
+                            className={isNewEvent ? 'border-blue-300' : ''}
+                          >
+                            View Details
+                          </Button>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            window.location.href = `/events/${event.id}`;
-                          }}
-                        >
-                          View Details
-                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

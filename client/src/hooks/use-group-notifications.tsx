@@ -61,11 +61,26 @@ export function useGroupNotifications() {
     return notifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(n.count || '0'), 0);
   };
 
+  const getUnreadEventIds = async (groupId: number) => {
+    if (!user?.id) return [];
+    try {
+      const response = await fetch(`/api/users/${user.id}/unread-events/${groupId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching unread events:', error);
+      return [];
+    }
+  };
+
   return {
     notifications,
     isLoading,
     markNotificationsViewed,
     getNotificationCount,
     getTotalNotificationCount,
+    getUnreadEventIds,
   };
 }

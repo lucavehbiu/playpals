@@ -2134,6 +2134,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get unread event IDs for a user in a specific group
+  app.get('/api/users/:userId/unread-events/:groupId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const groupId = parseInt(req.params.groupId);
+      
+      if (req.user!.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      // Get unread event notifications for this user and group
+      const result = await db.execute(sql`
+        SELECT reference_id as "eventId"
+        FROM sports_group_notifications 
+        WHERE user_id = ${userId} 
+        AND group_id = ${groupId} 
+        AND type = 'event' 
+        AND viewed = false
+      `);
+
+      const unreadEventIds = result.rows.map((row: any) => row.eventId);
+      res.json(unreadEventIds);
+    } catch (error) {
+      console.error('Error fetching unread events:', error);
+      res.status(500).json({ message: 'Error fetching unread events' });
+    }
+  });
+
   // Mark group notifications as viewed
   app.post('/api/users/:userId/group-notifications/view', authenticateUser, async (req: Request, res: Response) => {
     try {
