@@ -38,7 +38,7 @@ export default function GroupDetails() {
 
   // Fetch group members
   const { data: members = [], isLoading: membersLoading } = useQuery<SportsGroupMember[]>({
-    queryKey: ['/api/sports-groups', groupId, 'members'],
+    queryKey: [`/api/sports-groups/${groupId}/members`],
     enabled: !!groupId,
   });
 
