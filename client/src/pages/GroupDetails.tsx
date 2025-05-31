@@ -29,6 +29,8 @@ export default function GroupDetails() {
   const { toast } = useToast();
   const { getNotificationCount } = useGroupNotifications();
   const [newMessage, setNewMessage] = useState("");
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
 
@@ -321,7 +323,7 @@ export default function GroupDetails() {
                               </button>
                               <button 
                                 className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                                onClick={() => {/* TODO: Implement reply functionality */}}
+                                onClick={() => setReplyingTo(message.id)}
                               >
                                 <MessageSquare className="h-4 w-4" />
                                 <span>Reply</span>
@@ -329,6 +331,45 @@ export default function GroupDetails() {
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Reply interface */}
+                        {replyingTo === message.id && (
+                          <div className="mt-3 pl-8 border-l-2 border-blue-200">
+                            <div className="flex gap-2">
+                              <Textarea
+                                placeholder={`Reply to ${message.user?.name || message.user?.username}...`}
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                className="flex-1 min-h-[60px]"
+                              />
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (replyContent.trim()) {
+                                      postMessageMutation.mutate(`@${message.user?.name || message.user?.username} ${replyContent}`);
+                                      setReplyContent("");
+                                      setReplyingTo(null);
+                                    }
+                                  }}
+                                  disabled={!replyContent.trim() || postMessageMutation.isPending}
+                                >
+                                  Reply
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setReplyingTo(null);
+                                    setReplyContent("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   );
