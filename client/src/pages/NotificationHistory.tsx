@@ -178,50 +178,40 @@ export default function NotificationHistory() {
                 {allNotifications.map((notification: NotificationItem, index: number) => (
                   <div 
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
+                    className={`p-3 hover:bg-gray-50 transition-colors ${
                       !notification.viewed ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
-                    <div className="flex items-start space-x-4">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
+                    <div className="flex items-start space-x-3">
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
                         {getNotificationIcon(notification.type)}
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-900">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 leading-tight">
                               {notification.title}
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 mt-0.5 leading-snug">
                               {notification.description}
                             </p>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-gray-500 mt-1">
                               {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                             </p>
                           </div>
                           
-                          <div className="flex items-center space-x-2 ml-4">
+                          <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
                             {notification.actionable && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                                 Action Required
                               </Badge>
                             )}
                             {notification.viewed && (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <CheckCircle className="h-3.5 w-3.5 text-green-500" />
                             )}
                           </div>
                         </div>
-                        
-                        {notification.relatedId && (
-                          <div className="mt-3">
-                            <Link href={getRelatedLink(notification)}>
-                              <Button variant="outline" size="sm" className="text-xs">
-                                View {notification.relatedType}
-                              </Button>
-                            </Link>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
