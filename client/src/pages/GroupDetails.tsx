@@ -28,7 +28,7 @@ export default function GroupDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { getNotificationCount } = useGroupNotifications();
+  const { getNotificationCount, markNotificationsViewed } = useGroupNotifications();
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
@@ -201,7 +201,10 @@ export default function GroupDetails() {
             variant={activeTab === 'feed' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2 relative"
-            onClick={() => setActiveTab('feed')}
+            onClick={() => {
+              setActiveTab('feed');
+              markNotificationsViewed.mutate({ groupId, type: 'message' });
+            }}
           >
             <MessageSquare className="h-4 w-4" />
             <span>Feed</span>
@@ -215,7 +218,10 @@ export default function GroupDetails() {
             variant={activeTab === 'events' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2 relative"
-            onClick={() => setActiveTab('events')}
+            onClick={() => {
+              setActiveTab('events');
+              markNotificationsViewed.mutate({ groupId, type: 'event' });
+            }}
           >
             <Calendar className="h-4 w-4" />
             <span>Events</span>
