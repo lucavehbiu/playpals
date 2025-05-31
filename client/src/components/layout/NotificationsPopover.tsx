@@ -387,17 +387,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       </div>
       
       <div className="p-2 border-t">
-        <div className="flex justify-between">
-          <Link href="/invitations">
-            <Button 
-              variant="ghost" 
-              className="text-primary text-sm" 
-              size="sm"
-              onClick={onClose}
-            >
-              View Events
-            </Button>
-          </Link>
+        <div className="flex justify-center">
           <Link href="/notifications">
             <Button 
               variant="ghost" 
@@ -406,16 +396,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               onClick={onClose}
             >
               View History
-            </Button>
-          </Link>
-          <Link href="/groups">
-            <Button 
-              variant="ghost" 
-              className="text-primary text-sm" 
-              size="sm"
-              onClick={onClose}
-            >
-              View Groups
             </Button>
           </Link>
         </div>
