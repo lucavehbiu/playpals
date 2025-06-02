@@ -2439,7 +2439,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.creatorId, creatorId))
-      .orderBy(desc(events.date));
+      .orderBy(events.date);
   }
 
   async getPublicEvents(): Promise<Event[]> {
@@ -2447,7 +2447,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.isPublic, true))
-      .orderBy(desc(events.date));
+      .orderBy(events.date);
   }
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
@@ -3279,7 +3279,7 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(events, eq(sportsGroupEvents.eventId, events.id))
         .innerJoin(users, eq(events.creatorId, users.id))
         .where(eq(sportsGroupEvents.groupId, groupId))
-        .orderBy(desc(events.createdAt));
+        .orderBy(events.date);
 
       return groupEvents.map(({ event, user }) => ({
         ...event,
