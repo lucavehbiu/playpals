@@ -155,7 +155,7 @@ const EventDetails = () => {
   const declineEventMutation = useMutation({
     mutationFn: async () => {
       if (!userRSVP) throw new Error("No RSVP found");
-      const response = await apiRequest("DELETE", `/api/rsvps/${userRSVP.id}`);
+      const response = await apiRequest("PUT", `/api/rsvps/${userRSVP.id}`, { status: "declined" });
       return response;
     },
     onSuccess: () => {
