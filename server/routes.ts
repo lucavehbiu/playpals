@@ -2060,6 +2060,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/sports-groups/:id/events/history', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const events = await storage.getSportsGroupEventHistory(groupId);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching group event history:', error);
+      res.status(500).json({ message: 'Error fetching group event history' });
+    }
+  });
+
   app.post('/api/sports-groups/:id/events', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);

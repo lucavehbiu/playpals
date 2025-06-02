@@ -574,6 +574,21 @@ export default function GroupDetails() {
                   })}
                 </div>
               )}
+              
+              {/* Event History Button */}
+              <div className="mt-6 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    window.location.href = `/groups/${groupId}/events/history`;
+                  }}
+                  className="w-full"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  View Event History
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

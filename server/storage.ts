@@ -164,6 +164,7 @@ export interface IStorage {
 
   // Sports Group Events methods
   getSportsGroupEvents(groupId: number): Promise<SportsGroupEvent[]>;
+  getSportsGroupEventHistory(groupId: number): Promise<SportsGroupEvent[]>;
   addSportsGroupEvent(groupEvent: InsertSportsGroupEvent): Promise<SportsGroupEvent>;
   removeSportsGroupEvent(id: number): Promise<boolean>;
 
@@ -3299,6 +3300,38 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  async getSportsGroupEventHistory(groupId: number): Promise<any[]> {
+    try {
+      const groupEvents = await db
+        .select({
+          event: events,
+          user: {
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            profileImage: users.profileImage,
+          },
+        })
+        .from(sportsGroupEvents)
+        .innerJoin(events, eq(sportsGroupEvents.eventId, events.id))
+        .innerJoin(users, eq(events.creatorId, users.id))
+        .where(and(
+          eq(sportsGroupEvents.groupId, groupId),
+          sql`${events.date} < ${new Date()}`
+        ))
+        .orderBy(desc(events.date));
+
+      return groupEvents.map(({ event, user }) => ({
+        ...event,
+        creator: user,
+      }));
+    } catch (error) {
+      console.error('Error fetching group event history:', error);
+      return [];
+    }
+  }
+
   async createSportsGroupNotification(notification: any): Promise<any> {
     try {
       const result = await pool.query(
@@ -3328,6 +3361,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   async removeSportsGroupEvent(id: number): Promise<boolean> { return true; }
+  async getSportsGroupEventHistory(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupPolls(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupPoll(id: number): Promise<any> { return null; }
   async createSportsGroupPoll(poll: any): Promise<any> { return poll; }
