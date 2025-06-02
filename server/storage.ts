@@ -23,7 +23,7 @@ import {
   sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, like, avg, sql } from "drizzle-orm";
+import { eq, and, desc, or, like, avg, sql, gte } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -2438,7 +2438,10 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(events)
-      .where(eq(events.creatorId, creatorId))
+      .where(and(
+        eq(events.creatorId, creatorId),
+        gte(events.date, new Date())
+      ))
       .orderBy(events.date);
   }
 
@@ -2446,7 +2449,10 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(events)
-      .where(eq(events.isPublic, true))
+      .where(and(
+        eq(events.isPublic, true),
+        gte(events.date, new Date())
+      ))
       .orderBy(events.date);
   }
 
@@ -3278,7 +3284,10 @@ export class DatabaseStorage implements IStorage {
         .from(sportsGroupEvents)
         .innerJoin(events, eq(sportsGroupEvents.eventId, events.id))
         .innerJoin(users, eq(events.creatorId, users.id))
-        .where(eq(sportsGroupEvents.groupId, groupId))
+        .where(and(
+          eq(sportsGroupEvents.groupId, groupId),
+          gte(events.date, new Date())
+        ))
         .orderBy(events.date);
 
       return groupEvents.map(({ event, user }) => ({
