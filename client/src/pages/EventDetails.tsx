@@ -541,6 +541,51 @@ const EventDetails = () => {
             </div>
           </div>
         )}
+
+        {/* RSVP Status - Declined */}
+        {!isCreator && hasRSVPd && (rsvpStatus === "declined" || rsvpStatus === "denied") && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <X className="h-6 w-6 mr-3 text-red-600" />
+                <div>
+                  <p className="font-medium text-red-800">You declined this event</p>
+                  <p className="text-sm text-red-600">Changed your mind? You can still join!</p>
+                </div>
+              </div>
+              <Button 
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  // Update existing RSVP to approved status
+                  if (userRSVP) {
+                    apiRequest("PUT", `/api/rsvps/${userRSVP.id}`, { status: "approved" })
+                      .then(() => {
+                        if (eventId) {
+                          fetchRsvps(eventId);
+                        }
+                        toast({
+                          title: "Joined Event",
+                          description: "You have successfully joined this event!",
+                        });
+                      })
+                      .catch((error) => {
+                        toast({
+                          title: "Error",
+                          description: "Failed to join event",
+                          variant: "destructive",
+                        });
+                      });
+                  }
+                }}
+                disabled={joinEventMutation.isPending}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Join Event
+              </Button>
+            </div>
+          </div>
+        )}
         
         {/* Organizer Actions */}
         {isCreator && (
