@@ -501,7 +501,7 @@ export default function GroupDetails() {
                     } else if (rsvpStatus === 'approved') {
                       statusClasses = 'border-green-300 bg-green-50/50';
                       statusBadge = <Badge className="bg-green-500 text-white">Attending</Badge>;
-                    } else if (rsvpStatus === 'declined') {
+                    } else if (rsvpStatus === 'declined' || rsvpStatus === 'denied') {
                       statusClasses = 'border-red-300 bg-red-50/50';
                       statusBadge = <Badge className="bg-red-500 text-white">Declined</Badge>;
                     } else {
@@ -541,7 +541,9 @@ export default function GroupDetails() {
                             <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                {event.date ? new Date(event.date).toLocaleDateString() : 'Date TBD'}
+                                {event.date ? 
+                                  `${new Date(event.date).toLocaleDateString()} at ${new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
+                                  : 'Date TBD'}
                               </span>
                               {event.location && (
                                 <span className="flex items-center gap-1">
