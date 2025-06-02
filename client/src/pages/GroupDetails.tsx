@@ -61,6 +61,12 @@ export default function GroupDetails() {
     enabled: !!groupId,
   });
 
+  // Fetch user's RSVPs to determine status for each event
+  const { data: userRSVPs = [] } = useQuery<any[]>({
+    queryKey: [`/api/rsvps/user/${user?.id}`],
+    enabled: !!user?.id,
+  });
+
   // Fetch unread event IDs for highlighting
   const { data: unreadEventIds = [], isLoading: unreadEventsLoading } = useQuery<number[]>({
     queryKey: [`/api/users/${user?.id}/unread-events/${groupId}`],
@@ -481,12 +487,37 @@ export default function GroupDetails() {
                 <div className="space-y-4">
                   {events.map((event: any) => {
                     const isNewEvent = unreadEventIds.includes(event.id);
+                    // Find user's RSVP status for this event
+                    const userRSVP = userRSVPs.find(rsvp => rsvp.eventId === event.id);
+                    const rsvpStatus = userRSVP?.status || 'no_response';
+                    
+                    // Determine border and background colors based on RSVP status
+                    let statusClasses = '';
+                    let statusBadge = null;
+                    
+                    if (rsvpStatus === 'pending') {
+                      statusClasses = 'border-yellow-300 bg-yellow-50/50';
+                      statusBadge = <Badge className="bg-yellow-500 text-white">Pending Response</Badge>;
+                    } else if (rsvpStatus === 'approved') {
+                      statusClasses = 'border-green-300 bg-green-50/50';
+                      statusBadge = <Badge className="bg-green-500 text-white">Attending</Badge>;
+                    } else if (rsvpStatus === 'declined') {
+                      statusClasses = 'border-red-300 bg-red-50/50';
+                      statusBadge = <Badge className="bg-red-500 text-white">Declined</Badge>;
+                    } else {
+                      statusClasses = 'border-gray-300 bg-gray-50/30';
+                      statusBadge = <Badge variant="outline">No Response</Badge>;
+                    }
+                    
+                    // Override with new event styling if applicable
+                    if (isNewEvent) {
+                      statusClasses = 'border-blue-300 bg-blue-50/50';
+                    }
+                    
                     return (
                       <div 
                         key={event.id} 
-                        className={`border rounded-lg p-4 hover:bg-gray-50 relative ${
-                          isNewEvent ? 'border-blue-200 bg-blue-50/50' : ''
-                        }`}
+                        className={`border rounded-lg p-4 hover:bg-gray-50 relative ${statusClasses}`}
                       >
                         {isNewEvent && (
                           <div className="absolute -top-2 -right-2">
@@ -504,12 +535,13 @@ export default function GroupDetails() {
                               {isNewEvent && (
                                 <div className="h-2 w-2 bg-red-500 rounded-full"></div>
                               )}
+                              {!isNewEvent && statusBadge}
                             </div>
                             <p className="text-sm text-gray-600 mt-1">{event.description}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                {new Date(event.startTime).toLocaleDateString()}
+                                {event.date ? new Date(event.date).toLocaleDateString() : 'Date TBD'}
                               </span>
                               {event.location && (
                                 <span className="flex items-center gap-1">
