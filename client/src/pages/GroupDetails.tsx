@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +36,13 @@ export default function GroupDetails() {
   const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
 
   const groupId = parseInt(id || "0");
+
+  // Auto-clear message notifications when entering group page
+  useEffect(() => {
+    if (groupId && user && activeTab === 'feed') {
+      markNotificationsViewed.mutate({ groupId, type: 'message' });
+    }
+  }, [groupId, user, activeTab, markNotificationsViewed]);
 
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
