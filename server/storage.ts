@@ -23,7 +23,7 @@ import {
   sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, like, avg, sql, gte } from "drizzle-orm";
+import { eq, and, desc, or, like, avg, sql, gte, lt } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -3318,7 +3318,7 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(users, eq(events.creatorId, users.id))
         .where(and(
           eq(sportsGroupEvents.groupId, groupId),
-          sql`${events.date} < ${new Date()}`
+          sql`${events.date} < CURRENT_TIMESTAMP`
         ))
         .orderBy(desc(events.date));
 
