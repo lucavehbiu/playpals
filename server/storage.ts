@@ -3303,9 +3303,6 @@ export class DatabaseStorage implements IStorage {
 
   async getSportsGroupEventHistory(groupId: number): Promise<any[]> {
     try {
-      console.log(`Fetching event history for group ${groupId}`);
-      console.log(`Current date for comparison: ${new Date()}`);
-      
       const groupEvents = await db
         .select({
           event: events,
@@ -3324,9 +3321,6 @@ export class DatabaseStorage implements IStorage {
           lt(events.date, new Date())
         ))
         .orderBy(desc(events.date));
-
-      console.log(`Found ${groupEvents.length} past events for group ${groupId}`);
-      groupEvents.forEach(ge => console.log(`Event: ${ge.event.title} on ${ge.event.date}`));
 
       return groupEvents.map(({ event, user }) => ({
         ...event,
