@@ -3303,6 +3303,9 @@ export class DatabaseStorage implements IStorage {
 
   async getSportsGroupEventHistory(groupId: number): Promise<any[]> {
     try {
+      console.log(`Fetching event history for group ${groupId}`);
+      console.log(`Current date for comparison: ${new Date()}`);
+      
       const groupEvents = await db
         .select({
           event: events,
@@ -3318,9 +3321,12 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(users, eq(events.creatorId, users.id))
         .where(and(
           eq(sportsGroupEvents.groupId, groupId),
-          sql`${events.date} < CURRENT_TIMESTAMP`
+          lt(events.date, new Date())
         ))
         .orderBy(desc(events.date));
+
+      console.log(`Found ${groupEvents.length} past events for group ${groupId}`);
+      groupEvents.forEach(ge => console.log(`Event: ${ge.event.title} on ${ge.event.date}`));
 
       return groupEvents.map(({ event, user }) => ({
         ...event,
@@ -3361,7 +3367,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
   async removeSportsGroupEvent(id: number): Promise<boolean> { return true; }
-  async getSportsGroupEventHistory(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupPolls(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupPoll(id: number): Promise<any> { return null; }
   async createSportsGroupPoll(poll: any): Promise<any> { return poll; }
