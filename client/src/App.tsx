@@ -11,6 +11,7 @@ import Teams from "@/pages/Teams";
 import TeamDetails from "@/pages/TeamDetails";
 import Groups from "@/pages/Groups";
 import GroupDetails from "@/pages/GroupDetails";
+import GroupEventHistory from "@/pages/GroupEventHistory";
 import EventDetails from "@/pages/EventDetails";
 import ManageEvent from "@/pages/ManageEvent";
 import EditEvent from "@/pages/EditEvent";
@@ -52,6 +53,7 @@ function Router() {
                   <ProtectedRoute path="/teams" component={Teams} />
                   <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
                   <ProtectedRoute path="/groups" component={Groups} />
+                  <ProtectedRoute path="/groups/:id/events/history" component={GroupEventHistory} />
                   <ProtectedRoute path="/groups/:id" component={GroupDetails} />
                   <ProtectedRoute path="/invitations" component={Invitations} />
                   <ProtectedRoute path="/notifications" component={NotificationHistory} />
