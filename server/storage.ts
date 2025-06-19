@@ -3822,7 +3822,10 @@ Promise.all(testUsers.map(async (userData) => {
   const validUsers = users.filter(u => u !== null);
   console.log(`Successfully created/found ${validUsers.length} test users`);
   
-  if (validUsers.length === 0) return;
+  if (validUsers.length < 4) {
+    console.log('Not enough users created, skipping sample data creation');
+    return;
+  }
   
   // Create diverse sample events from different users
   const sampleEvents = [
@@ -4066,48 +4069,59 @@ Promise.all(testUsers.map(async (userData) => {
     }
   ];
   
-  // Sample teams to create
-  const sampleTeams = [
-    {
-      name: "Downtown Dribblers",
-      sportType: "basketball",
-      description: "Casual basketball team for weekend games and practices",
-      logo: null,
-      creatorId: user.id,
-      isPublic: true
-    },
-    {
-      name: "City Kickers FC",
-      sportType: "soccer",
-      description: "Recreational soccer team looking for friendly matches",
-      logo: null,
-      creatorId: user.id,
-      isPublic: true
-    },
-    {
-      name: "Ace Smashers",
-      sportType: "tennis",
-      description: "Tennis club for doubles and singles competitive play",
-      logo: null,
-      creatorId: user.id,
-      isPublic: true
+  // Create events from the sample data
+  console.log(`Creating ${sampleEvents.length} sample events...`);
+  
+  for (const eventData of sampleEvents) {
+    try {
+      await storage.createEvent(eventData);
+      console.log(`Created event: ${eventData.title}`);
+    } catch (error) {
+      console.error(`Error creating event ${eventData.title}:`, error);
     }
+  }
+  
+  // Create user sport preferences for realistic matching
+  console.log('Creating user sport preferences...');
+  
+  const userSportPrefs = [
+    // Alex Smith (admin) preferences
+    { userId: validUsers[0].id, sportType: "basketball", skillLevel: "advanced", yearsExperience: 8, isVisible: true },
+    { userId: validUsers[0].id, sportType: "tennis", skillLevel: "intermediate", yearsExperience: 5, isVisible: true },
+    
+    // Sarah Johnson preferences
+    { userId: validUsers[1].id, sportType: "running", skillLevel: "expert", yearsExperience: 12, isVisible: true },
+    { userId: validUsers[1].id, sportType: "yoga", skillLevel: "advanced", yearsExperience: 7, isVisible: true },
+    { userId: validUsers[1].id, sportType: "volleyball", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
+    
+    // Mike Rodriguez preferences
+    { userId: validUsers[2].id, sportType: "soccer", skillLevel: "expert", yearsExperience: 15, isVisible: true },
+    { userId: validUsers[2].id, sportType: "cycling", skillLevel: "advanced", yearsExperience: 6, isVisible: true },
+    
+    // Emma Wilson preferences
+    { userId: validUsers[3].id, sportType: "tennis", skillLevel: "expert", yearsExperience: 10, isVisible: true },
+    { userId: validUsers[3].id, sportType: "badminton", skillLevel: "advanced", yearsExperience: 4, isVisible: true },
+    
+    // David Chen preferences
+    { userId: validUsers[4].id, sportType: "crossfit", skillLevel: "expert", yearsExperience: 8, isVisible: true },
+    { userId: validUsers[4].id, sportType: "hiking", skillLevel: "advanced", yearsExperience: 10, isVisible: true },
+    { userId: validUsers[4].id, sportType: "cycling", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
+    
+    // Lisa Park preferences
+    { userId: validUsers[5].id, sportType: "swimming", skillLevel: "expert", yearsExperience: 14, isVisible: true },
+    { userId: validUsers[5].id, sportType: "volleyball", skillLevel: "advanced", yearsExperience: 5, isVisible: true }
   ];
-
-  // Add sample events
-  Promise.all(sampleEvents.map(event => storage.createEvent(event)))
-    .then(events => {
-      console.log(`Created ${events.length} sample events`);
-      
-      // Now create teams
-      return Promise.all(sampleTeams.map(team => storage.createTeam(team)));
-    })
-    .then(teams => {
-      console.log(`Created ${teams.length} sample teams`);
-    })
-    .catch(error => {
-      console.error("Failed to create sample data:", error);
-    });
+  
+  for (const pref of userSportPrefs) {
+    try {
+      await storage.createUserSportPreference(pref);
+      console.log(`Created sport preference: ${pref.sportType} for user ${pref.userId}`);
+    } catch (error) {
+      console.error(`Error creating sport preference:`, error);
+    }
+  }
+  
+  console.log('Sample data creation completed!');
 }).catch(error => {
-  console.error("Failed to create test user:", error);
+  console.error("Error creating test users:", error);
 });
