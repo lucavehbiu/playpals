@@ -3741,62 +3741,327 @@ export class DatabaseStorage implements IStorage {
 export const storage = new DatabaseStorage();
 
 // Initialize sample data for testing
-const adminUser: InsertUser = {
-  username: "admin",
-  password: "admin123", // Plain text for testing only
-  name: "Admin User",
-  email: "admin@example.com"
-};
+const testUsers: InsertUser[] = [
+  {
+    username: "admin",
+    password: "admin123",
+    name: "Alex Smith",
+    email: "alex@example.com",
+    bio: "Passionate about basketball and tennis. Always looking for new challenges!",
+    location: "New York, NY",
+    headline: "Sports Enthusiast & Coach"
+  },
+  {
+    username: "sarah_runner",
+    password: "password123",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
+    bio: "Marathon runner and yoga instructor. Love connecting with fellow athletes.",
+    location: "Los Angeles, CA",
+    headline: "Marathon Runner & Yoga Instructor"
+  },
+  {
+    username: "mike_soccer",
+    password: "password123",
+    name: "Mike Rodriguez",
+    email: "mike@example.com",
+    bio: "Soccer player for 15 years. Captain of local amateur league team.",
+    location: "Chicago, IL",
+    headline: "Soccer Team Captain"
+  },
+  {
+    username: "emma_tennis",
+    password: "password123",
+    name: "Emma Wilson",
+    email: "emma@example.com",
+    bio: "Former college tennis player. Now coaching and organizing tournaments.",
+    location: "Miami, FL",
+    headline: "Tennis Coach & Tournament Organizer"
+  },
+  {
+    username: "david_fitness",
+    password: "password123",
+    name: "David Chen",
+    email: "david@example.com",
+    bio: "CrossFit athlete and personal trainer. Believer in functional fitness.",
+    location: "Seattle, WA",
+    headline: "CrossFit Athlete & Personal Trainer"
+  },
+  {
+    username: "lisa_swimmer",
+    password: "password123",
+    name: "Lisa Park",
+    email: "lisa@example.com",
+    bio: "Competitive swimmer and water polo player. Ocean swimming enthusiast.",
+    location: "San Diego, CA",
+    headline: "Competitive Swimmer"
+  }
+];
 
-// Create a test user and sample data
-storage.createUser(adminUser).then(user => {
-  console.log("Created test user:", user.username);
+// Create test users and sample data
+Promise.all(testUsers.map(async (userData) => {
+  try {
+    const user = await storage.createUser(userData);
+    console.log(`Created test user: ${user.username}`);
+    return user;
+  } catch (error) {
+    // User might already exist, try to get existing user
+    try {
+      const existingUsers = await storage.getAllUsers();
+      const existingUser = existingUsers.find(u => u.username === userData.username);
+      if (existingUser) {
+        console.log(`User ${userData.username} already exists`);
+        return existingUser;
+      }
+    } catch (e) {
+      console.error(`Error handling user ${userData.username}:`, error);
+    }
+    return null;
+  }
+})).then(async (users) => {
+  const validUsers = users.filter(u => u !== null);
+  console.log(`Successfully created/found ${validUsers.length} test users`);
   
-  // Create some sample events
+  if (validUsers.length === 0) return;
+  
+  // Create diverse sample events from different users
   const sampleEvents = [
+    // Alex Smith (admin) - Basketball & Tennis events
     {
-      title: "Basketball Pickup Game",
-      description: "Casual basketball game at the local park",
+      title: "Morning Basketball Pickup",
+      description: "Early morning basketball session. Great way to start the day! All skill levels welcome.",
       sportType: "basketball",
       date: new Date(Date.now() + 86400000), // Tomorrow
-      location: "Central Park Courts",
+      location: "Central Park Basketball Courts",
       locationCoordinates: { lat: 40.785091, lng: -73.968285 },
       maxParticipants: 10,
-      currentParticipants: 1,
+      currentParticipants: 3,
       isPublic: true,
       isFree: true,
       cost: 0,
-      creatorId: user.id,
+      creatorId: validUsers[0].id,
       eventImage: null
     },
     {
-      title: "Weekly Soccer Match",
-      description: "Regular weekend soccer game, all levels welcome",
-      sportType: "soccer",
-      date: new Date(Date.now() + 172800000), // Two days from now
-      location: "Riverside Fields",
-      locationCoordinates: { lat: 40.800909, lng: -73.972222 },
-      maxParticipants: 22,
-      currentParticipants: 1,
-      isPublic: true,
-      isFree: true,
-      cost: 0,
-      creatorId: user.id,
-      eventImage: null
-    },
-    {
-      title: "Tennis Doubles Tournament",
-      description: "Friendly tournament for doubles teams",
+      title: "Tennis Doubles Championship",
+      description: "Competitive doubles tournament. Prizes for winners! Register with your partner.",
       sportType: "tennis",
-      date: new Date(Date.now() + 604800000), // One week from now
-      location: "City Tennis Club",
+      date: new Date(Date.now() + 345600000), // 4 days from now
+      location: "NYC Tennis Club",
       locationCoordinates: { lat: 40.758896, lng: -73.985130 },
       maxParticipants: 16,
-      currentParticipants: 1,
+      currentParticipants: 8,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[0].id,
+      eventImage: null
+    },
+    
+    // Sarah Johnson - Running & Yoga events
+    {
+      title: "Central Park 5K Run",
+      description: "Join our weekly 5K run through Central Park. Perfect for building endurance and meeting fellow runners.",
+      sportType: "running",
+      date: new Date(Date.now() + 259200000), // 3 days from now
+      location: "Central Park - Bethesda Fountain",
+      locationCoordinates: { lat: 40.773663, lng: -73.971249 },
+      maxParticipants: 25,
+      currentParticipants: 12,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    {
+      title: "Sunrise Yoga Session",
+      description: "Start your weekend with peaceful yoga as the sun rises. Bring your own mat. All levels welcome.",
+      sportType: "yoga",
+      date: new Date(Date.now() + 518400000), // 6 days from now
+      location: "Brooklyn Bridge Park",
+      locationCoordinates: { lat: 40.702312, lng: -73.996136 },
+      maxParticipants: 20,
+      currentParticipants: 15,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    
+    // Mike Rodriguez - Soccer events
+    {
+      title: "Sunday Soccer League",
+      description: "Weekly league match. Looking for skilled players to join our team for the season.",
+      sportType: "soccer",
+      date: new Date(Date.now() + 432000000), // 5 days from now
+      location: "Randalls Island Soccer Fields",
+      locationCoordinates: { lat: 40.795765, lng: -73.922876 },
+      maxParticipants: 22,
+      currentParticipants: 18,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    {
+      title: "Youth Soccer Training Camp",
+      description: "Training session for young players (ages 12-16). Focus on fundamentals and teamwork.",
+      sportType: "soccer",
+      date: new Date(Date.now() + 172800000), // 2 days from now
+      location: "Chelsea Piers Soccer Fields",
+      locationCoordinates: { lat: 40.746621, lng: -74.009781 },
+      maxParticipants: 16,
+      currentParticipants: 9,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    
+    // Emma Wilson - Tennis events
+    {
+      title: "Beginner Tennis Clinic",
+      description: "Learn the basics of tennis in a fun, supportive environment. Rackets provided for beginners.",
+      sportType: "tennis",
+      date: new Date(Date.now() + 604800000), // 7 days from now
+      location: "Miami Tennis Academy",
+      locationCoordinates: { lat: 25.761681, lng: -80.191788 },
+      maxParticipants: 12,
+      currentParticipants: 7,
+      isPublic: true,
+      isFree: false,
+      cost: 40,
+      creatorId: validUsers[3].id,
+      eventImage: null
+    },
+    
+    // David Chen - CrossFit & Fitness events
+    {
+      title: "CrossFit Beach Workout",
+      description: "High-intensity beach workout. Bodyweight exercises with ocean views. Bring water and towel.",
+      sportType: "crossfit",
+      date: new Date(Date.now() + 691200000), // 8 days from now
+      location: "Santa Monica Beach",
+      locationCoordinates: { lat: 34.019394, lng: -118.491227 },
+      maxParticipants: 15,
+      currentParticipants: 11,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[4].id,
+      eventImage: null
+    },
+    {
+      title: "Functional Fitness Workshop",
+      description: "Learn proper form and techniques for functional movements. Great for CrossFit beginners.",
+      sportType: "crossfit",
+      date: new Date(Date.now() + 777600000), // 9 days from now
+      location: "Seattle Fitness Center",
+      locationCoordinates: { lat: 47.606209, lng: -122.332069 },
+      maxParticipants: 10,
+      currentParticipants: 6,
+      isPublic: true,
+      isFree: false,
+      cost: 35,
+      creatorId: validUsers[4].id,
+      eventImage: null
+    },
+    
+    // Lisa Park - Swimming events
+    {
+      title: "Open Water Swimming",
+      description: "Ocean swimming session for experienced swimmers. Safety kayak will be present.",
+      sportType: "swimming",
+      date: new Date(Date.now() + 864000000), // 10 days from now
+      location: "La Jolla Cove",
+      locationCoordinates: { lat: 32.850932, lng: -117.273309 },
+      maxParticipants: 8,
+      currentParticipants: 5,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[5].id,
+      eventImage: null
+    },
+    {
+      title: "Water Polo Practice",
+      description: "Competitive water polo training. Must be a strong swimmer. New players welcome to try.",
+      sportType: "swimming",
+      date: new Date(Date.now() + 1209600000), // 14 days from now
+      location: "UCSD Aquatic Center",
+      locationCoordinates: { lat: 32.881178, lng: -117.240094 },
+      maxParticipants: 14,
+      currentParticipants: 10,
       isPublic: true,
       isFree: false,
       cost: 20,
-      creatorId: user.id,
+      creatorId: validUsers[5].id,
+      eventImage: null
+    },
+    
+    // Mixed sports events from various users
+    {
+      title: "Volleyball Beach Tournament",
+      description: "Sand volleyball tournament. Teams of 4. Prizes for top 3 teams. Food trucks on site!",
+      sportType: "volleyball",
+      date: new Date(Date.now() + 1296000000), // 15 days from now
+      location: "Manhattan Beach Volleyball Courts",
+      locationCoordinates: { lat: 33.884566, lng: -118.410755 },
+      maxParticipants: 32,
+      currentParticipants: 20,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    {
+      title: "Hiking Adventure",
+      description: "Moderate difficulty hike with stunning views. Bring water, snacks, and hiking boots.",
+      sportType: "hiking",
+      date: new Date(Date.now() + 1382400000), // 16 days from now
+      location: "Griffith Observatory Trail",
+      locationCoordinates: { lat: 34.118434, lng: -118.300392 },
+      maxParticipants: 20,
+      currentParticipants: 14,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[4].id,
+      eventImage: null
+    },
+    {
+      title: "Cycling Group Ride",
+      description: "30-mile road cycling ride through scenic routes. Intermediate pace. Helmets required.",
+      sportType: "cycling",
+      date: new Date(Date.now() + 1468800000), // 17 days from now
+      location: "Golden Gate Park",
+      locationCoordinates: { lat: 37.769421, lng: -122.486214 },
+      maxParticipants: 25,
+      currentParticipants: 16,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    {
+      title: "Badminton Club Night",
+      description: "Friendly badminton games. All skill levels. Rackets and shuttlecocks provided.",
+      sportType: "badminton",
+      date: new Date(Date.now() + 1555200000), // 18 days from now
+      location: "Community Sports Center",
+      locationCoordinates: { lat: 40.712775, lng: -74.005973 },
+      maxParticipants: 12,
+      currentParticipants: 8,
+      isPublic: true,
+      isFree: false,
+      cost: 10,
+      creatorId: validUsers[3].id,
       eventImage: null
     }
   ];
