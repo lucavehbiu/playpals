@@ -47,6 +47,12 @@ export const sportsGroupRoles = ["admin", "member"] as const;
 // Poll response types
 export const pollResponseTypes = ["available", "unavailable", "maybe"] as const;
 
+// Skill matcher preferences
+export const skillMatchModes = ["exact", "similar", "range", "any"] as const;
+
+// Distance preferences for skill matching
+export const distancePreferences = ["nearby", "city", "region", "anywhere"] as const;
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -179,6 +185,47 @@ export const playerRatings = pgTable("player_ratings", {
 }, (t) => ({
   // Ensure a user can only rate another user once per event
   uniqueEventRating: unique().on(t.ratedUserId, t.raterUserId, t.eventId),
+}));
+
+// Skill Matcher Preferences table
+export const skillMatcherPreferences = pgTable("skill_matcher_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sportType: text("sport_type").notNull(),
+  skillMatchMode: text("skill_match_mode", { enum: skillMatchModes }).default("similar").notNull(),
+  preferredSkillLevels: text("preferred_skill_levels").array().notNull(), // Array of skill levels they want to match with
+  maxDistance: integer("max_distance").default(25), // Distance in miles/km
+  distancePreference: text("distance_preference", { enum: distancePreferences }).default("city").notNull(),
+  ageRangeMin: integer("age_range_min").default(18),
+  ageRangeMax: integer("age_range_max").default(65),
+  genderPreference: text("gender_preference"), // 'male', 'female', 'any'
+  availabilityDays: text("availability_days").array().notNull(), // Array of days like ['monday', 'tuesday']
+  availabilityTimes: text("availability_times").array().notNull(), // Array of time slots like ['morning', 'evening']
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only have one matcher preference per sport
+  uniqueMatcherPreference: unique().on(t.userId, t.sportType),
+}));
+
+// Skill Matches table to store generated matches
+export const skillMatches = pgTable("skill_matches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  matchedUserId: integer("matched_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sportType: text("sport_type").notNull(),
+  compatibilityScore: integer("compatibility_score").notNull(), // 0-100 score
+  skillLevelDifference: integer("skill_level_difference").notNull(), // Absolute difference in skill levels
+  distance: integer("distance"), // Distance between users in miles/km
+  matchReason: text("match_reason").notNull(), // Explanation of why they were matched
+  isViewed: boolean("is_viewed").default(false).notNull(),
+  isLiked: boolean("is_liked").default(false).notNull(),
+  isMutualMatch: boolean("is_mutual_match").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  // Prevent duplicate matches
+  uniqueMatch: unique().on(t.userId, t.matchedUserId, t.sportType),
 }));
 
 // Team Posts table
@@ -469,6 +516,29 @@ export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
   }),
 }));
 
+// Skill Matcher Preferences relations
+export const skillMatcherPreferencesRelations = relations(skillMatcherPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [skillMatcherPreferences.userId],
+    references: [users.id],
+    relationName: "skill_matcher_preferences",
+  }),
+}));
+
+// Skill Matches relations
+export const skillMatchesRelations = relations(skillMatches, ({ one }) => ({
+  user: one(users, {
+    fields: [skillMatches.userId],
+    references: [users.id],
+    relationName: "user_skill_matches",
+  }),
+  matchedUser: one(users, {
+    fields: [skillMatches.matchedUserId],
+    references: [users.id],
+    relationName: "matched_user_skill_matches",
+  }),
+}));
+
 // Team Posts relations
 export const teamPostsRelations = relations(teamPosts, ({ one, many }) => ({
   team: one(teams, {
@@ -706,6 +776,17 @@ export const insertPlayerRatingSchema = createInsertSchema(playerRatings).omit({
   createdAt: true,
 });
 
+export const insertSkillMatcherPreferenceSchema = createInsertSchema(skillMatcherPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSkillMatchSchema = createInsertSchema(skillMatches).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTeamPostSchema = createInsertSchema(teamPosts).omit({
   id: true,
   createdAt: true,
@@ -890,3 +971,13 @@ export type TeamSizePreference = typeof teamSizePreferences[number];
 export type TeamStatus = typeof teamStatusOptions[number];
 export type SportsGroupRole = typeof sportsGroupRoles[number];
 export type PollResponseType = typeof pollResponseTypes[number];
+
+// Skill Matcher types
+export type SkillMatcherPreference = typeof skillMatcherPreferences.$inferSelect;
+export type InsertSkillMatcherPreference = z.infer<typeof insertSkillMatcherPreferenceSchema>;
+
+export type SkillMatch = typeof skillMatches.$inferSelect;
+export type InsertSkillMatch = z.infer<typeof insertSkillMatchSchema>;
+
+export type SkillMatchMode = typeof skillMatchModes[number];
+export type DistancePreference = typeof distancePreferences[number];
