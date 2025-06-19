@@ -19,6 +19,8 @@ import {
   insertTeamScheduleResponseSchema,
   insertTeamJoinRequestSchema,
   insertSportsGroupSchema,
+  insertSkillMatcherPreferenceSchema,
+  insertSkillMatchSchema,
   type User,
   type Event,
   type RSVP,
@@ -34,6 +36,8 @@ import {
   type SportsGroup,
   type TeamJoinRequest,
   type InsertTeamJoinRequest,
+  type SkillMatcherPreference,
+  type SkillMatch,
   playerRatings,
   teamJoinRequests
 } from "@shared/schema";

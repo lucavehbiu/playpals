@@ -20,7 +20,9 @@ import {
   sportsGroupPolls, type SportsGroupPoll, type InsertSportsGroupPoll,
   sportsGroupPollTimeSlots, type SportsGroupPollTimeSlot, type InsertSportsGroupPollTimeSlot,
   sportsGroupPollResponses, type SportsGroupPollResponse, type InsertSportsGroupPollResponse,
-  sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest
+  sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest,
+  skillMatcherPreferences, type SkillMatcherPreference, type InsertSkillMatcherPreference,
+  skillMatches, type SkillMatch, type InsertSkillMatch
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, like, avg, sql, gte, lt } from "drizzle-orm";
@@ -193,6 +195,22 @@ export interface IStorage {
   createSportsGroupJoinRequest(request: InsertSportsGroupJoinRequest): Promise<SportsGroupJoinRequest>;
   updateSportsGroupJoinRequest(id: number, requestData: Partial<SportsGroupJoinRequest>): Promise<SportsGroupJoinRequest | undefined>;
   deleteSportsGroupJoinRequest(id: number): Promise<boolean>;
+
+  // Skill Matcher methods
+  getSkillMatcherPreferences(userId: number): Promise<SkillMatcherPreference[]>;
+  getSkillMatcherPreference(userId: number, sportType: string): Promise<SkillMatcherPreference | undefined>;
+  createSkillMatcherPreference(preference: InsertSkillMatcherPreference): Promise<SkillMatcherPreference>;
+  updateSkillMatcherPreference(id: number, preferenceData: Partial<SkillMatcherPreference>): Promise<SkillMatcherPreference | undefined>;
+  deleteSkillMatcherPreference(id: number): Promise<boolean>;
+  
+  // Skill Matches methods
+  getSkillMatches(userId: number): Promise<any[]>;
+  getSkillMatchesBySport(userId: number, sportType: string): Promise<any[]>;
+  createSkillMatch(match: InsertSkillMatch): Promise<SkillMatch>;
+  updateSkillMatch(id: number, matchData: Partial<SkillMatch>): Promise<SkillMatch | undefined>;
+  deleteSkillMatch(id: number): Promise<boolean>;
+  generateSkillMatches(userId: number, sportType: string): Promise<any[]>;
+  findCompatiblePlayers(userId: number, sportType: string): Promise<any[]>;
 
   // Session store
   sessionStore: session.Store;
@@ -3362,6 +3380,344 @@ export class DatabaseStorage implements IStorage {
   }
   async removeSportsGroupEvent(id: number): Promise<boolean> { return true; }
   async getSportsGroupPolls(groupId: number): Promise<any[]> { return []; }
+
+  // Skill Matcher Preferences methods
+  async getSkillMatcherPreferences(userId: number): Promise<SkillMatcherPreference[]> {
+    try {
+      const preferences = await db
+        .select()
+        .from(skillMatcherPreferences)
+        .where(eq(skillMatcherPreferences.userId, userId));
+      return preferences;
+    } catch (error) {
+      console.error('Error fetching skill matcher preferences:', error);
+      return [];
+    }
+  }
+
+  async getSkillMatcherPreference(userId: number, sportType: string): Promise<SkillMatcherPreference | undefined> {
+    try {
+      const preference = await db
+        .select()
+        .from(skillMatcherPreferences)
+        .where(and(
+          eq(skillMatcherPreferences.userId, userId),
+          eq(skillMatcherPreferences.sportType, sportType)
+        ))
+        .limit(1);
+      return preference[0];
+    } catch (error) {
+      console.error('Error fetching skill matcher preference:', error);
+      return undefined;
+    }
+  }
+
+  async createSkillMatcherPreference(preference: InsertSkillMatcherPreference): Promise<SkillMatcherPreference> {
+    try {
+      const result = await db
+        .insert(skillMatcherPreferences)
+        .values(preference)
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating skill matcher preference:', error);
+      throw error;
+    }
+  }
+
+  async updateSkillMatcherPreference(id: number, preferenceData: Partial<SkillMatcherPreference>): Promise<SkillMatcherPreference | undefined> {
+    try {
+      const result = await db
+        .update(skillMatcherPreferences)
+        .set({ ...preferenceData, updatedAt: new Date() })
+        .where(eq(skillMatcherPreferences.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating skill matcher preference:', error);
+      return undefined;
+    }
+  }
+
+  async deleteSkillMatcherPreference(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(skillMatcherPreferences)
+        .where(eq(skillMatcherPreferences.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting skill matcher preference:', error);
+      return false;
+    }
+  }
+
+  // Skill Matches methods
+  async getSkillMatches(userId: number): Promise<any[]> {
+    try {
+      const matches = await db
+        .select({
+          match: skillMatches,
+          matchedUser: {
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            profileImage: users.profileImage,
+            bio: users.bio,
+            location: users.location,
+          },
+        })
+        .from(skillMatches)
+        .innerJoin(users, eq(skillMatches.matchedUserId, users.id))
+        .where(eq(skillMatches.userId, userId))
+        .orderBy(desc(skillMatches.compatibilityScore));
+
+      return matches.map(({ match, matchedUser }) => ({
+        ...match,
+        matchedUser,
+      }));
+    } catch (error) {
+      console.error('Error fetching skill matches:', error);
+      return [];
+    }
+  }
+
+  async getSkillMatchesBySport(userId: number, sportType: string): Promise<any[]> {
+    try {
+      const matches = await db
+        .select({
+          match: skillMatches,
+          matchedUser: {
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            profileImage: users.profileImage,
+            bio: users.bio,
+            location: users.location,
+          },
+        })
+        .from(skillMatches)
+        .innerJoin(users, eq(skillMatches.matchedUserId, users.id))
+        .where(and(
+          eq(skillMatches.userId, userId),
+          eq(skillMatches.sportType, sportType)
+        ))
+        .orderBy(desc(skillMatches.compatibilityScore));
+
+      return matches.map(({ match, matchedUser }) => ({
+        ...match,
+        matchedUser,
+      }));
+    } catch (error) {
+      console.error('Error fetching skill matches by sport:', error);
+      return [];
+    }
+  }
+
+  async createSkillMatch(match: InsertSkillMatch): Promise<SkillMatch> {
+    try {
+      const result = await db
+        .insert(skillMatches)
+        .values(match)
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating skill match:', error);
+      throw error;
+    }
+  }
+
+  async updateSkillMatch(id: number, matchData: Partial<SkillMatch>): Promise<SkillMatch | undefined> {
+    try {
+      const result = await db
+        .update(skillMatches)
+        .set(matchData)
+        .where(eq(skillMatches.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating skill match:', error);
+      return undefined;
+    }
+  }
+
+  async deleteSkillMatch(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(skillMatches)
+        .where(eq(skillMatches.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting skill match:', error);
+      return false;
+    }
+  }
+
+  async generateSkillMatches(userId: number, sportType: string): Promise<any[]> {
+    try {
+      // Get user's sport preference and matcher preference
+      const userSportPref = await db
+        .select()
+        .from(userSportPreferences)
+        .where(and(
+          eq(userSportPreferences.userId, userId),
+          eq(userSportPreferences.sportType, sportType)
+        ))
+        .limit(1);
+
+      if (!userSportPref[0]) {
+        return [];
+      }
+
+      const userMatcherPref = await this.getSkillMatcherPreference(userId, sportType);
+      if (!userMatcherPref) {
+        return [];
+      }
+
+      // Find compatible players based on preferences
+      const compatiblePlayers = await this.findCompatiblePlayers(userId, sportType);
+
+      // Create skill matches
+      const matches = [];
+      for (const player of compatiblePlayers) {
+        const existingMatch = await db
+          .select()
+          .from(skillMatches)
+          .where(and(
+            eq(skillMatches.userId, userId),
+            eq(skillMatches.matchedUserId, player.id),
+            eq(skillMatches.sportType, sportType)
+          ))
+          .limit(1);
+
+        if (existingMatch.length === 0) {
+          const match = await this.createSkillMatch({
+            userId,
+            matchedUserId: player.id,
+            sportType,
+            compatibilityScore: player.compatibilityScore,
+            skillLevelDifference: player.skillLevelDifference,
+            distance: player.distance,
+            matchReason: player.matchReason,
+          });
+
+          matches.push({
+            ...match,
+            matchedUser: player,
+          });
+        }
+      }
+
+      return matches;
+    } catch (error) {
+      console.error('Error generating skill matches:', error);
+      return [];
+    }
+  }
+
+  async findCompatiblePlayers(userId: number, sportType: string): Promise<any[]> {
+    try {
+      // Get user's preferences
+      const userSportPref = await db
+        .select()
+        .from(userSportPreferences)
+        .where(and(
+          eq(userSportPreferences.userId, userId),
+          eq(userSportPreferences.sportType, sportType)
+        ))
+        .limit(1);
+
+      const userMatcherPref = await this.getSkillMatcherPreference(userId, sportType);
+
+      if (!userSportPref[0] || !userMatcherPref) {
+        return [];
+      }
+
+      const userSkillLevel = userSportPref[0].skillLevel;
+      const skillLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+      const userSkillIndex = skillLevels.indexOf(userSkillLevel);
+
+      // Find other users with sport preferences in the same sport
+      const potentialMatches = await db
+        .select({
+          user: {
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            profileImage: users.profileImage,
+            bio: users.bio,
+            location: users.location,
+          },
+          sportPref: userSportPreferences,
+        })
+        .from(userSportPreferences)
+        .innerJoin(users, eq(userSportPreferences.userId, users.id))
+        .where(and(
+          eq(userSportPreferences.sportType, sportType),
+          eq(userSportPreferences.isVisible, true),
+          sql`${userSportPreferences.userId} != ${userId}`
+        ));
+
+      const compatiblePlayers = [];
+
+      for (const match of potentialMatches) {
+        const matchSkillIndex = skillLevels.indexOf(match.sportPref.skillLevel);
+        const skillDifference = Math.abs(userSkillIndex - matchSkillIndex);
+
+        // Check if skill level matches preferences
+        let isCompatible = false;
+        let compatibilityScore = 0;
+        let matchReason = '';
+
+        switch (userMatcherPref.skillMatchMode) {
+          case 'exact':
+            isCompatible = skillDifference === 0;
+            compatibilityScore = isCompatible ? 100 : 0;
+            matchReason = isCompatible ? 'Exact skill level match' : '';
+            break;
+          case 'similar':
+            isCompatible = skillDifference <= 1;
+            compatibilityScore = isCompatible ? (100 - skillDifference * 20) : 0;
+            matchReason = isCompatible ? 'Similar skill level' : '';
+            break;
+          case 'range':
+            isCompatible = userMatcherPref.preferredSkillLevels.includes(match.sportPref.skillLevel);
+            compatibilityScore = isCompatible ? 90 : 0;
+            matchReason = isCompatible ? 'Within preferred skill range' : '';
+            break;
+          case 'any':
+            isCompatible = true;
+            compatibilityScore = 80 - skillDifference * 10;
+            matchReason = 'Open to all skill levels';
+            break;
+        }
+
+        if (isCompatible) {
+          // Add bonus for experience similarity
+          const experienceDiff = Math.abs((userSportPref[0].yearsExperience || 0) - (match.sportPref.yearsExperience || 0));
+          if (experienceDiff <= 2) {
+            compatibilityScore += 10;
+            matchReason += ' + Similar experience';
+          }
+
+          compatiblePlayers.push({
+            ...match.user,
+            compatibilityScore: Math.min(100, compatibilityScore),
+            skillLevelDifference: skillDifference,
+            distance: null, // TODO: Calculate actual distance
+            matchReason,
+            skillLevel: match.sportPref.skillLevel,
+            yearsExperience: match.sportPref.yearsExperience,
+          });
+        }
+      }
+
+      // Sort by compatibility score
+      return compatiblePlayers.sort((a, b) => b.compatibilityScore - a.compatibilityScore).slice(0, 10);
+    } catch (error) {
+      console.error('Error finding compatible players:', error);
+      return [];
+    }
+  }
   async getSportsGroupPoll(id: number): Promise<any> { return null; }
   async createSportsGroupPoll(poll: any): Promise<any> { return poll; }
   async updateSportsGroupPoll(id: number, pollData: any): Promise<any> { return pollData; }
