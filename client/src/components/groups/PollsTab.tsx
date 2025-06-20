@@ -123,15 +123,13 @@ export function PollsTab({ groupId, isAdmin }: PollsTabProps) {
             Create polls to find the best times for group events
           </p>
         </div>
-        {isAdmin && (
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create Poll
-          </Button>
-        )}
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Create Poll
+        </Button>
       </div>
 
       {polls.length === 0 ? (
@@ -140,16 +138,11 @@ export function PollsTab({ groupId, isAdmin }: PollsTabProps) {
             <Calendar className="h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No polls yet</h3>
             <p className="text-gray-600 text-center mb-4">
-              {isAdmin 
-                ? "Create your first poll to coordinate event times with group members"
-                : "No event coordination polls have been created yet"
-              }
+              Create your first poll to coordinate event times with group members
             </p>
-            {isAdmin && (
-              <Button onClick={() => setShowCreateModal(true)}>
-                Create First Poll
-              </Button>
-            )}
+            <Button onClick={() => setShowCreateModal(true)}>
+              Create First Poll
+            </Button>
           </CardContent>
         </Card>
       ) : (
