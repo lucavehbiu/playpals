@@ -43,15 +43,17 @@ export function PollsTab({ groupId }: PollsTabProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
-  const { data: polls = [], isLoading } = useQuery<Poll[]>({
+  const { data: polls = [], isLoading, error } = useQuery<Poll[]>({
     queryKey: ['sports-groups', groupId, 'polls'],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls`);
       if (!response.ok) {
         throw new Error('Failed to fetch polls');
       }
-      return response.json();
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
+    retry: 1,
   });
 
   const deletePollMutation = useMutation({
@@ -89,6 +91,18 @@ export function PollsTab({ groupId }: PollsTabProps) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to load polls</h3>
+        <p className="text-gray-600 mb-4">There was an error loading the polls for this group.</p>
+        <Button onClick={() => window.location.reload()}>
+          Try Again
+        </Button>
       </div>
     );
   }
