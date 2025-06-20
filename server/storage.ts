@@ -25,7 +25,7 @@ import {
   skillMatches, type SkillMatch, type InsertSkillMatch
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, like, avg, sql, gte, lt } from "drizzle-orm";
+import { eq, and, desc, asc, or, like, avg, sql, gte, lt } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -3887,11 +3887,73 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getSportsGroupPollResponses(pollId: number): Promise<any[]> { return []; }
-  async getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<any[]> { return []; }
-  async createSportsGroupPollResponse(response: any): Promise<any> { return response; }
-  async updateSportsGroupPollResponse(id: number, responseData: any): Promise<any> { return responseData; }
-  async deleteSportsGroupPollResponse(id: number): Promise<boolean> { return true; }
+  async getSportsGroupPollTimeSlots(pollId: number): Promise<SportsGroupPollTimeSlot[]> {
+    try {
+      const slots = await db
+        .select()
+        .from(sportsGroupPollTimeSlots)
+        .where(eq(sportsGroupPollTimeSlots.pollId, pollId))
+        .orderBy(asc(sportsGroupPollTimeSlots.dayOfWeek), asc(sportsGroupPollTimeSlots.startTime));
+      return slots;
+    } catch (error) {
+      console.error('Error fetching poll time slots:', error);
+      return [];
+    }
+  }
+
+  async getSportsGroupPollResponses(pollId: number): Promise<SportsGroupPollResponse[]> {
+    try {
+      const responses = await db
+        .select()
+        .from(sportsGroupPollResponses)
+        .where(eq(sportsGroupPollResponses.pollId, pollId));
+      return responses;
+    } catch (error) {
+      console.error('Error fetching poll responses:', error);
+      return [];
+    }
+  }
+
+  async getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<SportsGroupPollResponse[]> {
+    try {
+      const responses = await db
+        .select()
+        .from(sportsGroupPollResponses)
+        .where(and(
+          eq(sportsGroupPollResponses.pollId, pollId),
+          eq(sportsGroupPollResponses.userId, userId)
+        ));
+      return responses;
+    } catch (error) {
+      console.error('Error fetching user poll responses:', error);
+      return [];
+    }
+  }
+
+  async createSportsGroupPollResponse(response: InsertSportsGroupPollResponse): Promise<SportsGroupPollResponse> {
+    try {
+      const [result] = await db
+        .insert(sportsGroupPollResponses)
+        .values(response)
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error creating poll response:', error);
+      throw error;
+    }
+  }
+
+  async deleteSportsGroupPollResponse(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(sportsGroupPollResponses)
+        .where(eq(sportsGroupPollResponses.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting poll response:', error);
+      return false;
+    }
+  }
   async getSportsGroupJoinRequests(groupId: number): Promise<any[]> { return []; }
   async getSportsGroupJoinRequest(groupId: number, userId: number): Promise<any> { return null; }
   async createSportsGroupJoinRequest(request: any): Promise<any> { return request; }
