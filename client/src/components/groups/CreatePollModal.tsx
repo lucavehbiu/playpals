@@ -3,11 +3,10 @@ import { useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, Clock, Users, Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X, Clock, Users, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreatePollModalProps {
@@ -15,30 +14,67 @@ interface CreatePollModalProps {
   onClose: () => void;
 }
 
-interface TimeSlot {
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
+// Generate next 8 weeks
+function getUpcomingWeeks() {
+  const weeks = [];
+  const today = new Date();
+  
+  for (let i = 0; i < 8; i++) {
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + (i * 7) - today.getDay()); // Start of week (Sunday)
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+    
+    const weekNumber = getWeekNumber(weekStart);
+    const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    weeks.push({
+      value: `${weekStart.toISOString()}-${weekEnd.toISOString()}`,
+      label: `Week ${weekNumber} (${startMonth} - ${endMonth})`,
+      startDate: weekStart,
+      endDate: weekEnd
+    });
+  }
+  
+  return weeks;
 }
 
-const DAYS_OF_WEEK = [
-  { value: 0, label: 'Sunday' },
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' }
+function getWeekNumber(date: Date) {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+const DURATION_OPTIONS = [
+  { value: 30, label: '30 minutes' },
+  { value: 45, label: '45 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 90, label: '1.5 hours' },
+  { value: 120, label: '2 hours' },
+  { value: 150, label: '2.5 hours' },
+  { value: 180, label: '3 hours' }
+];
+
+const MIN_MEMBERS_OPTIONS = [
+  { value: 2, label: '2 people' },
+  { value: 3, label: '3 people' },
+  { value: 4, label: '4 people' },
+  { value: 5, label: '5 people' },
+  { value: 6, label: '6 people' },
+  { value: 8, label: '8 people' },
+  { value: 10, label: '10 people' }
 ];
 
 export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [minMembers, setMinMembers] = useState(2);
-  const [duration, setDuration] = useState(60);
-  const [endDate, setEndDate] = useState('');
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [minMembers, setMinMembers] = useState('2');
+  const [duration, setDuration] = useState('60');
+  const [selectedWeek, setSelectedWeek] = useState('');
+
+  const upcomingWeeks = getUpcomingWeeks();
 
   const createPollMutation = useMutation({
     mutationFn: async (pollData: any) => {
@@ -58,20 +94,6 @@ export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
     }
   });
 
-  const addTimeSlot = () => {
-    setTimeSlots([...timeSlots, { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }]);
-  };
-
-  const removeTimeSlot = (index: number) => {
-    setTimeSlots(timeSlots.filter((_, i) => i !== index));
-  };
-
-  const updateTimeSlot = (index: number, field: keyof TimeSlot, value: any) => {
-    const updated = [...timeSlots];
-    updated[index] = { ...updated[index], [field]: value };
-    setTimeSlots(updated);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -80,29 +102,37 @@ export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
       return;
     }
 
-    if (!endDate) {
-      toast({ title: 'Please select an end date', variant: 'destructive' });
+    if (!selectedWeek) {
+      toast({ title: 'Please select a week', variant: 'destructive' });
       return;
     }
 
-    if (timeSlots.length === 0) {
-      toast({ title: 'Please add at least one time slot', variant: 'destructive' });
-      return;
+    const [startDateStr, endDateStr] = selectedWeek.split('-');
+    const weekStart = new Date(startDateStr);
+    const weekEnd = new Date(endDateStr);
+
+    // Create time slots for each day of the selected week
+    const timeSlots = [];
+    for (let i = 0; i < 7; i++) {
+      timeSlots.push({
+        dayOfWeek: i,
+        startTime: '09:00',
+        endTime: '21:00'
+      });
     }
 
     createPollMutation.mutate({
       title,
-      description,
-      minMembers,
-      duration,
-      endDate: new Date(endDate).toISOString(),
+      minMembers: parseInt(minMembers),
+      duration: parseInt(duration),
+      endDate: weekEnd.toISOString(),
       timeSlots
     });
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-lg mx-4">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Create Event Poll</h2>
@@ -124,116 +154,67 @@ export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add details about the event..."
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minMembers">
-                  <Users className="w-4 h-4 inline mr-2" />
-                  Minimum Members
-                </Label>
-                <Input
-                  id="minMembers"
-                  type="number"
-                  min="1"
-                  value={minMembers}
-                  onChange={(e) => setMinMembers(parseInt(e.target.value))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration">
-                  <Clock className="w-4 h-4 inline mr-2" />
-                  Duration (minutes)
-                </Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="15"
-                  step="15"
-                  value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value))}
-                />
-              </div>
+              <Label>
+                <Users className="w-4 h-4 inline mr-2" />
+                Minimum Members Needed *
+              </Label>
+              <Select value={minMembers} onValueChange={setMinMembers}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select minimum members" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MIN_MEMBERS_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endDate">
-                <Calendar className="w-4 h-4 inline mr-2" />
-                Poll End Date *
+              <Label>
+                <Clock className="w-4 h-4 inline mr-2" />
+                Event Duration *
               </Label>
-              <Input
-                id="endDate"
-                type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                required
-              />
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select event duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Available Time Slots *</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addTimeSlot}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Time Slot
-                </Button>
-              </div>
+            <div className="space-y-2">
+              <Label>
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Select Week *
+              </Label>
+              <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a week for the event" />
+                </SelectTrigger>
+                <SelectContent>
+                  {upcomingWeeks.map(week => (
+                    <SelectItem key={week.value} value={week.value}>
+                      {week.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              {timeSlots.length === 0 && (
-                <p className="text-sm text-gray-500">
-                  Add time slots for members to choose their availability
-                </p>
-              )}
-
-              {timeSlots.map((slot, index) => (
-                <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
-                  <select
-                    value={slot.dayOfWeek}
-                    onChange={(e) => updateTimeSlot(index, 'dayOfWeek', parseInt(e.target.value))}
-                    className="px-3 py-2 border rounded"
-                  >
-                    {DAYS_OF_WEEK.map(day => (
-                      <option key={day.value} value={day.value}>
-                        {day.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  <Input
-                    type="time"
-                    value={slot.startTime}
-                    onChange={(e) => updateTimeSlot(index, 'startTime', e.target.value)}
-                    className="w-24"
-                  />
-
-                  <span className="text-sm text-gray-500">to</span>
-
-                  <Input
-                    type="time"
-                    value={slot.endTime}
-                    onChange={(e) => updateTimeSlot(index, 'endTime', e.target.value)}
-                    className="w-24"
-                  />
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeTimeSlot(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">
+                Members will be able to indicate their availability for any time during the selected week. 
+                The system will then suggest the best times based on everyone's responses.
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
