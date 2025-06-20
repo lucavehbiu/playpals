@@ -195,6 +195,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Validated event data:", JSON.stringify(validatedData, null, 2));
         
         const newEvent = await storage.createEvent(validatedData);
+        
+        // Automatically create an "approved" RSVP for the event creator
+        try {
+          await storage.createRSVP({
+            eventId: newEvent.id,
+            userId: authenticatedUser.id,
+            status: "approved"
+          });
+        } catch (rsvpError) {
+          console.error("Error creating creator RSVP:", rsvpError);
+          // Don't fail the event creation if RSVP creation fails
+        }
+        
         return res.status(201).json(newEvent);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
