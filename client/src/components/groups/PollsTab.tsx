@@ -6,7 +6,6 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { CreatePollModal } from './CreatePollModal';
-import { PollDetails } from './PollDetails';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -97,11 +96,21 @@ export function PollsTab({ groupId, isAdmin }: PollsTabProps) {
 
   if (selectedPoll) {
     return (
-      <PollDetails
-        poll={selectedPoll}
-        groupId={groupId}
-        onBack={() => setSelectedPoll(null)}
-      />
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => setSelectedPoll(null)}
+          className="flex items-center gap-2"
+        >
+          ← Back to Polls
+        </Button>
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-xl font-bold mb-2">{selectedPoll.title}</h2>
+            <p className="text-gray-600">Poll details coming soon...</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

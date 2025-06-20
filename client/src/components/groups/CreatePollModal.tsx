@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Plus, X, Clock, Users } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X, Clock, Users, Calendar } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface CreatePollModalProps {
+  groupId: number;
+  onClose: () => void;
+}
 
 interface TimeSlot {
   dayOfWeek: number;
@@ -19,166 +21,138 @@ interface TimeSlot {
   endTime: string;
 }
 
-interface CreatePollModalProps {
-  groupId: number;
-  onClose: () => void;
-}
-
 const DAYS_OF_WEEK = [
-  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' }
 ];
 
-const TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, i) => {
-  const hour = Math.floor(i / 2);
-  const minute = i % 2 === 0 ? '00' : '30';
-  return `${hour.toString().padStart(2, '0')}:${minute}`;
-});
-
 export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
+  const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [minMembers, setMinMembers] = useState(2);
   const [duration, setDuration] = useState(60);
-  const [endDate, setEndDate] = useState(format(addDays(new Date(), 7), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState('');
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [newSlot, setNewSlot] = useState<Partial<TimeSlot>>({});
 
   const createPollMutation = useMutation({
     mutationFn: async (pollData: any) => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pollData),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create poll');
-      }
-      return response.json();
+      return apiRequest('POST', `/api/sports-groups/${groupId}/polls`, pollData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/sports-groups', groupId, 'polls'] });
+      toast({ title: 'Poll created successfully!' });
       onClose();
     },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Error creating poll', 
+        description: error.message || 'Please try again',
+        variant: 'destructive'
+      });
+    }
   });
 
   const addTimeSlot = () => {
-    if (newSlot.dayOfWeek !== undefined && newSlot.startTime && newSlot.endTime) {
-      // Validate that end time is after start time
-      if (newSlot.startTime >= newSlot.endTime) {
-        alert('End time must be after start time');
-        return;
-      }
-
-      // Check for duplicates
-      const isDuplicate = timeSlots.some(slot => 
-        slot.dayOfWeek === newSlot.dayOfWeek && 
-        slot.startTime === newSlot.startTime && 
-        slot.endTime === newSlot.endTime
-      );
-
-      if (isDuplicate) {
-        alert('This time slot already exists');
-        return;
-      }
-
-      setTimeSlots([...timeSlots, newSlot as TimeSlot]);
-      setNewSlot({});
-    }
+    setTimeSlots([...timeSlots, { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }]);
   };
 
   const removeTimeSlot = (index: number) => {
     setTimeSlots(timeSlots.filter((_, i) => i !== index));
   };
 
+  const updateTimeSlot = (index: number, field: keyof TimeSlot, value: any) => {
+    const updated = [...timeSlots];
+    updated[index] = { ...updated[index], [field]: value };
+    setTimeSlots(updated);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim()) {
-      alert('Please enter a poll title');
+      toast({ title: 'Please enter a poll title', variant: 'destructive' });
       return;
     }
-    
+
+    if (!endDate) {
+      toast({ title: 'Please select an end date', variant: 'destructive' });
+      return;
+    }
+
     if (timeSlots.length === 0) {
-      alert('Please add at least one time slot');
-      return;
-    }
-
-    if (minMembers < 1) {
-      alert('Minimum members must be at least 1');
-      return;
-    }
-
-    if (duration < 15) {
-      alert('Duration must be at least 15 minutes');
+      toast({ title: 'Please add at least one time slot', variant: 'destructive' });
       return;
     }
 
     createPollMutation.mutate({
-      title: title.trim(),
-      description: description.trim() || null,
+      title,
+      description,
       minMembers,
       duration,
-      endDate: new Date(endDate + 'T23:59:59'),
-      timeSlots,
+      endDate: new Date(endDate).toISOString(),
+      timeSlots
     });
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Create Event Coordination Poll
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Create Event Poll</h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
               <Label htmlFor="title">Poll Title *</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Weekend Basketball Game"
-                className="mt-1"
+                placeholder="e.g., Weekend Tennis Match"
+                required
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Additional details about the event..."
-                className="mt-1"
+                placeholder="Add details about the event..."
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="minMembers" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Minimum Members *
+              <div className="space-y-2">
+                <Label htmlFor="minMembers">
+                  <Users className="w-4 h-4 inline mr-2" />
+                  Minimum Members
                 </Label>
                 <Input
                   id="minMembers"
                   type="number"
                   min="1"
                   value={minMembers}
-                  onChange={(e) => setMinMembers(parseInt(e.target.value) || 1)}
-                  className="mt-1"
+                  onChange={(e) => setMinMembers(parseInt(e.target.value))}
                 />
               </div>
 
-              <div>
-                <Label htmlFor="duration" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Duration (minutes) *
+              <div className="space-y-2">
+                <Label htmlFor="duration">
+                  <Clock className="w-4 h-4 inline mr-2" />
+                  Duration (minutes)
                 </Label>
                 <Input
                   id="duration"
@@ -186,146 +160,93 @@ export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
                   min="15"
                   step="15"
                   value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
-                  className="mt-1"
+                  onChange={(e) => setDuration(parseInt(e.target.value))}
                 />
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="endDate">Poll End Date *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="endDate">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Poll End Date *
+              </Label>
               <Input
                 id="endDate"
-                type="date"
+                type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                min={format(new Date(), 'yyyy-MM-dd')}
-                className="mt-1"
+                required
               />
             </div>
-          </div>
 
-          {/* Time Slots */}
-          <div className="space-y-4">
-            <div>
-              <Label className="text-base font-medium">Available Time Slots *</Label>
-              <p className="text-sm text-gray-600 mt-1">
-                Add all possible times when the event could happen
-              </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Available Time Slots *</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addTimeSlot}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Time Slot
+                </Button>
+              </div>
+
+              {timeSlots.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  Add time slots for members to choose their availability
+                </p>
+              )}
+
+              {timeSlots.map((slot, index) => (
+                <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
+                  <select
+                    value={slot.dayOfWeek}
+                    onChange={(e) => updateTimeSlot(index, 'dayOfWeek', parseInt(e.target.value))}
+                    className="px-3 py-2 border rounded"
+                  >
+                    {DAYS_OF_WEEK.map(day => (
+                      <option key={day.value} value={day.value}>
+                        {day.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Input
+                    type="time"
+                    value={slot.startTime}
+                    onChange={(e) => updateTimeSlot(index, 'startTime', e.target.value)}
+                    className="w-24"
+                  />
+
+                  <span className="text-sm text-gray-500">to</span>
+
+                  <Input
+                    type="time"
+                    value={slot.endTime}
+                    onChange={(e) => updateTimeSlot(index, 'endTime', e.target.value)}
+                    className="w-24"
+                  />
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeTimeSlot(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
 
-            {/* Add New Time Slot */}
-            <Card>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-4 gap-3">
-                  <div>
-                    <Label>Day</Label>
-                    <Select 
-                      value={newSlot.dayOfWeek?.toString() || ''} 
-                      onValueChange={(value) => setNewSlot({ ...newSlot, dayOfWeek: parseInt(value) })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select day" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DAYS_OF_WEEK.map((day, index) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {day}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Start Time</Label>
-                    <Select 
-                      value={newSlot.startTime || ''} 
-                      onValueChange={(value) => setNewSlot({ ...newSlot, startTime: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Start" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>End Time</Label>
-                    <Select 
-                      value={newSlot.endTime || ''} 
-                      onValueChange={(value) => setNewSlot({ ...newSlot, endTime: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="End" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <Button
-                      type="button"
-                      onClick={addTimeSlot}
-                      disabled={!newSlot.dayOfWeek && newSlot.dayOfWeek !== 0 || !newSlot.startTime || !newSlot.endTime}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Current Time Slots */}
-            {timeSlots.length > 0 && (
-              <div className="space-y-2">
-                <Label>Added Time Slots:</Label>
-                <div className="flex flex-wrap gap-2">
-                  {timeSlots.map((slot, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-2">
-                      {DAYS_OF_WEEK[slot.dayOfWeek]} {slot.startTime}-{slot.endTime}
-                      <button
-                        type="button"
-                        onClick={() => removeTimeSlot(index)}
-                        className="hover:text-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={createPollMutation.isPending}
-              className="min-w-[100px]"
-            >
-              {createPollMutation.isPending ? 'Creating...' : 'Create Poll'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createPollMutation.isPending}>
+                {createPollMutation.isPending ? 'Creating...' : 'Create Poll'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
