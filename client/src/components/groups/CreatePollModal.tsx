@@ -81,7 +81,7 @@ export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
       return apiRequest('POST', `/api/sports-groups/${groupId}/polls`, pollData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sports-groups', groupId, 'polls'] });
+      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
       toast({ title: 'Poll created successfully!' });
       onClose();
     },
