@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 interface CreatePollModalProps {
   groupId: number;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 // Generate next 8 weeks
@@ -67,7 +68,7 @@ const MIN_MEMBERS_OPTIONS = [
   { value: 10, label: '10 people' }
 ];
 
-export function CreatePollModal({ groupId, onClose }: CreatePollModalProps) {
+export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModalProps) {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [minMembers, setMinMembers] = useState('2');

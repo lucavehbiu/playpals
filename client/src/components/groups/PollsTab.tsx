@@ -4,8 +4,9 @@ import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Calendar, Clock, Users } from 'lucide-react';
+import { Plus, Calendar, Clock, Users, ArrowLeft } from 'lucide-react';
 import { CreatePollModal } from './CreatePollModal';
+import { PollDetails } from './PollDetails';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -35,6 +36,7 @@ interface PollsTabProps {
 
 export function PollsTab({ groupId }: PollsTabProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
   const { data, isLoading, error } = useQuery<Poll[]>({
     queryKey: ['sports-groups', groupId, 'polls'],
@@ -50,6 +52,26 @@ export function PollsTab({ groupId }: PollsTabProps) {
   });
 
   const polls = data || [];
+
+  // Show poll details if one is selected
+  if (selectedPoll) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setSelectedPoll(null)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Polls
+          </Button>
+          <h2 className="text-xl font-semibold">{selectedPoll.title}</h2>
+        </div>
+        <PollDetails poll={selectedPoll} groupId={groupId} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -103,7 +125,11 @@ export function PollsTab({ groupId }: PollsTabProps) {
       ) : (
         <div className="grid gap-4">
           {polls.map((poll) => (
-            <Card key={poll.id} className="hover:shadow-md transition-shadow">
+            <Card 
+              key={poll.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedPoll(poll)}
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
