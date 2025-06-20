@@ -603,7 +603,7 @@ export default function GroupDetails() {
 
         {/* Polls Tab */}
         {activeTab === 'polls' && (
-          <PollsTab groupId={groupId} isAdmin={!!isAdmin} />
+          <PollsTab groupId={groupId} />
         )}
 
         {/* Settings Tab */}

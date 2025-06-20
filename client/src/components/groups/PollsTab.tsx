@@ -35,12 +35,11 @@ interface Poll {
 
 interface PollsTabProps {
   groupId: number;
-  isAdmin: boolean;
 }
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export function PollsTab({ groupId, isAdmin }: PollsTabProps) {
+export function PollsTab({ groupId }: PollsTabProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
@@ -176,29 +175,15 @@ export function PollsTab({ groupId, isAdmin }: PollsTabProps) {
                       </div>
                     </div>
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => togglePollStatusMutation.mutate({
-                          pollId: poll.id,
-                          isActive: !poll.isActive
-                        })}
-                        disabled={togglePollStatusMutation.isPending}
-                      >
-                        {poll.isActive ? "Close" : "Reopen"}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deletePollMutation.mutate(poll.id)}
-                        disabled={deletePollMutation.isPending}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedPoll(poll)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
