@@ -2287,6 +2287,276 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= SPORTS GROUP POLLS API =============
+
+  // Get all polls for a group
+  app.get('/api/sports-groups/:groupId/polls', async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const polls = await storage.getSportsGroupPolls(groupId);
+      
+      // Enrich polls with creator information and response counts
+      const enrichedPolls = await Promise.all(polls.map(async (poll) => {
+        const creator = await storage.getUser(poll.createdBy);
+        const responses = await storage.getSportsGroupPollResponses(poll.id);
+        const timeSlots = await storage.getSportsGroupPollTimeSlots(poll.id);
+        
+        return {
+          ...poll,
+          creator: creator ? {
+            id: creator.id,
+            name: creator.name,
+            username: creator.username,
+            profileImage: creator.profileImage
+          } : null,
+          responseCount: responses.length,
+          timeSlotCount: timeSlots.length
+        };
+      }));
+      
+      res.json(enrichedPolls);
+    } catch (error) {
+      console.error('Error fetching group polls:', error);
+      res.status(500).json({ message: 'Error fetching polls' });
+    }
+  });
+
+  // Get a specific poll with all details
+  app.get('/api/sports-groups/:groupId/polls/:pollId', async (req: Request, res: Response) => {
+    try {
+      const pollId = parseInt(req.params.pollId);
+      const poll = await storage.getSportsGroupPoll(pollId);
+      
+      if (!poll) {
+        return res.status(404).json({ message: 'Poll not found' });
+      }
+      
+      // Get poll time slots and responses
+      const timeSlots = await storage.getSportsGroupPollTimeSlots(pollId);
+      const responses = await storage.getSportsGroupPollResponses(pollId);
+      const creator = await storage.getUser(poll.createdBy);
+      
+      // Organize responses by time slot and user
+      const organizedResponses = timeSlots.map(slot => {
+        const slotResponses = responses.filter(r => r.timeSlotId === slot.id);
+        return {
+          ...slot,
+          responses: slotResponses.map(r => ({
+            ...r,
+            user: responses.find(resp => resp.id === r.id)?.userId
+          }))
+        };
+      });
+      
+      res.json({
+        ...poll,
+        creator: creator ? {
+          id: creator.id,
+          name: creator.name,
+          username: creator.username,
+          profileImage: creator.profileImage
+        } : null,
+        timeSlots: organizedResponses,
+        totalResponses: responses.length
+      });
+    } catch (error) {
+      console.error('Error fetching poll details:', error);
+      res.status(500).json({ message: 'Error fetching poll details' });
+    }
+  });
+
+  // Create a new poll
+  app.post('/api/sports-groups/:groupId/polls', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Verify user is a member of the group
+      const membership = await storage.getSportsGroupMember(groupId, authenticatedUser.id);
+      if (!membership) {
+        return res.status(403).json({ message: 'You must be a group member to create polls' });
+      }
+      
+      const { title, description, minMembers, duration, endDate, timeSlots } = req.body;
+      
+      // Validate poll data
+      const pollData = {
+        groupId,
+        createdBy: authenticatedUser.id,
+        title,
+        description,
+        minMembers: minMembers || 2,
+        duration: duration || 60,
+        endDate: new Date(endDate)
+      };
+      
+      // Create the poll
+      const newPoll = await storage.createSportsGroupPoll(pollData);
+      
+      // Create time slots
+      if (timeSlots && Array.isArray(timeSlots)) {
+        for (const slot of timeSlots) {
+          await storage.createSportsGroupPollTimeSlot({
+            pollId: newPoll.id,
+            dayOfWeek: slot.dayOfWeek,
+            startTime: slot.startTime,
+            endTime: slot.endTime
+          });
+        }
+      }
+      
+      // Notify all group members about the new poll
+      const groupMembers = await storage.getSportsGroupMembers(groupId);
+      for (const member of groupMembers) {
+        if (member.userId !== authenticatedUser.id) {
+          await storage.createSportsGroupNotification({
+            userId: member.userId,
+            groupId,
+            type: 'poll',
+            title: 'New Poll Created',
+            message: `${authenticatedUser.name} created a new poll: ${title}`,
+            referenceId: newPoll.id,
+            viewed: false
+          });
+        }
+      }
+      
+      res.status(201).json(newPoll);
+    } catch (error) {
+      console.error('Error creating poll:', error);
+      res.status(500).json({ message: 'Error creating poll' });
+    }
+  });
+
+  // Submit poll responses
+  app.post('/api/sports-groups/:groupId/polls/:pollId/responses', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const pollId = parseInt(req.params.pollId);
+      const groupId = parseInt(req.params.groupId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Verify user is a member of the group
+      const membership = await storage.getSportsGroupMember(groupId, authenticatedUser.id);
+      if (!membership) {
+        return res.status(403).json({ message: 'You must be a group member to respond to polls' });
+      }
+      
+      const { responses } = req.body; // Array of { timeSlotId, response }
+      
+      // Delete existing responses for this user and poll
+      const existingResponses = await storage.getSportsGroupPollUserResponses(pollId, authenticatedUser.id);
+      for (const response of existingResponses) {
+        await storage.deleteSportsGroupPollResponse(response.id);
+      }
+      
+      // Create new responses
+      const newResponses = [];
+      for (const responseData of responses) {
+        const newResponse = await storage.createSportsGroupPollResponse({
+          pollId,
+          timeSlotId: responseData.timeSlotId,
+          userId: authenticatedUser.id,
+          response: responseData.response
+        });
+        newResponses.push(newResponse);
+      }
+      
+      res.json(newResponses);
+    } catch (error) {
+      console.error('Error submitting poll responses:', error);
+      res.status(500).json({ message: 'Error submitting responses' });
+    }
+  });
+
+  // Get poll responses for a user
+  app.get('/api/sports-groups/:groupId/polls/:pollId/user-responses', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const pollId = parseInt(req.params.pollId);
+      const authenticatedUser = (req as any).user as User;
+      
+      const responses = await storage.getSportsGroupPollUserResponses(pollId, authenticatedUser.id);
+      res.json(responses);
+    } catch (error) {
+      console.error('Error fetching user poll responses:', error);
+      res.status(500).json({ message: 'Error fetching responses' });
+    }
+  });
+
+  // Get poll analysis and event suggestions
+  app.get('/api/sports-groups/:groupId/polls/:pollId/analysis', async (req: Request, res: Response) => {
+    try {
+      const pollId = parseInt(req.params.pollId);
+      const poll = await storage.getSportsGroupPoll(pollId);
+      
+      if (!poll) {
+        return res.status(404).json({ message: 'Poll not found' });
+      }
+      
+      const timeSlots = await storage.getSportsGroupPollTimeSlots(pollId);
+      const responses = await storage.getSportsGroupPollResponses(pollId);
+      
+      // Analyze availability for each time slot
+      const analysis = timeSlots.map(slot => {
+        const slotResponses = responses.filter(r => r.timeSlotId === slot.id);
+        const availableCount = slotResponses.filter(r => r.response === 'available').length;
+        const maybeCount = slotResponses.filter(r => r.response === 'maybe').length;
+        const unavailableCount = slotResponses.filter(r => r.response === 'unavailable').length;
+        
+        return {
+          ...slot,
+          availableCount,
+          maybeCount,
+          unavailableCount,
+          totalResponses: slotResponses.length,
+          meetsMinimum: availableCount >= poll.minMembers,
+          potentialParticipants: availableCount + maybeCount
+        };
+      });
+      
+      // Sort by best availability
+      const sortedSlots = analysis.sort((a, b) => {
+        if (a.meetsMinimum && !b.meetsMinimum) return -1;
+        if (!a.meetsMinimum && b.meetsMinimum) return 1;
+        return b.potentialParticipants - a.potentialParticipants;
+      });
+      
+      // Generate event suggestions
+      const suggestions = sortedSlots
+        .filter(slot => slot.meetsMinimum)
+        .slice(0, 5) // Top 5 suggestions
+        .map(slot => ({
+          timeSlot: slot,
+          suggestedDate: getNextDateForDayOfWeek(slot.dayOfWeek),
+          estimatedParticipants: slot.availableCount,
+          confidence: slot.availableCount >= poll.minMembers ? 'high' : 'medium'
+        }));
+      
+      res.json({
+        poll,
+        analysis: sortedSlots,
+        suggestions,
+        summary: {
+          totalTimeSlots: timeSlots.length,
+          viableSlots: sortedSlots.filter(s => s.meetsMinimum).length,
+          totalUniqueResponders: new Set(responses.map(r => r.userId)).size
+        }
+      });
+    } catch (error) {
+      console.error('Error analyzing poll:', error);
+      res.status(500).json({ message: 'Error analyzing poll' });
+    }
+  });
+
+  // Helper function to get next date for a day of week
+  function getNextDateForDayOfWeek(dayOfWeek: number): string {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+    return targetDate.toISOString().split('T')[0];
+  }
+
   // Create and return the HTTP server
   const httpServer = createServer(app);
   
