@@ -3886,13 +3886,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  async getSportsGroupPoll(id: number): Promise<any> { return null; }
-  async createSportsGroupPoll(poll: any): Promise<any> { return poll; }
-  async updateSportsGroupPoll(id: number, pollData: any): Promise<any> { return pollData; }
-  async deleteSportsGroupPoll(id: number): Promise<boolean> { return true; }
-  async getSportsGroupPollTimeSlots(pollId: number): Promise<any[]> { return []; }
-  async createSportsGroupPollTimeSlot(timeSlot: any): Promise<any> { return timeSlot; }
-  async deleteSportsGroupPollTimeSlot(id: number): Promise<boolean> { return true; }
+
   async getSportsGroupPollResponses(pollId: number): Promise<any[]> { return []; }
   async getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<any[]> { return []; }
   async createSportsGroupPollResponse(response: any): Promise<any> { return response; }

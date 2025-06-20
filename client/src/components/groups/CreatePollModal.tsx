@@ -84,6 +84,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
       toast({ title: 'Poll created successfully!' });
+      onSuccess?.();
       onClose();
     },
     onError: (error: any) => {
