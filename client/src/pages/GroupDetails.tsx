@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { useGroupNotifications } from "@/hooks/use-group-notifications";
+import { PollsTab } from "@/components/groups/PollsTab";
 import type { SportsGroup, SportsGroupMember, User } from "@/lib/types";
 
 interface GroupMessage {
