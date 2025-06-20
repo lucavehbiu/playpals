@@ -298,9 +298,13 @@ const ManageEvent = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleVisibilityToggle()}
+                            onClick={handleVisibilityToggle}
+                            disabled={visibilityMutation.isPending}
                           >
-                            {event.isPublic ? 'Make Private' : 'Make Public'}
+                            {visibilityMutation.isPending 
+                              ? 'Updating...' 
+                              : event.isPublic ? 'Make Private' : 'Make Public'
+                            }
                           </Button>
                         )}
                       </div>
