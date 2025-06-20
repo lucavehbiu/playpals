@@ -95,6 +95,32 @@ const ManageEvent = () => {
       });
     },
   });
+
+  // Visibility toggle mutation
+  const visibilityMutation = useMutation({
+    mutationFn: async (isPublic: boolean) => {
+      const response = await apiRequest("PUT", `/api/events/${eventId}`, {
+        isPublic: isPublic
+      });
+      return response.json();
+    },
+    onSuccess: (updatedEvent) => {
+      toast({
+        title: "Visibility Updated",
+        description: `Event is now ${updatedEvent.isPublic ? 'public' : 'private'}`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/user/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update visibility: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
   
   const handleDeleteEvent = () => {
     deleteMutation.mutate();
@@ -103,6 +129,12 @@ const ManageEvent = () => {
   
   const handleEditEvent = () => {
     setLocation(`/events/${eventId}/edit`);
+  };
+
+  const handleVisibilityToggle = () => {
+    if (!event) return;
+    const newVisibility = !event.isPublic;
+    visibilityMutation.mutate(newVisibility);
   };
   
   const goBack = () => {
@@ -242,6 +274,49 @@ const ManageEvent = () => {
                       <span>
                         {event.isFree ? 'Free' : `$${(event.cost || 0) / 100}`}
                       </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500 mb-1">Event Visibility</Label>
+                    <div className="p-3 bg-gray-50 rounded-md space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {event.isPublic ? (
+                            <>
+                              <Globe className="h-5 w-5 mr-2 text-green-600" />
+                              <span className="text-green-600 font-medium">Public Event</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-5 w-5 mr-2 text-blue-600" />
+                              <span className="text-blue-600 font-medium">Private Event</span>
+                            </>
+                          )}
+                        </div>
+                        {event.currentParticipants < event.maxParticipants && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleVisibilityToggle()}
+                          >
+                            {event.isPublic ? 'Make Private' : 'Make Public'}
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {event.isPublic 
+                          ? 'This event appears in public feeds and anyone can join.'
+                          : 'This event is only visible to invited users or group members.'
+                        }
+                      </p>
+                      {event.currentParticipants < event.maxParticipants && !event.isPublic && (
+                        <div className="bg-amber-50 border border-amber-200 rounded p-2 mt-2">
+                          <p className="text-amber-700 text-xs">
+                            Need more participants? Make this event public to reach more people.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

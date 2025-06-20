@@ -32,7 +32,7 @@ const CreateEvent = () => {
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("60");
   const [maxParticipants, setMaxParticipants] = useState("10");
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(groupId ? true : false); // Default to private for group events
   const [price, setPrice] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
   
@@ -298,8 +298,15 @@ const CreateEvent = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="isPrivate" className="text-base">Private Event</Label>
-                  <p className="text-sm text-gray-500">Only invited users can see and join</p>
+                  <Label htmlFor="isPrivate" className="text-base">
+                    {groupId ? "Group-Only Event" : "Private Event"}
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    {groupId 
+                      ? "Only group members can see and join this event" 
+                      : "Only invited users can see and join"
+                    }
+                  </p>
                 </div>
                 <div className="flex items-center">
                   {isPrivate ? (
@@ -314,7 +321,29 @@ const CreateEvent = () => {
                   />
                 </div>
               </div>
-              {isPrivate && (
+              {groupId && isPrivate && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center text-green-800 mb-2">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span className="text-sm font-medium">Group Event</span>
+                  </div>
+                  <p className="text-green-700 text-sm">
+                    This event will only be visible to members of your group. You can make it public later if you need more participants.
+                  </p>
+                </div>
+              )}
+              {groupId && !isPrivate && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center text-amber-800 mb-2">
+                    <Globe className="h-4 w-4 mr-2" />
+                    <span className="text-sm font-medium">Public Event</span>
+                  </div>
+                  <p className="text-amber-700 text-sm">
+                    This event will be visible to everyone and appear in the public event feed.
+                  </p>
+                </div>
+              )}
+              {!groupId && isPrivate && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center text-blue-800 mb-2">
                     <UserPlus className="h-4 w-4 mr-2" />
