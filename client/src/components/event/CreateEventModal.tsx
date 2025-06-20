@@ -7,7 +7,7 @@ import { sportTypes } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { X } from "lucide-react";
+import { X, Upload, Image as ImageIcon } from "lucide-react";
 
 // Form schema based on shared schema with additional validation
 const createEventSchema = z.object({
@@ -43,6 +43,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [showCost, setShowCost] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isDragOver, setIsDragOver] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEventFormData>({
     resolver: zodResolver(createEventSchema),
