@@ -331,7 +331,7 @@ const EventDetails = () => {
             <Button 
               variant="ghost"
               size="icon"
-              onClick={() => setLocation(`/myevents?manage=${eventData.id}`)}
+              onClick={() => setLocation(`/events/manage/${eventData.id}`)}
               className="h-9 w-9 rounded-full"
             >
               <Settings className="h-5 w-5 text-gray-700" />
