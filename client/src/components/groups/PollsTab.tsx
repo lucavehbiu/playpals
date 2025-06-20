@@ -4,12 +4,14 @@ import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Clock, Users } from 'lucide-react';
 import { CreatePollModal } from './CreatePollModal';
 import { format } from 'date-fns';
 
 interface Poll {
   id: number;
+  groupId: number;
+  createdBy: number;
   title: string;
   description: string | null;
   minMembers: number;
@@ -23,69 +25,31 @@ interface Poll {
     name: string;
     profileImage: string | null;
   };
-  timeSlots: Array<{
-    id: number;
-    dayOfWeek: number;
-    startTime: string;
-    endTime: string;
-  }>;
   responseCount: number;
-  totalResponses: number;
+  timeSlotCount: number;
 }
 
 interface PollsTabProps {
   groupId: number;
 }
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
 export function PollsTab({ groupId }: PollsTabProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
-  const { data: polls = [], isLoading, error } = useQuery<Poll[]>({
+  const { data, isLoading, error } = useQuery<Poll[]>({
     queryKey: ['sports-groups', groupId, 'polls'],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls`);
       if (!response.ok) {
         throw new Error('Failed to fetch polls');
       }
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
+      const result = await response.json();
+      return Array.isArray(result) ? result : [];
     },
     retry: 1,
   });
 
-  const deletePollMutation = useMutation({
-    mutationFn: async (pollId: number) => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${pollId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete poll');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
-    },
-  });
-
-  const togglePollStatusMutation = useMutation({
-    mutationFn: async ({ pollId, isActive }: { pollId: number; isActive: boolean }) => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${pollId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update poll');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
-    },
-  });
+  const polls = data || [];
 
   if (isLoading) {
     return (
@@ -107,34 +71,12 @@ export function PollsTab({ groupId }: PollsTabProps) {
     );
   }
 
-  if (selectedPoll) {
-    return (
-      <div className="space-y-4">
-        <Button
-          variant="ghost"
-          onClick={() => setSelectedPoll(null)}
-          className="flex items-center gap-2"
-        >
-          ← Back to Polls
-        </Button>
-        <Card>
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-bold mb-2">{selectedPoll.title}</h2>
-            <p className="text-gray-600">Poll details coming soon...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Event Coordination Polls</h2>
-          <p className="text-gray-600 mt-1">
-            Create polls to find the best times for group events
-          </p>
+          <h2 className="text-xl font-semibold">Group Polls</h2>
+          <p className="text-gray-600 text-sm">Coordinate event scheduling through availability polling</p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -188,52 +130,14 @@ export function PollsTab({ groupId }: PollsTabProps) {
                         Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedPoll(poll)}
-                    >
-                      View Details
-                    </Button>
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-500">
+                        {poll.responseCount} responses • Created by {poll.creator.name}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium mb-2">Available Time Slots:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {poll.timeSlots.map((slot) => (
-                        <Badge key={slot.id} variant="outline">
-                          {DAYS_OF_WEEK[slot.dayOfWeek]} {slot.startTime}-{slot.endTime}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <div className="flex items-center gap-2">
-                      {poll.responseCount >= poll.minMembers ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      )}
-                      <span className="text-sm text-gray-600">
-                        {poll.responseCount} of {poll.totalResponses} responses
-                        {poll.responseCount >= poll.minMembers && " (Ready to schedule!)"}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedPoll(poll)}
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
             </Card>
           ))}
         </div>
@@ -243,6 +147,10 @@ export function PollsTab({ groupId }: PollsTabProps) {
         <CreatePollModal
           groupId={groupId}
           onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
+          }}
         />
       )}
     </div>
