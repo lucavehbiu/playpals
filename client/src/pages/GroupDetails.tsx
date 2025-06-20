@@ -603,20 +603,7 @@ export default function GroupDetails() {
 
         {/* Polls Tab */}
         {activeTab === 'polls' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Group Polls
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Polls feature coming soon!</p>
-              </div>
-            </CardContent>
-          </Card>
+          <PollsTab groupId={groupId} isAdmin={!!isAdmin} />
         )}
 
         {/* Settings Tab */}
