@@ -391,8 +391,8 @@ const Header = () => {
                 <NotificationBell />
               </div>
               
-              {/* User profile dropdown menu - only visible on desktop */}
-              <div className="hidden md:flex items-center">
+              {/* User profile dropdown menu - Show on all screen sizes */}
+              <div className="flex items-center">
                 <div className="relative" ref={profileMenuRef}>
                   <div 
                     className="h-9 w-9 cursor-pointer rounded-full hover:ring-2 hover:ring-primary/20 transition-all"

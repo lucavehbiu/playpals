@@ -56,7 +56,7 @@ const MobileNav = () => {
     <>
       {/* Fixed Mobile Nav at Bottom */}
       <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden">
-        {/* Nav Items */}
+        {/* Nav Items - Home, Events, Create, Groups, Teams */}
         <NavItem 
           href="/" 
           icon={<HomeIcon className="h-[22px] w-[22px]" />} 
@@ -69,14 +69,6 @@ const MobileNav = () => {
           icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
           label="Events" 
           isActive={location.startsWith('/myevents')} 
-        />
-        
-        <NavItem 
-          href="/groups" 
-          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-          label="Groups" 
-          isActive={location === '/groups'}
-          badge={getTotalNotificationCount()}
         />
         
         {/* Create Button */}
@@ -136,23 +128,18 @@ const MobileNav = () => {
         </div>
         
         <NavItem 
+          href="/groups" 
+          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
+          label="Groups" 
+          isActive={location === '/groups'}
+          badge={getTotalNotificationCount()}
+        />
+        
+        <NavItem 
           href="/teams" 
           icon={<UsersIcon className="h-[22px] w-[22px]" />} 
           label="Teams" 
           isActive={location.startsWith('/teams')} 
-        />
-        
-        <NavItem 
-          href="/profile" 
-          icon={user?.profileImage ? (
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={user.profileImage} alt="Profile" />
-            </Avatar>
-          ) : (
-            <UserIcon className="h-[22px] w-[22px]" />
-          )} 
-          label="Profile" 
-          isActive={location === '/profile'} 
         />
       </nav>
 
