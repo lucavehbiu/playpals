@@ -2531,18 +2531,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze availability for each time slot
       const analysis = timeSlots.map(slot => {
         const slotResponses = responses.filter(r => r.timeSlotId === slot.id);
-        const availableCount = slotResponses.filter(r => r.response === 'available').length;
-        const maybeCount = slotResponses.filter(r => r.response === 'maybe').length;
-        const unavailableCount = slotResponses.filter(r => r.response === 'unavailable').length;
+        const availableCount = slotResponses.filter(r => r.isAvailable === true).length;
+        const unavailableCount = slotResponses.filter(r => r.isAvailable === false).length;
         
         return {
           ...slot,
           availableCount,
-          maybeCount,
           unavailableCount,
           totalResponses: slotResponses.length,
-          meetsMinimum: availableCount >= poll.minMembers,
-          potentialParticipants: availableCount + maybeCount
+          meetsMinimum: availableCount >= (poll.minMembers || 2),
+          potentialParticipants: availableCount
         };
       });
       
@@ -2561,7 +2559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timeSlot: slot,
           suggestedDate: getNextDateForDayOfWeek(slot.dayOfWeek),
           estimatedParticipants: slot.availableCount,
-          confidence: slot.availableCount >= poll.minMembers ? 'high' : 'medium'
+          confidence: slot.availableCount >= (poll.minMembers || 2) ? 'high' : 'medium'
         }));
       
       res.json({

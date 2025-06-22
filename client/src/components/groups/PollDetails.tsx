@@ -95,13 +95,13 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
   // Submit responses mutation
   const submitResponsesMutation = useMutation({
-    mutationFn: async (responses: UserResponse[]) => {
+    mutationFn: async (data: any) => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ responses }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
