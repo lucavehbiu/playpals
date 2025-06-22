@@ -162,60 +162,6 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     }));
   };
 
-  // Create event from poll suggestion
-  const createEventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
-      // First create the regular event
-      const eventResponse = await fetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      });
-
-      if (!eventResponse.ok) {
-        const errorData = await eventResponse.json();
-        console.error('Event creation failed:', errorData);
-        throw new Error(errorData.message || 'Failed to create event');
-      }
-
-      const newEvent = await eventResponse.json();
-
-      // Then add it to the group
-      const groupEventResponse = await fetch(`/api/sports-groups/${groupId}/events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ eventId: newEvent.id }),
-      });
-
-      if (!groupEventResponse.ok) {
-        const errorData = await groupEventResponse.json();
-        console.error('Adding event to group failed:', errorData);
-        throw new Error(errorData.message || 'Failed to add event to group');
-      }
-
-      return newEvent;
-    },
-    onSuccess: (newEvent) => {
-      toast({
-        title: "Event created successfully",
-        description: `"${newEvent.title}" has been created for your group.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'events'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error creating event",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleCreateEvent = (suggestion: any) => {
     const timeSlot = suggestion.timeSlot;
     const suggestedDate = suggestion.suggestedDate;
@@ -227,19 +173,26 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     endTime.setHours(hours, minutes + poll.duration, 0, 0);
     const endTimeString = endTime.toTimeString().slice(0, 5);
 
+    // Create URL with pre-filled event data
     const eventData = {
       title: `${poll.title} - ${DAYS_OF_WEEK[timeSlot.dayOfWeek]} Event`,
       description: `Event created from group poll: ${poll.title}`,
-      sportType: 'General',
-      maxParticipants: 20,
-      location: 'TBD',
       date: suggestedDate,
-      isPublic: false,
-      isFree: true,
-      cost: 0
+      time: startTime,
+      endTime: endTimeString,
+      groupId: groupId,
+      pollId: poll.id,
+      suggestionId: suggestion.timeSlot.id
     };
 
-    createEventMutation.mutate(eventData);
+    // Encode the data for URL parameters
+    const params = new URLSearchParams();
+    Object.entries(eventData).forEach(([key, value]) => {
+      params.append(key, String(value));
+    });
+
+    // Navigate to create event page with pre-filled data
+    window.location.href = `/create-event?${params.toString()}`;
   };
 
   const handleSubmitCustomAvailability = () => {

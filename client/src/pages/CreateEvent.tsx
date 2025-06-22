@@ -19,20 +19,23 @@ const CreateEvent = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Get groupId from URL parameters
+  // Get parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
   const groupId = urlParams.get('groupId') ? parseInt(urlParams.get('groupId')!) : null;
+  const pollId = urlParams.get('pollId') ? parseInt(urlParams.get('pollId')!) : null;
+  const suggestionId = urlParams.get('suggestionId') ? parseInt(urlParams.get('suggestionId')!) : null;
   
-  // Event form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  // Event form state with pre-filled data from poll suggestions
+  const [title, setTitle] = useState(urlParams.get('title') || "");
+  const [description, setDescription] = useState(urlParams.get('description') || "");
   const [sportType, setSportType] = useState("basketball");
   const [eventLocation, setEventLocation] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [date, setDate] = useState(urlParams.get('date') || "");
+  const [time, setTime] = useState(urlParams.get('time') || "");
+  const [endTime, setEndTime] = useState(urlParams.get('endTime') || "");
   const [duration, setDuration] = useState("60");
   const [maxParticipants, setMaxParticipants] = useState("10");
-  const [isPrivate, setIsPrivate] = useState(groupId ? true : false); // Default to private for group events
+  const [isPrivate, setIsPrivate] = useState(groupId ? true : false);
   const [price, setPrice] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
   
@@ -55,17 +58,34 @@ const CreateEvent = () => {
       
       return result;
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       toast({
         title: "Success!",
         description: groupId ? "Your group event has been created." : "Your event has been created.",
       });
+      
+      // If event was created from a poll suggestion, mark the suggestion as used
+      if (pollId && suggestionId && data?.id) {
+        try {
+          await fetch(`/api/sports-groups/${groupId}/polls/${pollId}/suggestions/${suggestionId}/mark-used`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ eventId: data.id }),
+          });
+        } catch (error) {
+          console.error('Failed to mark poll suggestion as used:', error);
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       if (user) {
         queryClient.invalidateQueries({ queryKey: [`/api/events/user/${user.id}`] });
       }
       if (groupId) {
         queryClient.invalidateQueries({ queryKey: [`/api/sports-groups/${groupId}/events`] });
+        queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
       }
       
       // If it's a private event, show invite friends modal

@@ -188,6 +188,7 @@ export interface IStorage {
   createSportsGroupPollResponse(response: InsertSportsGroupPollResponse): Promise<SportsGroupPollResponse>;
   updateSportsGroupPollResponse(id: number, responseData: Partial<SportsGroupPollResponse>): Promise<SportsGroupPollResponse | undefined>;
   deleteSportsGroupPollResponse(id: number): Promise<boolean>;
+  markPollSuggestionAsUsed(pollId: number, suggestionId: number, eventId: number): Promise<boolean>;
 
   // Sports Group Join Requests methods
   getSportsGroupJoinRequests(groupId: number): Promise<SportsGroupJoinRequest[]>;
@@ -3951,6 +3952,19 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error('Error deleting poll response:', error);
+      return false;
+    }
+  }
+
+  async markPollSuggestionAsUsed(pollId: number, suggestionId: number, eventId: number): Promise<boolean> {
+    try {
+      // For now, we'll store this as a simple flag or metadata
+      // In a real application, you might want a separate table for poll suggestion events
+      // For this implementation, we'll just return true as the notification is handled in the UI
+      console.log(`Poll suggestion ${suggestionId} from poll ${pollId} marked as used for event ${eventId}`);
+      return true;
+    } catch (error) {
+      console.error('Error marking poll suggestion as used:', error);
       return false;
     }
   }

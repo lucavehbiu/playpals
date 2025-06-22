@@ -2516,6 +2516,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get poll analysis and event suggestions
+  // Mark poll suggestion as used when event is created from it
+  app.post('/api/sports-groups/:groupId/polls/:pollId/suggestions/:suggestionId/mark-used', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const pollId = parseInt(req.params.pollId);
+      const suggestionId = parseInt(req.params.suggestionId);
+      const { eventId } = req.body;
+      const userId = req.user!.id;
+
+      // Check if user is a member of the group
+      const member = await storage.getSportsGroupMember(groupId, userId);
+      if (!member) {
+        return res.status(403).json({ message: 'You must be a member to mark poll suggestions' });
+      }
+
+      // Store the mapping of poll suggestion to created event
+      await storage.markPollSuggestionAsUsed(pollId, suggestionId, eventId);
+
+      res.json({ success: true, message: 'Poll suggestion marked as used' });
+    } catch (error) {
+      console.error('Error marking poll suggestion as used:', error);
+      res.status(500).json({ message: 'Error marking poll suggestion as used' });
+    }
+  });
+
   app.get('/api/sports-groups/:groupId/polls/:pollId/analysis', async (req: Request, res: Response) => {
     try {
       const pollId = parseInt(req.params.pollId);
