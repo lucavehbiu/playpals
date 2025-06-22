@@ -165,7 +165,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   // Create event from poll suggestion
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
-      const response = await fetch('/api/events', {
+      // First create the regular event
+      const eventResponse = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,11 +174,30 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         body: JSON.stringify(eventData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create event');
+      if (!eventResponse.ok) {
+        const errorData = await eventResponse.json();
+        console.error('Event creation failed:', errorData);
+        throw new Error(errorData.message || 'Failed to create event');
       }
 
-      return response.json();
+      const newEvent = await eventResponse.json();
+
+      // Then add it to the group
+      const groupEventResponse = await fetch(`/api/sports-groups/${groupId}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ eventId: newEvent.id }),
+      });
+
+      if (!groupEventResponse.ok) {
+        const errorData = await groupEventResponse.json();
+        console.error('Adding event to group failed:', errorData);
+        throw new Error(errorData.message || 'Failed to add event to group');
+      }
+
+      return newEvent;
     },
     onSuccess: (newEvent) => {
       toast({
@@ -210,15 +230,13 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     const eventData = {
       title: `${poll.title} - ${DAYS_OF_WEEK[timeSlot.dayOfWeek]} Event`,
       description: `Event created from group poll: ${poll.title}`,
-      sport: 'General',
-      skillLevel: 'All Levels',
+      sportType: 'General',
       maxParticipants: 20,
       location: 'TBD',
       date: suggestedDate,
-      time: startTime,
-      endTime: endTimeString,
       isPublic: false,
-      groupId: groupId
+      isFree: true,
+      cost: 0
     };
 
     createEventMutation.mutate(eventData);
