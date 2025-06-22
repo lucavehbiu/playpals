@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Clock, Users, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Users, CheckCircle, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -19,34 +20,11 @@ interface Poll {
   duration: number;
   endDate: string;
   isActive: boolean;
+  responseCount: number;
   createdAt: string;
   creator: {
     id: number;
-    username: string;
     name: string;
-    profileImage: string | null;
-  };
-  responseCount: number;
-  timeSlotCount: number;
-}
-
-interface TimeSlot {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-}
-
-interface TimeSlotResponse {
-  id: number;
-  timeSlotId: number;
-  userId: number;
-  isAvailable: boolean;
-  user: {
-    id: number;
-    username: string;
-    name: string;
-    profileImage: string | null;
   };
 }
 
@@ -55,23 +33,39 @@ interface PollDetailsProps {
   groupId: number;
 }
 
+interface TimeSlot {
+  id: number;
+  pollId: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  date?: string;
+}
+
+interface PollResponse {
+  id: number;
+  pollId: number;
+  userId: number;
+  timeSlotId: number;
+  isAvailable: boolean;
+  createdAt: string;
+}
+
+interface UserResponse {
+  timeSlotId: number;
+  isAvailable: boolean;
+}
+
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { user } = useAuth();
-  const [userResponses, setUserResponses] = useState<Record<number, boolean>>({});
-
-  // Fetch poll details with time slots
-  const { data: pollDetails, isLoading } = useQuery({
-    queryKey: ['sports-groups', groupId, 'polls', poll.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch poll details');
-      }
-      return response.json();
-    },
-  });
+  const { toast } = useToast();
+  
+  // User-defined availability state
+  const [userAvailability, setUserAvailability] = useState<{
+    [day: string]: { startTime: string; endTime: string; available: boolean }[]
+  }>({});
 
   // Fetch poll analysis for event suggestions
   const { data: pollAnalysis } = useQuery({
@@ -83,14 +77,13 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       }
       return response.json();
     },
-    enabled: !!pollDetails && poll.responseCount > 0,
+    enabled: poll.responseCount > 0,
   });
 
-  // Fetch user's responses
-  const { data: responses } = useQuery({
+  // Fetch user's existing responses
+  const { data: userResponses } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses'],
     queryFn: async () => {
-      if (!user) return [];
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`);
       if (!response.ok) {
         return [];
@@ -100,187 +93,201 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     enabled: !!user,
   });
 
-  // Update local state when responses are loaded
-  useEffect(() => {
-    if (responses && Array.isArray(responses)) {
-      const responseMap: Record<number, boolean> = {};
-      responses.forEach((response: any) => {
-        responseMap[response.timeSlotId] = response.isAvailable;
-      });
-      setUserResponses(responseMap);
-    }
-  }, [responses]);
-
-  // Submit availability responses
+  // Submit responses mutation
   const submitResponsesMutation = useMutation({
-    mutationFn: async (availabilityData: { timeSlotId: number; isAvailable: boolean }[]) => {
+    mutationFn: async (responses: UserResponse[]) => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          responses: availabilityData.map(item => ({
-            timeSlotId: item.timeSlotId,
-            response: item.isAvailable ? 'available' : 'unavailable'
-          }))
-        }),
+        body: JSON.stringify({ responses }),
       });
+
       if (!response.ok) {
         throw new Error('Failed to submit responses');
       }
+
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls', poll.id] });
-      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses'] });
+      toast({
+        title: "Availability saved",
+        description: "Your availability has been recorded successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  const handleAvailabilityChange = (timeSlotId: number, isAvailable: boolean) => {
-    setUserResponses(prev => ({
+  // Helper functions for custom availability
+  const addTimeSlot = (dayName: string) => {
+    setUserAvailability(prev => ({
       ...prev,
-      [timeSlotId]: isAvailable
+      [dayName]: [
+        ...(prev[dayName] || []),
+        { startTime: '09:00', endTime: '17:00', available: true }
+      ]
     }));
   };
 
-  const handleSubmitResponses = () => {
-    const responses = Object.entries(userResponses).map(([timeSlotId, isAvailable]) => ({
-      timeSlotId: parseInt(timeSlotId),
-      isAvailable
+  const updateTimeSlot = (dayName: string, slotIndex: number, field: string, value: any) => {
+    setUserAvailability(prev => ({
+      ...prev,
+      [dayName]: prev[dayName]?.map((slot, index) => 
+        index === slotIndex ? { ...slot, [field]: value } : slot
+      ) || []
     }));
+  };
+
+  const removeTimeSlot = (dayName: string, slotIndex: number) => {
+    setUserAvailability(prev => ({
+      ...prev,
+      [dayName]: prev[dayName]?.filter((_, index) => index !== slotIndex) || []
+    }));
+  };
+
+  const handleSubmitCustomAvailability = () => {
+    // Convert custom availability to API format
+    const responses: UserResponse[] = [];
+    
+    Object.entries(userAvailability).forEach(([dayName, slots]) => {
+      const dayIndex = DAYS_OF_WEEK.indexOf(dayName);
+      slots.forEach((slot, slotIndex) => {
+        if (slot.available) {
+          // Create a unique ID for this custom slot
+          const slotId = dayIndex * 100 + slotIndex;
+          responses.push({ timeSlotId: slotId, isAvailable: true });
+        }
+      });
+    });
+
+    if (responses.length === 0) {
+      toast({
+        title: "No availability selected",
+        description: "Please select at least one time when you're available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     submitResponsesMutation.mutate(responses);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  const timeSlots = pollDetails?.timeSlots || [];
-  
-  // Generate time slots if none exist (for the current week)
-  const generateTimeSlots = () => {
-    const slots = [];
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-    
-    for (let day = 0; day < 7; day++) {
-      const currentDate = new Date(startOfWeek);
-      currentDate.setDate(startOfWeek.getDate() + day);
-      
-      // Morning slot
-      slots.push({
-        id: day * 3 + 1,
-        dayOfWeek: day,
-        startTime: '09:00',
-        endTime: '12:00',
-        date: currentDate.toISOString().split('T')[0]
-      });
-      
-      // Afternoon slot  
-      slots.push({
-        id: day * 3 + 2,
-        dayOfWeek: day,
-        startTime: '14:00',
-        endTime: '17:00',
-        date: currentDate.toISOString().split('T')[0]
-      });
-      
-      // Evening slot
-      slots.push({
-        id: day * 3 + 3,
-        dayOfWeek: day,
-        startTime: '18:00',
-        endTime: '21:00',
-        date: currentDate.toISOString().split('T')[0]
-      });
-    }
-    return slots;
-  };
-
-  const displayTimeSlots = timeSlots.length > 0 ? timeSlots : generateTimeSlots();
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-semibold">{poll.title}</h3>
-                <Badge variant={poll.isActive ? "default" : "secondary"}>
-                  {poll.isActive ? "Active" : "Closed"}
-                </Badge>
-              </div>
+              <h3 className="text-xl font-semibold">{poll.title}</h3>
               {poll.description && (
-                <p className="text-gray-600 mb-3">{poll.description}</p>
+                <p className="text-gray-600 mt-1">{poll.description}</p>
               )}
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  Min {poll.minMembers} members
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {poll.duration} minutes
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
-                </div>
-              </div>
             </div>
+            <Badge variant={poll.isActive ? "default" : "secondary"}>
+              {poll.isActive ? "Active" : "Ended"}
+            </Badge>
           </div>
         </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                Min {poll.minMembers} members
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {poll.duration} minutes
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
+              </span>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {poll.isActive && user && (
         <Card>
           <CardHeader>
             <h4 className="text-lg font-semibold">Your Availability</h4>
-            <p className="text-gray-600">Select the times when you're available for this event</p>
+            <p className="text-gray-600">Add your available times for each day</p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid gap-3">
+            <div className="space-y-6">
+              <div className="grid gap-4">
                 {DAYS_OF_WEEK.map((dayName, dayIndex) => {
-                  const daySlots = displayTimeSlots.filter(slot => slot.dayOfWeek === dayIndex);
-                  if (daySlots.length === 0) return null;
+                  const dayAvailability = userAvailability[dayName] || [];
                   
                   return (
                     <div key={dayIndex} className="border rounded-lg p-4">
-                      <h5 className="font-semibold text-gray-900 mb-3">{dayName}</h5>
-                      <div className="grid gap-2">
-                        {daySlots.map((slot: any) => (
-                          <div key={slot.id} className="flex items-center space-x-3 p-2 border rounded">
-                            <Checkbox
-                              id={`slot-${slot.id}`}
-                              checked={userResponses[slot.id] || false}
-                              onCheckedChange={(checked) => 
-                                handleAvailabilityChange(slot.id, checked === true)
-                              }
-                            />
-                            <label 
-                              htmlFor={`slot-${slot.id}`} 
-                              className="flex-1 cursor-pointer"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm">
-                                  {slot.startTime} - {slot.endTime}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {slot.date || 'This week'}
-                                </span>
-                              </div>
-                            </label>
-                          </div>
-                        ))}
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-semibold text-gray-900">{dayName}</h5>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addTimeSlot(dayName)}
+                          className="text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Time
+                        </Button>
                       </div>
+                      
+                      {dayAvailability.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">Click "Add Time" to set your availability</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {dayAvailability.map((slot, slotIndex) => (
+                            <div key={slotIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
+                              <Checkbox
+                                checked={slot.available}
+                                onCheckedChange={(checked) => 
+                                  updateTimeSlot(dayName, slotIndex, 'available', checked === true)
+                                }
+                              />
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="time"
+                                  value={slot.startTime}
+                                  onChange={(e) => updateTimeSlot(dayName, slotIndex, 'startTime', e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                />
+                                <span className="text-gray-500">to</span>
+                                <input
+                                  type="time"
+                                  value={slot.endTime}
+                                  onChange={(e) => updateTimeSlot(dayName, slotIndex, 'endTime', e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeTimeSlot(dayName, slotIndex)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -288,7 +295,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 
               <div className="pt-4">
                 <Button 
-                  onClick={handleSubmitResponses}
+                  onClick={handleSubmitCustomAvailability}
                   disabled={submitResponsesMutation.isPending}
                   className="w-full"
                 >
@@ -300,7 +307,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                   ) : (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
-                      Save Availability
+                      Save My Availability
                     </div>
                   )}
                 </Button>
