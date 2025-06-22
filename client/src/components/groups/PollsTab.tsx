@@ -55,12 +55,16 @@ export function PollsTab({ groupId }: PollsTabProps) {
 
   // Show poll details if one is selected
   if (selectedPoll) {
+    console.log('Rendering poll details for:', selectedPoll);
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
-            onClick={() => setSelectedPoll(null)}
+            onClick={() => {
+              console.log('Back button clicked');
+              setSelectedPoll(null);
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -127,8 +131,11 @@ export function PollsTab({ groupId }: PollsTabProps) {
           {polls.map((poll) => (
             <Card 
               key={poll.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedPoll(poll)}
+              className="hover:shadow-lg hover:border-blue-300 transition-all duration-200 cursor-pointer border-2 border-transparent"
+              onClick={() => {
+                console.log('Poll clicked:', poll);
+                setSelectedPoll(poll);
+              }}
             >
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -160,6 +167,17 @@ export function PollsTab({ groupId }: PollsTabProps) {
                       <p className="text-sm text-gray-500">
                         {poll.responseCount} responses • Created by {poll.creator.name}
                       </p>
+                      <Button 
+                        className="mt-2" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Button clicked for poll:', poll);
+                          setSelectedPoll(poll);
+                        }}
+                      >
+                        View Details
+                      </Button>
                     </div>
                   </div>
                 </div>
