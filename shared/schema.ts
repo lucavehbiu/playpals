@@ -363,7 +363,7 @@ export const sportsGroupPollResponses = pgTable("sports_group_poll_responses", {
   pollId: integer("poll_id").notNull().references(() => sportsGroupPolls.id, { onDelete: "cascade" }),
   timeSlotId: integer("time_slot_id").notNull().references(() => sportsGroupPollTimeSlots.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  response: text("response").notNull(), // "available", "unavailable", "maybe"
+  isAvailable: boolean("is_available").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({
   pollUserTimeSlotUnique: unique().on(t.pollId, t.timeSlotId, t.userId),

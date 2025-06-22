@@ -154,21 +154,12 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   };
 
   const handleSubmitCustomAvailability = () => {
-    // Convert custom availability to API format
-    const responses: UserResponse[] = [];
-    
-    Object.entries(userAvailability).forEach(([dayName, slots]) => {
-      const dayIndex = DAYS_OF_WEEK.indexOf(dayName);
-      slots.forEach((slot, slotIndex) => {
-        if (slot.available) {
-          // Create a unique ID for this custom slot
-          const slotId = dayIndex * 100 + slotIndex;
-          responses.push({ timeSlotId: slotId, isAvailable: true });
-        }
-      });
-    });
+    // Check if user has any availability
+    const hasAvailability = Object.values(userAvailability).some(slots => 
+      slots.some(slot => slot.available)
+    );
 
-    if (responses.length === 0) {
+    if (!hasAvailability) {
       toast({
         title: "No availability selected",
         description: "Please select at least one time when you're available.",
@@ -177,7 +168,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       return;
     }
 
-    submitResponsesMutation.mutate(responses);
+    // Send availability data directly to backend
+    submitResponsesMutation.mutate({ availability: userAvailability });
   };
 
   return (

@@ -2441,7 +2441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'You must be a group member to respond to polls' });
       }
       
-      const { responses } = req.body; // Array of { timeSlotId, response }
+      const { availability } = req.body; // Custom availability object
       
       // Delete existing responses for this user and poll
       const existingResponses = await storage.getSportsGroupPollUserResponses(pollId, authenticatedUser.id);
@@ -2449,16 +2449,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.deleteSportsGroupPollResponse(response.id);
       }
       
-      // Create new responses
+      // Create time slots and responses from user's custom availability
       const newResponses = [];
-      for (const responseData of responses) {
-        const newResponse = await storage.createSportsGroupPollResponse({
-          pollId,
-          timeSlotId: responseData.timeSlotId,
-          userId: authenticatedUser.id,
-          response: responseData.response
-        });
-        newResponses.push(newResponse);
+      if (availability) {
+        const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        for (const [dayName, slots] of Object.entries(availability)) {
+          const dayIndex = DAYS_OF_WEEK.indexOf(dayName);
+          if (dayIndex === -1) continue;
+          
+          for (const slot of (slots as any[])) {
+            if (slot.available) {
+              // Create or find existing time slot
+              let timeSlot;
+              const existingSlots = await storage.getSportsGroupPollTimeSlots(pollId);
+              const matchingSlot = existingSlots.find(s => 
+                s.dayOfWeek === dayIndex && 
+                s.startTime === slot.startTime && 
+                s.endTime === slot.endTime
+              );
+              
+              if (matchingSlot) {
+                timeSlot = matchingSlot;
+              } else {
+                timeSlot = await storage.createSportsGroupPollTimeSlot({
+                  pollId,
+                  dayOfWeek: dayIndex,
+                  startTime: slot.startTime,
+                  endTime: slot.endTime
+                });
+              }
+              
+              // Create response for this time slot
+              const response = await storage.createSportsGroupPollResponse({
+                pollId,
+                timeSlotId: timeSlot.id,
+                userId: authenticatedUser.id,
+                isAvailable: true
+              });
+              
+              newResponses.push(response);
+            }
+          }
+        }
       }
       
       res.json(newResponses);
