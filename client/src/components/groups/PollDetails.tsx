@@ -162,6 +162,68 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     }));
   };
 
+  // Create event from poll suggestion
+  const createEventMutation = useMutation({
+    mutationFn: async (eventData: any) => {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create event');
+      }
+
+      return response.json();
+    },
+    onSuccess: (newEvent) => {
+      toast({
+        title: "Event created successfully",
+        description: `"${newEvent.title}" has been created for your group.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'events'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error creating event",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateEvent = (suggestion: any) => {
+    const timeSlot = suggestion.timeSlot;
+    const suggestedDate = suggestion.suggestedDate;
+    
+    // Calculate end time based on poll duration
+    const startTime = timeSlot.startTime;
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const endTime = new Date();
+    endTime.setHours(hours, minutes + poll.duration, 0, 0);
+    const endTimeString = endTime.toTimeString().slice(0, 5);
+
+    const eventData = {
+      title: `${poll.title} - ${DAYS_OF_WEEK[timeSlot.dayOfWeek]} Event`,
+      description: `Event created from group poll: ${poll.title}`,
+      sport: 'General',
+      skillLevel: 'All Levels',
+      maxParticipants: 20,
+      location: 'TBD',
+      date: suggestedDate,
+      time: startTime,
+      endTime: endTimeString,
+      isPublic: false,
+      groupId: groupId
+    };
+
+    createEventMutation.mutate(eventData);
+  };
+
   const handleSubmitCustomAvailability = () => {
     // Check if user has any availability
     const hasAvailability = Object.values(userAvailability).some(slots => 
@@ -354,7 +416,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         </Card>
       )}
 
-      {pollAnalysis && pollAnalysis.suggestedEvents && pollAnalysis.suggestedEvents.length > 0 && (
+      {pollAnalysis && pollAnalysis.suggestions && pollAnalysis.suggestions.length > 0 && (
         <Card>
           <CardHeader>
             <h4 className="text-lg font-semibold flex items-center gap-2">
@@ -365,20 +427,20 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {pollAnalysis.suggestedEvents.map((suggestion: any, index: number) => (
+              {pollAnalysis.suggestions.map((suggestion: any, index: number) => (
                 <div key={index} className="border rounded-lg p-4 bg-green-50 border-green-200">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h5 className="font-semibold text-green-900">
-                        {DAYS_OF_WEEK[suggestion.dayOfWeek]} Event
+                        {DAYS_OF_WEEK[suggestion.timeSlot.dayOfWeek]} Event
                       </h5>
                       <p className="text-sm text-green-700">
-                        {suggestion.startTime} - {suggestion.endTime}
+                        {suggestion.timeSlot.startTime} - {suggestion.timeSlot.endTime}
                       </p>
                     </div>
                     <div className="text-right">
                       <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
-                        {suggestion.availableCount} available
+                        {suggestion.timeSlot.availableCount} available
                       </span>
                     </div>
                   </div>
@@ -386,25 +448,15 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                     <span>✓ Meets minimum {poll.minMembers} members</span>
                     <span>Duration: {poll.duration} minutes</span>
                   </div>
-                  {suggestion.availableMembers && (
-                    <div className="mt-2">
-                      <p className="text-xs text-green-600 mb-1">Available members:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {suggestion.availableMembers.map((member: any) => (
-                          <span key={member.id} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                            {member.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div className="mt-2">
+                    <p className="text-xs text-green-600 mb-1">
+                      {suggestion.estimatedParticipants} members available • {suggestion.confidence} confidence
+                    </p>
+                  </div>
                   <Button 
                     size="sm" 
                     className="mt-3 bg-green-600 hover:bg-green-700"
-                    onClick={() => {
-                      // TODO: Create event from this suggestion
-                      console.log('Create event for:', suggestion);
-                    }}
+                    onClick={() => handleCreateEvent(suggestion)}
                   >
                     Create Event
                   </Button>
