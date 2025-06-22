@@ -8,6 +8,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Clock, Users, CheckCircle, Plus, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -228,135 +229,122 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 </h4>
                 <p className="text-gray-600">
                   {userResponses && userResponses.length > 0 
-                    ? "You have submitted your availability" 
-                    : "Add your available times for each day"
+                    ? `Available for ${userResponses.length} time slots` 
+                    : "Set your available times"
                   }
                 </p>
               </div>
-              {userResponses && userResponses.length > 0 ? (
-                <Button
-                  onClick={() => setShowAvailabilityForm(true)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Update Availability
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => setShowAvailabilityForm(true)}
-                  size="sm"
-                >
-                  Set Availability
-                </Button>
-              )}
+              <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
+                <DialogTrigger asChild>
+                  {userResponses && userResponses.length > 0 ? (
+                    <Button variant="outline" size="sm">
+                      Update Availability
+                    </Button>
+                  ) : (
+                    <Button size="sm">
+                      Set Availability
+                    </Button>
+                  )}
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Set Your Availability</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {DAYS_OF_WEEK.map((dayName, dayIndex) => {
+                      const dayAvailability = userAvailability[dayName] || [];
+                      
+                      return (
+                        <div key={dayIndex} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h5 className="font-semibold text-gray-900">{dayName}</h5>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => addTimeSlot(dayName)}
+                              className="text-xs"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Time
+                            </Button>
+                          </div>
+                          
+                          {dayAvailability.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic">Click "Add Time" to set your availability</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {dayAvailability.map((slot, slotIndex) => (
+                                <div key={slotIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
+                                  <Checkbox
+                                    checked={slot.available}
+                                    onCheckedChange={(checked) => 
+                                      updateTimeSlot(dayName, slotIndex, 'available', checked === true)
+                                    }
+                                  />
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <input
+                                      type="time"
+                                      value={slot.startTime}
+                                      onChange={(e) => updateTimeSlot(dayName, slotIndex, 'startTime', e.target.value)}
+                                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                    />
+                                    <span className="text-gray-500">to</span>
+                                    <input
+                                      type="time"
+                                      value={slot.endTime}
+                                      onChange={(e) => updateTimeSlot(dayName, slotIndex, 'endTime', e.target.value)}
+                                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => removeTimeSlot(dayName, slotIndex)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    <div className="pt-4 flex gap-3">
+                      <Button 
+                        onClick={handleSubmitCustomAvailability}
+                        disabled={submitResponsesMutation.isPending}
+                        className="flex-1"
+                      >
+                        {submitResponsesMutation.isPending ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Saving...
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4" />
+                            Save My Availability
+                          </div>
+                        )}
+                      </Button>
+                      <Button 
+                        onClick={() => setShowAvailabilityForm(false)}
+                        variant="outline"
+                        disabled={submitResponsesMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
-          {showAvailabilityForm && (
-            <CardContent>
-            <div className="space-y-6">
-              <div className="grid gap-4">
-                {DAYS_OF_WEEK.map((dayName, dayIndex) => {
-                  const dayAvailability = userAvailability[dayName] || [];
-                  
-                  return (
-                    <div key={dayIndex} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h5 className="font-semibold text-gray-900">{dayName}</h5>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => addTimeSlot(dayName)}
-                          className="text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add Time
-                        </Button>
-                      </div>
-                      
-                      {dayAvailability.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">Click "Add Time" to set your availability</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {dayAvailability.map((slot, slotIndex) => (
-                            <div key={slotIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
-                              <Checkbox
-                                checked={slot.available}
-                                onCheckedChange={(checked) => 
-                                  updateTimeSlot(dayName, slotIndex, 'available', checked === true)
-                                }
-                              />
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="time"
-                                  value={slot.startTime}
-                                  onChange={(e) => updateTimeSlot(dayName, slotIndex, 'startTime', e.target.value)}
-                                  className="border border-gray-300 rounded px-2 py-1 text-sm"
-                                />
-                                <span className="text-gray-500">to</span>
-                                <input
-                                  type="time"
-                                  value={slot.endTime}
-                                  onChange={(e) => updateTimeSlot(dayName, slotIndex, 'endTime', e.target.value)}
-                                  className="border border-gray-300 rounded px-2 py-1 text-sm"
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeTimeSlot(dayName, slotIndex)}
-                                className="text-red-500 hover:text-red-700 p-1"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-                
-              <div className="pt-4 flex gap-3">
-                <Button 
-                  onClick={handleSubmitCustomAvailability}
-                  disabled={submitResponsesMutation.isPending}
-                  className="flex-1"
-                >
-                  {submitResponsesMutation.isPending ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Saving...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Save My Availability
-                    </div>
-                  )}
-                </Button>
-                <Button 
-                  onClick={() => setShowAvailabilityForm(false)}
-                  variant="outline"
-                  disabled={submitResponsesMutation.isPending}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-            </CardContent>
-          )}
-          
-          {userResponses && userResponses.length > 0 && !showAvailabilityForm && (
-            <CardContent>
-              <div className="text-sm text-green-700">
-                <p className="font-medium mb-2">You're available for {userResponses.length} time slots</p>
-                <p className="text-green-600">Your responses help coordinate the perfect event time for everyone!</p>
-              </div>
-            </CardContent>
-          )}
         </Card>
       )}
 
