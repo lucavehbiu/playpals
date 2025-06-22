@@ -73,6 +73,19 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
   });
 
+  // Fetch poll analysis for event suggestions
+  const { data: pollAnalysis } = useQuery({
+    queryKey: ['sports-groups', groupId, 'polls', poll.id, 'analysis'],
+    queryFn: async () => {
+      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`);
+      if (!response.ok) {
+        return null;
+      }
+      return response.json();
+    },
+    enabled: !!pollDetails && poll.responseCount > 0,
+  });
+
   // Fetch user's responses
   const { data: responses } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses'],
@@ -148,6 +161,49 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   }
 
   const timeSlots = pollDetails?.timeSlots || [];
+  
+  // Generate time slots if none exist (for the current week)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+    
+    for (let day = 0; day < 7; day++) {
+      const currentDate = new Date(startOfWeek);
+      currentDate.setDate(startOfWeek.getDate() + day);
+      
+      // Morning slot
+      slots.push({
+        id: day * 3 + 1,
+        dayOfWeek: day,
+        startTime: '09:00',
+        endTime: '12:00',
+        date: currentDate.toISOString().split('T')[0]
+      });
+      
+      // Afternoon slot  
+      slots.push({
+        id: day * 3 + 2,
+        dayOfWeek: day,
+        startTime: '14:00',
+        endTime: '17:00',
+        date: currentDate.toISOString().split('T')[0]
+      });
+      
+      // Evening slot
+      slots.push({
+        id: day * 3 + 3,
+        dayOfWeek: day,
+        startTime: '18:00',
+        endTime: '21:00',
+        date: currentDate.toISOString().split('T')[0]
+      });
+    }
+    return slots;
+  };
+
+  const displayTimeSlots = timeSlots.length > 0 ? timeSlots : generateTimeSlots();
 
   return (
     <div className="space-y-6">
@@ -190,58 +246,127 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
             <p className="text-gray-600">Select the times when you're available for this event</p>
           </CardHeader>
           <CardContent>
-            {timeSlots.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                No time slots available for this poll
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {timeSlots.map((slot: TimeSlot) => (
-                  <div key={slot.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                    <Checkbox
-                      id={`slot-${slot.id}`}
-                      checked={userResponses[slot.id] || false}
-                      onCheckedChange={(checked) => 
-                        handleAvailabilityChange(slot.id, checked === true)
-                      }
-                    />
-                    <label 
-                      htmlFor={`slot-${slot.id}`} 
-                      className="flex-1 cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          {DAYS_OF_WEEK[slot.dayOfWeek]}
-                        </span>
-                        <span className="text-gray-600">
-                          {slot.startTime} - {slot.endTime}
-                        </span>
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                {DAYS_OF_WEEK.map((dayName, dayIndex) => {
+                  const daySlots = displayTimeSlots.filter(slot => slot.dayOfWeek === dayIndex);
+                  if (daySlots.length === 0) return null;
+                  
+                  return (
+                    <div key={dayIndex} className="border rounded-lg p-4">
+                      <h5 className="font-semibold text-gray-900 mb-3">{dayName}</h5>
+                      <div className="grid gap-2">
+                        {daySlots.map((slot: any) => (
+                          <div key={slot.id} className="flex items-center space-x-3 p-2 border rounded">
+                            <Checkbox
+                              id={`slot-${slot.id}`}
+                              checked={userResponses[slot.id] || false}
+                              onCheckedChange={(checked) => 
+                                handleAvailabilityChange(slot.id, checked === true)
+                              }
+                            />
+                            <label 
+                              htmlFor={`slot-${slot.id}`} 
+                              className="flex-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm">
+                                  {slot.startTime} - {slot.endTime}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {slot.date || 'This week'}
+                                </span>
+                              </div>
+                            </label>
+                          </div>
+                        ))}
                       </div>
-                    </label>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
+              </div>
                 
-                <div className="pt-4">
+              <div className="pt-4">
+                <Button 
+                  onClick={handleSubmitResponses}
+                  disabled={submitResponsesMutation.isPending}
+                  className="w-full"
+                >
+                  {submitResponsesMutation.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Save Availability
+                    </div>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {pollAnalysis && pollAnalysis.suggestedEvents && pollAnalysis.suggestedEvents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h4 className="text-lg font-semibold flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Suggested Events
+            </h4>
+            <p className="text-gray-600">Times when enough members are available to create events</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pollAnalysis.suggestedEvents.map((suggestion: any, index: number) => (
+                <div key={index} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h5 className="font-semibold text-green-900">
+                        {DAYS_OF_WEEK[suggestion.dayOfWeek]} Event
+                      </h5>
+                      <p className="text-sm text-green-700">
+                        {suggestion.startTime} - {suggestion.endTime}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
+                        {suggestion.availableCount} available
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-green-700">
+                    <span>✓ Meets minimum {poll.minMembers} members</span>
+                    <span>Duration: {poll.duration} minutes</span>
+                  </div>
+                  {suggestion.availableMembers && (
+                    <div className="mt-2">
+                      <p className="text-xs text-green-600 mb-1">Available members:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {suggestion.availableMembers.map((member: any) => (
+                          <span key={member.id} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                            {member.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Button 
-                    onClick={handleSubmitResponses}
-                    disabled={submitResponsesMutation.isPending}
-                    className="w-full"
+                    size="sm" 
+                    className="mt-3 bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      // TODO: Create event from this suggestion
+                      console.log('Create event for:', suggestion);
+                    }}
                   >
-                    {submitResponsesMutation.isPending ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Saving...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        Save Availability
-                      </div>
-                    )}
+                    Create Event
                   </Button>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -257,6 +382,9 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
             </p>
             <p className="text-gray-600">
               Created by <span className="font-medium">{poll.creator.name}</span> on {format(new Date(poll.createdAt), 'MMM d, yyyy')}
+            </p>
+            <p className="text-gray-600">
+              Minimum <span className="font-medium">{poll.minMembers}</span> members needed to create events
             </p>
           </div>
         </CardContent>
