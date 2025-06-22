@@ -60,6 +60,7 @@ interface UserResponse {
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function PollDetails({ poll, groupId }: PollDetailsProps) {
+  console.log('PollDetails component rendering with poll:', poll, 'groupId:', groupId);
   const { user } = useAuth();
   const { toast } = useToast();
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
@@ -73,11 +74,15 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { data: pollAnalysis } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'analysis'],
     queryFn: async () => {
+      console.log('Fetching poll analysis for poll:', poll.id);
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`);
       if (!response.ok) {
+        console.log('Poll analysis fetch failed:', response.status);
         return null;
       }
-      return response.json();
+      const result = await response.json();
+      console.log('Poll analysis result:', result);
+      return result;
     },
     enabled: poll.responseCount > 0,
   });
@@ -177,7 +182,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white p-4 rounded-lg border-2 border-blue-500"
+         style={{ minHeight: '400px', zIndex: 10, position: 'relative' }}>
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
