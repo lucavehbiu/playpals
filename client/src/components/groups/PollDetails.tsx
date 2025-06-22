@@ -61,6 +61,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
   
   // User-defined availability state
   const [userAvailability, setUserAvailability] = useState<{
@@ -115,6 +116,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         title: "Availability saved",
         description: "Your availability has been recorded successfully.",
       });
+      setShowAvailabilityForm(false);
+      setUserAvailability({});
       queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
     },
     onError: (error: Error) => {
@@ -213,12 +216,43 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       </Card>
 
       {poll.isActive && user && (
-        <Card>
+        <Card className={userResponses && userResponses.length > 0 ? "border-green-200 bg-green-50" : ""}>
           <CardHeader>
-            <h4 className="text-lg font-semibold">Your Availability</h4>
-            <p className="text-gray-600">Add your available times for each day</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-semibold flex items-center gap-2">
+                  Your Availability
+                  {userResponses && userResponses.length > 0 && (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  )}
+                </h4>
+                <p className="text-gray-600">
+                  {userResponses && userResponses.length > 0 
+                    ? "You have submitted your availability" 
+                    : "Add your available times for each day"
+                  }
+                </p>
+              </div>
+              {userResponses && userResponses.length > 0 ? (
+                <Button
+                  onClick={() => setShowAvailabilityForm(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Update Availability
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setShowAvailabilityForm(true)}
+                  size="sm"
+                >
+                  Set Availability
+                </Button>
+              )}
+            </div>
           </CardHeader>
-          <CardContent>
+          {showAvailabilityForm && (
+            <CardContent>
             <div className="space-y-6">
               <div className="grid gap-4">
                 {DAYS_OF_WEEK.map((dayName, dayIndex) => {
@@ -285,11 +319,11 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 })}
               </div>
                 
-              <div className="pt-4">
+              <div className="pt-4 flex gap-3">
                 <Button 
                   onClick={handleSubmitCustomAvailability}
                   disabled={submitResponsesMutation.isPending}
-                  className="w-full"
+                  className="flex-1"
                 >
                   {submitResponsesMutation.isPending ? (
                     <div className="flex items-center gap-2">
@@ -303,9 +337,26 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                     </div>
                   )}
                 </Button>
+                <Button 
+                  onClick={() => setShowAvailabilityForm(false)}
+                  variant="outline"
+                  disabled={submitResponsesMutation.isPending}
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
-          </CardContent>
+            </CardContent>
+          )}
+          
+          {userResponses && userResponses.length > 0 && !showAvailabilityForm && (
+            <CardContent>
+              <div className="text-sm text-green-700">
+                <p className="font-medium mb-2">You're available for {userResponses.length} time slots</p>
+                <p className="text-green-600">Your responses help coordinate the perfect event time for everyone!</p>
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
 
