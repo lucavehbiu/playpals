@@ -15,8 +15,8 @@ export function useGroupNotifications() {
   const { data: notifications = [], isLoading } = useQuery<GroupNotification[]>({
     queryKey: [`/api/users/${user?.id}/group-notifications`],
     enabled: !!user?.id,
-    staleTime: 0,
-    refetchInterval: 30000,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchInterval: 120000, // Refetch every 2 minutes
     retry: 1,
   });
 
@@ -51,14 +51,15 @@ export function useGroupNotifications() {
     if (!Array.isArray(notifications)) return 0;
     const groupNotifications = notifications.filter((n: GroupNotification) => n.groupId === groupId);
     if (type) {
-      return parseInt(groupNotifications.find((n: GroupNotification) => n.type === type)?.count || '0');
+      const notification = groupNotifications.find((n: GroupNotification) => n.type === type);
+      return parseInt(String(notification?.count || 0));
     }
-    return groupNotifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(n.count || '0'), 0);
+    return groupNotifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)), 0);
   };
 
   const getTotalNotificationCount = () => {
     if (!Array.isArray(notifications)) return 0;
-    return notifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(n.count || '0'), 0);
+    return notifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)), 0);
   };
 
   const getUnreadEventIds = async (groupId: number) => {
