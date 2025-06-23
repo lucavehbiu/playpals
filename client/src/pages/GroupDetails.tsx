@@ -38,25 +38,19 @@ export default function GroupDetails() {
 
   const groupId = parseInt(id || "0");
 
-  // Auto-clear notifications when entering group page or switching tabs
-  useEffect(() => {
+  // Manual notification clearing - only when user explicitly interacts
+  const handleTabChange = (tab: 'feed' | 'events' | 'polls' | 'settings') => {
+    setActiveTab(tab);
     if (groupId && user) {
-      if (activeTab === 'feed') {
-        markNotificationsViewed.mutate({ groupId, type: 'message' });
-      } else if (activeTab === 'polls') {
+      if (tab === 'polls') {
         markNotificationsViewed.mutate({ groupId, type: 'poll' });
-      } else if (activeTab === 'events') {
+      } else if (tab === 'events') {
         markNotificationsViewed.mutate({ groupId, type: 'event' });
+      } else if (tab === 'feed') {
+        markNotificationsViewed.mutate({ groupId, type: 'message' });
       }
     }
-  }, [groupId, user, activeTab, markNotificationsViewed]);
-
-  // Clear all notifications when first entering the group page
-  useEffect(() => {
-    if (groupId && user) {
-      markNotificationsViewed.mutate({ groupId });
-    }
-  }, [groupId, user]);
+  };
 
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
@@ -228,10 +222,7 @@ export default function GroupDetails() {
             variant={activeTab === 'feed' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2 relative"
-            onClick={() => {
-              setActiveTab('feed');
-              markNotificationsViewed.mutate({ groupId, type: 'message' });
-            }}
+            onClick={() => handleTabChange('feed')}
           >
             <MessageSquare className="h-4 w-4" />
             <span>Feed</span>
@@ -245,10 +236,7 @@ export default function GroupDetails() {
             variant={activeTab === 'events' ? 'default' : 'outline'}
             size="sm" 
             className="flex items-center justify-center gap-2 relative"
-            onClick={() => {
-              setActiveTab('events');
-              markNotificationsViewed.mutate({ groupId, type: 'event' });
-            }}
+            onClick={() => handleTabChange('events')}
           >
             <Calendar className="h-4 w-4" />
             <span>Events</span>
@@ -261,18 +249,23 @@ export default function GroupDetails() {
           <Button 
             variant={activeTab === 'polls' ? 'default' : 'outline'}
             size="sm" 
-            className="flex items-center justify-center gap-2"
-            onClick={() => setActiveTab('polls')}
+            className="flex items-center justify-center gap-2 relative"
+            onClick={() => handleTabChange('polls')}
           >
             <Clock className="h-4 w-4" />
             <span>Polls</span>
+            {getNotificationCount(groupId, 'poll') > 0 && (
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {getNotificationCount(groupId, 'poll')}
+              </Badge>
+            )}
           </Button>
           {isAdmin && (
             <Button 
               variant={activeTab === 'settings' ? 'default' : 'outline'}
               size="sm" 
               className="flex items-center justify-center gap-2"
-              onClick={() => setActiveTab('settings')}
+              onClick={() => handleTabChange('settings')}
             >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
