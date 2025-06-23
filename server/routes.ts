@@ -2617,7 +2617,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           unavailableCount,
           totalResponses: slotResponses.length,
           meetsMinimum: availableCount >= (poll.minMembers || 2),
-          potentialParticipants: availableCount
+          potentialParticipants: availableCount,
+          isUsedForEvent: !!slot.usedForEventId,
+          usedForEventId: slot.usedForEventId
         };
       });
       
@@ -2628,9 +2630,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return b.potentialParticipants - a.potentialParticipants;
       });
       
-      // Generate event suggestions
+      // Generate event suggestions (exclude already used time slots)
       const suggestions = sortedSlots
-        .filter(slot => slot.meetsMinimum)
+        .filter(slot => slot.meetsMinimum && !slot.isUsedForEvent)
         .slice(0, 5) // Top 5 suggestions
         .map(slot => ({
           timeSlot: slot,

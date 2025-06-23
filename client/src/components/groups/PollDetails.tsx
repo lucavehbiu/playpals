@@ -425,13 +425,29 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                       {suggestion.estimatedParticipants} members available • {suggestion.confidence} confidence
                     </p>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="mt-3 bg-green-600 hover:bg-green-700"
-                    onClick={() => handleCreateEvent(suggestion)}
-                  >
-                    Create Event
-                  </Button>
+                  {suggestion.timeSlot.isUsedForEvent ? (
+                    <div className="mt-3 space-y-2">
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        disabled
+                        variant="secondary"
+                      >
+                        Event Already Created
+                      </Button>
+                      <p className="text-xs text-gray-500">
+                        This time slot has already been used to create an event
+                      </p>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      className="mt-3 bg-green-600 hover:bg-green-700"
+                      onClick={() => handleCreateEvent(suggestion)}
+                    >
+                      Create Event
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

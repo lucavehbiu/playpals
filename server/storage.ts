@@ -3550,6 +3550,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async markPollSuggestionAsUsed(pollId: number, timeSlotId: number, eventId: number): Promise<boolean> {
+    try {
+      await db
+        .update(sportsGroupPollTimeSlots)
+        .set({ usedForEventId: eventId })
+        .where(eq(sportsGroupPollTimeSlots.id, timeSlotId));
+      return true;
+    } catch (error) {
+      console.error('Error marking poll suggestion as used:', error);
+      return false;
+    }
+  }
+
   // Skill Matcher Preferences methods
   async getSkillMatcherPreferences(userId: number): Promise<SkillMatcherPreference[]> {
     try {
