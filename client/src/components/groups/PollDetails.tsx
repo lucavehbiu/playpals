@@ -192,7 +192,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     });
 
     // Navigate to create event page with pre-filled data
-    window.location.href = `/create-event?${params.toString()}`;
+    window.location.href = `/events/create?${params.toString()}`;
   };
 
   const handleSubmitCustomAvailability = () => {
