@@ -2566,14 +2566,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const response of availableUsers) {
         try {
           // Check if user already has an RSVP for this event
-          const existingRSVPs = await storage.getUserRSVPs(response.userId);
-          const hasExistingRSVP = existingRSVPs.some(rsvp => rsvp.eventId === eventId);
+          const existingRSVPs = await storage.getRSVPsByUser(response.userId);
+          const hasExistingRSVP = existingRSVPs.some((rsvp: any) => rsvp.eventId === eventId);
           
           if (!hasExistingRSVP) {
             await storage.createRSVP({
               eventId: eventId,
               userId: response.userId,
-              status: response.userId === userId ? 'approved' : 'pending' // Creator is auto-approved
+              status: 'approved' // Auto-approve all poll participants since they indicated availability
             });
             invitedCount++;
           }
