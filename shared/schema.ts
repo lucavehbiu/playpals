@@ -354,6 +354,7 @@ export const sportsGroupPollTimeSlots = pgTable("sports_group_poll_time_slots", 
   dayOfWeek: integer("day_of_week").notNull(), // 0 = Sunday, 1 = Monday, etc.
   startTime: text("start_time").notNull(), // "09:00"
   endTime: text("end_time").notNull(), // "11:00"
+  usedForEventId: integer("used_for_event_id").references(() => events.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
