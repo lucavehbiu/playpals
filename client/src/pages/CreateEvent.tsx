@@ -64,9 +64,10 @@ const CreateEvent = () => {
         description: groupId ? "Your group event has been created." : "Your event has been created.",
       });
       
-      // If event was created from a poll suggestion, mark the suggestion as used
+      // If event was created from a poll suggestion, mark the suggestion as used and invite available participants
       if (pollId && suggestionId && data?.id) {
         try {
+          // Mark the poll suggestion as used
           await fetch(`/api/sports-groups/${groupId}/polls/${pollId}/suggestions/${suggestionId}/mark-used`, {
             method: 'POST',
             headers: {
@@ -74,8 +75,20 @@ const CreateEvent = () => {
             },
             body: JSON.stringify({ eventId: data.id }),
           });
+
+          // Invite all users who marked themselves as available for this time slot
+          await fetch(`/api/sports-groups/${groupId}/polls/${pollId}/invite-available-users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              eventId: data.id, 
+              timeSlotId: suggestionId 
+            }),
+          });
         } catch (error) {
-          console.error('Failed to mark poll suggestion as used:', error);
+          console.error('Failed to process poll suggestion:', error);
         }
       }
       

@@ -2541,6 +2541,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invite users who were available for a poll time slot to the created event
+  app.post('/api/sports-groups/:groupId/polls/:pollId/invite-available-users', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const pollId = parseInt(req.params.pollId);
+      const { eventId, timeSlotId } = req.body;
+      const userId = req.user!.id;
+
+      // Check if user is a member of the group
+      const member = await storage.getSportsGroupMember(groupId, userId);
+      if (!member) {
+        return res.status(403).json({ message: 'You must be a member to invite users' });
+      }
+
+      // Get all users who marked themselves as available for this time slot
+      const responses = await storage.getSportsGroupPollResponses(pollId);
+      const availableUsers = responses.filter(response => 
+        response.timeSlotId === timeSlotId && response.isAvailable === true
+      );
+
+      // Create RSVPs for all available users
+      let invitedCount = 0;
+      for (const response of availableUsers) {
+        try {
+          // Check if user already has an RSVP for this event
+          const existingRSVPs = await storage.getUserRSVPs(response.userId);
+          const hasExistingRSVP = existingRSVPs.some(rsvp => rsvp.eventId === eventId);
+          
+          if (!hasExistingRSVP) {
+            await storage.createRSVP({
+              eventId: eventId,
+              userId: response.userId,
+              status: response.userId === userId ? 'approved' : 'pending' // Creator is auto-approved
+            });
+            invitedCount++;
+          }
+        } catch (error) {
+          console.error(`Failed to create RSVP for user ${response.userId}:`, error);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Invited ${invitedCount} available users to the event`,
+        invitedCount 
+      });
+    } catch (error) {
+      console.error('Error inviting available users:', error);
+      res.status(500).json({ message: 'Error inviting available users' });
+    }
+  });
+
   app.get('/api/sports-groups/:groupId/polls/:pollId/analysis', async (req: Request, res: Response) => {
     try {
       const pollId = parseInt(req.params.pollId);
