@@ -373,7 +373,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">
-                        {notification.count} new {notification.type === 'message' ? 'messages' : 'events'} in{' '}
+                        {notification.count} new {
+                          notification.type === 'message' ? 'messages' : 
+                          notification.type === 'poll' ? 'polls' : 
+                          notification.type === 'event' ? 'events' : 
+                          'activities'
+                        } in{' '}
                         <span className="text-primary">{notification.groupName}</span>
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
