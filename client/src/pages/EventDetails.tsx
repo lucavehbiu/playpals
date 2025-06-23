@@ -666,7 +666,7 @@ const EventDetails = () => {
               <div className="bg-gray-50 rounded-xl p-5">
                 {rsvps.length > 0 ? (
                   <ul className="divide-y divide-gray-100">
-                    {rsvps.filter((rsvp: any) => rsvp.status === "approved").map((rsvp: any) => (
+                    {rsvps.filter((rsvp: any) => rsvp.status === "approved" || rsvp.status === "pending").map((rsvp: any) => (
                       <li key={rsvp.id} className="py-3 first:pt-0 last:pb-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
@@ -679,8 +679,20 @@ const EventDetails = () => {
                                 </AvatarFallback>
                               )}
                             </Avatar>
-                            <div className="ml-3">
-                              <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
+                            <div className="ml-3 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm">{rsvp.user?.name || rsvp.user?.username || "Unknown"}</p>
+                                {rsvp.status === "pending" && (
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-yellow-50 text-yellow-700 border-yellow-200">
+                                    Pending
+                                  </Badge>
+                                )}
+                                {rsvp.status === "approved" && (
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200">
+                                    Confirmed
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-xs text-gray-500">
                                 Joined {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleDateString() : ''} at {rsvp.createdAt ? new Date(rsvp.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                               </p>
