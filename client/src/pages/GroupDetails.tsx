@@ -38,12 +38,25 @@ export default function GroupDetails() {
 
   const groupId = parseInt(id || "0");
 
-  // Auto-clear message notifications when entering group page
+  // Auto-clear notifications when entering group page or switching tabs
   useEffect(() => {
-    if (groupId && user && activeTab === 'feed') {
-      markNotificationsViewed.mutate({ groupId, type: 'message' });
+    if (groupId && user) {
+      if (activeTab === 'feed') {
+        markNotificationsViewed.mutate({ groupId, type: 'message' });
+      } else if (activeTab === 'polls') {
+        markNotificationsViewed.mutate({ groupId, type: 'poll' });
+      } else if (activeTab === 'events') {
+        markNotificationsViewed.mutate({ groupId, type: 'event' });
+      }
     }
   }, [groupId, user, activeTab, markNotificationsViewed]);
+
+  // Clear all notifications when first entering the group page
+  useEffect(() => {
+    if (groupId && user) {
+      markNotificationsViewed.mutate({ groupId });
+    }
+  }, [groupId, user]);
 
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
