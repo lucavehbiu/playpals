@@ -180,6 +180,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       date: suggestedDate,
       time: startTime,
       endTime: endTimeString,
+      maxParticipants: suggestion.timeSlot.availableCount || poll.minMembers || 2,
       groupId: groupId,
       pollId: poll.id,
       suggestionId: suggestion.timeSlot.id

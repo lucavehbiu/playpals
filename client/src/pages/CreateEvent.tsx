@@ -34,7 +34,7 @@ const CreateEvent = () => {
   const [time, setTime] = useState(urlParams.get('time') || "");
   const [endTime, setEndTime] = useState(urlParams.get('endTime') || "");
   const [duration, setDuration] = useState("60");
-  const [maxParticipants, setMaxParticipants] = useState("10");
+  const [maxParticipants, setMaxParticipants] = useState(urlParams.get('maxParticipants') || "10");
   const [isPrivate, setIsPrivate] = useState(groupId ? true : false);
   const [price, setPrice] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
