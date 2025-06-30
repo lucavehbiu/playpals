@@ -85,6 +85,7 @@ The build process creates optimized bundles with automatic code splitting and mo
 
 ## Changelog
 - June 30, 2025. Initial setup
+- June 30, 2025. CRITICAL SECURITY FIX: Added membership verification to all group endpoints to prevent unauthorized access to private group content
 
 ## User Preferences
 
