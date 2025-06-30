@@ -2416,6 +2416,209 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= FRIENDS API =============
+
+  // Get user's friends
+  app.get('/api/users/:userId/friends', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Users can only view their own friends or friends of people they're friends with
+      if (authenticatedUser.id !== userId) {
+        const friendship = await storage.getFriendship(authenticatedUser.id, userId);
+        if (!friendship || friendship.status !== 'accepted') {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+      }
+      
+      const friends = await storage.getFriendsByUserId(userId);
+      res.json(friends);
+    } catch (error) {
+      console.error('Error getting friends:', error);
+      res.status(500).json({ message: 'Error getting friends' });
+    }
+  });
+
+  // Get pending friend requests (received by user)
+  app.get('/api/users/:userId/friend-requests', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Users can only view their own friend requests
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const pendingRequests = await storage.getPendingFriendRequests(userId);
+      
+      // Enrich with sender information
+      const enrichedRequests = await Promise.all(pendingRequests.map(async (request) => {
+        const sender = await storage.getUser(request.userId);
+        return {
+          ...request,
+          sender: sender ? {
+            id: sender.id,
+            name: sender.name,
+            username: sender.username,
+            profileImage: sender.profileImage
+          } : null
+        };
+      }));
+      
+      res.json(enrichedRequests);
+    } catch (error) {
+      console.error('Error getting friend requests:', error);
+      res.status(500).json({ message: 'Error getting friend requests' });
+    }
+  });
+
+  // Send friend request
+  app.post('/api/friend-requests', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const authenticatedUser = (req as any).user as User;
+      const { friendId } = req.body;
+      
+      if (!friendId) {
+        return res.status(400).json({ message: 'Friend ID is required' });
+      }
+      
+      // Can't friend yourself
+      if (authenticatedUser.id === friendId) {
+        return res.status(400).json({ message: 'Cannot send friend request to yourself' });
+      }
+      
+      // Check if target user exists
+      const targetUser = await storage.getUser(friendId);
+      if (!targetUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Check if friendship already exists
+      const existingFriendship = await storage.getFriendship(authenticatedUser.id, friendId);
+      if (existingFriendship) {
+        if (existingFriendship.status === 'accepted') {
+          return res.status(400).json({ message: 'You are already friends with this user' });
+        } else if (existingFriendship.status === 'pending') {
+          return res.status(400).json({ message: 'Friend request already sent' });
+        }
+      }
+      
+      // Create friend request
+      const friendRequest = await storage.sendFriendRequest({
+        userId: authenticatedUser.id,
+        friendId: friendId,
+        status: 'pending'
+      });
+      
+      res.status(201).json(friendRequest);
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      res.status(500).json({ message: 'Error sending friend request' });
+    }
+  });
+
+  // Accept/reject friend request
+  app.put('/api/friend-requests/:requestId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const authenticatedUser = (req as any).user as User;
+      const { status } = req.body; // 'accepted' or 'rejected'
+      
+      if (!['accepted', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status. Must be "accepted" or "rejected"' });
+      }
+      
+      // Get the friend request
+      const friendRequest = await storage.getFriendshipById(requestId);
+      if (!friendRequest) {
+        return res.status(404).json({ message: 'Friend request not found' });
+      }
+      
+      // Only the recipient can accept/reject
+      if (friendRequest.friendId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Update the request status
+      const updatedRequest = await storage.updateFriendshipStatus(requestId, status);
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error('Error updating friend request:', error);
+      res.status(500).json({ message: 'Error updating friend request' });
+    }
+  });
+
+  // Remove friend
+  app.delete('/api/friendships/:friendshipId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const friendshipId = parseInt(req.params.friendshipId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get the friendship
+      const friendship = await storage.getFriendshipById(friendshipId);
+      if (!friendship) {
+        return res.status(404).json({ message: 'Friendship not found' });
+      }
+      
+      // Only users involved in the friendship can delete it
+      if (friendship.userId !== authenticatedUser.id && friendship.friendId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Delete the friendship
+      const deleted = await storage.deleteFriendship(friendshipId);
+      
+      if (deleted) {
+        res.json({ message: 'Friendship removed successfully' });
+      } else {
+        res.status(500).json({ message: 'Error removing friendship' });
+      }
+    } catch (error) {
+      console.error('Error removing friendship:', error);
+      res.status(500).json({ message: 'Error removing friendship' });
+    }
+  });
+
+  // Search users (for finding friends)
+  app.get('/api/users/search-friends', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const { q } = req.query;
+      const authenticatedUser = (req as any).user as User;
+      
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: 'Search query is required' });
+      }
+      
+      const users = await storage.searchUsers(q);
+      
+      // Filter out the current user and enrich with friendship status
+      const enrichedUsers = await Promise.all(
+        users
+          .filter(user => user.id !== authenticatedUser.id)
+          .map(async (user) => {
+            const friendship = await storage.getFriendship(authenticatedUser.id, user.id);
+            return {
+              id: user.id,
+              name: user.name,
+              username: user.username,
+              profileImage: user.profileImage,
+              bio: user.bio,
+              location: user.location,
+              friendshipStatus: friendship?.status || 'none'
+            };
+          })
+      );
+      
+      res.json(enrichedUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ message: 'Error searching users' });
+    }
+  });
+
   // ============= SPORTS GROUP POLLS API =============
 
   // Get all polls for a group
