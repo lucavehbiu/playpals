@@ -236,6 +236,7 @@ export default function Friends() {
 
           {/* Friend Requests */}
           <TabsContent value="requests" className="space-y-4">
+            {console.log("Rendering requests tab - isLoading:", isLoadingRequests, "friendRequests.length:", friendRequests.length, "friendRequests:", friendRequests)}
             {isLoadingRequests ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
