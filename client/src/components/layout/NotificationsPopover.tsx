@@ -90,6 +90,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     markNotificationViewed, 
     isLoading 
   } = useNotifications();
+
+  // Fetch friend requests
+  const { data: friendRequests = [] } = useQuery({
+    queryKey: [`/api/users/${user?.id}/friend-requests`],
+    enabled: !!user?.id,
+  });
+  
+  // Type the friend requests properly
+  const typedFriendRequests = (friendRequests as any[]) || [];
   const { notifications: groupNotifications, markNotificationsViewed } = useGroupNotifications();
   
   // Filter for pending invitations that belong to the current user only
@@ -179,11 +188,48 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     respondToJoinRequestMutation.mutate({ teamId, requestId, status });
   };
 
+  // Function to handle friend request response
+  const handleFriendRequestResponse = (requestId: number, status: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    respondToFriendRequestMutation.mutate({ requestId, status });
+  };
+
+  // Mutation for responding to friend requests
+  const respondToFriendRequestMutation = useMutation({
+    mutationFn: async ({ requestId, status }: { requestId: number, status: string }) => {
+      const res = await apiRequest("PUT", `/api/friend-requests/${requestId}`, { status });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update friend request");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/friends`] });
+      toast({
+        title: "Success",
+        description: "Friend request updated",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Friend request update error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update friend request",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Get total notification count (only actionable notifications)
   const totalNotifications = (pendingInvitations?.length || 0) + 
                             (joinRequests?.length || 0) + 
                             (teamMemberNotifications?.length || 0) +
-                            (groupNotifications?.length || 0);
+                            (groupNotifications?.length || 0) +
+                            (typedFriendRequests?.length || 0);
 
   if (isLoading) {
     return (
@@ -320,6 +366,61 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               </div>
             ))}
             
+            {/* Friend requests */}
+            {typedFriendRequests && typedFriendRequests.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Friend Requests</h4>
+              </div>
+            )}
+            
+            {typedFriendRequests && typedFriendRequests.map((request: any) => (
+              <div key={`friend-${request.id}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
+                    {request.user?.profileImage ? (
+                      <AvatarImage src={request.user.profileImage} alt={request.user?.name || 'User'} />
+                    ) : (
+                      <AvatarFallback>
+                        {request.user?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      <span className="text-primary">{request.user?.name || 'Someone'}</span>
+                      {' '}wants to be your friend
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
+                    </p>
+                    
+                    {/* Action buttons */}
+                    <div className="flex mt-2 space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
+                        disabled={respondToFriendRequestMutation.isPending}
+                        onClick={(e) => handleFriendRequestResponse(request.id, "declined", e)}
+                      >
+                        <XIcon className="h-3 w-3 mr-1" />
+                        Decline
+                      </Button>
+                      <Button 
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 px-2 py-1 h-7 text-xs"
+                        disabled={respondToFriendRequestMutation.isPending}
+                        onClick={(e) => handleFriendRequestResponse(request.id, "accepted", e)}
+                      >
+                        <CheckIcon className="h-3 w-3 mr-1" />
+                        Accept
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
             {/* Team membership notifications */}
             {teamMemberNotifications && teamMemberNotifications.length > 0 && (
               <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
