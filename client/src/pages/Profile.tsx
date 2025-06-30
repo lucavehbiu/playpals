@@ -2,11 +2,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MessageCircle, ThumbsUp, Share2, LogOut } from "lucide-react";
+import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -53,6 +54,76 @@ const Profile = () => {
     queryKey: [`/api/teams/user/${userId}`],
     enabled: !!userId,
   });
+
+  // Get friend requests for the current user (to check for incoming requests)
+  const { data: friendRequests = [] } = useQuery({
+    queryKey: [`/api/users/${authUser?.id}/friend-requests`],
+    enabled: !!authUser?.id && !isOwnProfile,
+  });
+
+  // Get friends list to check if already friends
+  const { data: friends = [] } = useQuery({
+    queryKey: [`/api/users/${authUser?.id}/friends`],
+    enabled: !!authUser?.id && !isOwnProfile,
+  });
+
+  // Mutation for responding to friend requests
+  const respondToFriendRequestMutation = useMutation({
+    mutationFn: async ({ requestId, status }: { requestId: number, status: string }) => {
+      const res = await apiRequest("PUT", `/api/friend-requests/${requestId}`, { status });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update friend request");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friends`] });
+      toast({
+        title: "Success",
+        description: "Friend request updated",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Friend request update error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update friend request",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Function to determine friendship status and what buttons to show
+  const getFriendshipStatus = () => {
+    if (isOwnProfile) return 'own';
+    
+    // Check if already friends
+    const isFriend = Array.isArray(friends) && friends.some((friend: any) => friend.id === parseInt(userId));
+    if (isFriend) return 'friends';
+    
+    // Check if there's an incoming friend request from this user
+    const hasIncomingRequest = Array.isArray(friendRequests) &&
+      friendRequests.some((request: any) => 
+        request.userId === parseInt(userId) && request.status === 'pending'
+      );
+    if (hasIncomingRequest) return 'incoming';
+
+    return 'none';
+  };
+
+  const friendshipStatus = getFriendshipStatus();
+  const incomingRequest = Array.isArray(friendRequests) ? 
+    friendRequests.find((request: any) => 
+      request.userId === parseInt(userId) && request.status === 'pending'
+    ) : null;
+
+  // Function to handle friend request response
+  const handleFriendRequestResponse = (requestId: number, status: string) => {
+    respondToFriendRequestMutation.mutate({ requestId, status });
+  };
   
   // Set average rating when player rating data is loaded
   useEffect(() => {
@@ -162,6 +233,40 @@ const Profile = () => {
                   {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
                 </button>
               </>
+            ) : friendshipStatus === 'incoming' && incomingRequest ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-200 hover:bg-red-50 bg-white/90 backdrop-blur-md"
+                  disabled={respondToFriendRequestMutation.isPending}
+                  onClick={() => handleFriendRequestResponse(incomingRequest.id, "rejected")}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Decline
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={respondToFriendRequestMutation.isPending}
+                  onClick={() => handleFriendRequestResponse(incomingRequest.id, "accepted")}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Accept
+                </Button>
+              </div>
+            ) : friendshipStatus === 'friends' ? (
+              <button 
+                className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
+                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
+                onClick={() => toast({
+                  title: "Friends",
+                  description: "You are already friends with this user."
+                })}
+              >
+                <Check className="h-4 w-4 mr-1.5" />
+                Friends
+              </button>
             ) : (
               <button 
                 className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
