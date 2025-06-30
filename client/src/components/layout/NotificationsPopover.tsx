@@ -387,7 +387,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">
-                      <span className="text-primary">{request.sender?.name || 'Someone'}</span>
+                      <button 
+                        className="text-primary hover:text-primary/80 hover:underline font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/profile/${request.sender?.id}`;
+                        }}
+                      >
+                        {request.sender?.name || 'Someone'}
+                      </button>
                       {' '}wants to be your friend
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
