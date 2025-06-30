@@ -35,7 +35,9 @@ export default function Friends() {
       if (!user?.id) return [];
       const response = await fetch(`/api/users/${user.id}/friend-requests`);
       if (!response.ok) throw new Error("Failed to fetch friend requests");
-      return response.json();
+      const data = await response.json();
+      console.log("Friend requests data:", data); // Debug log
+      return data;
     },
     enabled: !!user?.id,
   });
