@@ -53,7 +53,7 @@ export default function DiscoverFriends() {
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (friendId: number) => {
       const response = await apiRequest("POST", "/api/friend-requests", {
-        receiverId: friendId
+        friendId: friendId
       });
       return response.json();
     },
