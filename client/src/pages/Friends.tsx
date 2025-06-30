@@ -10,10 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export default function Friends() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Get user's friends
@@ -199,7 +201,12 @@ export default function Friends() {
                             )}
                           </Avatar>
                           <div>
-                            <CardTitle className="text-lg">{friend.name || friend.username}</CardTitle>
+                            <CardTitle 
+                              className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
+                              onClick={() => setLocation(`/profile/${friend.id}`)}
+                            >
+                              {friend.name || friend.username}
+                            </CardTitle>
                             <CardDescription>@{friend.username}</CardDescription>
                           </div>
                         </div>
@@ -269,7 +276,10 @@ export default function Friends() {
                             )}
                           </Avatar>
                           <div>
-                            <CardTitle className="text-lg">
+                            <CardTitle 
+                              className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
+                              onClick={() => setLocation(`/profile/${request.sender?.id}`)}
+                            >
                               {request.sender?.name || request.sender?.username}
                             </CardTitle>
                             <CardDescription>@{request.sender?.username}</CardDescription>
