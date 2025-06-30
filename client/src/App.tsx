@@ -62,6 +62,7 @@ function Router() {
                   <ProtectedRoute path="/invitations" component={Invitations} />
                   <ProtectedRoute path="/notifications" component={NotificationHistory} />
                   <ProtectedRoute path="/profile" component={Profile} />
+                  <ProtectedRoute path="/profile/:userId" component={Profile} />
                   <Route path="*" component={NotFound} />
                 </Switch>
               </div>

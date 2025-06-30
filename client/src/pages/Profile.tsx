@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, ThumbsUp, Share2, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -12,14 +12,11 @@ const Profile = () => {
   const { toast } = useToast();
   const { user: authUser, logoutMutation } = useAuth();
   const [location, setLocation] = useLocation();
+  const params = useParams();
   
-  // Get userId from URL query parameter if available
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlUserId = urlParams.get('id');
-  
-  // Use URL userId if available, otherwise use authenticated user's ID
-  const userId = urlUserId || authUser?.id.toString() || '';
-  const isOwnProfile = authUser?.id.toString() === userId;
+  // Use route parameter userId if available, otherwise use authenticated user's ID
+  const userId = params.userId || authUser?.id.toString() || '';
+  const isOwnProfile = !params.userId || authUser?.id.toString() === userId;
   
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
