@@ -43,11 +43,13 @@ export default function DiscoverFriends() {
     enabled: !!user?.id,
   });
 
-  // Get pending friend requests to show proper status
-  const { data: friendRequests = [] } = useQuery({
-    queryKey: [`/api/users/${user?.id}/friend-requests`],
+  // Get all friend requests (sent and received) to show proper status
+  const { data: allFriendRequests } = useQuery({
+    queryKey: [`/api/users/${user?.id}/all-friend-requests`],
     enabled: !!user?.id,
   });
+
+  const friendRequests = allFriendRequests?.all || [];
 
   // Get friend suggestions based on various criteria
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
@@ -68,7 +70,7 @@ export default function DiscoverFriends() {
         title: "Friend Request Sent",
         description: "Your friend request has been sent successfully!"
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/all-friend-requests`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/search-friends`] });
     },
     onError: (error: any) => {
