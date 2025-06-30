@@ -2474,6 +2474,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all friend requests (both sent and received by user)
+  app.get('/api/users/:userId/all-friend-requests', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Users can only view their own friend requests
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get both received and sent friend requests
+      const receivedRequests = await storage.getPendingFriendRequests(userId);
+      const sentRequests = await storage.getSentFriendRequests(userId);
+      
+      res.json({
+        received: receivedRequests,
+        sent: sentRequests,
+        all: [...receivedRequests, ...sentRequests]
+      });
+    } catch (error) {
+      console.error('Error getting all friend requests:', error);
+      res.status(500).json({ message: 'Error getting all friend requests' });
+    }
+  });
+
   // Send friend request
   app.post('/api/friend-requests', authenticateUser, async (req: Request, res: Response) => {
     try {

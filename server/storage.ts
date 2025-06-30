@@ -49,6 +49,7 @@ export interface IStorage {
   getFriendshipById(id: number): Promise<Friendship | undefined>;
   getFriendsByUserId(userId: number): Promise<User[]>;
   getPendingFriendRequests(userId: number): Promise<Friendship[]>;
+  getSentFriendRequests(userId: number): Promise<Friendship[]>;
   sendFriendRequest(friendship: InsertFriendship): Promise<Friendship>;
   updateFriendshipStatus(id: number, status: string): Promise<Friendship | undefined>;
   deleteFriendship(id: number): Promise<boolean>;
@@ -392,6 +393,15 @@ export class MemStorage implements IStorage {
       friendship => 
         friendship.status === "pending" &&
         friendship.friendId === userId
+    );
+  }
+
+  async getSentFriendRequests(userId: number): Promise<Friendship[]> {
+    // Get pending friend requests sent by the user
+    return Array.from(this.friendships.values()).filter(
+      friendship => 
+        friendship.status === "pending" &&
+        friendship.userId === userId
     );
   }
   
@@ -2358,6 +2368,24 @@ export class DatabaseStorage implements IStorage {
         );
     } catch (error) {
       console.error('Error getting pending friend requests:', error);
+      return [];
+    }
+  }
+
+  async getSentFriendRequests(userId: number): Promise<Friendship[]> {
+    try {
+      // Get all pending friend requests sent by the user
+      return db
+        .select()
+        .from(friendships)
+        .where(
+          and(
+            eq(friendships.userId, userId),
+            eq(friendships.status, 'pending')
+          )
+        );
+    } catch (error) {
+      console.error('Error getting sent friend requests:', error);
       return [];
     }
   }
