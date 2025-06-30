@@ -377,17 +377,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               <div key={`friend-${request.id}`} className="p-3 hover:bg-gray-50 border-b">
                 <div className="flex items-start">
                   <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
-                    {request.user?.profileImage ? (
-                      <AvatarImage src={request.user.profileImage} alt={request.user?.name || 'User'} />
+                    {request.sender?.profileImage ? (
+                      <AvatarImage src={request.sender.profileImage} alt={request.sender?.name || 'User'} />
                     ) : (
                       <AvatarFallback>
-                        {request.user?.name?.charAt(0) || 'U'}
+                        {request.sender?.name?.charAt(0) || 'U'}
                       </AvatarFallback>
                     )}
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">
-                      <span className="text-primary">{request.user?.name || 'Someone'}</span>
+                      <span className="text-primary">{request.sender?.name || 'Someone'}</span>
                       {' '}wants to be your friend
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
