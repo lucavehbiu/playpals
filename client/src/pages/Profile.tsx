@@ -620,20 +620,17 @@ const Profile = () => {
                 
                 {isOwnProfile ? (
                   <div className="space-y-3">
-                    <button 
+                    <a 
+                      href="/friends"
                       className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 
                       transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
                       inline-flex items-center justify-center"
-                      onClick={() => toast({
-                        title: "Find Friends",
-                        description: "This would open the friend finder in the full app."
-                      })}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                       </svg>
-                      Find Friends
-                    </button>
+                      Manage Friends
+                    </a>
                     <a 
                       href="/discover" 
                       className="mt-2 bg-white text-primary border border-primary px-6 py-2.5 rounded-full text-sm font-medium
