@@ -136,10 +136,10 @@ const MobileNav = () => {
         />
         
         <NavItem 
-          href="/teams" 
-          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-          label="Teams" 
-          isActive={location.startsWith('/teams')} 
+          href="/friends" 
+          icon={<UserIcon className="h-[22px] w-[22px]" />} 
+          label="Friends" 
+          isActive={location.startsWith('/friends')} 
         />
       </nav>
 
