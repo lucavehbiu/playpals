@@ -373,10 +373,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               </div>
             )}
             
-            {typedFriendRequests && typedFriendRequests.map((request: any) => {
-              console.log('Friend request data:', request);
-              console.log('Sender info:', request.sender);
-              return (
+            {typedFriendRequests && typedFriendRequests.map((request: any) => (
               <div key={`friend-${request.id}`} className="p-3 hover:bg-gray-50 border-b">
                 <div className="flex items-start">
                   <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
@@ -422,8 +419,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                   </div>
                 </div>
               </div>
-            );
-            })}
+            ))}
 
             {/* Team membership notifications */}
             {teamMemberNotifications && teamMemberNotifications.length > 0 && (
