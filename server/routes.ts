@@ -1967,13 +1967,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/sports-groups/:id', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:id', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
-      const group = await storage.getSportsGroup(groupId);
+      const authenticatedUser = (req as any).user as User;
       
+      const group = await storage.getSportsGroup(groupId);
       if (!group) {
         return res.status(404).json({ message: 'Sports group not found' });
+      }
+      
+      // Check if user is a member of this group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
       }
       
       res.json(group);
@@ -1983,10 +1992,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/sports-groups/:id/members', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:id/members', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if user is a member of this group
       const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
+      }
       
       // Get user details for each member
       const membersWithUsers = await Promise.all(
@@ -2006,9 +2023,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/sports-groups/:id/messages', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:id/messages', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if user is a member of this group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
+      }
+      
       const messages = await storage.getSportsGroupMessages(groupId);
       res.json(messages);
     } catch (error) {
@@ -2066,9 +2093,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/sports-groups/:id/events', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:id/events', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if user is a member of this group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
+      }
+      
       const events = await storage.getSportsGroupEvents(groupId);
       res.json(events);
     } catch (error) {
@@ -2077,9 +2114,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/sports-groups/:id/events/history', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:id/events/history', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if user is a member of this group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
+      }
+      
       const events = await storage.getSportsGroupEventHistory(groupId);
       res.json(events);
     } catch (error) {
@@ -2290,9 +2337,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= SPORTS GROUP POLLS API =============
 
   // Get all polls for a group
-  app.get('/api/sports-groups/:groupId/polls', async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:groupId/polls', authenticateUser, async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if user is a member of this group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied - You are not a member of this group' });
+      }
+      
       const polls = await storage.getSportsGroupPolls(groupId);
       
       // Enrich polls with creator information and response counts
