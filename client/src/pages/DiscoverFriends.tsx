@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, UserPlus, Users, Heart, MapPin, Trophy } from "lucide-react";
+import { Search, UserPlus, Users, Heart, MapPin, Trophy, UserCheck, Clock3, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,12 @@ export default function DiscoverFriends() {
     enabled: !!user?.id,
   });
 
+  // Get pending friend requests to show proper status
+  const { data: friendRequests = [] } = useQuery({
+    queryKey: [`/api/users/${user?.id}/friend-requests`],
+    enabled: !!user?.id,
+  });
+
   // Get friend suggestions based on various criteria
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
     queryKey: [`/api/users/search-friends`],
@@ -63,6 +69,7 @@ export default function DiscoverFriends() {
         description: "Your friend request has been sent successfully!"
       });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/search-friends`] });
     },
     onError: (error: any) => {
       toast({
@@ -113,6 +120,30 @@ export default function DiscoverFriends() {
     sendFriendRequestMutation.mutate(friendId);
   };
 
+  // Helper function to get relationship status with a user
+  const getRelationshipStatus = (userId: number) => {
+    // Check if already friends
+    const isFriend = Array.isArray(currentFriends) && 
+      currentFriends.some((friend: any) => friend.id === userId);
+    if (isFriend) return 'friends';
+
+    // Check if friend request is pending (sent by current user)
+    const hasPendingRequest = Array.isArray(friendRequests) &&
+      friendRequests.some((request: any) => 
+        request.friendId === userId && request.status === 'pending'
+      );
+    if (hasPendingRequest) return 'pending';
+
+    // Check if there's an incoming friend request
+    const hasIncomingRequest = Array.isArray(friendRequests) &&
+      friendRequests.some((request: any) => 
+        request.userId === userId && request.status === 'pending'
+      );
+    if (hasIncomingRequest) return 'incoming';
+
+    return 'none';
+  };
+
   const UserCard = ({ user: profileUser, showMutualInfo = false }: { 
     user: User | FriendSuggestion; 
     showMutualInfo?: boolean;
@@ -139,15 +170,63 @@ export default function DiscoverFriends() {
                   @{profileUser.username}
                 </p>
               </div>
-              <Button
-                size="sm"
-                onClick={() => handleSendFriendRequest(profileUser.id)}
-                disabled={sendFriendRequestMutation.isPending}
-                className="shrink-0"
-              >
-                <UserPlus className="h-4 w-4 mr-1" />
-                Add Friend
-              </Button>
+              {(() => {
+                const status = getRelationshipStatus(profileUser.id);
+                
+                if (status === 'friends') {
+                  return (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="shrink-0"
+                    >
+                      <UserCheck className="h-4 w-4 mr-1" />
+                      Friends
+                    </Button>
+                  );
+                }
+                
+                if (status === 'pending') {
+                  return (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="shrink-0"
+                    >
+                      <Clock3 className="h-4 w-4 mr-1" />
+                      Pending
+                    </Button>
+                  );
+                }
+                
+                if (status === 'incoming') {
+                  return (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="shrink-0"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Respond
+                    </Button>
+                  );
+                }
+                
+                return (
+                  <Button
+                    size="sm"
+                    onClick={() => handleSendFriendRequest(profileUser.id)}
+                    disabled={sendFriendRequestMutation.isPending}
+                    className="shrink-0"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Add Friend
+                  </Button>
+                );
+              })()}
             </div>
             
             {profileUser.headline && (
