@@ -55,9 +55,21 @@ export default function Groups() {
     },
   });
 
-  // Fetch all sports groups
-  const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["/api/sports-groups"],
+  // Fetch user's groups (member groups)
+  const { data: userGroups = [], isLoading: isLoadingUserGroups } = useQuery({
+    queryKey: ["/api/users", user?.id, "sports-groups"],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/users/${user.id}/sports-groups`);
+      if (!response.ok) throw new Error("Failed to fetch user groups");
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch discoverable groups (public groups for joining)
+  const { data: discoverableGroups = [], isLoading: isLoadingDiscoverable } = useQuery({
+    queryKey: ["/api/sports-groups/discoverable"],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedSport && selectedSport !== "all") {
@@ -67,11 +79,13 @@ export default function Groups() {
         params.append("search", searchQuery);
       }
       
-      const response = await fetch(`/api/sports-groups?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch groups");
+      const response = await fetch(`/api/sports-groups/discoverable?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch discoverable groups");
       return response.json();
     },
   });
+
+  const isLoading = isLoadingUserGroups || isLoadingDiscoverable;
 
   // Create sports group mutation
   const createGroupMutation = useMutation({
@@ -302,26 +316,25 @@ export default function Groups() {
               </Card>
             ))}
           </div>
-        ) : groups.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No sports groups found</h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery || selectedSport !== "all" 
-                ? "Try adjusting your search or filters" 
-                : "Be the first to create a sports group!"
-              }
-            </p>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Group
-            </Button>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groups.map((group: any) => (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/groups/${group.id}`)}>
-                  <CardHeader>
+          <div className="space-y-8">
+            {/* My Groups Section */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">My Groups</h2>
+              {userGroups.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <Users className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-4">You're not a member of any groups yet</p>
+                  <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Group
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {userGroups.map((group: any) => (
+                    <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/groups/${group.id}`)}>
+                      <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -386,10 +399,126 @@ export default function Groups() {
                     </div>
                   </CardContent>
                 </Card>
-            ))}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Discover Groups Section */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Discover Groups</h2>
+              {discoverableGroups.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <Users className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No groups available to join</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {discoverableGroups.map((group: any) => (
+                    <GroupDiscoveryCard key={group.id} group={group} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+// Component for discoverable groups (non-members)
+function GroupDiscoveryCard({ group }: { group: any }) {
+  const { toast } = useToast();
+  
+  const joinRequestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/sports-groups/${group.id}/join-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to send join request");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Join request sent successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/sports-groups/discoverable"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send join request",
+        variant: "destructive",
+      });
+    },
+  });
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-lg">{group.name}</CardTitle>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary">
+                {group.sportType.charAt(0).toUpperCase() + group.sportType.slice(1)}
+              </Badge>
+              {group.isPrivate && (
+                <Badge variant="outline">Private</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        {group.description && (
+          <CardDescription className="line-clamp-2">
+            {group.description}
+          </CardDescription>
+        )}
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-3">
+          {/* Admin */}
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              {group.admin?.profileImage ? (
+                <AvatarImage src={group.admin.profileImage} alt={group.admin.name} />
+              ) : (
+                <AvatarFallback className="text-xs">
+                  {group.admin?.name?.charAt(0) || 'A'}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <span className="text-sm text-gray-600">
+              Admin: {group.admin?.name || 'Unknown'}
+            </span>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>{group.memberCount || 0}/{group.maxMembers} members</span>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-400">
+            Created {new Date(group.createdAt).toLocaleDateString()}
+          </div>
+
+          {/* Join Button */}
+          <Button 
+            onClick={() => joinRequestMutation.mutate()}
+            disabled={joinRequestMutation.isPending}
+            className="w-full"
+          >
+            {joinRequestMutation.isPending ? "Sending..." : "Request to Join"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

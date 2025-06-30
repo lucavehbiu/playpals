@@ -1922,15 +1922,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sports Groups routes
-  app.get('/api/sports-groups', async (req: Request, res: Response) => {
+  // Get user's sports groups (groups they are members of)
+  app.get('/api/users/:userId/sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {
-      const { sportType, search } = req.query;
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
       
-      const groups = await storage.getAllSportsGroups();
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      
+      const userGroups = await storage.getUserSportsGroups(userId);
       
       // Add member count and admin info to each group
-      const groupsWithDetails = await Promise.all(groups.map(async (group) => {
+      const groupsWithDetails = await Promise.all(userGroups.map(async (group) => {
+        const members = await storage.getSportsGroupMembers(group.id);
+        const admin = await storage.getUser(group.adminId);
+        
+        return {
+          ...group,
+          memberCount: members.length,
+          admin: admin ? {
+            id: admin.id,
+            name: admin.name,
+            profileImage: admin.profileImage
+          } : null
+        };
+      }));
+      
+      res.json(groupsWithDetails);
+    } catch (error) {
+      console.error('Error fetching user sports groups:', error);
+      res.status(500).json({ message: "Error fetching user sports groups" });
+    }
+  });
+
+  // Get discoverable sports groups (public groups for joining)
+  app.get('/api/sports-groups/discoverable', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const { sportType, search } = req.query;
+      const authenticatedUser = (req as any).user as User;
+      
+      const allGroups = await storage.getAllSportsGroups();
+      const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
+      const userGroupIds = userGroups.map(g => g.id);
+      
+      // Filter out groups the user is already a member of
+      const discoverableGroups = allGroups.filter(group => !userGroupIds.includes(group.id));
+      
+      // Add member count and admin info to each group
+      const groupsWithDetails = await Promise.all(discoverableGroups.map(async (group) => {
         const members = await storage.getSportsGroupMembers(group.id);
         const admin = await storage.getUser(group.adminId);
         
@@ -1962,8 +2003,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(filteredGroups);
     } catch (error) {
-      console.error('Error fetching sports groups:', error);
-      res.status(500).json({ message: "Error fetching sports groups" });
+      console.error('Error fetching discoverable sports groups:', error);
+      res.status(500).json({ message: "Error fetching discoverable sports groups" });
     }
   });
 

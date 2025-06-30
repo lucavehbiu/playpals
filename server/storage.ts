@@ -3221,6 +3221,10 @@ export class DatabaseStorage implements IStorage {
     return uniqueGroups;
   }
 
+  async getUserSportsGroups(userId: number): Promise<SportsGroup[]> {
+    return this.getSportsGroupsByUser(userId);
+  }
+
   // Sports Group Messages methods
   async getSportsGroupMessages(groupId: number): Promise<any[]> {
     const result = await pool.query(`
