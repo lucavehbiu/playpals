@@ -2375,6 +2375,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Join request for groups
+  app.post('/api/sports-groups/:groupId/join-request', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if group exists
+      const group = await storage.getSportsGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      // Check if user is already a member
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (isMember) {
+        return res.status(400).json({ message: 'You are already a member of this group' });
+      }
+      
+      // Check if there's already a pending request
+      const existingRequest = await storage.getSportsGroupJoinRequest(groupId, authenticatedUser.id);
+      if (existingRequest) {
+        return res.status(400).json({ message: 'You already have a pending join request' });
+      }
+      
+      // Create join request
+      const joinRequest = await storage.createSportsGroupJoinRequest({
+        groupId,
+        userId: authenticatedUser.id,
+        status: 'pending',
+        createdAt: new Date()
+      });
+      
+      res.status(201).json(joinRequest);
+    } catch (error) {
+      console.error('Error creating join request:', error);
+      res.status(500).json({ message: 'Error creating join request' });
+    }
+  });
+
   // ============= SPORTS GROUP POLLS API =============
 
   // Get all polls for a group

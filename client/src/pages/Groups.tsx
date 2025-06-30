@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
@@ -102,7 +102,8 @@ export default function Groups() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sports-groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "sports-groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sports-groups/discoverable"] });
       setIsCreateModalOpen(false);
       form.reset();
       toast({
@@ -113,13 +114,13 @@ export default function Groups() {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to create sports group",
         variant: "destructive",
       });
     },
   });
 
-  const handleCreateGroup = (data: CreateGroupForm) => {
+  const onSubmit = (data: CreateGroupForm) => {
     createGroupMutation.mutate(data);
   };
 
@@ -144,16 +145,16 @@ export default function Groups() {
                 Create Group
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Create Sports Group</DialogTitle>
                 <DialogDescription>
-                  Create a group for players who regularly play the same sport together.
+                  Create a new sports group to organize regular games and activities.
                 </DialogDescription>
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateGroup)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
                     name="name"
@@ -161,25 +162,7 @@ export default function Groups() {
                       <FormItem>
                         <FormLabel>Group Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Weekend Warriors Basketball" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Tell others about your group..."
-                            className="resize-none"
-                            {...field}
-                          />
+                          <Input placeholder="e.g., Downtown Basketball League" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -191,21 +174,40 @@ export default function Groups() {
                     name="sportType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sport</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
+                        <FormLabel>Sport Type</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a sport" />
                             </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sportTypes.map((sport) => (
-                              <SelectItem key={sport} value={sport}>
-                                {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                            <SelectContent>
+                              {sportTypes.map((sport) => (
+                                <SelectItem key={sport} value={sport}>
+                                  {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Describe your group, skill level, when you play, etc."
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -218,12 +220,12 @@ export default function Groups() {
                       <FormItem>
                         <FormLabel>Maximum Members</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             type="number"
                             min={2}
                             max={50}
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -244,26 +246,19 @@ export default function Groups() {
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>Private Group</FormLabel>
-                          <p className="text-xs text-gray-500">
-                            Only invited members can join
-                          </p>
+                          <FormDescription className="text-sm text-gray-500">
+                            Private groups require approval to join and won't appear in public searches.
+                          </FormDescription>
                         </div>
                       </FormItem>
                     )}
                   />
                   
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsCreateModalOpen(false)}
-                    >
+                  <div className="flex justify-end gap-3">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={createGroupMutation.isPending}
-                    >
+                    <Button type="submit" disabled={createGroupMutation.isPending}>
                       {createGroupMutation.isPending ? "Creating..." : "Create Group"}
                     </Button>
                   </div>
@@ -273,18 +268,16 @@ export default function Groups() {
           </Dialog>
         </div>
 
-        {/* Filters */}
+        {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search groups..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+          <Input
+            placeholder="Search groups..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
           <Select value={selectedSport} onValueChange={setSelectedSport}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Filter by sport" />
             </SelectTrigger>
             <SelectContent>
@@ -298,7 +291,7 @@ export default function Groups() {
           </Select>
         </div>
 
-        {/* Groups Grid */}
+        {/* Groups Content */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -335,70 +328,70 @@ export default function Groups() {
                   {userGroups.map((group: any) => (
                     <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/groups/${group.id}`)}>
                       <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <CardTitle className="text-lg">{group.name}</CardTitle>
-                          {getNotificationCount(group.id) > 0 && (
-                            <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center text-xs">
-                              {getNotificationCount(group.id)}
-                            </Badge>
-                          )}
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <CardTitle className="text-lg">{group.name}</CardTitle>
+                              {getNotificationCount(group.id) > 0 && (
+                                <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                  {getNotificationCount(group.id)}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">
+                                {group.sportType.charAt(0).toUpperCase() + group.sportType.slice(1)}
+                              </Badge>
+                              {group.isPrivate && (
+                                <Badge variant="outline">Private</Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">
-                            {group.sportType.charAt(0).toUpperCase() + group.sportType.slice(1)}
-                          </Badge>
-                          {group.isPrivate && (
-                            <Badge variant="outline">Private</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {group.description && (
-                      <CardDescription className="line-clamp-2">
-                        {group.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="space-y-3">
-                      {/* Admin */}
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          {group.admin?.profileImage ? (
-                            <AvatarImage src={group.admin.profileImage} alt={group.admin.name} />
-                          ) : (
-                            <AvatarFallback className="text-xs">
-                              {group.admin?.name?.charAt(0) || 'A'}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <span className="text-sm text-gray-600">
-                          Admin: {group.admin?.name || 'Unknown'}
-                        </span>
-                      </div>
+                        {group.description && (
+                          <CardDescription className="line-clamp-2">
+                            {group.description}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <div className="space-y-3">
+                          {/* Admin */}
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              {group.admin?.profileImage ? (
+                                <AvatarImage src={group.admin.profileImage} alt={group.admin.name} />
+                              ) : (
+                                <AvatarFallback className="text-xs">
+                                  {group.admin?.name?.charAt(0) || 'A'}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <span className="text-sm text-gray-600">
+                              Admin: {group.admin?.name || 'Unknown'}
+                            </span>
+                          </div>
 
-                      {/* Stats */}
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>{group.memberCount || 0}/{group.maxMembers} members</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle className="h-4 w-4" />
-                          <span>{group.messageCount || 0}</span>
-                        </div>
-                      </div>
+                          {/* Stats */}
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              <span>{group.memberCount || 0}/{group.maxMembers} members</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MessageCircle className="h-4 w-4" />
+                              <span>{group.messageCount || 0}</span>
+                            </div>
+                          </div>
 
-                      {/* Recent activity */}
-                      <div className="text-xs text-gray-400">
-                        Created {new Date(group.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                          {/* Recent activity */}
+                          <div className="text-xs text-gray-400">
+                            Created {new Date(group.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               )}
