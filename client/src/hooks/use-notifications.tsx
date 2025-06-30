@@ -190,6 +190,27 @@ export const useNotifications = () => {
     // Stale time of 30 seconds to reduce API calls
     staleTime: 30000
   });
+
+  // Fetch friend requests (notifications for incoming friend requests)
+  const { data: friendRequests = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/friend-requests`],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/friend-requests`);
+        if (res.ok) {
+          return await res.json();
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching friend requests:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+    staleTime: 30000
+  });
   
   // Calculate total notification count
   useEffect(() => {
@@ -209,8 +230,12 @@ export const useNotifications = () => {
     
     // Count team member notifications
     count += teamMemberNotifications.length;
+    
+    // Count pending friend requests
+    count += friendRequests.length;
+    
     setPendingCount(count);
-  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications]);
+  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications, friendRequests]);
   
   // Mark a notification as viewed
   const markNotificationViewed = async (notificationId: number) => {
