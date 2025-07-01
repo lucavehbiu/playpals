@@ -2040,8 +2040,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
       const userGroupIds = userGroups.map(g => g.id);
       
-      // Filter out groups the user is already a member of
-      const discoverableGroups = allGroups.filter(group => !userGroupIds.includes(group.id));
+      // Filter out groups the user is already a member of and private groups
+      const discoverableGroups = allGroups.filter(group => 
+        !userGroupIds.includes(group.id) && !group.isPrivate
+      );
       
       // Add member count and admin info to each group
       const groupsWithDetails = await Promise.all(discoverableGroups.map(async (group) => {
@@ -2511,6 +2513,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating join request:', error);
       res.status(500).json({ message: 'Error creating join request' });
+    }
+  });
+
+  // Send group invitations
+  app.post('/api/sports-groups/:groupId/invite', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const { userIds } = req.body;
+      const authenticatedUser = (req as any).user as User;
+      
+      // Check if group exists
+      const group = await storage.getSportsGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      // Check if user is a member of the group
+      const members = await storage.getSportsGroupMembers(groupId);
+      const isMember = members.some(member => member.userId === authenticatedUser.id);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: 'You must be a member to invite others' });
+      }
+      
+      // Send invitations to each user
+      const invitations = [];
+      for (const userId of userIds) {
+        // Check if user is already a member
+        const isAlreadyMember = members.some(member => member.userId === userId);
+        if (isAlreadyMember) continue;
+        
+        // Check if there's already a pending request
+        const existingRequest = await storage.getSportsGroupJoinRequest(groupId, userId);
+        if (existingRequest) continue;
+        
+        // Create invitation (as a join request with special status)
+        const invitation = await storage.createSportsGroupJoinRequest({
+          groupId,
+          userId,
+          status: 'invited',
+          createdAt: new Date()
+        });
+        
+        // Create notification for the invited user
+        await storage.createSportsGroupNotification({
+          groupId,
+          userId,
+          type: 'invitation',
+          message: `${authenticatedUser.name || authenticatedUser.username} invited you to join "${group.name}"`,
+          createdAt: new Date(),
+          viewed: false
+        });
+        
+        invitations.push(invitation);
+      }
+      
+      res.status(201).json({ 
+        message: `Sent ${invitations.length} invitations`,
+        invitations 
+      });
+    } catch (error) {
+      console.error('Error sending group invitations:', error);
+      res.status(500).json({ message: 'Error sending invitations' });
+    }
+  });
+
+  // Accept or decline group invitation
+  app.put('/api/sports-groups/:groupId/invitation/:requestId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const requestId = parseInt(req.params.requestId);
+      const { action } = req.body; // 'accept' or 'decline'
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get the join request
+      const joinRequest = await storage.getSportsGroupJoinRequest(groupId, authenticatedUser.id);
+      if (!joinRequest || joinRequest.id !== requestId) {
+        return res.status(404).json({ message: 'Invitation not found' });
+      }
+      
+      if (joinRequest.status !== 'invited') {
+        return res.status(400).json({ message: 'This invitation is no longer valid' });
+      }
+      
+      if (action === 'accept') {
+        // Add user to group
+        await storage.addSportsGroupMember({
+          groupId,
+          userId: authenticatedUser.id,
+          role: 'member',
+          joinedAt: new Date()
+        });
+        
+        // Update request status
+        await storage.updateSportsGroupJoinRequest(joinRequest.id, { 
+          status: 'accepted' 
+        });
+        
+        // Mark invitation notification as viewed
+        await db.execute(sql`
+          UPDATE sports_group_notifications 
+          SET viewed = true 
+          WHERE group_id = ${groupId} 
+          AND user_id = ${authenticatedUser.id} 
+          AND type = 'invitation'
+        `);
+        
+        res.json({ message: 'Invitation accepted successfully' });
+      } else if (action === 'decline') {
+        // Update request status
+        await storage.updateSportsGroupJoinRequest(joinRequest.id, { 
+          status: 'declined' 
+        });
+        
+        // Mark invitation notification as viewed
+        await db.execute(sql`
+          UPDATE sports_group_notifications 
+          SET viewed = true 
+          WHERE group_id = ${groupId} 
+          AND user_id = ${authenticatedUser.id} 
+          AND type = 'invitation'
+        `);
+        
+        res.json({ message: 'Invitation declined' });
+      } else {
+        res.status(400).json({ message: 'Invalid action. Use "accept" or "decline"' });
+      }
+    } catch (error) {
+      console.error('Error handling group invitation:', error);
+      res.status(500).json({ message: 'Error handling invitation' });
     }
   });
 

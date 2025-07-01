@@ -161,18 +161,14 @@ export default function GroupDetails() {
   // Send group invites mutation
   const sendInvitesMutation = useMutation({
     mutationFn: async (friendIds: number[]) => {
-      const promises = friendIds.map(friendId =>
-        fetch('/api/friend-requests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            friendId,
-            message: `${user?.name || user?.username} invited you to join the "${group?.name}" group!`
-          }),
-          credentials: 'include',
-        })
-      );
-      await Promise.all(promises);
+      const response = await fetch(`/api/sports-groups/${groupId}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: friendIds }),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to send invitations');
+      return response.json();
     },
     onSuccess: () => {
       setShowInviteModal(false);
