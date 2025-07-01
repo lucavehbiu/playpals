@@ -91,6 +91,8 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 1, 2025. BUGFIX: Fixed friend request decline error in notification bell - corrected status mismatch between frontend ("declined") and backend ("rejected")
 - July 1, 2025. FEATURE: Fixed group event creation flow - group events no longer show friend invitation modal, automatically notify all group members
 - July 1, 2025. BUGFIX: Fixed price field input issue in CreateEvent - users can now clear the "0" value completely
+- July 1, 2025. BUGFIX: Fixed participant count calculation - now only counts approved RSVPs, pending invitations don't count as participants
+- July 1, 2025. BUGFIX: Fixed price display formatting - converts cents to dollars properly (1000 cents = $10.00)
 
 ## User Preferences
 
