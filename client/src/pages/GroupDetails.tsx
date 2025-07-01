@@ -229,90 +229,90 @@ export default function GroupDetails() {
             <h1 className="text-2xl font-bold">{group.name}</h1>
             <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
               <Badge variant="secondary">{group.sportType}</Badge>
-              <button 
-                className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                onClick={() => setShowMembers(!showMembers)}
-              >
-                <Users className="h-4 w-4" />
-                <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  onClick={() => setShowMembers(!showMembers)}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
+                </button>
+                <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+                  <DialogTrigger asChild>
+                    <button className="ml-1 p-1 rounded-full hover:bg-gray-100 transition-colors" title="Invite Friends">
+                      <UserPlus className="h-3 w-3 text-gray-500 hover:text-blue-600" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Invite Friends to {group?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Input
+                          placeholder="Search friends..."
+                          value={inviteSearchQuery}
+                          onChange={(e) => setInviteSearchQuery(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="max-h-64 overflow-y-auto space-y-2">
+                        {friends
+                          .filter(friend => 
+                            friend.name.toLowerCase().includes(inviteSearchQuery.toLowerCase()) ||
+                            friend.username.toLowerCase().includes(inviteSearchQuery.toLowerCase())
+                          )
+                          .map(friend => (
+                            <div key={friend.id} className="flex items-center justify-between p-2 border rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback>{friend.name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">{friend.name || friend.username}</p>
+                                  <p className="text-xs text-gray-500">@{friend.username}</p>
+                                </div>
+                              </div>
+                              <Checkbox
+                                data-testid={`invite-checkbox-${friend.id}`}
+                                checked={selectedFriends.includes(friend.id)}
+                                onCheckedChange={() => toggleFriendSelection(friend.id)}
+                              />
+                            </div>
+                          ))}
+                        {friends.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                            <p>No friends yet</p>
+                            <p className="text-sm">Add some friends to invite them to groups!</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowInviteModal(false)} 
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleSendInvites}
+                          disabled={selectedFriends.length === 0 || sendInvitesMutation.isPending}
+                          className="flex-1 flex items-center gap-2"
+                        >
+                          <Send className="h-4 w-4" />
+                          {sendInvitesMutation.isPending ? "Sending..." : `Invite ${selectedFriends.length}`}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
               {group.isPrivate && <Badge variant="outline">Private</Badge>}
             </div>
           </div>
-          <div className="flex gap-2">
-            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Invite Friends
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Invite Friends to {group?.name}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Input
-                      placeholder="Search friends..."
-                      value={inviteSearchQuery}
-                      onChange={(e) => setInviteSearchQuery(e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2">
-                    {friends
-                      .filter(friend => 
-                        friend.name.toLowerCase().includes(inviteSearchQuery.toLowerCase()) ||
-                        friend.username.toLowerCase().includes(inviteSearchQuery.toLowerCase())
-                      )
-                      .map(friend => (
-                        <div key={friend.id} className="flex items-center justify-between p-2 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>{friend.name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-sm">{friend.name || friend.username}</p>
-                              <p className="text-xs text-gray-500">@{friend.username}</p>
-                            </div>
-                          </div>
-                          <Checkbox
-                            data-testid={`invite-checkbox-${friend.id}`}
-                            checked={selectedFriends.includes(friend.id)}
-                            onCheckedChange={() => toggleFriendSelection(friend.id)}
-                          />
-                        </div>
-                      ))}
-                    {friends.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>No friends yet</p>
-                        <p className="text-sm">Add some friends to invite them to groups!</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowInviteModal(false)} 
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSendInvites}
-                      disabled={selectedFriends.length === 0 || sendInvitesMutation.isPending}
-                      className="flex-1 flex items-center gap-2"
-                    >
-                      <Send className="h-4 w-4" />
-                      {sendInvitesMutation.isPending ? "Sending..." : `Invite ${selectedFriends.length}`}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+
         </div>
         
       </div>
