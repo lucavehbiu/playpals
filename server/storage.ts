@@ -2166,6 +2166,21 @@ export class DatabaseStorage implements IStorage {
     return updatedRequest;
   }
 
+  // Get all team join requests for a specific user (for notification history)
+  async getUserTeamJoinRequests(userId: number): Promise<TeamJoinRequest[]> {
+    const requests = await db
+      .select()
+      .from(teamJoinRequests)
+      .where(eq(teamJoinRequests.userId, userId))
+      .orderBy(desc(teamJoinRequests.createdAt));
+    return requests;
+  }
+
+  // Alias for getUserRSVPs
+  async getUserRSVPs(userId: number): Promise<RSVP[]> {
+    return this.getRSVPsByUser(userId);
+  }
+
   async deleteTeamJoinRequest(id: number): Promise<boolean> {
     const deleted = await db.delete(teamJoinRequests).where(eq(teamJoinRequests.id, id));
     return deleted.count > 0;

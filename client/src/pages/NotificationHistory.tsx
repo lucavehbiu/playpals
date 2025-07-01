@@ -90,9 +90,7 @@ export default function NotificationHistory() {
     const notifications: NotificationItem[] = [];
 
     // Add friend requests
-    console.log('Friend requests data in notification history:', friendRequests);
     friendRequests.forEach((request: any) => {
-      console.log('Processing friend request:', request);
       notifications.push({
         id: `friend-request-${request.id}`,
         type: 'friend_request',
@@ -110,38 +108,34 @@ export default function NotificationHistory() {
     // Add team join history
     teamJoinHistory.forEach((joinRequest: any) => {
       const statusText = joinRequest.status === 'accepted' ? 'accepted' : 'declined';
-      const statusColor = joinRequest.status === 'accepted' ? 'text-green-600' : 'text-red-600';
       
       notifications.push({
         id: `team-join-${joinRequest.id}`,
-        type: 'team_join',
+        type: 'team_acceptance',
         title: `Team Join Request ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
         description: `Your request to join "${joinRequest.team?.name || 'a team'}" was ${statusText}`,
         createdAt: joinRequest.createdAt,
         viewed: true,
         actionable: false,
         relatedId: joinRequest.teamId,
-        relatedType: 'team',
-        statusColor
+        relatedType: 'team' as any
       });
     });
 
     // Add RSVP history (when creators respond to user's RSVPs)
     rsvpHistory.forEach((rsvp: any) => {
       const statusText = rsvp.status === 'approved' ? 'approved' : 'declined';
-      const statusColor = rsvp.status === 'approved' ? 'text-green-600' : 'text-red-600';
       
       notifications.push({
         id: `rsvp-${rsvp.id}`,
-        type: 'rsvp_response',
+        type: 'event_response',
         title: `Event RSVP ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
         description: `Your RSVP for "${rsvp.event?.title || 'an event'}" was ${statusText}`,
         createdAt: rsvp.createdAt,
         viewed: true,
         actionable: false,
         relatedId: rsvp.eventId,
-        relatedType: 'event',
-        statusColor
+        relatedType: 'event' as any
       });
     });
 
