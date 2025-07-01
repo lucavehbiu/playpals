@@ -14,7 +14,7 @@ import { Link } from 'wouter';
 
 interface NotificationItem {
   id: string;
-  type: 'team_acceptance' | 'group_event' | 'group_message' | 'team_join_request' | 'event_response' | 'event_invitation';
+  type: 'team_acceptance' | 'group_event' | 'group_message' | 'team_join_request' | 'event_response' | 'event_invitation' | 'friend_request';
   title: string;
   description: string;
   createdAt: string;
