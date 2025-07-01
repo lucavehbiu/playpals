@@ -7,7 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown, Send } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -35,6 +38,9 @@ export default function GroupDetails() {
   const [replyContent, setReplyContent] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteSearchQuery, setInviteSearchQuery] = useState("");
+  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
 
   const groupId = parseInt(id || "0");
 
@@ -98,6 +104,12 @@ export default function GroupDetails() {
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 
+  // Fetch user's friends for inviting
+  const { data: friends = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/friends`],
+    enabled: !!user?.id,
+  });
+
   // Post new message mutation
   const postMessageMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -146,6 +158,46 @@ export default function GroupDetails() {
     postMessageMutation.mutate(newMessage);
   };
 
+  // Send group invites mutation
+  const sendInvitesMutation = useMutation({
+    mutationFn: async (friendIds: number[]) => {
+      const promises = friendIds.map(friendId =>
+        fetch('/api/friend-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            friendId,
+            message: `${user?.name || user?.username} invited you to join the "${group?.name}" group!`
+          }),
+          credentials: 'include',
+        })
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      setShowInviteModal(false);
+      setSelectedFriends([]);
+      setInviteSearchQuery("");
+      toast({ title: "Success", description: "Invitations sent to selected friends!" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to send invitations", variant: "destructive" });
+    },
+  });
+
+  const handleSendInvites = () => {
+    if (selectedFriends.length === 0) return;
+    sendInvitesMutation.mutate(selectedFriends);
+  };
+
+  const toggleFriendSelection = (friendId: number) => {
+    setSelectedFriends(prev => 
+      prev.includes(friendId) 
+        ? prev.filter(id => id !== friendId)
+        : [...prev, friendId]
+    );
+  };
+
   if (groupLoading || !group || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -186,6 +238,80 @@ export default function GroupDetails() {
               </button>
               {group.isPrivate && <Badge variant="outline">Private</Badge>}
             </div>
+          </div>
+          <div className="flex gap-2">
+            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Invite Friends
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Invite Friends to {group?.name}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Input
+                      placeholder="Search friends..."
+                      value={inviteSearchQuery}
+                      onChange={(e) => setInviteSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {friends
+                      .filter(friend => 
+                        friend.name.toLowerCase().includes(inviteSearchQuery.toLowerCase()) ||
+                        friend.username.toLowerCase().includes(inviteSearchQuery.toLowerCase())
+                      )
+                      .map(friend => (
+                        <div key={friend.id} className="flex items-center justify-between p-2 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{friend.name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-sm">{friend.name || friend.username}</p>
+                              <p className="text-xs text-gray-500">@{friend.username}</p>
+                            </div>
+                          </div>
+                          <Checkbox
+                            data-testid={`invite-checkbox-${friend.id}`}
+                            checked={selectedFriends.includes(friend.id)}
+                            onCheckedChange={() => toggleFriendSelection(friend.id)}
+                          />
+                        </div>
+                      ))}
+                    {friends.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>No friends yet</p>
+                        <p className="text-sm">Add some friends to invite them to groups!</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowInviteModal(false)} 
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSendInvites}
+                      disabled={selectedFriends.length === 0 || sendInvitesMutation.isPending}
+                      className="flex-1 flex items-center gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      {sendInvitesMutation.isPending ? "Sending..." : `Invite ${selectedFriends.length}`}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
         
