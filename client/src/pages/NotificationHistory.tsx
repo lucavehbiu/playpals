@@ -109,19 +109,67 @@ export default function NotificationHistory() {
   const allNotifications = React.useMemo(() => {
     const notifications: NotificationItem[] = [];
 
-    // Add friend requests
-    friendRequests.forEach((request: any) => {
+    // Add friend request history (both sent and received)
+    friendRequestHistory.forEach((request: any) => {
+      const isReceived = request.receiverId === user?.id;
+      const isAccepted = request.status === 'accepted';
+      const isPending = request.status === 'pending';
+      
+      let title = 'Friend Request';
+      let description = '';
+      let relatedUser = null;
+      
+      if (isReceived) {
+        // Request received by current user
+        relatedUser = {
+          id: request.senderId,
+          name: request.senderName,
+          username: request.senderUsername,
+          profileImage: request.senderProfileImage
+        };
+        
+        if (isPending) {
+          title = 'Friend Request';
+          description = `${request.senderName || 'Someone'} wants to be your friend`;
+        } else if (isAccepted) {
+          title = 'Friend Request Accepted';
+          description = `You accepted ${request.senderName || 'Someone'}'s friend request`;
+        } else {
+          title = 'Friend Request Declined';
+          description = `You declined ${request.senderName || 'Someone'}'s friend request`;
+        }
+      } else {
+        // Request sent by current user
+        relatedUser = {
+          id: request.receiverId,
+          name: request.receiverName,
+          username: request.receiverUsername,
+          profileImage: request.receiverProfileImage
+        };
+        
+        if (isPending) {
+          title = 'Friend Request Sent';
+          description = `You sent a friend request to ${request.receiverName || 'Someone'}`;
+        } else if (isAccepted) {
+          title = 'Friend Request Accepted';
+          description = `${request.receiverName || 'Someone'} accepted your friend request`;
+        } else {
+          title = 'Friend Request Declined';
+          description = `${request.receiverName || 'Someone'} declined your friend request`;
+        }
+      }
+      
       notifications.push({
         id: `friend-request-${request.id}`,
         type: 'friend_request',
-        title: 'Friend Request',
-        description: `${request.sender?.name || request.sender?.username || 'Someone'} sent you a friend request`,
+        title: title,
+        description: description,
         createdAt: request.createdAt,
-        viewed: false,
-        actionable: true,
-        relatedId: request.sender?.id,
+        viewed: !isPending, // Pending requests are not viewed, others are history
+        actionable: isPending && isReceived, // Only pending received requests are actionable
+        relatedId: relatedUser?.id,
         relatedType: 'user' as any,
-        user: request.sender
+        user: relatedUser
       });
     });
 
@@ -255,7 +303,7 @@ export default function NotificationHistory() {
 
     // Sort by creation date (newest first)
     return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequests, teamJoinHistory, rsvpHistory, groupNotificationHistory]);
+  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequestHistory, teamJoinHistory, rsvpHistory, groupNotificationHistory]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
