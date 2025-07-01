@@ -85,6 +85,26 @@ export default function NotificationHistory() {
     enabled: !!user?.id,
   });
 
+  // Get historical group notifications
+  const { data: groupNotificationHistory = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/group-notifications`],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/group-notifications`);
+        if (res.ok) {
+          return await res.json();
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching group notification history:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+  });
+
   // Combine all notifications into a single chronological list
   const allNotifications = React.useMemo(() => {
     const notifications: NotificationItem[] = [];
@@ -136,6 +156,35 @@ export default function NotificationHistory() {
         actionable: false,
         relatedId: rsvp.eventId,
         relatedType: 'event' as any
+      });
+    });
+
+    // Add group notification history
+    groupNotificationHistory.forEach((groupNotif: any) => {
+      let notificationType: any = 'group_message';
+      let title = 'Group Notification';
+      let description = groupNotif.message || 'Group activity';
+
+      if (groupNotif.type === 'event') {
+        notificationType = 'group_event';
+        title = 'New Group Event';
+        description = groupNotif.message || 'A new event was added to your group';
+      } else if (groupNotif.type === 'message') {
+        notificationType = 'group_message';
+        title = 'Group Message';
+        description = groupNotif.message || 'New message in group';
+      }
+      
+      notifications.push({
+        id: `group-${groupNotif.id}`,
+        type: notificationType,
+        title: title,
+        description: description,
+        createdAt: groupNotif.createdAt,
+        viewed: groupNotif.viewed || true,
+        actionable: false,
+        relatedId: groupNotif.groupId,
+        relatedType: 'group' as any
       });
     });
 
@@ -206,7 +255,7 @@ export default function NotificationHistory() {
 
     // Sort by creation date (newest first)
     return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequests]);
+  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequests, teamJoinHistory, rsvpHistory, groupNotificationHistory]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
