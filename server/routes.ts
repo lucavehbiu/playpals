@@ -2588,17 +2588,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { action } = req.body; // 'accept' or 'decline'
       const authenticatedUser = (req as any).user as User;
       
-      // Get the join request
-      const joinRequest = await storage.getSportsGroupJoinRequest(groupId, authenticatedUser.id);
-      if (!joinRequest || joinRequest.id !== requestId) {
+      // Get the invitation notification
+      const result = await db.execute(sql`
+        SELECT * FROM sports_group_notifications 
+        WHERE id = ${requestId}
+        AND group_id = ${groupId} 
+        AND user_id = ${authenticatedUser.id} 
+        AND type = 'invitation'
+      `);
+      
+      if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Invitation not found' });
       }
       
-      if (joinRequest.status !== 'invited') {
-        return res.status(400).json({ message: 'This invitation is no longer valid' });
-      }
-      
       if (action === 'accept') {
+        // Check if user is already a member
+        const existingMember = await storage.getSportsGroupMember(groupId, authenticatedUser.id);
+        if (existingMember) {
+          return res.status(400).json({ message: 'You are already a member of this group' });
+        }
+        
         // Add user to group
         await storage.addSportsGroupMember({
           groupId,
@@ -2606,34 +2615,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'member'
         });
         
-        // Update request status
-        await storage.updateSportsGroupJoinRequest(joinRequest.id, { 
-          status: 'accepted' 
-        });
-        
-        // Mark invitation notification as viewed
+        // Delete the invitation notification (it's no longer needed)
         await db.execute(sql`
-          UPDATE sports_group_notifications 
-          SET viewed = true 
-          WHERE group_id = ${groupId} 
-          AND user_id = ${authenticatedUser.id} 
-          AND type = 'invitation'
+          DELETE FROM sports_group_notifications 
+          WHERE id = ${requestId}
         `);
         
         res.json({ message: 'Invitation accepted successfully' });
       } else if (action === 'decline') {
-        // Update request status
-        await storage.updateSportsGroupJoinRequest(joinRequest.id, { 
-          status: 'declined' 
-        });
-        
-        // Mark invitation notification as viewed
+        // Delete the invitation notification
         await db.execute(sql`
-          UPDATE sports_group_notifications 
-          SET viewed = true 
-          WHERE group_id = ${groupId} 
-          AND user_id = ${authenticatedUser.id} 
-          AND type = 'invitation'
+          DELETE FROM sports_group_notifications 
+          WHERE id = ${requestId}
         `);
         
         res.json({ message: 'Invitation declined' });
