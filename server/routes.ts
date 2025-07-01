@@ -2288,11 +2288,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             
             // Create sports group notifications
-            await (storage as any).db.execute(sql`
-              INSERT INTO sports_group_notifications (group_id, user_id, type, title, message, reference_id)
-              VALUES (${groupId}, ${member.userId}, 'event', 'New Event Added', ${`${event.title} has been added to the group`}, ${eventId})
-              ON CONFLICT (group_id, user_id, type, reference_id) DO NOTHING
-            `);
+            await storage.createSportsGroupNotification({
+              groupId: groupId,
+              userId: member.userId,
+              type: 'event',
+              title: 'New Event Added',
+              message: `${event.title} has been added to the group`,
+              referenceId: eventId,
+              viewed: false
+            });
             
             // Also send general WebSocket notification for the event invitation
             sendNotification(member.userId, {
