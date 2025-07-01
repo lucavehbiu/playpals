@@ -395,7 +395,7 @@ const CreateEvent = () => {
                 id="price"
                 type="number"
                 value={price}
-                onChange={(e) => setPrice(e.target.value || "0")}
+                onChange={(e) => setPrice(e.target.value)}
                 min="0"
                 step="0.01"
                 placeholder="0.00"
