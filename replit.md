@@ -93,6 +93,7 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 1, 2025. BUGFIX: Fixed price field input issue in CreateEvent - users can now clear the "0" value completely
 - July 1, 2025. BUGFIX: Fixed participant count calculation - now only counts approved RSVPs, pending invitations don't count as participants
 - July 1, 2025. BUGFIX: Fixed price display formatting - converts cents to dollars properly (1000 cents = $10.00)
+- July 1, 2025. BUGFIX: Fixed group activity indicators - event notifications now properly created and counted alongside message notifications
 
 ## User Preferences
 
