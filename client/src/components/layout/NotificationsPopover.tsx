@@ -409,7 +409,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                         size="sm" 
                         className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
                         disabled={respondToFriendRequestMutation.isPending}
-                        onClick={(e) => handleFriendRequestResponse(request.id, "declined", e)}
+                        onClick={(e) => handleFriendRequestResponse(request.id, "rejected", e)}
                       >
                         <XIcon className="h-3 w-3 mr-1" />
                         Decline
