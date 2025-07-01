@@ -101,13 +101,16 @@ const CreateEvent = () => {
         queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
       }
       
-      // If it's a private event, show invite friends modal
-      if (isPrivate && data?.id) {
+      // If it's a group event, navigate back to group (no invite modal needed)
+      if (groupId) {
+        setLocation(`/groups/${groupId}`);
+      } else if (isPrivate && data?.id) {
+        // Only show invite friends modal for non-group private events
         setCreatedEventId(data.id);
         setInviteFriendsModalOpen(true);
       } else {
-        // Navigate back to group if created from group, otherwise to my events
-        setLocation(groupId ? `/groups/${groupId}` : "/myevents");
+        // Navigate to my events for public events
+        setLocation("/myevents");
       }
     },
     onError: (error: any) => {

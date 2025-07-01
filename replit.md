@@ -89,6 +89,8 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 1, 2025. Completed comprehensive friends system with Accept/Decline buttons and clickable profile navigation
 - July 1, 2025. Fixed notification history system to display complete activity with history=true parameter  
 - July 1, 2025. BUGFIX: Fixed friend request decline error in notification bell - corrected status mismatch between frontend ("declined") and backend ("rejected")
+- July 1, 2025. FEATURE: Fixed group event creation flow - group events no longer show friend invitation modal, automatically notify all group members
+- July 1, 2025. BUGFIX: Fixed price field input issue in CreateEvent - users can now clear the "0" value completely
 
 ## User Preferences
 
