@@ -2548,24 +2548,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (authenticatedUser.id !== userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
+
+      const includeHistory = req.query.history === 'true';
       
-      const pendingRequests = await storage.getPendingFriendRequests(userId);
-      
-      // Enrich with sender information
-      const enrichedRequests = await Promise.all(pendingRequests.map(async (request) => {
-        const sender = await storage.getUser(request.userId);
-        return {
-          ...request,
-          sender: sender ? {
-            id: sender.id,
-            name: sender.name,
-            username: sender.username,
-            profileImage: sender.profileImage
-          } : null
-        };
-      }));
-      
-      res.json(enrichedRequests);
+      if (includeHistory) {
+        // Get all friend requests history - both sent and received
+        const result = await db.execute(sql`
+          SELECT 
+            f.id,
+            f.user_id as "senderId",
+            f.friend_id as "receiverId", 
+            f.status,
+            f.created_at as "createdAt",
+            sender.name as "senderName",
+            sender.username as "senderUsername",
+            sender.profile_image as "senderProfileImage",
+            receiver.name as "receiverName",
+            receiver.username as "receiverUsername",
+            receiver.profile_image as "receiverProfileImage"
+          FROM friendships f
+          JOIN users sender ON f.user_id = sender.id
+          JOIN users receiver ON f.friend_id = receiver.id
+          WHERE f.friend_id = ${userId} OR f.user_id = ${userId}
+          ORDER BY f.created_at DESC
+        `);
+
+        res.json(result.rows);
+      } else {
+        // Get only pending friend requests (current behavior)
+        const pendingRequests = await storage.getPendingFriendRequests(userId);
+        
+        // Enrich with sender information
+        const enrichedRequests = await Promise.all(pendingRequests.map(async (request) => {
+          const sender = await storage.getUser(request.userId);
+          return {
+            ...request,
+            sender: sender ? {
+              id: sender.id,
+              name: sender.name,
+              username: sender.username,
+              profileImage: sender.profileImage
+            } : null
+          };
+        }));
+        
+        res.json(enrichedRequests);
+      }
     } catch (error) {
       console.error('Error getting friend requests:', error);
       res.status(500).json({ message: 'Error getting friend requests' });

@@ -33,13 +33,13 @@ export default function NotificationHistory() {
   // Get real notification data from hooks
   const { rsvps, eventResponses, joinRequests, teamMemberNotifications } = useNotifications();
 
-  // Get friend requests
-  const { data: friendRequests = [] } = useQuery({
-    queryKey: ["/api/users", user?.id, "friend-requests"],
+  // Get friend request history (all friend requests - pending, accepted, rejected)
+  const { data: friendRequestHistory = [] } = useQuery({
+    queryKey: ["/api/users", user?.id, "friend-requests-history"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/friend-requests`);
-      if (!response.ok) throw new Error("Failed to fetch friend requests");
+      const response = await fetch(`/api/users/${user.id}/friend-requests?history=true`);
+      if (!response.ok) throw new Error("Failed to fetch friend request history");
       return response.json();
     },
     enabled: !!user?.id,
