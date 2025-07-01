@@ -50,7 +50,9 @@ export default function NotificationHistory() {
     const notifications: NotificationItem[] = [];
 
     // Add friend requests
+    console.log('Friend requests data in notification history:', friendRequests);
     friendRequests.forEach((request: any) => {
+      console.log('Processing friend request:', request);
       notifications.push({
         id: `friend-request-${request.id}`,
         type: 'friend_request',
