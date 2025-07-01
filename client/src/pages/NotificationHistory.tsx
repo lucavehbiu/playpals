@@ -33,9 +33,37 @@ export default function NotificationHistory() {
   // Get real notification data from hooks
   const { rsvps, eventResponses, joinRequests, teamMemberNotifications } = useNotifications();
 
+  // Get friend requests
+  const { data: friendRequests = [] } = useQuery({
+    queryKey: ["/api/users", user?.id, "friend-requests"],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/users/${user.id}/friend-requests`);
+      if (!response.ok) throw new Error("Failed to fetch friend requests");
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
   // Combine all notifications into a single chronological list
   const allNotifications = React.useMemo(() => {
     const notifications: NotificationItem[] = [];
+
+    // Add friend requests
+    friendRequests.forEach((request: any) => {
+      notifications.push({
+        id: `friend-request-${request.id}`,
+        type: 'friend_request',
+        title: 'Friend Request',
+        description: `${request.sender?.name || request.sender?.username || 'Someone'} sent you a friend request`,
+        createdAt: request.createdAt,
+        viewed: false,
+        actionable: true,
+        relatedId: request.sender?.id,
+        relatedType: 'user' as any,
+        user: request.sender
+      });
+    });
 
     // Add event responses (people who accepted your invitations)
     eventResponses.forEach((response: any) => {
@@ -104,7 +132,7 @@ export default function NotificationHistory() {
 
     // Sort by creation date (newest first)
     return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications]);
+  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequests]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -118,6 +146,8 @@ export default function NotificationHistory() {
         return <MessageSquare className="h-5 w-5" />;
       case 'event_response':
         return <CheckCircle className="h-5 w-5" />;
+      case 'friend_request':
+        return <Users className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
     }
@@ -136,6 +166,8 @@ export default function NotificationHistory() {
         return 'text-orange-500 bg-orange-100';
       case 'event_response':
         return 'text-green-500 bg-green-100';
+      case 'friend_request':
+        return 'text-pink-500 bg-pink-100';
       default:
         return 'text-gray-500 bg-gray-100';
     }
@@ -148,6 +180,8 @@ export default function NotificationHistory() {
       return `/groups/${item.relatedId}`;
     } else if (item.relatedType === 'event') {
       return `/events/${item.relatedId}`;
+    } else if (item.relatedType === 'user') {
+      return `/profile/${item.relatedId}`;
     }
     return '#';
   };
