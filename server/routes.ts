@@ -2678,23 +2678,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedUser = (req as any).user as User;
       const { status } = req.body; // 'accepted' or 'rejected'
       
+      console.log('Friend request update:', { requestId, userId: authenticatedUser.id, status });
+      
       if (!['accepted', 'rejected'].includes(status)) {
         return res.status(400).json({ message: 'Invalid status. Must be "accepted" or "rejected"' });
       }
       
       // Get the friend request
       const friendRequest = await storage.getFriendshipById(requestId);
+      console.log('Found friend request:', friendRequest);
+      
       if (!friendRequest) {
         return res.status(404).json({ message: 'Friend request not found' });
       }
       
       // Only the recipient can accept/reject
       if (friendRequest.friendId !== authenticatedUser.id) {
+        console.log('Access denied - friendId:', friendRequest.friendId, 'userId:', authenticatedUser.id);
         return res.status(403).json({ message: 'Access denied' });
       }
       
       // Update the request status
       const updatedRequest = await storage.updateFriendshipStatus(requestId, status);
+      console.log('Updated friend request:', updatedRequest);
       
       res.json(updatedRequest);
     } catch (error) {
