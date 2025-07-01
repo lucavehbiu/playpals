@@ -394,7 +394,7 @@ const EventDetails = () => {
                 {eventData.isPublic ? "Public" : "Private"}
               </Badge>
               <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />${((eventData.cost || 0) / 100).toFixed(2)}</>}
+                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
               </Badge>
             </div>
             
@@ -768,12 +768,10 @@ const EventDetails = () => {
               <div className="bg-gray-50 rounded-xl p-5">
                 <div className="text-center py-8">
                   <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-1">No messages yet</p>
-                  <p className="text-sm text-gray-400 mb-6">Be the first to start a conversation!</p>
-                  <Button variant="outline" className="mx-auto">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Start Discussion
-                  </Button>
+                  <p className="text-gray-500 mb-1">Discussion feature coming soon</p>
+                  <p className="text-sm text-gray-400">
+                    For now, use the group chat to discuss this event with other participants
+                  </p>
                 </div>
               </div>
             </div>
