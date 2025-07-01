@@ -1922,6 +1922,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's team join request history (all statuses for notification history)
+  app.get('/api/users/:userId/team-join-history', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only access your own team join history" });
+      }
+      
+      // Get all team join requests for this user (accepted, rejected, pending)
+      const joinRequests = await storage.getUserTeamJoinRequests(userId);
+      
+      // Add team information to each request
+      const requestsWithTeamInfo = await Promise.all(
+        joinRequests.map(async (request) => {
+          const team = await storage.getTeam(request.teamId);
+          return {
+            ...request,
+            team: team ? {
+              id: team.id,
+              name: team.name,
+              sportType: team.sportType,
+              description: team.description
+            } : null
+          };
+        })
+      );
+      
+      res.json(requestsWithTeamInfo);
+    } catch (error) {
+      console.error('Error fetching team join history:', error);
+      res.status(500).json({ message: "Error fetching team join history" });
+    }
+  });
+
+  // Get user's RSVP history with event details (for notification history)
+  app.get('/api/users/:userId/rsvp-history', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only access your own RSVP history" });
+      }
+      
+      // Get all RSVPs for this user
+      const rsvps = await storage.getUserRSVPs(userId);
+      
+      // Add event information to each RSVP
+      const rsvpsWithEventInfo = await Promise.all(
+        rsvps.map(async (rsvp) => {
+          const event = await storage.getEvent(rsvp.eventId);
+          return {
+            ...rsvp,
+            event: event ? {
+              id: event.id,
+              title: event.title,
+              description: event.description,
+              date: event.date,
+              sportType: event.sportType
+            } : null
+          };
+        })
+      );
+      
+      res.json(rsvpsWithEventInfo);
+    } catch (error) {
+      console.error('Error fetching RSVP history:', error);
+      res.status(500).json({ message: "Error fetching RSVP history" });
+    }
+  });
+
   // Get user's sports groups (groups they are members of)
   app.get('/api/users/:userId/sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {

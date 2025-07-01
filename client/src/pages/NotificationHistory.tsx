@@ -45,6 +45,46 @@ export default function NotificationHistory() {
     enabled: !!user?.id,
   });
 
+  // Get historical team join requests (all statuses)
+  const { data: teamJoinHistory = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/team-join-history`],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/team-join-history`);
+        if (res.ok) {
+          return await res.json();
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching team join history:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+  });
+
+  // Get historical RSVP responses (when event creators respond to user's RSVPs)
+  const { data: rsvpHistory = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/rsvp-history`],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/rsvp-history`);
+        if (res.ok) {
+          return await res.json();
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching RSVP history:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+  });
+
   // Combine all notifications into a single chronological list
   const allNotifications = React.useMemo(() => {
     const notifications: NotificationItem[] = [];
@@ -64,6 +104,44 @@ export default function NotificationHistory() {
         relatedId: request.sender?.id,
         relatedType: 'user' as any,
         user: request.sender
+      });
+    });
+
+    // Add team join history
+    teamJoinHistory.forEach((joinRequest: any) => {
+      const statusText = joinRequest.status === 'accepted' ? 'accepted' : 'declined';
+      const statusColor = joinRequest.status === 'accepted' ? 'text-green-600' : 'text-red-600';
+      
+      notifications.push({
+        id: `team-join-${joinRequest.id}`,
+        type: 'team_join',
+        title: `Team Join Request ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
+        description: `Your request to join "${joinRequest.team?.name || 'a team'}" was ${statusText}`,
+        createdAt: joinRequest.createdAt,
+        viewed: true,
+        actionable: false,
+        relatedId: joinRequest.teamId,
+        relatedType: 'team',
+        statusColor
+      });
+    });
+
+    // Add RSVP history (when creators respond to user's RSVPs)
+    rsvpHistory.forEach((rsvp: any) => {
+      const statusText = rsvp.status === 'approved' ? 'approved' : 'declined';
+      const statusColor = rsvp.status === 'approved' ? 'text-green-600' : 'text-red-600';
+      
+      notifications.push({
+        id: `rsvp-${rsvp.id}`,
+        type: 'rsvp_response',
+        title: `Event RSVP ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
+        description: `Your RSVP for "${rsvp.event?.title || 'an event'}" was ${statusText}`,
+        createdAt: rsvp.createdAt,
+        viewed: true,
+        actionable: false,
+        relatedId: rsvp.eventId,
+        relatedType: 'event',
+        statusColor
       });
     });
 
