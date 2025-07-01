@@ -54,7 +54,7 @@ export default function GroupDetails() {
 
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
-    queryKey: ['/api/sports-groups', groupId],
+    queryKey: [`/api/sports-groups/${groupId}`],
     enabled: !!groupId,
   });
 
