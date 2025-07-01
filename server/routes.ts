@@ -2561,6 +2561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupId,
           userId,
           type: 'invitation',
+          title: 'Group Invitation',
           message: `${authenticatedUser.name || authenticatedUser.username} invited you to join "${group.name}"`,
           createdAt: new Date(),
           viewed: false
@@ -2602,8 +2603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.addSportsGroupMember({
           groupId,
           userId: authenticatedUser.id,
-          role: 'member',
-          joinedAt: new Date()
+          role: 'member'
         });
         
         // Update request status
