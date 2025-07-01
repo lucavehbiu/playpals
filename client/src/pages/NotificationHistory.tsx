@@ -87,12 +87,12 @@ export default function NotificationHistory() {
 
   // Get historical group notifications
   const { data: groupNotificationHistory = [] } = useQuery<any[]>({
-    queryKey: [`/api/users/${user?.id}/group-notifications`],
+    queryKey: [`/api/users/${user?.id}/group-notifications-history`],
     queryFn: async () => {
       if (!user?.id) return [];
       
       try {
-        const res = await fetch(`/api/users/${user.id}/group-notifications`);
+        const res = await fetch(`/api/users/${user.id}/group-notifications?history=true`);
         if (res.ok) {
           return await res.json();
         }

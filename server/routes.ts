@@ -2323,21 +2323,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Unauthorized' });
       }
 
-      // Get unread notification counts grouped by group and type
-      const result = await db.execute(sql`
-        SELECT 
-          sgn.group_id as "groupId",
-          sgn.type,
-          COUNT(*) as count,
-          sg.name as "groupName"
-        FROM sports_group_notifications sgn
-        JOIN sports_groups sg ON sgn.group_id = sg.id
-        WHERE sgn.user_id = ${userId} 
-        AND sgn.viewed = false
-        GROUP BY sgn.group_id, sgn.type, sg.name
-      `);
+      // Check if this is for history (all notifications) or just unread counts
+      const includeHistory = req.query.history === 'true';
+      
+      if (includeHistory) {
+        // Get all group notifications for history page
+        const result = await db.execute(sql`
+          SELECT 
+            sgn.id,
+            sgn.group_id as "groupId",
+            sgn.type,
+            sgn.title,
+            sgn.message,
+            sgn.reference_id as "referenceId",
+            sgn.viewed,
+            sgn.created_at as "createdAt",
+            sg.name as "groupName"
+          FROM sports_group_notifications sgn
+          JOIN sports_groups sg ON sgn.group_id = sg.id
+          WHERE sgn.user_id = ${userId} 
+          ORDER BY sgn.created_at DESC
+        `);
 
-      res.json(result.rows);
+        res.json(result.rows);
+      } else {
+        // Get unread notification counts grouped by group and type
+        const result = await db.execute(sql`
+          SELECT 
+            sgn.group_id as "groupId",
+            sgn.type,
+            COUNT(*) as count,
+            sg.name as "groupName"
+          FROM sports_group_notifications sgn
+          JOIN sports_groups sg ON sgn.group_id = sg.id
+          WHERE sgn.user_id = ${userId} 
+          AND sgn.viewed = false
+          GROUP BY sgn.group_id, sgn.type, sg.name
+        `);
+
+        res.json(result.rows);
+      }
     } catch (error) {
       console.error('Error fetching group notifications:', error);
       res.status(500).json({ message: 'Error fetching notifications' });
