@@ -225,7 +225,14 @@ export default function Groups() {
                             min={2}
                             max={50}
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '') {
+                                field.onChange('');
+                              } else {
+                                field.onChange(parseInt(value) || '');
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormMessage />

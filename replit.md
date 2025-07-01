@@ -86,6 +86,9 @@ The build process creates optimized bundles with automatic code splitting and mo
 ## Changelog
 - June 30, 2025. Initial setup
 - June 30, 2025. CRITICAL SECURITY FIX: Added membership verification to all group endpoints to prevent unauthorized access to private group content
+- July 1, 2025. Completed comprehensive friends system with Accept/Decline buttons and clickable profile navigation
+- July 1, 2025. Fixed notification history system to display complete activity with history=true parameter  
+- July 1, 2025. BUGFIX: Fixed friend request decline error in notification bell - corrected status mismatch between frontend ("declined") and backend ("rejected")
 
 ## User Preferences
 
