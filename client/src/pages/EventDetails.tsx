@@ -256,10 +256,14 @@ const EventDetails = () => {
   const hasRSVPd = !!userRSVP;
   const rsvpStatus = userRSVP?.status;
   
+  // Calculate actual participant count from approved RSVPs only
+  const actualParticipantCount = rsvps.filter((rsvp: any) => rsvp.status === "approved").length;
+  
   // Debug logging
   console.log("Component state - isCreator:", isCreator, "hasRSVPd:", hasRSVPd, "userRSVP:", userRSVP);
   console.log("RSVPs array:", rsvps);
   console.log("Current user ID:", user?.id);
+  console.log("Actual participants (approved only):", actualParticipantCount);
   
   // Sport badge colors (same as in EventCard)
   const getSportBadgeColor = (sport: string | undefined) => {
@@ -390,7 +394,7 @@ const EventDetails = () => {
                 {eventData.isPublic ? "Public" : "Private"}
               </Badge>
               <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{eventData.cost || 0}</>}
+                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />${((eventData.cost || 0) / 100).toFixed(2)}</>}
               </Badge>
             </div>
             
@@ -435,13 +439,13 @@ const EventDetails = () => {
             <Users className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Participants</p>
             <p className="font-medium text-sm md:text-base">
-              {eventData.currentParticipants} of {eventData.maxParticipants}
+              {actualParticipantCount} of {eventData.maxParticipants}
             </p>
             <div className="w-full max-w-24 bg-gray-200 rounded-full h-1.5 mt-1.5">
               <div 
                 className="bg-primary h-1.5 rounded-full" 
                 style={{ 
-                  width: `${(eventData.currentParticipants / eventData.maxParticipants) * 100}%` 
+                  width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` 
                 }}
               ></div>
             </div>
@@ -616,7 +620,7 @@ const EventDetails = () => {
             <TabsTrigger value="participants" className="rounded-lg py-2.5">
               Participants 
               <span className="ml-1.5 bg-gray-200 text-gray-700 text-xs px-1.5 py-0.5 rounded-full">
-                {eventData.currentParticipants}
+                {actualParticipantCount}
               </span>
             </TabsTrigger>
             <TabsTrigger value="discussion" className="rounded-lg py-2.5">Discussion</TabsTrigger>
