@@ -6,6 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import InviteFriendsModal from "@/components/event/InviteFriendsModal";
+import { MakePublicModal } from "@/components/event/MakePublicModal";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -43,6 +44,10 @@ const EventDetails = () => {
   // State for invite friends modal
   const [inviteFriendsModalOpen, setInviteFriendsModalOpen] = useState(false);
   const [groupInfo, setGroupInfo] = useState<{group: any, members: any[]} | null>(null);
+  
+  // State for make public modal
+  const [makePublicModalOpen, setMakePublicModalOpen] = useState(false);
+  const [currentVisibility, setCurrentVisibility] = useState<string | null>(null);
   
   // Function to fetch group information for the event
   const fetchGroupInfo = async () => {
@@ -109,6 +114,7 @@ const EventDetails = () => {
         const data = await response.json();
         console.log("Successfully received event data:", data);
         setEventData(data);
+        setCurrentVisibility(data.publicVisibility || null);
         setLoadError(null);
         
         // After successfully loading the event, fetch RSVPs
@@ -630,6 +636,18 @@ const EventDetails = () => {
               <UserPlus className="mr-2 h-5 w-5" />
               Invite Friends
             </Button>
+            
+            {/* Make Public Button for Group Events */}
+            {groupInfo?.group && (
+              <Button 
+                variant="outline"
+                className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg" 
+                onClick={() => setMakePublicModalOpen(true)}
+              >
+                <Globe className="mr-2 h-5 w-5" />
+                Make Public
+              </Button>
+            )}
           </div>
         )}
         
@@ -641,6 +659,17 @@ const EventDetails = () => {
             eventId={eventData.id}
             groupId={groupInfo?.group?.id}
             groupMembers={groupInfo?.members}
+          />
+        )}
+
+        {/* Make Public Modal */}
+        {eventData && (
+          <MakePublicModal
+            isOpen={makePublicModalOpen}
+            onClose={() => setMakePublicModalOpen(false)}
+            eventId={eventData.id}
+            currentVisibility={currentVisibility}
+            onVisibilityChange={setCurrentVisibility}
           />
         )}
         

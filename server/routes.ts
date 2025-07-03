@@ -3663,6 +3663,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to get event group information' });
     }
   });
+
+  // Update event visibility
+  app.put('/api/events/:eventId/visibility', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const { publicVisibility } = req.body;
+      const authenticatedUser = req.user as { id: number };
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ error: 'Invalid event ID' });
+      }
+
+      // Validate visibility value
+      if (publicVisibility !== null && !['all', 'friends'].includes(publicVisibility)) {
+        return res.status(400).json({ error: 'Invalid visibility value' });
+      }
+
+      // Check if user is the event creator
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      // Check if user is event creator or group admin
+      if (event.creatorId !== authenticatedUser.id) {
+        // For group events, also check if user is group admin
+        const groupEvent = await storage.getSportsGroupEventByEventId(eventId);
+        if (groupEvent) {
+          const membership = await storage.getSportsGroupMember(groupEvent.groupId, authenticatedUser.id);
+          if (!membership || membership.role !== 'admin') {
+            return res.status(403).json({ error: 'Not authorized to modify this event' });
+          }
+        } else {
+          return res.status(403).json({ error: 'Not authorized to modify this event' });
+        }
+      }
+
+      // Update the event visibility
+      await storage.updateEventVisibility(eventId, publicVisibility);
+
+      res.json({ success: true, publicVisibility });
+    } catch (error) {
+      console.error('Error updating event visibility:', error);
+      res.status(500).json({ error: 'Failed to update event visibility' });
+    }
+  });
   
   return httpServer;
 }

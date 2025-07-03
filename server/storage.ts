@@ -105,6 +105,7 @@ export interface IStorage {
   getPublicEvents(): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined>;
+  updateEventVisibility(id: number, publicVisibility: string | null): Promise<boolean>;
   deleteEvent(id: number): Promise<boolean>;
   
   // RSVP methods
@@ -810,6 +811,15 @@ export class MemStorage implements IStorage {
     const updatedEvent = { ...event, ...eventData };
     this.events.set(id, updatedEvent);
     return updatedEvent;
+  }
+
+  async updateEventVisibility(id: number, publicVisibility: string | null): Promise<boolean> {
+    const event = this.events.get(id);
+    if (!event) return false;
+    
+    const updatedEvent = { ...event, publicVisibility };
+    this.events.set(id, updatedEvent);
+    return true;
   }
 
   async deleteEvent(id: number): Promise<boolean> {
@@ -2548,6 +2558,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(events.id, id))
       .returning();
     return updatedEvent || undefined;
+  }
+
+  async updateEventVisibility(id: number, publicVisibility: string | null): Promise<boolean> {
+    const result = await db
+      .update(events)
+      .set({ publicVisibility })
+      .where(eq(events.id, id))
+      .returning({ id: events.id });
+    return result.length > 0;
   }
 
   async deleteEvent(id: number): Promise<boolean> {

@@ -125,6 +125,8 @@ export const events = pgTable("events", {
   cost: integer("cost").default(0),
   creatorId: integer("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   eventImage: text("event_image"),
+  // Public visibility settings for group events
+  publicVisibility: text("public_visibility"), // null (private), "all" (public to all), "friends" (public to friends)
   // Removed teamId for now to match existing database schema
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
