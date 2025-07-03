@@ -168,6 +168,7 @@ export interface IStorage {
   // Sports Group Events methods
   getSportsGroupEvents(groupId: number): Promise<SportsGroupEvent[]>;
   getSportsGroupEventHistory(groupId: number): Promise<SportsGroupEvent[]>;
+  getSportsGroupEventByEventId(eventId: number): Promise<SportsGroupEvent | undefined>;
   addSportsGroupEvent(groupEvent: InsertSportsGroupEvent): Promise<SportsGroupEvent>;
   removeSportsGroupEvent(id: number): Promise<boolean>;
 
@@ -3354,6 +3355,20 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching group events:', error);
       return [];
+    }
+  }
+
+  async getSportsGroupEventByEventId(eventId: number): Promise<SportsGroupEvent | undefined> {
+    try {
+      const [groupEvent] = await db
+        .select()
+        .from(sportsGroupEvents)
+        .where(eq(sportsGroupEvents.eventId, eventId));
+      
+      return groupEvent;
+    } catch (error) {
+      console.error('Error fetching group event by event ID:', error);
+      return undefined;
     }
   }
 

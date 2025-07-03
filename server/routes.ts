@@ -591,6 +591,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Error sending RSVP notification:', error);
         }
       }
+
+      // If the RSVP status has changed to declined and it's a group event, notify other participants
+      console.log('DEBUG: RSVP update - req.body.status:', req.body.status, 'rsvp.status:', rsvp.status);
+      if (req.body.status === 'declined' && rsvp.status === 'approved') {
+        console.log('DEBUG: Participant left event notification triggered');
+        try {
+          // Get the event details
+          const event = await storage.getEvent(rsvp.eventId);
+          console.log('DEBUG: Event details:', event?.title, 'ID:', event?.id);
+          
+          if (event) {
+            // Check if this is a group event by looking at sports_group_events table
+            const groupEvent = await storage.getSportsGroupEventByEventId(event.id);
+            console.log('DEBUG: Group event check:', groupEvent);
+            
+            if (groupEvent) {
+              console.log('DEBUG: This is a group event, groupId:', groupEvent.groupId);
+              // This is a group event - notify other participants
+              const allRSVPs = await storage.getRSVPsByEvent(event.id);
+              console.log('DEBUG: All RSVPs for event:', allRSVPs.length);
+              
+              // Get all approved participants (excluding the user who just left)
+              const approvedParticipants = allRSVPs.filter(r => 
+                r.status === 'approved' && r.userId !== authenticatedUser.id
+              );
+              console.log('DEBUG: Approved participants to notify:', approvedParticipants.length);
+              
+              // Create group notifications for remaining participants
+              for (const participantRSVP of approvedParticipants) {
+                console.log('DEBUG: Creating leave notification for user:', participantRSVP.userId);
+                try {
+                  await storage.createSportsGroupNotification({
+                    groupId: groupEvent.groupId,
+                    userId: participantRSVP.userId,
+                    type: 'event',
+                    title: 'Participant Left Event',
+                    message: `${authenticatedUser.name || authenticatedUser.username} has left the event "${event.title}"`,
+                    referenceId: event.id,
+                    viewed: false
+                  });
+                  console.log('DEBUG: Successfully created leave notification for user:', participantRSVP.userId);
+                } catch (notificationError) {
+                  console.error('Error creating leave notification for user', participantRSVP.userId, ':', notificationError);
+                }
+              }
+            } else {
+              console.log('DEBUG: Not a group event');
+            }
+          }
+        } catch (error) {
+          console.error('Error sending participant left notification:', error);
+        }
+      }
       
       res.json(updatedRSVP);
     } catch (error) {
