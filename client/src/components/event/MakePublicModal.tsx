@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Globe, Users } from "lucide-react";
+import { Globe, Users, UserPlus } from "lucide-react";
 
 interface MakePublicModalProps {
   isOpen: boolean;
@@ -58,6 +58,8 @@ export function MakePublicModal({
         return "Event is now visible to all users";
       case "friends":
         return "Event is now visible to friends of group members";
+      case "friends_participants":
+        return "Event is now visible to friends of event participants";
       default:
         return "Event is now private to the group";
     }
@@ -114,6 +116,19 @@ export function MakePublicModal({
                   <div className="font-medium">Friends of Group Members</div>
                   <div className="text-sm text-muted-foreground">
                     Only friends of group members can see this event
+                  </div>
+                </div>
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="friends_participants" id="friends_participants" />
+              <Label htmlFor="friends_participants" className="flex items-center space-x-2 cursor-pointer">
+                <UserPlus className="h-4 w-4" />
+                <div>
+                  <div className="font-medium">Friends of Event Participants</div>
+                  <div className="text-sm text-muted-foreground">
+                    Only friends of people who joined this event can see it
                   </div>
                 </div>
               </Label>
