@@ -2555,7 +2555,25 @@ export class DatabaseStorage implements IStorage {
       ORDER BY e.date
     `);
 
-    return result.rows as Event[];
+    // Map the raw SQL results to proper Event objects
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      sportType: row.sport_type,
+      date: new Date(row.date),
+      location: row.location,
+      locationCoordinates: row.location_coordinates,
+      maxParticipants: row.max_participants,
+      currentParticipants: row.current_participants,
+      isPublic: row.is_public,
+      isFree: row.is_free,
+      cost: row.cost,
+      creatorId: row.creator_id,
+      eventImage: row.event_image,
+      createdAt: new Date(row.created_at),
+      publicVisibility: row.public_visibility
+    }));
   }
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
