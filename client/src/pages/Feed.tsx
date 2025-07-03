@@ -335,7 +335,7 @@ const Feed = () => {
                               </Badge>
                             </h3>
                             <p className="text-[10px] text-gray-500">
-                              {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+                              {event.createdAt ? formatDistanceToNow(new Date(event.createdAt), { addSuffix: true }) : 'Recently'}
                             </p>
                           </div>
                         </div>
@@ -384,17 +384,17 @@ const Feed = () => {
                               <div className="flex items-center">
                                 <CalendarIcon className="h-3 w-3 mr-1 text-white" />
                                 <span className="text-xs font-medium text-white">
-                                  {new Date(event.date).toLocaleDateString('en-US', {
+                                  {event.date ? new Date(event.date).toLocaleDateString('en-US', {
                                     month: 'long',
                                     day: 'numeric',
                                     year: '2-digit'
-                                  })}
+                                  }) : 'TBD'}
                                 </span>
                               </div>
                               <div className="flex items-center">
                                 <Clock className="h-3 w-3 mr-1 text-white" />
                                 <span className="text-xs font-medium text-white">
-                                  {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {event.date ? new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                                 </span>
                               </div>
                             </div>
@@ -433,17 +433,17 @@ const Feed = () => {
                               <div>
                                 <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
                                 <p className="text-xs font-medium">
-                                  {new Date(event.date).toLocaleDateString('en-US', {
+                                  {event.date ? new Date(event.date).toLocaleDateString('en-US', {
                                     month: 'long',
                                     day: 'numeric',
                                     year: '2-digit'
-                                  })}
+                                  }) : 'TBD'}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-gray-500 mb-0.5">Time</p>
                                 <p className="text-xs font-medium">
-                                  {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {event.date ? new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                                 </p>
                               </div>
                             </div>
@@ -527,15 +527,15 @@ const Feed = () => {
                   <div className="flex items-center space-x-3 text-sm">
                     <div className="flex items-center">
                       <CalendarIcon className="h-4 w-4 mr-1" />
-                      {new Date(quickViewEvent.date).toLocaleDateString('en-US', {
+                      {quickViewEvent.date ? new Date(quickViewEvent.date).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: '2-digit'
-                      })}
+                      }) : 'TBD'}
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
-                      {new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {quickViewEvent.date ? new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                     </div>
                   </div>
                 </div>
@@ -549,7 +549,7 @@ const Feed = () => {
                   <div>
                     <h4 className="font-medium">Organized by {quickViewEvent.creator?.name || 'Unknown'}</h4>
                     <p className="text-sm text-gray-500">
-                      {formatDistanceToNow(new Date(quickViewEvent.createdAt), { addSuffix: true })}
+                      {quickViewEvent.createdAt ? formatDistanceToNow(new Date(quickViewEvent.createdAt), { addSuffix: true }) : 'Recently'}
                     </p>
                   </div>
                 </div>
