@@ -98,6 +98,7 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 3, 2025. FEATURE: Added "Friends of Event Participants" visibility option to Make Public modal for group events - now supports 4 visibility levels: Keep Private, Public to All, Friends of Group Members, and Friends of Event Participants
 - July 3, 2025. BUGFIX: Fixed Feed creator display issue - events now show proper creator names instead of "Unknown" by fixing getDiscoverableEvents column mapping and getUser calls
 - July 3, 2025. BUGFIX: Fixed notification display for group invitations - now correctly shows "group invitations to [GroupName]" instead of misleading "messages"
+- July 3, 2025. CRITICAL SECURITY FIX: Fixed group notification authorization system - users now only see notifications for groups they're members of OR legitimate pending invitations, preventing unauthorized access to private group notification data
 
 ## User Preferences
 
