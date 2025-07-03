@@ -3676,7 +3676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate visibility value
-      if (publicVisibility !== null && !['all', 'friends'].includes(publicVisibility)) {
+      if (publicVisibility !== null && !['all', 'friends', 'friends_participants'].includes(publicVisibility)) {
         return res.status(400).json({ error: 'Invalid visibility value' });
       }
 
