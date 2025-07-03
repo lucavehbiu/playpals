@@ -43,10 +43,21 @@ const Feed = () => {
   const [storiesViewerOpen, setStoriesViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   
-  // Fetch events from users that current user follows - in a real app this would be a separate API endpoint
+  // Fetch discoverable events for this user
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryKey: ['/api/events', user?.id],
+    queryFn: async () => {
+      const url = new URL('/api/events', window.location.origin);
+      if (user?.id) {
+        url.searchParams.set('userId', user.id.toString());
+      }
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error('Failed to fetch events');
+      }
+      return response.json();
+    },
+    enabled: !!user, // Only run when user is loaded
   });
   
   // Animation effect when page loads

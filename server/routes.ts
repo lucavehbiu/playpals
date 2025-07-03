@@ -229,9 +229,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/events', async (req: Request, res: Response) => {
     try {
-      // Get all public events (for discovery)
-      const events = await storage.getPublicEvents();
-      console.log("Fetched public events:", events ? events.length : 0);
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+      
+      // Get all discoverable events
+      const events = await storage.getDiscoverableEvents(userId);
+      console.log("Fetched discoverable events:", events ? events.length : 0);
       
       // Add creator info to each event
       const eventsWithCreators = await Promise.all(
@@ -2400,15 +2402,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
-          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id
+          LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
           WHERE sgn.user_id = ${userId} 
-          AND sgm.user_id = ${userId}
+          AND (
+            sgm.user_id IS NOT NULL OR  -- User is a member of the group
+            sgn.type = 'invitation'     -- OR it's an invitation (for non-members)
+          )
           ORDER BY sgn.created_at DESC
         `);
 
         res.json(result.rows);
       } else {
-        // Get unread notification counts grouped by group and type - ONLY for groups the user is a member of
+        // Get unread notification counts grouped by group and type
         const result = await db.execute(sql`
           SELECT 
             sgn.group_id as "groupId",
@@ -2417,9 +2422,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
-          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id
+          LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
           WHERE sgn.user_id = ${userId} 
-          AND sgm.user_id = ${userId}
+          AND (
+            sgm.user_id IS NOT NULL OR  -- User is a member of the group
+            sgn.type = 'invitation'     -- OR it's an invitation (for non-members)
+          )
           AND sgn.viewed = false
           GROUP BY sgn.group_id, sgn.type, sg.name
         `);

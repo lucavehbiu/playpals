@@ -7,18 +7,32 @@ import { sportTypes } from "@shared/schema";
 import { format, parseISO, isAfter, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
 import { Sparkles, Map, Calendar, Filter, X, Search } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const Discover = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedSport, setSelectedSport] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   
-  // Get all public events
+  // Get all discoverable events for this user
   const { data: events, isLoading, error } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
+    queryKey: ['/api/events', user?.id],
+    queryFn: async () => {
+      const url = new URL('/api/events', window.location.origin);
+      if (user?.id) {
+        url.searchParams.set('userId', user.id.toString());
+      }
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error('Failed to fetch events');
+      }
+      return response.json();
+    },
+    enabled: !!user, // Only run when user is loaded
   });
 
   const handleJoinEvent = (eventId: number) => {

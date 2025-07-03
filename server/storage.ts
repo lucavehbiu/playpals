@@ -103,6 +103,7 @@ export interface IStorage {
   getEvent(id: number): Promise<Event | undefined>;
   getEventsByCreator(creatorId: number): Promise<Event[]>;
   getPublicEvents(): Promise<Event[]>;
+  getDiscoverableEvents(userId?: number | null): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined>;
   updateEventVisibility(id: number, publicVisibility: string | null): Promise<boolean>;
@@ -2518,6 +2519,43 @@ export class DatabaseStorage implements IStorage {
         gte(events.date, new Date())
       ))
       .orderBy(events.date);
+  }
+
+  async getDiscoverableEvents(userId?: number | null): Promise<Event[]> {
+    if (!userId) {
+      // If no user provided, return only public events
+      return this.getPublicEvents();
+    }
+
+    // Complex query to handle different visibility levels
+    const result = await db.execute(sql`
+      SELECT DISTINCT e.*
+      FROM events e
+      LEFT JOIN sports_group_events sge ON e.id = sge.event_id
+      LEFT JOIN sports_group_members sgm ON sge.group_id = sgm.group_id
+      LEFT JOIN friendships f1 ON sgm.user_id = f1.user_id AND f1.friend_id = ${userId} AND f1.status = 'accepted'
+      LEFT JOIN friendships f2 ON sgm.user_id = f2.friend_id AND f2.user_id = ${userId} AND f2.status = 'accepted'
+      LEFT JOIN rsvps r ON e.id = r.event_id AND r.status = 'approved'
+      LEFT JOIN friendships f3 ON r.user_id = f3.user_id AND f3.friend_id = ${userId} AND f3.status = 'accepted'
+      LEFT JOIN friendships f4 ON r.user_id = f4.friend_id AND f4.user_id = ${userId} AND f4.status = 'accepted'
+      WHERE e.date >= NOW()
+      AND (
+        -- Regular public events (isPublic = true)
+        e.is_public = true
+        OR
+        -- Group events with public visibility "all"
+        (sge.group_id IS NOT NULL AND e.public_visibility = 'all')
+        OR
+        -- Group events with "friends of group members" visibility
+        (sge.group_id IS NOT NULL AND e.public_visibility = 'friends' AND (f1.user_id IS NOT NULL OR f2.user_id IS NOT NULL))
+        OR
+        -- Group events with "friends of event participants" visibility
+        (sge.group_id IS NOT NULL AND e.public_visibility = 'friends_participants' AND (f3.user_id IS NOT NULL OR f4.user_id IS NOT NULL))
+      )
+      ORDER BY e.date
+    `);
+
+    return result.rows as Event[];
   }
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
