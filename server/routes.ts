@@ -2389,6 +2389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (includeHistory) {
         // Get all group notifications for history page - ONLY for groups the user is a member of
+        // SECURITY: Only show notifications for groups the user is actually a member of
         const result = await db.execute(sql`
           SELECT 
             sgn.id,
@@ -2402,18 +2403,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
-          LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
+          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
           WHERE sgn.user_id = ${userId} 
-          AND (
-            sgm.user_id IS NOT NULL OR  -- User is a member of the group
-            sgn.type = 'invitation'     -- OR it's an invitation (for non-members)
-          )
           ORDER BY sgn.created_at DESC
         `);
 
         res.json(result.rows);
       } else {
         // Get unread notification counts grouped by group and type
+        // SECURITY: Only show notifications for groups the user is actually a member of
         const result = await db.execute(sql`
           SELECT 
             sgn.group_id as "groupId",
@@ -2422,12 +2420,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
-          LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
+          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
           WHERE sgn.user_id = ${userId} 
-          AND (
-            sgm.user_id IS NOT NULL OR  -- User is a member of the group
-            sgn.type = 'invitation'     -- OR it's an invitation (for non-members)
-          )
           AND sgn.viewed = false
           GROUP BY sgn.group_id, sgn.type, sg.name
         `);
