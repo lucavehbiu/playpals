@@ -35,15 +35,22 @@ interface InviteFriendsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventId: number;
+  groupId?: number;
+  groupMembers?: User[];
 }
 
 const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({ 
   open, 
   onOpenChange,
-  eventId
+  eventId,
+  groupId,
+  groupMembers
 }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("all");
+  
+  // Check if this is a group event
+  const isGroupEvent = Boolean(groupId && groupMembers);
   
   // User states
   const [publicUsers, setPublicUsers] = useState<User[]>([]);
@@ -131,7 +138,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
     checkUserTeams();
   }, []);
 
-  // Fetch all users
+  // Fetch all users or use group members
   useEffect(() => {
     const fetchAllUsers = async () => {
       setIsLoadingPublicUsers(true);
@@ -148,30 +155,44 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         const userData = await userResponse.json();
         const currentUserId = userData.id;
         
-        // Fetch all users with our API endpoint
-        const response = await fetch('/api/users/all', {
-          credentials: 'include'
-        });
+        let usersToShow: User[] = [];
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
+        if (isGroupEvent && groupMembers) {
+          // For group events, only show group members
+          usersToShow = groupMembers
+            .filter((member: User) => member.id !== currentUserId)
+            .map((member: User) => ({
+              id: member.id,
+              name: member.name || member.username,
+              username: member.username,
+              profileImage: member.profileImage
+            }));
+        } else {
+          // For regular events, fetch all users
+          const response = await fetch('/api/users/all', {
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch users');
+          }
+          
+          const usersData = await response.json();
+          
+          // Filter out the current user from the list
+          usersToShow = usersData
+            .filter((user: any) => user.id !== currentUserId)
+            .map((user: any) => ({
+              id: user.id,
+              name: user.name || user.username,
+              username: user.username,
+              profileImage: user.profileImage
+            }));
         }
         
-        const usersData = await response.json();
-        
-        // Filter out the current user from the list
-        const filteredUsers = usersData
-          .filter((user: any) => user.id !== currentUserId)
-          .map((user: any) => ({
-            id: user.id,
-            name: user.name || user.username,
-            username: user.username,
-            profileImage: user.profileImage
-          }));
-        
-        setPublicUsers(filteredUsers);
+        setPublicUsers(usersToShow);
       } catch (error) {
-        console.error("Error fetching public users:", error);
+        console.error("Error fetching users:", error);
         setPublicUsers([]);
       } finally {
         setIsLoadingPublicUsers(false);
@@ -179,7 +200,7 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
     };
     
     fetchAllUsers();
-  }, []);
+  }, [isGroupEvent, groupMembers]);
 
   // Selection handlers
   const togglePublicUserSelection = (userId: number) => {
@@ -306,8 +327,8 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="all" className="flex gap-2 items-center">
-              <Globe className="h-4 w-4" />
-              All Users
+              {isGroupEvent ? <Users className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+              {isGroupEvent ? "Group Members" : "All Users"}
               {selectedPublicUsers.length > 0 && (
                 <Badge variant="secondary" className="ml-1.5 py-0 px-1.5 h-5 min-w-5 flex items-center justify-center">
                   {selectedPublicUsers.length}

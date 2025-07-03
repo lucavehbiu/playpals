@@ -42,6 +42,35 @@ const EventDetails = () => {
   
   // State for invite friends modal
   const [inviteFriendsModalOpen, setInviteFriendsModalOpen] = useState(false);
+  const [groupInfo, setGroupInfo] = useState<{group: any, members: any[]} | null>(null);
+  
+  // Function to fetch group information for the event
+  const fetchGroupInfo = async () => {
+    if (!eventData) return;
+    
+    try {
+      const response = await fetch(`/api/events/${eventData.id}/group`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const groupData = await response.json();
+        setGroupInfo(groupData);
+      } else {
+        // Event is not a group event
+        setGroupInfo(null);
+      }
+    } catch (error) {
+      console.error('Error fetching group info:', error);
+      setGroupInfo(null);
+    }
+  };
+  
+  // Open invite modal and fetch group info if needed
+  const handleOpenInviteModal = async () => {
+    await fetchGroupInfo();
+    setInviteFriendsModalOpen(true);
+  };
   
   console.log("URL Params:", params);
   console.log("Event ID from URL:", eventId);
@@ -596,7 +625,7 @@ const EventDetails = () => {
           <div className="flex gap-3 mb-6">
             <Button 
               className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg" 
-              onClick={() => setInviteFriendsModalOpen(true)}
+              onClick={handleOpenInviteModal}
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Invite Friends
@@ -610,6 +639,8 @@ const EventDetails = () => {
             open={inviteFriendsModalOpen}
             onOpenChange={setInviteFriendsModalOpen}
             eventId={eventData.id}
+            groupId={groupInfo?.group?.id}
+            groupMembers={groupInfo?.members}
           />
         )}
         

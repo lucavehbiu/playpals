@@ -3625,6 +3625,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return updatedRequest;
   };
+
+  // Get group information for an event
+  app.get('/api/events/:eventId/group', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const { eventId } = req.params;
+      const authenticatedUser = req.user as { id: number };
+      
+      // Check if this event is associated with a group
+      const groupEvent = await storage.getSportsGroupEventByEventId(parseInt(eventId));
+      
+      if (!groupEvent) {
+        return res.status(404).json({ error: 'Event is not associated with a group' });
+      }
+      
+      // Get the group details
+      const group = await storage.getSportsGroup(groupEvent.groupId);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check if user is a member of the group
+      const membership = await storage.getSportsGroupMember(group.id, authenticatedUser.id);
+      if (!membership) {
+        return res.status(403).json({ error: 'You are not a member of this group' });
+      }
+      
+      // Get group members
+      const groupMembers = await storage.getSportsGroupMembers(group.id);
+      
+      res.json({
+        group: group,
+        members: groupMembers
+      });
+    } catch (error) {
+      console.error('Error getting event group information:', error);
+      res.status(500).json({ error: 'Failed to get event group information' });
+    }
+  });
   
   return httpServer;
 }
