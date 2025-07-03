@@ -195,6 +195,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     respondToFriendRequestMutation.mutate({ requestId, status });
   };
 
+  // Function to handle group invitation response
+  const handleGroupInviteResponse = (groupId: number, action: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    groupInviteResponseMutation.mutate({ groupId, action });
+  };
+
   // Mutation for responding to friend requests
   const respondToFriendRequestMutation = useMutation({
     mutationFn: async ({ requestId, status }: { requestId: number, status: string }) => {
@@ -219,6 +226,50 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       toast({
         title: "Error",
         description: error.message || "Failed to update friend request",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Group invitation response mutation
+  const groupInviteResponseMutation = useMutation({
+    mutationFn: async ({ groupId, action }: { groupId: number, action: string }) => {
+      // Get the invitation notification ID first
+      const notificationsResponse = await fetch(`/api/users/${user?.id}/group-notifications?history=false`, {
+        credentials: 'include',
+      });
+      if (!notificationsResponse.ok) throw new Error('Failed to get notifications');
+      
+      const notifications = await notificationsResponse.json();
+      const invitation = notifications.find((n: any) => n.groupId === groupId && n.type === 'invitation');
+      if (!invitation) throw new Error('Invitation not found');
+      
+      // Use the first notification ID as the request ID
+      const requestId = invitation.notificationId || invitation.id;
+      
+      const res = await apiRequest("PUT", `/api/sports-groups/${groupId}/invitation/${requestId}`, { action });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to respond to invitation");
+      }
+      return res.json();
+    },
+    onSuccess: (data, variables) => {
+      // Refresh group notifications
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/group-notifications`] });
+      }
+      toast({
+        title: "Success",
+        description: variables.action === 'accept' ? "You've joined the group!" : "Invitation declined",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Group invitation response error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to respond to invitation",
         variant: "destructive",
       });
     }
@@ -466,39 +517,86 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               </div>
             )}
             
-            {groupNotifications && groupNotifications.map((notification, index) => (
-              <Link 
-                key={`group-${notification.groupId}-${notification.type}-${index}`} 
-                href={`/groups/${notification.groupId}`} 
-                onClick={() => {
-                  markNotificationsViewed.mutate({ groupId: notification.groupId, type: notification.type });
-                  onClose();
-                }}
-              >
-                <div className="p-3 hover:bg-gray-50 border-b cursor-pointer">
-                  <div className="flex items-start">
-                    <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
-                      <Users className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">
-                        {notification.count} {
-                          notification.type === 'message' ? 'new messages' : 
-                          notification.type === 'poll' ? 'new polls' : 
-                          notification.type === 'event' ? 'new events' : 
-                          notification.type === 'invitation' ? 'group invitations' :
-                          'new activities'
-                        }{notification.type === 'invitation' ? ' to' : ' in'}{' '}
-                        <span className="text-primary">{notification.groupName}</span>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Click to view group activity
-                      </p>
+            {groupNotifications && groupNotifications.map((notification, index) => {
+              // For invitations, don't navigate to group but show inline actions
+              if (notification.type === 'invitation') {
+                return (
+                  <div key={`group-${notification.groupId}-${notification.type}-${index}`} className="p-3 hover:bg-gray-50 border-b">
+                    <div className="flex items-start">
+                      <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                        <UserPlus className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">
+                          {notification.count} group invitations to{' '}
+                          <span className="text-primary">{notification.groupName}</span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1 mb-3">
+                          You've been invited to join this group
+                        </p>
+                        
+                        {/* Action buttons for group invitations */}
+                        <div className="flex mt-2 space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
+                            disabled={groupInviteResponseMutation.isPending}
+                            onClick={(e) => handleGroupInviteResponse(notification.groupId, "decline", e)}
+                          >
+                            <XIcon className="h-3 w-3 mr-1" />
+                            Decline
+                          </Button>
+                          <Button 
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 px-2 py-1 h-7 text-xs"
+                            disabled={groupInviteResponseMutation.isPending}
+                            onClick={(e) => handleGroupInviteResponse(notification.groupId, "accept", e)}
+                          >
+                            <CheckIcon className="h-3 w-3 mr-1" />
+                            Accept
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                );
+              } else {
+                // For other notifications, navigate to group
+                return (
+                  <Link 
+                    key={`group-${notification.groupId}-${notification.type}-${index}`} 
+                    href={`/groups/${notification.groupId}`} 
+                    onClick={() => {
+                      markNotificationsViewed.mutate({ groupId: notification.groupId, type: notification.type });
+                      onClose();
+                    }}
+                  >
+                    <div className="p-3 hover:bg-gray-50 border-b cursor-pointer">
+                      <div className="flex items-start">
+                        <div className="h-10 w-10 mr-3 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                          <Users className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">
+                            {notification.count} {
+                              notification.type === 'message' ? 'new messages' : 
+                              notification.type === 'poll' ? 'new polls' : 
+                              notification.type === 'event' ? 'new events' : 
+                              'new activities'
+                            } in{' '}
+                            <span className="text-primary">{notification.groupName}</span>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Click to view group activity
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              }
+            })}
             
           </div>
         ) : (
