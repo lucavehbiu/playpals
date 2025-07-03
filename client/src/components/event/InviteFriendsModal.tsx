@@ -159,13 +159,14 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
         
         if (isGroupEvent && groupMembers) {
           // For group events, only show group members
+          // groupMembers comes from the API as group membership objects with userId
           usersToShow = groupMembers
-            .filter((member: User) => member.id !== currentUserId)
-            .map((member: User) => ({
-              id: member.id,
-              name: member.name || member.username,
-              username: member.username,
-              profileImage: member.profileImage
+            .filter((member: any) => member.userId !== currentUserId)
+            .map((member: any) => ({
+              id: member.userId,
+              name: member.user?.name || member.user?.username || `User ${member.userId}`,
+              username: member.user?.username || `user${member.userId}`,
+              profileImage: member.user?.profileImage || null
             }));
         } else {
           // For regular events, fetch all users
@@ -240,13 +241,13 @@ const InviteFriendsModal: React.FC<InviteFriendsModalProps> = ({
 
   // Filter users based on search
   const filteredPublicUsers = publicUsers.filter(user => 
-    user.name.toLowerCase().includes(allUsersSearch.toLowerCase()) ||
-    user.username.toLowerCase().includes(allUsersSearch.toLowerCase())
+    (user.name?.toLowerCase() || '').includes(allUsersSearch.toLowerCase()) ||
+    (user.username?.toLowerCase() || '').includes(allUsersSearch.toLowerCase())
   );
   
   const filteredTeamMembers = teamMembers.filter(member => 
-    member.name.toLowerCase().includes(teamSearch.toLowerCase()) ||
-    member.username.toLowerCase().includes(teamSearch.toLowerCase())
+    (member.name?.toLowerCase() || '').includes(teamSearch.toLowerCase()) ||
+    (member.username?.toLowerCase() || '').includes(teamSearch.toLowerCase())
   );
 
   // Send invitations
