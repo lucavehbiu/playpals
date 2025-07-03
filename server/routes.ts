@@ -2386,7 +2386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const includeHistory = req.query.history === 'true';
       
       if (includeHistory) {
-        // Get all group notifications for history page
+        // Get all group notifications for history page - ONLY for groups the user is a member of
         const result = await db.execute(sql`
           SELECT 
             sgn.id,
@@ -2400,13 +2400,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
+          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id
           WHERE sgn.user_id = ${userId} 
+          AND sgm.user_id = ${userId}
           ORDER BY sgn.created_at DESC
         `);
 
         res.json(result.rows);
       } else {
-        // Get unread notification counts grouped by group and type
+        // Get unread notification counts grouped by group and type - ONLY for groups the user is a member of
         const result = await db.execute(sql`
           SELECT 
             sgn.group_id as "groupId",
@@ -2415,7 +2417,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sg.name as "groupName"
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
+          JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id
           WHERE sgn.user_id = ${userId} 
+          AND sgm.user_id = ${userId}
           AND sgn.viewed = false
           GROUP BY sgn.group_id, sgn.type, sg.name
         `);
@@ -2436,6 +2440,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.user!.id !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      // Verify user is a member of the group first
+      const membershipCheck = await db.execute(sql`
+        SELECT 1 FROM sports_group_members 
+        WHERE group_id = ${groupId} AND user_id = ${userId}
+      `);
+      
+      if (membershipCheck.rows.length === 0) {
+        return res.status(403).json({ message: 'Not a member of this group' });
       }
 
       // Get unread event notifications for this user and group
@@ -2464,6 +2478,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.user!.id !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      // Verify user is a member of the group first
+      const membershipCheck = await db.execute(sql`
+        SELECT 1 FROM sports_group_members 
+        WHERE group_id = ${groupId} AND user_id = ${userId}
+      `);
+      
+      if (membershipCheck.rows.length === 0) {
+        return res.status(403).json({ message: 'Not a member of this group' });
       }
 
       // Get unread message notifications for this user and group

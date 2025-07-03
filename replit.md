@@ -94,6 +94,8 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 1, 2025. BUGFIX: Fixed participant count calculation - now only counts approved RSVPs, pending invitations don't count as participants
 - July 1, 2025. BUGFIX: Fixed price display formatting - converts cents to dollars properly (1000 cents = $10.00)
 - July 1, 2025. BUGFIX: Fixed group activity indicators - event notifications now properly created and counted alongside message notifications
+- July 3, 2025. CRITICAL SECURITY FIX: Fixed group notification system - users now only receive notifications for groups they are actually members of, preventing unauthorized access to private group information
+- July 3, 2025. FEATURE: Added "Friends of Event Participants" visibility option to Make Public modal for group events - now supports 4 visibility levels: Keep Private, Public to All, Friends of Group Members, and Friends of Event Participants
 
 ## User Preferences
 
