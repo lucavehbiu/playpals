@@ -234,18 +234,29 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   // Group invitation response mutation
   const groupInviteResponseMutation = useMutation({
     mutationFn: async ({ groupId, action }: { groupId: number, action: string }) => {
-      // Get the invitation notification ID first
-      const notificationsResponse = await fetch(`/api/users/${user?.id}/group-notifications?history=false`, {
+      // Get the detailed invitation notifications with IDs
+      const notificationsResponse = await fetch(`/api/users/${user?.id}/group-notifications?history=true`, {
         credentials: 'include',
       });
       if (!notificationsResponse.ok) throw new Error('Failed to get notifications');
       
       const notifications = await notificationsResponse.json();
-      const invitation = notifications.find((n: any) => n.groupId === groupId && n.type === 'invitation');
-      if (!invitation) throw new Error('Invitation not found');
       
-      // Use the first notification ID as the request ID
-      const requestId = invitation.notificationId || invitation.id;
+      // Find any invitation notification for this group (prioritize unviewed)
+      let invitation = notifications.find((n: any) => 
+        n.groupId === groupId && n.type === 'invitation' && n.viewed === false
+      );
+      
+      if (!invitation) {
+        // If no unviewed invitation found, get any invitation for this group
+        invitation = notifications.find((n: any) => 
+          n.groupId === groupId && n.type === 'invitation'
+        );
+      }
+      
+      if (!invitation) throw new Error('No invitation found for this group');
+      
+      const requestId = invitation.id;
       
       const res = await apiRequest("PUT", `/api/sports-groups/${groupId}/invitation/${requestId}`, { action });
       if (!res.ok) {
