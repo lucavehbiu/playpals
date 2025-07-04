@@ -100,7 +100,9 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'analysis'],
     queryFn: async () => {
       console.log('Fetching poll analysis for poll:', poll.id);
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`);
+      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         console.log('Poll analysis fetch failed:', response.status);
         return null;
@@ -116,7 +118,9 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { data: userResponses } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses'],
     queryFn: async () => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`);
+      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         return [];
       }
@@ -133,6 +137,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 

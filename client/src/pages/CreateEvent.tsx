@@ -73,6 +73,7 @@ const CreateEvent = () => {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ eventId: data.id }),
           });
 
@@ -82,6 +83,7 @@ const CreateEvent = () => {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ 
               eventId: data.id, 
               timeSlotId: suggestionId 

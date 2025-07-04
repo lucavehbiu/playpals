@@ -41,7 +41,9 @@ export function PollsTab({ groupId }: PollsTabProps) {
   const { data, isLoading, error } = useQuery<Poll[]>({
     queryKey: ['sports-groups', groupId, 'polls'],
     queryFn: async () => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls`);
+      const response = await fetch(`/api/sports-groups/${groupId}/polls`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch polls');
       }
