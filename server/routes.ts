@@ -53,6 +53,56 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
   next();
 };
 
+// Helper function to check for new event suggestions and notify group members
+async function checkAndNotifyNewSuggestions(pollId: number, groupId: number, responseUserId: number, storage: any) {
+  try {
+    // Get poll details and responses
+    const poll = await storage.getSportsGroupPoll(pollId);
+    if (!poll) return;
+
+    const timeSlots = await storage.getSportsGroupPollTimeSlots(pollId);
+    const responses = await storage.getSportsGroupPollResponses(pollId);
+
+    // Analyze which time slots now meet minimum requirements
+    const newViableSlots = [];
+    for (const slot of timeSlots) {
+      const slotResponses = responses.filter((r: any) => r.timeSlotId === slot.id);
+      const availableCount = slotResponses.filter((r: any) => r.isAvailable === true).length;
+      
+      // Check if this slot now meets minimum and wasn't used for event
+      if (availableCount >= (poll.minMembers || 2) && !slot.usedForEventId) {
+        newViableSlots.push({
+          ...slot,
+          availableCount,
+          dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][slot.dayOfWeek]
+        });
+      }
+    }
+
+    // If we have new viable slots, notify all group members (except the one who just responded)
+    if (newViableSlots.length > 0) {
+      const groupMembers = await storage.getSportsGroupMembers(groupId);
+      const responseUser = await storage.getUser(responseUserId);
+      
+      for (const member of groupMembers) {
+        if (member.userId !== responseUserId) {
+          await storage.createSportsGroupNotification({
+            userId: member.userId,
+            groupId,
+            type: 'event_suggestion',
+            title: 'Event Suggestion Available',
+            message: `${responseUser?.name || 'Someone'} responded to "${poll.title}" - now has enough participants for ${newViableSlots.length} event suggestion${newViableSlots.length > 1 ? 's' : ''}!`,
+            referenceId: pollId,
+            viewed: false
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for new suggestions:', error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   setupAuth(app);
@@ -3221,6 +3271,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Check if this response creates new event suggestions that meet minimum requirements
+      if (newResponses.length > 0) {
+        await checkAndNotifyNewSuggestions(pollId, groupId, authenticatedUser.id, storage);
+      }
+      
       res.json(newResponses);
     } catch (error) {
       console.error('Error submitting poll responses:', error);
@@ -3413,6 +3468,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
     return targetDate.toISOString().split('T')[0];
   }
+
+
+
+
 
   // Create and return the HTTP server
   const httpServer = createServer(app);
