@@ -86,6 +86,10 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   // Get the next week's dates
   const weekDates = getNextWeekDates();
   
+  // Check if poll has expired
+  const isExpired = new Date() > new Date(poll.endDate);
+  const pollIsActive = poll.isActive && !isExpired;
+  
   // User-defined availability state
   const [userAvailability, setUserAvailability] = useState<{
     [day: string]: { startTime: string; endTime: string; available: boolean }[]
@@ -248,8 +252,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 <p className="text-gray-600 mt-1">{poll.description}</p>
               )}
             </div>
-            <Badge variant={poll.isActive ? "default" : "secondary"}>
-              {poll.isActive ? "Active" : "Ended"}
+            <Badge variant={pollIsActive ? "default" : "secondary"}>
+              {pollIsActive ? "Active" : "Expired"}
             </Badge>
           </div>
         </CardHeader>
@@ -277,7 +281,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         </CardContent>
       </Card>
 
-      {poll.isActive && user && (
+      {pollIsActive && user && (
         <Card className={userResponses && userResponses.length > 0 ? "border-green-200 bg-green-50" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -417,6 +421,18 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
               </Dialog>
             </div>
           </CardHeader>
+        </Card>
+      )}
+
+      {/* Show message for expired polls */}
+      {!pollIsActive && (
+        <Card className="border-gray-200 bg-gray-50">
+          <CardContent className="pt-6">
+            <div className="text-center text-gray-600">
+              <p className="font-medium">This poll has expired</p>
+              <p className="text-sm">Availability can no longer be set for this poll.</p>
+            </div>
+          </CardContent>
         </Card>
       )}
 

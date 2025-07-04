@@ -3515,7 +3515,13 @@ export class DatabaseStorage implements IStorage {
       const polls = await db
         .select()
         .from(sportsGroupPolls)
-        .where(eq(sportsGroupPolls.groupId, groupId))
+        .where(
+          and(
+            eq(sportsGroupPolls.groupId, groupId),
+            eq(sportsGroupPolls.isActive, true),
+            sql`${sportsGroupPolls.endDate} > NOW()`
+          )
+        )
         .orderBy(desc(sportsGroupPolls.createdAt));
       return polls;
     } catch (error) {
