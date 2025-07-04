@@ -101,6 +101,7 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 3, 2025. CRITICAL SECURITY FIX: Fixed group notification authorization system - users now only see notifications for groups they're members of OR legitimate pending invitations, preventing unauthorized access to private group notification data
 - July 3, 2025. FEATURE COMPLETE: Fixed group invitation navigation and acceptance system - users can now directly accept/decline group invitations from notification bell with inline Accept/Decline buttons instead of broken navigation to group pages
 - July 4, 2025. FEATURE: Added automatic event suggestion notifications - when a poll receives enough responses to meet minimum requirements, all group members are notified about available event suggestions
+- July 4, 2025. BUGFIX: Enhanced notification system debugging - added comprehensive logging to track when automatic event suggestion notifications are triggered and ensure proper delivery to all group members
 
 ## User Preferences
 
