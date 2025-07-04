@@ -59,11 +59,32 @@ interface UserResponse {
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// Helper function to get next occurrence of each day of the week
+const getNextWeekDates = () => {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  return DAYS_OF_WEEK.map((dayName, dayIndex) => {
+    const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+    
+    return {
+      dayName,
+      date: targetDate,
+      dateString: format(targetDate, 'MMM d')
+    };
+  });
+};
+
 export function PollDetails({ poll, groupId }: PollDetailsProps) {
   console.log('PollDetails component rendering with poll:', poll, 'groupId:', groupId);
   const { user } = useAuth();
   const { toast } = useToast();
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
+  
+  // Get the next week's dates
+  const weekDates = getNextWeekDates();
   
   // User-defined availability state
   const [userAvailability, setUserAvailability] = useState<{
@@ -291,18 +312,21 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                     <DialogTitle className="text-lg">Set Your Availability</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3">
-                    {DAYS_OF_WEEK.map((dayName, dayIndex) => {
-                      const dayAvailability = userAvailability[dayName] || [];
+                    {weekDates.map((dayInfo, dayIndex) => {
+                      const dayAvailability = userAvailability[dayInfo.dayName] || [];
                       
                       return (
                         <div key={dayIndex} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-gray-900 text-sm">{dayName}</h5>
+                            <div>
+                              <h5 className="font-semibold text-gray-900 text-sm">{dayInfo.dayName}</h5>
+                              <p className="text-xs text-gray-500">{dayInfo.dateString}</p>
+                            </div>
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
-                              onClick={() => addTimeSlot(dayName)}
+                              onClick={() => addTimeSlot(dayInfo.dayName)}
                               className="text-xs h-7 px-2"
                             >
                               <Plus className="h-3 w-3 mr-1" />
@@ -320,7 +344,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                                     <Checkbox
                                       checked={slot.available}
                                       onCheckedChange={(checked) => 
-                                        updateTimeSlot(dayName, slotIndex, 'available', checked === true)
+                                        updateTimeSlot(dayInfo.dayName, slotIndex, 'available', checked === true)
                                       }
                                     />
                                     <span className="text-xs text-gray-600">Available</span>
@@ -329,7 +353,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                                         type="button"
                                         size="sm"
                                         variant="ghost"
-                                        onClick={() => removeTimeSlot(dayName, slotIndex)}
+                                        onClick={() => removeTimeSlot(dayInfo.dayName, slotIndex)}
                                         className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
                                       >
                                         <X className="h-3 w-3" />
@@ -340,14 +364,14 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                                     <input
                                       type="time"
                                       value={slot.startTime}
-                                      onChange={(e) => updateTimeSlot(dayName, slotIndex, 'startTime', e.target.value)}
+                                      onChange={(e) => updateTimeSlot(dayInfo.dayName, slotIndex, 'startTime', e.target.value)}
                                       className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
                                     />
                                     <span className="text-xs text-gray-500">to</span>
                                     <input
                                       type="time"
                                       value={slot.endTime}
-                                      onChange={(e) => updateTimeSlot(dayName, slotIndex, 'endTime', e.target.value)}
+                                      onChange={(e) => updateTimeSlot(dayInfo.dayName, slotIndex, 'endTime', e.target.value)}
                                       className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
                                     />
                                   </div>
