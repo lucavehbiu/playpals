@@ -286,66 +286,71 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                     </Button>
                   )}
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Set Your Availability</DialogTitle>
+                    <DialogTitle className="text-lg">Set Your Availability</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {DAYS_OF_WEEK.map((dayName, dayIndex) => {
                       const dayAvailability = userAvailability[dayName] || [];
                       
                       return (
-                        <div key={dayIndex} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h5 className="font-semibold text-gray-900">{dayName}</h5>
+                        <div key={dayIndex} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-gray-900 text-sm">{dayName}</h5>
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
                               onClick={() => addTimeSlot(dayName)}
-                              className="text-xs"
+                              className="text-xs h-7 px-2"
                             >
                               <Plus className="h-3 w-3 mr-1" />
-                              Add Time
+                              Add
                             </Button>
                           </div>
                           
                           {dayAvailability.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Click "Add Time" to set your availability</p>
+                            <p className="text-xs text-gray-500 italic">Click "Add" to set availability</p>
                           ) : (
                             <div className="space-y-2">
                               {dayAvailability.map((slot, slotIndex) => (
-                                <div key={slotIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
-                                  <Checkbox
-                                    checked={slot.available}
-                                    onCheckedChange={(checked) => 
-                                      updateTimeSlot(dayName, slotIndex, 'available', checked === true)
-                                    }
-                                  />
-                                  <div className="flex items-center gap-2 flex-1">
+                                <div key={slotIndex} className="space-y-2 p-2 bg-gray-50 rounded">
+                                  <div className="flex items-center gap-2">
+                                    <Checkbox
+                                      checked={slot.available}
+                                      onCheckedChange={(checked) => 
+                                        updateTimeSlot(dayName, slotIndex, 'available', checked === true)
+                                      }
+                                    />
+                                    <span className="text-xs text-gray-600">Available</span>
+                                    <div className="ml-auto">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => removeTimeSlot(dayName, slotIndex)}
+                                        className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
                                     <input
                                       type="time"
                                       value={slot.startTime}
                                       onChange={(e) => updateTimeSlot(dayName, slotIndex, 'startTime', e.target.value)}
-                                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                      className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
                                     />
-                                    <span className="text-gray-500">to</span>
+                                    <span className="text-xs text-gray-500">to</span>
                                     <input
                                       type="time"
                                       value={slot.endTime}
                                       onChange={(e) => updateTimeSlot(dayName, slotIndex, 'endTime', e.target.value)}
-                                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                      className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
                                     />
                                   </div>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => removeTimeSlot(dayName, slotIndex)}
-                                    className="text-red-500 hover:text-red-700 p-1"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
                                 </div>
                               ))}
                             </div>
@@ -354,20 +359,21 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                       );
                     })}
                     
-                    <div className="pt-4 flex gap-3">
+                    <div className="pt-3 flex flex-col gap-2">
                       <Button 
                         onClick={handleSubmitCustomAvailability}
                         disabled={submitResponsesMutation.isPending}
-                        className="flex-1"
+                        className="w-full text-sm"
+                        size="sm"
                       >
                         {submitResponsesMutation.isPending ? (
                           <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                             Saving...
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-3 w-3" />
                             Save My Availability
                           </div>
                         )}
@@ -376,6 +382,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                         onClick={() => setShowAvailabilityForm(false)}
                         variant="outline"
                         disabled={submitResponsesMutation.isPending}
+                        className="w-full text-sm"
+                        size="sm"
                       >
                         Cancel
                       </Button>
