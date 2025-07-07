@@ -99,6 +99,16 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
         title: 'Score Submitted',
         description: 'Match result has been saved successfully!'
       });
+      
+      // Reset form and close modal
+      setSelectedEvent(null);
+      setTeamA([]);
+      setTeamB([]);
+      setScoreA('');
+      setScoreB('');
+      setStep('select-event');
+      setOpen(false);
+      
       onSuccess();
     },
     onError: (error: any) => {
@@ -262,7 +272,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
       scoreA: scoreANum,
       scoreB: scoreBNum,
       winningSide: winner,
-      completedAt: new Date().toISOString(),
+      completedAt: new Date(),
       status: 'completed'
     };
 
