@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 import { MakePublicModal } from "@/components/event/MakePublicModal";
+import { SubmitScoreModal } from "@/components/groups/SubmitScoreModal";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -24,7 +25,8 @@ import {
   CheckCircle,
   ChevronRight,
   MessageCircle,
-  X
+  X,
+  Trophy
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,9 @@ const EventDetails = () => {
   // State for make public modal
   const [makePublicModalOpen, setMakePublicModalOpen] = useState(false);
   const [currentVisibility, setCurrentVisibility] = useState<string | null>(null);
+  
+  // State for score submission modal
+  const [showSubmitScore, setShowSubmitScore] = useState(false);
   
   // Function to fetch group information for the event
   const fetchGroupInfo = async () => {
@@ -264,6 +269,11 @@ const EventDetails = () => {
     if (!dateString) return "";
     const date = new Date(dateString);
     return format(date, "EEEE, MMMM d, yyyy");
+  };
+
+  // Helper function to check if event is completed (past date)
+  const isEventCompleted = (eventDate: string) => {
+    return new Date(eventDate) < new Date();
   };
   
   // State for image loading
@@ -651,6 +661,32 @@ const EventDetails = () => {
           </div>
         )}
         
+        {/* Submit Score Section for Completed Events */}
+        {eventData && isEventCompleted(eventData.date) && hasRSVPd && groupInfo?.group && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-yellow-100 p-2 rounded-lg">
+                    <Trophy className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Event Completed</h3>
+                    <p className="text-sm text-gray-600">Submit match results for group scoreboard</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowSubmitScore(true)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Submit Score
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Invite Friends Modal */}
         {eventData && (
           <InviteFriendsModal
@@ -670,6 +706,21 @@ const EventDetails = () => {
             eventId={eventData.id}
             currentVisibility={currentVisibility}
             onVisibilityChange={setCurrentVisibility}
+          />
+        )}
+
+        {/* Submit Score Modal */}
+        {eventData && groupInfo?.group && showSubmitScore && (
+          <SubmitScoreModal
+            group={groupInfo.group}
+            onClose={() => setShowSubmitScore(false)}
+            onSuccess={() => {
+              setShowSubmitScore(false);
+              toast({
+                title: "Score Submitted",
+                description: "Match result has been saved to the group scoreboard!",
+              });
+            }}
           />
         )}
         
