@@ -421,6 +421,62 @@ const Profile = () => {
               </p>
             </div>
             
+            {/* Sport-Specific Statistics */}
+            {user.sportStatistics && user.sportStatistics.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold mb-4 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                  </svg>
+                  Sport Statistics
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {user.sportStatistics.map((stat: any, index: number) => (
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 capitalize">{stat.sportType}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          stat.winRate >= 60 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                          stat.winRate >= 40 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {stat.winRate.toFixed(1)}% Win Rate
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-4 gap-3 text-center text-sm">
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{stat.totalMatches}</div>
+                          <div className="text-gray-500 dark:text-gray-400">Matches</div>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
+                          <div className="font-medium text-green-600 dark:text-green-400">{stat.totalWins}</div>
+                          <div className="text-gray-500 dark:text-gray-400">Won</div>
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2">
+                          <div className="font-medium text-red-600 dark:text-red-400">{stat.totalLosses}</div>
+                          <div className="text-gray-500 dark:text-gray-400">Lost</div>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
+                          <div className="font-medium text-gray-600 dark:text-gray-400">{stat.totalDraws}</div>
+                          <div className="text-gray-500 dark:text-gray-400">Draw</div>
+                        </div>
+                      </div>
+                      
+                      {(stat.totalScoreFor > 0 || stat.totalScoreAgainst > 0) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500 dark:text-gray-400">Score Ratio:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{stat.totalScoreFor}:{stat.totalScoreAgainst}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Info sections in golden ratio grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.618fr)' }}>
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700 col-span-1">

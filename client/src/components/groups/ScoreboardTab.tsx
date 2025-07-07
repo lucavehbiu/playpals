@@ -161,49 +161,68 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
     }
 
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {playerStats.slice(0, 6).map((stats: PlayerStatistics, index) => {
-            const winRate = stats.matchesPlayed > 0 
-              ? ((stats.matchesWon / stats.matchesPlayed) * 100).toFixed(1)
-              : '0';
-            
-            return (
-              <Card key={stats.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        #{index + 1}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Rank</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Player</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Matches</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Won</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Lost</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Draw</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Win %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playerStats.map((stats: any, index) => {
+                const winRate = stats.winRate ? stats.winRate.toFixed(1) : '0.0';
+                
+                return (
+                  <tr 
+                    key={stats.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      // Navigate to player profile when clicked
+                      window.location.href = `/profile/${stats.userId}`;
+                    }}
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                          index === 0 ? 'bg-yellow-500' : 
+                          index === 1 ? 'bg-gray-400' : 
+                          index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                          {index + 1}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium">Player {stats.userId}</div>
-                        <div className="text-sm text-gray-500">{stats.sportType}</div>
-                      </div>
-                    </div>
-                    <Badge variant={index < 3 ? 'default' : 'outline'}>
-                      {winRate}% Win Rate
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-green-600">{stats.matchesWon}</div>
-                      <div className="text-xs text-gray-500">Wins</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-red-600">{stats.matchesLost}</div>
-                      <div className="text-xs text-gray-500">Losses</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">{stats.matchesPlayed}</div>
-                      <div className="text-xs text-gray-500">Total</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-medium text-gray-900">{stats.playerName || `Player ${stats.userId}`}</div>
+                      <div className="text-xs text-gray-500">{stats.sportType}</div>
+                    </td>
+                    <td className="py-3 px-2 text-center font-medium">{stats.matchesPlayed}</td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="text-green-600 font-medium">{stats.matchesWon}</span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="text-red-600 font-medium">{stats.matchesLost}</span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="text-gray-600 font-medium">{stats.matchesDrawn}</span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <Badge variant={parseFloat(winRate) >= 60 ? 'default' : 'outline'} className="text-xs">
+                        {winRate}%
+                      </Badge>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     );

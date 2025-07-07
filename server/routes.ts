@@ -47,6 +47,7 @@ import {
   type PlayerStatistics,
   type MatchResultNotification,
   playerRatings,
+  playerStatistics,
   teamJoinRequests
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -200,9 +201,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Get user's sport statistics across all groups
+      const allUserStats = await db.select()
+        .from(playerStatistics)
+        .where(eq(playerStatistics.userId, userId));
+      
+      // Group statistics by sport type
+      const sportStats = allUserStats.reduce((acc: any, stat) => {
+        const sport = stat.sportType;
+        if (!acc[sport]) {
+          acc[sport] = {
+            sportType: sport,
+            totalMatches: 0,
+            totalWins: 0,
+            totalLosses: 0,
+            totalDraws: 0,
+            totalScoreFor: 0,
+            totalScoreAgainst: 0
+          };
+        }
+        
+        acc[sport].totalMatches += stat.matchesPlayed;
+        acc[sport].totalWins += stat.matchesWon;
+        acc[sport].totalLosses += stat.matchesLost;
+        acc[sport].totalDraws += stat.matchesDrawn;
+        acc[sport].totalScoreFor += stat.totalScoreFor || 0;
+        acc[sport].totalScoreAgainst += stat.totalScoreAgainst || 0;
+        
+        return acc;
+      }, {});
+      
+      // Calculate win rates
+      Object.values(sportStats).forEach((stat: any) => {
+        stat.winRate = stat.totalMatches > 0 ? (stat.totalWins / stat.totalMatches) * 100 : 0;
+      });
+      
       // Don't send the password
       const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json({
+        ...userWithoutPassword,
+        sportStatistics: Object.values(sportStats)
+      });
     } catch (error) {
       res.status(500).json({ message: "Error fetching user" });
     }
@@ -3986,7 +4025,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const statistics = await storage.getPlayerStatisticsByGroup(groupId, sportType as string);
-      res.json(statistics);
+      
+      // Enhance statistics with player names and calculated win rate
+      const enhancedStats = await Promise.all(
+        statistics.map(async (stat) => {
+          const player = await storage.getUser(stat.userId);
+          const winRate = stat.matchesPlayed > 0 
+            ? (stat.matchesWon / stat.matchesPlayed) * 100 
+            : 0;
+          
+          return {
+            ...stat,
+            playerName: player?.name || `Player ${stat.userId}`,
+            winRate
+          };
+        })
+      );
+      
+      // Sort by win rate (descending), then by matches won
+      enhancedStats.sort((a, b) => {
+        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        return b.matchesWon - a.matchesWon;
+      });
+      
+      res.json(enhancedStats);
     } catch (error) {
       console.error('Error fetching player statistics:', error);
       res.status(500).json({ error: 'Failed to fetch player statistics' });
