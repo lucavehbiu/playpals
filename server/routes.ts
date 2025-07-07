@@ -3873,6 +3873,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get match result for an event
+  app.get('/api/events/:eventId/match-result', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      
+      const matchResult = await storage.getMatchResultByEvent(eventId);
+      if (!matchResult) {
+        return res.status(404).json({ error: 'No match result found for this event' });
+      }
+      
+      // Get submitter info
+      const submitter = await storage.getUser(matchResult.submittedBy);
+      
+      res.json({
+        ...matchResult,
+        submitter: submitter ? {
+          id: submitter.id,
+          name: submitter.name,
+          username: submitter.username
+        } : null
+      });
+    } catch (error) {
+      console.error('Error fetching match result:', error);
+      res.status(500).json({ error: 'Failed to fetch match result' });
+    }
+  });
+
   // Create/submit match result
   app.post('/api/events/:eventId/match-result', authenticateUser, async (req: Request, res: Response) => {
     try {

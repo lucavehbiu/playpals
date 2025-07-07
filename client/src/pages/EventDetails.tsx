@@ -90,6 +90,7 @@ const EventDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [rsvps, setRsvps] = useState<any[]>([]);
+  const [matchResult, setMatchResult] = useState<any>(null);
   
   // Load event data
   useEffect(() => {
@@ -137,6 +138,21 @@ const EventDetails = () => {
           }
         } catch (rsvpErr) {
           console.error("Error fetching RSVPs:", rsvpErr);
+        }
+        
+        // Also try to fetch match result for this event
+        try {
+          const matchResultResponse = await fetch(`/api/events/${eventId}/match-result`, {
+            credentials: "include"
+          });
+          
+          if (matchResultResponse.ok) {
+            const matchResultData = await matchResultResponse.json();
+            console.log("Match result for event", eventId, ":", matchResultData);
+            setMatchResult(matchResultData);
+          }
+        } catch (matchResultErr) {
+          console.log("No match result found for event:", matchResultErr);
         }
         
       } catch (err) {
@@ -667,26 +683,59 @@ const EventDetails = () => {
         {/* Submit Score Section for Completed Events */}
         {eventData && isEventCompleted(eventData.date) && hasRSVPd && groupInfo?.group && (
           <div className="mb-6">
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-yellow-100 p-2 rounded-lg">
-                    <Trophy className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Event Completed</h3>
-                    <p className="text-sm text-gray-600">Submit match results for group scoreboard</p>
+            {matchResult ? (
+              // Show match result if it exists
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <Trophy className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Match Result</h3>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <div className="text-lg font-bold text-gray-900">
+                          Team A: {matchResult.scoreA} - {matchResult.scoreB} :Team B
+                        </div>
+                        {matchResult.winningSide && (
+                          <Badge variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}>
+                            {matchResult.winningSide === 'A' ? 'Team A Wins' : 
+                             matchResult.winningSide === 'B' ? 'Team B Wins' : 'Draw'}
+                          </Badge>
+                        )}
+                      </div>
+                      {matchResult.submitter && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          Submitted by {matchResult.submitter.name} • {format(new Date(matchResult.completedAt), 'MMM d, yyyy h:mm a')}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <Button 
-                  onClick={() => setShowSubmitScore(true)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                >
-                  <Trophy className="mr-2 h-4 w-4" />
-                  Submit Score
-                </Button>
               </div>
-            </div>
+            ) : (
+              // Show submit score button if no result exists
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-yellow-100 p-2 rounded-lg">
+                      <Trophy className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Event Completed</h3>
+                      <p className="text-sm text-gray-600">Submit match results for group scoreboard</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => setShowSubmitScore(true)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  >
+                    <Trophy className="mr-2 h-4 w-4" />
+                    Submit Score
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
@@ -723,6 +772,8 @@ const EventDetails = () => {
             onClose={() => setShowSubmitScore(false)}
             onSuccess={() => {
               setShowSubmitScore(false);
+              // Refetch the match result to update the display
+              fetchEventData();
               toast({
                 title: "Score Submitted",
                 description: "Match result has been saved to the group scoreboard!",
