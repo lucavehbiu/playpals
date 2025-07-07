@@ -3897,7 +3897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user participated in the event
-      const rsvp = await storage.getRSVPByUserAndEvent(userId, eventId);
+      const rsvp = await storage.getRSVP(eventId, userId);
       if (!rsvp || rsvp.status !== 'approved') {
         return res.status(403).json({ error: 'Only event participants can submit match results' });
       }
