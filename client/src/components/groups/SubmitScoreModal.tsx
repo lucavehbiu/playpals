@@ -264,7 +264,6 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     else if (scoreBNum > scoreANum) winner = 'B';
 
     const matchData = {
-      eventId: selectedEvent.id,
       groupId: group.id,
       sportType: group.sportType,
       teamA: teamA.map(p => p.id),
@@ -272,7 +271,6 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
       scoreA: scoreANum,
       scoreB: scoreBNum,
       winningSide: winner,
-      completedAt: new Date(),
       status: 'completed'
     };
 

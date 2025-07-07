@@ -3886,7 +3886,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parsed = insertMatchResultSchema.safeParse({
         ...req.body,
         eventId,
-        submittedBy: userId
+        submittedBy: userId,
+        completedAt: new Date() // Set completion time on backend
       });
       
       console.log('Validation result:', parsed.success);
