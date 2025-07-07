@@ -132,6 +132,11 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   console.log('Debug - approvedParticipants:', approvedParticipants);
   console.log('Debug - availableMembers:', availableMembers);
   console.log('Debug - playerStats:', playerStats);
+  console.log('Debug - teamA:', teamA);
+  console.log('Debug - teamB:', teamB);
+  console.log('Debug - scoreA:', scoreA);
+  console.log('Debug - scoreB:', scoreB);
+  console.log('Debug - canSubmitScore:', canSubmitScore);
 
   const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
   const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA && scoreB;
@@ -214,7 +219,18 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   };
 
   const handleSubmit = () => {
-    if (!selectedEvent || !canSubmitScore) return;
+    console.log('handleSubmit called');
+    console.log('selectedEvent:', selectedEvent);
+    console.log('canSubmitScore:', canSubmitScore);
+    console.log('teamA length:', teamA.length);
+    console.log('teamB length:', teamB.length);
+    console.log('scoreA:', scoreA);
+    console.log('scoreB:', scoreB);
+    
+    if (!selectedEvent || !canSubmitScore) {
+      console.log('Early return - missing requirements');
+      return;
+    }
 
     const scoreANum = parseInt(scoreA);
     const scoreBNum = parseInt(scoreB);
@@ -236,6 +252,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
       status: 'completed'
     };
 
+    console.log('About to submit matchData:', matchData);
     submitScoreMutation.mutate(matchData);
   };
 
@@ -542,7 +559,16 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                 Back
               </Button>
               <Button 
-                onClick={handleSubmit} 
+                onClick={() => {
+                  console.log('Submit button clicked - canSubmitScore:', canSubmitScore);
+                  console.log('teamA length:', teamA.length);
+                  console.log('teamB length:', teamB.length);
+                  console.log('scoreA:', scoreA);
+                  console.log('scoreB:', scoreB);
+                  if (canSubmitScore) {
+                    handleSubmit();
+                  }
+                }}
                 disabled={!canSubmitScore || submitScoreMutation.isPending}
                 size="sm"
               >
