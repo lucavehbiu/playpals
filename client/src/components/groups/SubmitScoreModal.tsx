@@ -54,6 +54,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   const [teamB, setTeamB] = useState<User[]>([]);
   const [scoreA, setScoreA] = useState('');
   const [scoreB, setScoreB] = useState('');
+  const [autoBalanceEnabled, setAutoBalanceEnabled] = useState(true);
   const [winningSide, setWinningSide] = useState<'A' | 'B' | null>(null);
 
   // Fetch completed group events
@@ -118,10 +119,17 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     !teamB.some(p => p.id === rsvp.user.id)
   );
 
+  // Fetch player statistics for smart team formation
+  const { data: playerStats = [] } = useQuery({
+    queryKey: [`/api/groups/${group.id}/player-statistics`],
+    enabled: !!group.id && autoBalanceEnabled
+  });
+
   console.log('Debug - selectedEvent:', selectedEvent);
   console.log('Debug - eventParticipants:', eventParticipants);
   console.log('Debug - approvedParticipants:', approvedParticipants);
   console.log('Debug - availableMembers:', availableMembers);
+  console.log('Debug - playerStats:', playerStats);
 
   const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
   const canSubmitScore = canFormTeams && scoreA && scoreB;
@@ -141,6 +149,63 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     } else {
       setTeamB(teamB.filter(p => p.id !== userId));
     }
+  };
+
+  // Smart team balancing algorithm
+  const autoBalanceTeams = () => {
+    if (approvedParticipants.length < formation.players * 2) {
+      toast({
+        title: 'Not Enough Players',
+        description: `Need at least ${formation.players * 2} players for auto-balance`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Get player ratings and statistics
+    const playersWithStats = approvedParticipants.map((rsvp: any) => {
+      const stats = playerStats.find((stat: any) => stat.userId === rsvp.user.id);
+      return {
+        ...rsvp,
+        rating: stats?.averageRating || 3.0, // Default rating
+        winRate: stats?.winRate || 0.5,
+        gamesPlayed: stats?.gamesPlayed || 0
+      };
+    });
+
+    // Sort by rating (descending)
+    playersWithStats.sort((a, b) => b.rating - a.rating);
+
+    // Snake draft algorithm for balanced teams
+    const newTeamA: User[] = [];
+    const newTeamB: User[] = [];
+    let teamATotal = 0;
+    let teamBTotal = 0;
+
+    for (let i = 0; i < formation.players * 2; i++) {
+      const player = playersWithStats[i];
+      if (!player) break;
+
+      // Add to team with lower total rating, or alternate if equal
+      if (newTeamA.length < formation.players && 
+          (newTeamB.length >= formation.players || 
+           teamATotal <= teamBTotal || 
+           (teamATotal === teamBTotal && i % 2 === 0))) {
+        newTeamA.push(player.user);
+        teamATotal += player.rating;
+      } else if (newTeamB.length < formation.players) {
+        newTeamB.push(player.user);
+        teamBTotal += player.rating;
+      }
+    }
+
+    setTeamA(newTeamA);
+    setTeamB(newTeamB);
+
+    toast({
+      title: 'Teams Auto-Balanced',
+      description: `Team A: ${teamATotal.toFixed(1)} avg | Team B: ${teamBTotal.toFixed(1)} avg`,
+    });
   };
 
   const handleSubmit = () => {
@@ -229,6 +294,28 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
               <Users className="mx-auto h-8 w-8 text-green-500 mb-2" />
               <h3 className="text-base font-medium mb-1">Form Teams</h3>
               <p className="text-sm text-gray-500">Create {formation.name} teams for {selectedEvent?.title}</p>
+              
+              {/* Auto-Balance Controls */}
+              <div className="flex items-center justify-center space-x-4 mt-3">
+                <Button
+                  onClick={autoBalanceTeams}
+                  disabled={approvedParticipants.length < formation.players * 2}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                  size="sm"
+                >
+                  🤖 Auto-Balance Teams
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTeamA([]);
+                    setTeamB([]);
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear All
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -238,6 +325,14 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                   <CardTitle className="text-center text-blue-600">Team A</CardTitle>
                   <CardDescription className="text-center">
                     {teamA.length}/{formation.players} players
+                    {autoBalanceEnabled && teamA.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Avg: ★{(teamA.reduce((sum, player) => {
+                          const stats = playerStats.find((stat: any) => stat.userId === player.id);
+                          return sum + (stats?.averageRating || 3.0);
+                        }, 0) / teamA.length).toFixed(1)}
+                      </div>
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -266,33 +361,49 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                 <CardHeader className="pb-3">
                   <CardTitle className="text-center">Available Players</CardTitle>
                   <CardDescription className="text-center">
-                    Click to add to teams
+                    {autoBalanceEnabled ? "★ Rating (Games)" : "Click to add to teams"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2 max-h-48 overflow-y-auto">
-                  {availableMembers.map((rsvp: any) => (
-                    <div key={rsvp.user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm font-medium">{rsvp.user.name}</span>
-                      <div className="space-x-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={teamA.length >= formation.players}
-                          onClick={() => addToTeam(rsvp, 'A')}
-                        >
-                          A
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={teamB.length >= formation.players}
-                          onClick={() => addToTeam(rsvp, 'B')}
-                        >
-                          B
-                        </Button>
+                  {availableMembers.map((rsvp: any) => {
+                    const stats = playerStats.find((stat: any) => stat.userId === rsvp.user.id);
+                    const rating = stats?.averageRating || 3.0;
+                    const gamesPlayed = stats?.gamesPlayed || 0;
+                    
+                    return (
+                      <div key={rsvp.user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{rsvp.user.name}</span>
+                            {autoBalanceEnabled && (
+                              <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                <span>★{rating.toFixed(1)}</span>
+                                {gamesPlayed > 0 && <span>({gamesPlayed})</span>}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-x-1 ml-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={teamA.length >= formation.players}
+                            onClick={() => addToTeam(rsvp, 'A')}
+                          >
+                            A
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={teamB.length >= formation.players}
+                            onClick={() => addToTeam(rsvp, 'B')}
+                          >
+                            B
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
 
@@ -302,6 +413,14 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                   <CardTitle className="text-center text-red-600">Team B</CardTitle>
                   <CardDescription className="text-center">
                     {teamB.length}/{formation.players} players
+                    {autoBalanceEnabled && teamB.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Avg: ★{(teamB.reduce((sum, player) => {
+                          const stats = playerStats.find((stat: any) => stat.userId === player.id);
+                          return sum + (stats?.averageRating || 3.0);
+                        }, 0) / teamB.length).toFixed(1)}
+                      </div>
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
