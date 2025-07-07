@@ -38,12 +38,30 @@ export default function GroupEventHistory() {
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
     queryKey: ['/api/sports-groups', groupId],
+    queryFn: async () => {
+      const response = await fetch(`/api/sports-groups/${groupId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch group details');
+      }
+      return response.json();
+    },
     enabled: !!groupId,
   });
 
   // Fetch event history
   const { data: events = [], isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: [`/api/sports-groups/${groupId}/events/history`],
+    queryFn: async () => {
+      const response = await fetch(`/api/sports-groups/${groupId}/events/history`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch event history');
+      }
+      return response.json();
+    },
     enabled: !!groupId,
   });
 
