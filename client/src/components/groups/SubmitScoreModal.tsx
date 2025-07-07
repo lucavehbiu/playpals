@@ -68,6 +68,12 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     enabled: !!group.id
   });
 
+  // Fetch event participants (RSVPs) for team formation
+  const { data: eventParticipants = [] } = useQuery({
+    queryKey: [`/api/rsvps/event/${selectedEvent?.id}`],
+    enabled: !!selectedEvent?.id
+  });
+
   // Submit match result mutation
   const submitScoreMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -104,20 +110,28 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     return eventDate >= weekAgo && eventDate <= new Date();
   });
 
-  const availableMembers = groupMembers.filter((member: any) => 
-    !teamA.some(p => p.id === member.user.id) && 
-    !teamB.some(p => p.id === member.user.id)
+  // Use event participants who accepted the RSVP for team formation
+  const approvedParticipants = eventParticipants.filter((rsvp: any) => rsvp.status === 'approved');
+  
+  const availableMembers = approvedParticipants.filter((rsvp: any) => 
+    !teamA.some(p => p.id === rsvp.user.id) && 
+    !teamB.some(p => p.id === rsvp.user.id)
   );
+
+  console.log('Debug - selectedEvent:', selectedEvent);
+  console.log('Debug - eventParticipants:', eventParticipants);
+  console.log('Debug - approvedParticipants:', approvedParticipants);
+  console.log('Debug - availableMembers:', availableMembers);
 
   const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
   const canSubmitScore = canFormTeams && scoreA && scoreB;
 
-  const addToTeam = (member: any, team: 'A' | 'B') => {
+  const addToTeam = (rsvp: any, team: 'A' | 'B') => {
     const targetTeam = team === 'A' ? teamA : teamB;
     const setTargetTeam = team === 'A' ? setTeamA : setTeamB;
     
     if (targetTeam.length < formation.players) {
-      setTargetTeam([...targetTeam, member.user]);
+      setTargetTeam([...targetTeam, rsvp.user]);
     }
   };
 
@@ -210,14 +224,14 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
 
       case 'form-teams':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="text-center">
-              <Users className="mx-auto h-12 w-12 text-green-500 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Form Teams</h3>
-              <p className="text-gray-500">Create {formation.name} teams for {selectedEvent?.title}</p>
+              <Users className="mx-auto h-8 w-8 text-green-500 mb-2" />
+              <h3 className="text-base font-medium mb-1">Form Teams</h3>
+              <p className="text-sm text-gray-500">Create {formation.name} teams for {selectedEvent?.title}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Team A */}
               <Card>
                 <CardHeader className="pb-3">
@@ -255,16 +269,16 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                     Click to add to teams
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2 max-h-64 overflow-y-auto">
-                  {availableMembers.map((member: any) => (
-                    <div key={member.user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm font-medium">{member.user.name}</span>
+                <CardContent className="space-y-2 max-h-48 overflow-y-auto">
+                  {availableMembers.map((rsvp: any) => (
+                    <div key={rsvp.user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm font-medium">{rsvp.user.name}</span>
                       <div className="space-x-1">
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={teamA.length >= formation.players}
-                          onClick={() => addToTeam(member, 'A')}
+                          onClick={() => addToTeam(rsvp, 'A')}
                         >
                           A
                         </Button>
@@ -272,7 +286,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                           size="sm"
                           variant="outline"
                           disabled={teamB.length >= formation.players}
-                          onClick={() => addToTeam(member, 'B')}
+                          onClick={() => addToTeam(rsvp, 'B')}
                         >
                           B
                         </Button>
