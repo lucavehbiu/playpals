@@ -55,6 +55,8 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   const [scoreA, setScoreA] = useState('');
   const [scoreB, setScoreB] = useState('');
   const [autoBalanceEnabled, setAutoBalanceEnabled] = useState(true);
+  const [teamACollapsed, setTeamACollapsed] = useState(false);
+  const [teamBCollapsed, setTeamBCollapsed] = useState(false);
   const [winningSide, setWinningSide] = useState<'A' | 'B' | null>(null);
 
   // Fetch completed group events
@@ -132,7 +134,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   console.log('Debug - playerStats:', playerStats);
 
   const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
-  const canSubmitScore = canFormTeams && scoreA && scoreB;
+  const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA && scoreB;
 
   const addToTeam = (rsvp: any, team: 'A' | 'B') => {
     const targetTeam = team === 'A' ? teamA : teamB;
@@ -153,10 +155,10 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
 
   // Smart team balancing algorithm
   const autoBalanceTeams = () => {
-    if (approvedParticipants.length < formation.players * 2) {
+    if (approvedParticipants.length < 2) {
       toast({
         title: 'Not Enough Players',
-        description: `Need at least ${formation.players * 2} players for auto-balance`,
+        description: `Need at least 2 players for auto-balance`,
         variant: 'destructive'
       });
       return;
@@ -182,18 +184,21 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     let teamATotal = 0;
     let teamBTotal = 0;
 
-    for (let i = 0; i < formation.players * 2; i++) {
+    // Calculate max players per team based on available players
+    const maxPlayersPerTeam = Math.floor(approvedParticipants.length / 2);
+
+    for (let i = 0; i < approvedParticipants.length; i++) {
       const player = playersWithStats[i];
       if (!player) break;
 
       // Add to team with lower total rating, or alternate if equal
-      if (newTeamA.length < formation.players && 
-          (newTeamB.length >= formation.players || 
+      if (newTeamA.length < maxPlayersPerTeam && 
+          (newTeamB.length >= maxPlayersPerTeam || 
            teamATotal <= teamBTotal || 
            (teamATotal === teamBTotal && i % 2 === 0))) {
         newTeamA.push(player.user);
         teamATotal += player.rating;
-      } else if (newTeamB.length < formation.players) {
+      } else if (newTeamB.length < maxPlayersPerTeam) {
         newTeamB.push(player.user);
         teamBTotal += player.rating;
       }
@@ -299,11 +304,11 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
               <div className="flex items-center justify-center space-x-4 mt-3">
                 <Button
                   onClick={autoBalanceTeams}
-                  disabled={approvedParticipants.length < formation.players * 2}
+                  disabled={approvedParticipants.length < 2}
                   className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                   size="sm"
                 >
-                  🤖 Auto-Balance Teams
+                  Auto-Balance Teams
                 </Button>
                 <Button
                   onClick={() => {
@@ -321,10 +326,12 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Team A */}
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-center text-blue-600">Team A</CardTitle>
+                <CardHeader className="pb-3 cursor-pointer" onClick={() => setTeamACollapsed(!teamACollapsed)}>
+                  <CardTitle className="text-center text-blue-600 flex items-center justify-center">
+                    Team A {teamACollapsed ? '▼' : '▲'}
+                  </CardTitle>
                   <CardDescription className="text-center">
-                    {teamA.length}/{formation.players} players
+                    {teamA.length} players
                     {autoBalanceEnabled && teamA.length > 0 && (
                       <div className="text-xs text-gray-500 mt-1">
                         Avg: ★{(teamA.reduce((sum, player) => {
@@ -335,25 +342,27 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                     )}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {teamA.map((player) => (
-                    <div key={player.id} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                      <span className="text-sm font-medium">{player.name}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeFromTeam(player.id, 'A')}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                  {Array.from({ length: formation.players - teamA.length }).map((_, idx) => (
-                    <div key={idx} className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
-                      Empty slot
-                    </div>
-                  ))}
-                </CardContent>
+                {!teamACollapsed && (
+                  <CardContent className="space-y-2">
+                    {teamA.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                        <span className="text-sm font-medium">{player.name}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeFromTeam(player.id, 'A')}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                    {teamA.length === 0 && (
+                      <div className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
+                        Click players to add
+                      </div>
+                    )}
+                  </CardContent>
+                )}
               </Card>
 
               {/* Available Players */}
@@ -409,10 +418,12 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
 
               {/* Team B */}
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-center text-red-600">Team B</CardTitle>
+                <CardHeader className="pb-3 cursor-pointer" onClick={() => setTeamBCollapsed(!teamBCollapsed)}>
+                  <CardTitle className="text-center text-red-600 flex items-center justify-center">
+                    Team B {teamBCollapsed ? '▼' : '▲'}
+                  </CardTitle>
                   <CardDescription className="text-center">
-                    {teamB.length}/{formation.players} players
+                    {teamB.length} players
                     {autoBalanceEnabled && teamB.length > 0 && (
                       <div className="text-xs text-gray-500 mt-1">
                         Avg: ★{(teamB.reduce((sum, player) => {
@@ -423,25 +434,27 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                     )}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {teamB.map((player) => (
-                    <div key={player.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                      <span className="text-sm font-medium">{player.name}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeFromTeam(player.id, 'B')}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                  {Array.from({ length: formation.players - teamB.length }).map((_, idx) => (
-                    <div key={idx} className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
-                      Empty slot
-                    </div>
-                  ))}
-                </CardContent>
+                {!teamBCollapsed && (
+                  <CardContent className="space-y-2">
+                    {teamB.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                        <span className="text-sm font-medium">{player.name}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeFromTeam(player.id, 'B')}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                    {teamB.length === 0 && (
+                      <div className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
+                        Click players to add
+                      </div>
+                    )}
+                  </CardContent>
+                )}
               </Card>
             </div>
 
@@ -451,7 +464,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
               </Button>
               <Button 
                 onClick={() => setStep('enter-score')} 
-                disabled={!canFormTeams}
+                disabled={teamA.length === 0 || teamB.length === 0}
               >
                 Next: Enter Score
               </Button>
