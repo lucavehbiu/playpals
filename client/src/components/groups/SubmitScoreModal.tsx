@@ -474,84 +474,77 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
 
       case 'enter-score':
         return (
-          <div className="space-y-6">
+          <div className="space-y-3">
             <div className="text-center">
-              <Trophy className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Enter Match Score</h3>
-              <p className="text-gray-500">Record the final {scoringType} for {selectedEvent?.title}</p>
+              <Trophy className="mx-auto h-6 w-6 text-yellow-500 mb-1" />
+              <h3 className="text-base font-medium">Enter Score</h3>
+              <p className="text-xs text-gray-500">{selectedEvent?.title}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 items-center">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <h4 className="font-medium text-blue-600 mb-2">Team A</h4>
-                  <div className="space-y-1">
-                    {teamA.map((player) => (
-                      <div key={player.id} className="text-sm text-gray-600">{player.name}</div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-center space-x-4">
-                  <div className="text-center">
-                    <Label htmlFor="scoreA">Team A {scoringType}</Label>
-                    <Input
-                      id="scoreA"
-                      type="number"
-                      min="0"
-                      value={scoreA}
-                      onChange={(e) => setScoreA(e.target.value)}
-                      className="w-20 text-center text-lg font-bold"
-                    />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-400">-</div>
-                  <div className="text-center">
-                    <Label htmlFor="scoreB">Team B {scoringType}</Label>
-                    <Input
-                      id="scoreB"
-                      type="number"
-                      min="0"
-                      value={scoreB}
-                      onChange={(e) => setScoreB(e.target.value)}
-                      className="w-20 text-center text-lg font-bold"
-                    />
-                  </div>
+            {/* Score Input Section */}
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="grid grid-cols-3 gap-3 items-center">
+                <div className="text-center">
+                  <div className="text-sm font-medium text-blue-600 mb-1">Team A</div>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={scoreA}
+                    onChange={(e) => setScoreA(e.target.value)}
+                    className="text-center text-lg font-bold"
+                  />
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-lg font-bold text-gray-400 mb-1">VS</div>
+                  {scoreA && scoreB && (
+                    <Badge variant={
+                      parseInt(scoreA) > parseInt(scoreB) ? 'default' :
+                      parseInt(scoreB) > parseInt(scoreA) ? 'destructive' : 'secondary'
+                    } className="text-xs">
+                      {parseInt(scoreA) > parseInt(scoreB) ? 'A Wins' :
+                       parseInt(scoreB) > parseInt(scoreA) ? 'B Wins' : 'Draw'}
+                    </Badge>
+                  )}
                 </div>
 
-                {scoreA && scoreB && (
-                  <div className="text-center">
-                    <Badge variant={
-                      parseInt(scoreA) > parseInt(scoreB) ? 'default' : 
-                      parseInt(scoreB) > parseInt(scoreA) ? 'secondary' : 'outline'
-                    }>
-                      {parseInt(scoreA) > parseInt(scoreB) ? 'Team A Wins' :
-                       parseInt(scoreB) > parseInt(scoreA) ? 'Team B Wins' : 'Draw'}
-                    </Badge>
-                  </div>
-                )}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-red-600 mb-1">Team B</div>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={scoreB}
+                    onChange={(e) => setScoreB(e.target.value)}
+                    className="text-center text-lg font-bold"
+                  />
+                </div>
               </div>
-
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <h4 className="font-medium text-red-600 mb-2">Team B</h4>
-                  <div className="space-y-1">
-                    {teamB.map((player) => (
-                      <div key={player.id} className="text-sm text-gray-600">{player.name}</div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('form-teams')}>
+            {/* Teams Summary */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-blue-50 p-2 rounded text-center">
+                <div className="text-xs font-medium text-blue-600 mb-1">Team A ({teamA.length})</div>
+                <div className="text-xs text-gray-600">
+                  {teamA.map(p => p.name).join(', ')}
+                </div>
+              </div>
+              <div className="bg-red-50 p-2 rounded text-center">
+                <div className="text-xs font-medium text-red-600 mb-1">Team B ({teamB.length})</div>
+                <div className="text-xs text-gray-600">
+                  {teamB.map(p => p.name).join(', ')}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-2">
+              <Button variant="outline" onClick={() => setStep('form-teams')} size="sm">
                 Back
               </Button>
               <Button 
                 onClick={handleSubmit} 
                 disabled={!canSubmitScore || submitScoreMutation.isPending}
+                size="sm"
               >
                 {submitScoreMutation.isPending ? 'Submitting...' : 'Submit Score'}
               </Button>
