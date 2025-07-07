@@ -719,6 +719,7 @@ const EventDetails = () => {
         {eventData && groupInfo?.group && showSubmitScore && (
           <SubmitScoreModal
             group={groupInfo.group}
+            preSelectedEvent={eventData}
             onClose={() => setShowSubmitScore(false)}
             onSuccess={() => {
               setShowSubmitScore(false);

@@ -18,6 +18,7 @@ interface SubmitScoreModalProps {
   group: SportsGroup;
   onClose: () => void;
   onSuccess: () => void;
+  preSelectedEvent?: Event; // Optional pre-selected event to skip event selection
 }
 
 const SPORT_SCORING_TYPES = {
@@ -41,12 +42,14 @@ const TEAM_FORMATIONS = {
   other: { players: 2, name: '2v2' }
 } as const;
 
-export function SubmitScoreModal({ group, onClose, onSuccess }: SubmitScoreModalProps) {
+export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }: SubmitScoreModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [step, setStep] = useState<'select-event' | 'form-teams' | 'enter-score'>('select-event');
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [step, setStep] = useState<'select-event' | 'form-teams' | 'enter-score'>(
+    preSelectedEvent ? 'form-teams' : 'select-event'
+  );
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(preSelectedEvent || null);
   const [teamA, setTeamA] = useState<User[]>([]);
   const [teamB, setTeamB] = useState<User[]>([]);
   const [scoreA, setScoreA] = useState('');
