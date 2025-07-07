@@ -708,7 +708,7 @@ export default function GroupDetails() {
                             variant="outline" 
                             size="sm"
                             onClick={() => {
-                              window.location.href = `/events/${event.id}`;
+                              window.location.href = `/events/${event.id}?from=group&groupId=${groupId}`;
                             }}
                             className={isNewEvent ? 'border-blue-300' : ''}
                           >

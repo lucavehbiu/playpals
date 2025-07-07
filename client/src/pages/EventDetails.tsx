@@ -268,10 +268,16 @@ const EventDetails = () => {
     // Check URL for a previous page parameter
     const params = new URLSearchParams(window.location.search);
     const from = params.get('from');
+    const groupId = params.get('groupId');
     
     // Route based on where we came from
     if (from === 'myevents') {
       setLocation("/myevents");
+    } else if (from === 'group' && groupId) {
+      setLocation(`/groups/${groupId}`);
+    } else if (groupInfo?.group) {
+      // If event is part of a group but no explicit 'from' param, go to group
+      setLocation(`/groups/${groupInfo.group.id}`);
     } else {
       // Default to discover
       setLocation("/discover");
