@@ -984,3 +984,114 @@ export type InsertSkillMatch = z.infer<typeof insertSkillMatchSchema>;
 
 export type SkillMatchMode = typeof skillMatchModes[number];
 export type DistancePreference = typeof distancePreferences[number];
+
+// Sport-specific scoring systems and match types
+export const matchResultStatuses = ["pending", "completed", "disputed"] as const;
+export const sportScoringTypes = {
+  football: "goals", // 2-1, 3-0, etc.
+  soccer: "goals",   // Same as football
+  tennis: "sets",    // 6-4, 6-2 (games per set)
+  padel: "sets",     // Same as tennis
+  basketball: "points", // 82-75, etc.
+  volleyball: "sets", // 3-1 (sets won)
+  baseball: "runs",   // 7-3, etc.
+  other: "points"     // Generic points system
+} as const;
+
+// Match Results table - stores the outcome of completed events
+export const matchResults = pgTable("match_results", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  sportType: varchar("sport_type", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  // Store the score and team composition as JSON for flexibility
+  teamA: jsonb("team_a").notNull(), // Array of user IDs
+  teamB: jsonb("team_b").notNull(), // Array of user IDs  
+  scoreA: integer("score_a").default(0),
+  scoreB: integer("score_b").default(0),
+  // For sports with more complex scoring (tennis sets, etc.)
+  detailedScore: jsonb("detailed_score"), // Sport-specific scoring details
+  winningSide: varchar("winning_side", { length: 1 }), // 'A', 'B', or null for draw
+  completedAt: timestamp("completed_at"),
+  submittedBy: integer("submitted_by").notNull(), // User who submitted the result
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Match Participants table - tracks individual performance per match
+export const matchParticipants = pgTable("match_participants", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  userId: integer("user_id").notNull(),
+  team: varchar("team", { length: 1 }).notNull(), // 'A' or 'B'
+  isWinner: boolean("is_winner").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueMatchUser: unique().on(table.matchId, table.userId),
+}));
+
+// Player Statistics table - aggregated stats per sport per group
+export const playerStatistics = pgTable("player_statistics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  sportType: varchar("sport_type", { length: 50 }).notNull(),
+  matchesPlayed: integer("matches_played").default(0),
+  matchesWon: integer("matches_won").default(0),
+  matchesLost: integer("matches_lost").default(0),
+  matchesDrawn: integer("matches_drawn").default(0),
+  totalScoreFor: integer("total_score_for").default(0),
+  totalScoreAgainst: integer("total_score_against").default(0),
+  lastPlayed: timestamp("last_played"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserGroupSport: unique().on(table.userId, table.groupId, table.sportType),
+}));
+
+// Match Result Notifications table - for notifying players to submit scores
+export const matchResultNotifications = pgTable("match_result_notifications", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  userId: integer("user_id").notNull(),
+  notificationType: varchar("notification_type", { length: 50 }).notNull(), // "submit_score", "score_submitted"
+  viewed: boolean("viewed").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Schema definitions for scoreboard tables
+export const insertMatchResultSchema = createInsertSchema(matchResults).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMatchParticipantSchema = createInsertSchema(matchParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPlayerStatisticsSchema = createInsertSchema(playerStatistics).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertMatchResultNotificationSchema = createInsertSchema(matchResultNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for scoreboard system
+export type MatchResult = typeof matchResults.$inferSelect;
+export type InsertMatchResult = z.infer<typeof insertMatchResultSchema>;
+
+export type MatchParticipant = typeof matchParticipants.$inferSelect;
+export type InsertMatchParticipant = z.infer<typeof insertMatchParticipantSchema>;
+
+export type PlayerStatistics = typeof playerStatistics.$inferSelect;
+export type InsertPlayerStatistics = z.infer<typeof insertPlayerStatisticsSchema>;
+
+export type MatchResultNotification = typeof matchResultNotifications.$inferSelect;
+export type InsertMatchResultNotification = z.infer<typeof insertMatchResultNotificationSchema>;
+
+export type MatchResultStatus = typeof matchResultStatuses[number];
+export type SportScoringType = keyof typeof sportScoringTypes;

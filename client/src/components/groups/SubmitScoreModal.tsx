@@ -1,0 +1,432 @@
+import React, { useState, useEffect } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/use-auth';
+import { Users, Trophy, Target, AlertCircle } from 'lucide-react';
+import type { SportsGroup, Event, User } from '@shared/schema';
+
+interface SubmitScoreModalProps {
+  group: SportsGroup;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const SPORT_SCORING_TYPES = {
+  football: 'goals',
+  soccer: 'goals',
+  tennis: 'sets',
+  padel: 'sets',
+  basketball: 'points',
+  volleyball: 'sets',
+  baseball: 'runs',
+  other: 'points'
+} as const;
+
+const TEAM_FORMATIONS = {
+  padel: { players: 2, name: '2v2' },
+  tennis: { players: 2, name: '2v2' },
+  football: { players: 5, name: '5v5' },
+  soccer: { players: 5, name: '5v5' },
+  basketball: { players: 5, name: '5v5' },
+  volleyball: { players: 6, name: '6v6' },
+  other: { players: 2, name: '2v2' }
+} as const;
+
+export function SubmitScoreModal({ group, onClose, onSuccess }: SubmitScoreModalProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const [step, setStep] = useState<'select-event' | 'form-teams' | 'enter-score'>('select-event');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [teamA, setTeamA] = useState<User[]>([]);
+  const [teamB, setTeamB] = useState<User[]>([]);
+  const [scoreA, setScoreA] = useState('');
+  const [scoreB, setScoreB] = useState('');
+  const [winningSide, setWinningSide] = useState<'A' | 'B' | null>(null);
+
+  // Fetch completed group events
+  const { data: groupEvents = [] } = useQuery({
+    queryKey: [`/api/groups/${group.id}/events/history`],
+    enabled: !!group.id
+  });
+
+  // Fetch group members for team formation
+  const { data: groupMembers = [] } = useQuery({
+    queryKey: [`/api/groups/${group.id}/members`],
+    enabled: !!group.id
+  });
+
+  // Submit match result mutation
+  const submitScoreMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest(`/api/events/${selectedEvent?.id}/match-result`, {
+        method: 'POST',
+        body: data
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Score Submitted',
+        description: 'Match result has been saved successfully!'
+      });
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit score',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const sportType = group.sportType || 'other';
+  const formation = TEAM_FORMATIONS[sportType as keyof typeof TEAM_FORMATIONS] || TEAM_FORMATIONS.other;
+  const scoringType = SPORT_SCORING_TYPES[sportType as keyof typeof SPORT_SCORING_TYPES] || 'points';
+
+  const availableEvents = groupEvents.filter((event: Event) => {
+    // Only show events from the past 7 days that don't have results yet
+    const eventDate = new Date(event.dateTime);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return eventDate >= weekAgo && eventDate <= new Date();
+  });
+
+  const availableMembers = groupMembers.filter((member: any) => 
+    !teamA.some(p => p.id === member.user.id) && 
+    !teamB.some(p => p.id === member.user.id)
+  );
+
+  const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
+  const canSubmitScore = canFormTeams && scoreA && scoreB;
+
+  const addToTeam = (member: any, team: 'A' | 'B') => {
+    const targetTeam = team === 'A' ? teamA : teamB;
+    const setTargetTeam = team === 'A' ? setTeamA : setTeamB;
+    
+    if (targetTeam.length < formation.players) {
+      setTargetTeam([...targetTeam, member.user]);
+    }
+  };
+
+  const removeFromTeam = (userId: number, team: 'A' | 'B') => {
+    if (team === 'A') {
+      setTeamA(teamA.filter(p => p.id !== userId));
+    } else {
+      setTeamB(teamB.filter(p => p.id !== userId));
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!selectedEvent || !canSubmitScore) return;
+
+    const scoreANum = parseInt(scoreA);
+    const scoreBNum = parseInt(scoreB);
+    
+    let winner: 'A' | 'B' | null = null;
+    if (scoreANum > scoreBNum) winner = 'A';
+    else if (scoreBNum > scoreANum) winner = 'B';
+
+    const matchData = {
+      eventId: selectedEvent.id,
+      groupId: group.id,
+      sportType: group.sportType,
+      teamA: teamA.map(p => p.id),
+      teamB: teamB.map(p => p.id),
+      scoreA: scoreANum,
+      scoreB: scoreBNum,
+      winningSide: winner,
+      completedAt: new Date().toISOString(),
+      status: 'completed'
+    };
+
+    submitScoreMutation.mutate(matchData);
+  };
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 'select-event':
+        return (
+          <div className="space-y-4">
+            <div className="text-center">
+              <Target className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Select Event</h3>
+              <p className="text-gray-500">Choose which recent event you want to submit scores for</p>
+            </div>
+
+            {availableEvents.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-gray-500">No recent events found to submit scores for.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {availableEvents.map((event: Event) => (
+                  <Card 
+                    key={event.id} 
+                    className={`cursor-pointer transition-colors ${
+                      selectedEvent?.id === event.id ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{event.title}</h4>
+                          <p className="text-sm text-gray-500">
+                            {new Date(event.dateTime).toLocaleDateString()} at {event.location}
+                          </p>
+                        </div>
+                        <Badge variant="outline">{group.sportType}</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => setStep('form-teams')} 
+                disabled={!selectedEvent}
+              >
+                Next: Form Teams
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'form-teams':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <Users className="mx-auto h-12 w-12 text-green-500 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Form Teams</h3>
+              <p className="text-gray-500">Create {formation.name} teams for {selectedEvent?.title}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Team A */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-center text-blue-600">Team A</CardTitle>
+                  <CardDescription className="text-center">
+                    {teamA.length}/{formation.players} players
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {teamA.map((player) => (
+                    <div key={player.id} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="text-sm font-medium">{player.name}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeFromTeam(player.id, 'A')}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  {Array.from({ length: formation.players - teamA.length }).map((_, idx) => (
+                    <div key={idx} className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
+                      Empty slot
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Available Players */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-center">Available Players</CardTitle>
+                  <CardDescription className="text-center">
+                    Click to add to teams
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2 max-h-64 overflow-y-auto">
+                  {availableMembers.map((member: any) => (
+                    <div key={member.user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm font-medium">{member.user.name}</span>
+                      <div className="space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={teamA.length >= formation.players}
+                          onClick={() => addToTeam(member, 'A')}
+                        >
+                          A
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={teamB.length >= formation.players}
+                          onClick={() => addToTeam(member, 'B')}
+                        >
+                          B
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Team B */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-center text-red-600">Team B</CardTitle>
+                  <CardDescription className="text-center">
+                    {teamB.length}/{formation.players} players
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {teamB.map((player) => (
+                    <div key={player.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                      <span className="text-sm font-medium">{player.name}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeFromTeam(player.id, 'B')}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  {Array.from({ length: formation.players - teamB.length }).map((_, idx) => (
+                    <div key={idx} className="p-2 border-2 border-dashed border-gray-200 rounded text-center text-gray-400 text-sm">
+                      Empty slot
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep('select-event')}>
+                Back
+              </Button>
+              <Button 
+                onClick={() => setStep('enter-score')} 
+                disabled={!canFormTeams}
+              >
+                Next: Enter Score
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'enter-score':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <Trophy className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Enter Match Score</h3>
+              <p className="text-gray-500">Record the final {scoringType} for {selectedEvent?.title}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 items-center">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <h4 className="font-medium text-blue-600 mb-2">Team A</h4>
+                  <div className="space-y-1">
+                    {teamA.map((player) => (
+                      <div key={player.id} className="text-sm text-gray-600">{player.name}</div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="text-center">
+                    <Label htmlFor="scoreA">Team A {scoringType}</Label>
+                    <Input
+                      id="scoreA"
+                      type="number"
+                      min="0"
+                      value={scoreA}
+                      onChange={(e) => setScoreA(e.target.value)}
+                      className="w-20 text-center text-lg font-bold"
+                    />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-400">-</div>
+                  <div className="text-center">
+                    <Label htmlFor="scoreB">Team B {scoringType}</Label>
+                    <Input
+                      id="scoreB"
+                      type="number"
+                      min="0"
+                      value={scoreB}
+                      onChange={(e) => setScoreB(e.target.value)}
+                      className="w-20 text-center text-lg font-bold"
+                    />
+                  </div>
+                </div>
+
+                {scoreA && scoreB && (
+                  <div className="text-center">
+                    <Badge variant={
+                      parseInt(scoreA) > parseInt(scoreB) ? 'default' : 
+                      parseInt(scoreB) > parseInt(scoreA) ? 'secondary' : 'outline'
+                    }>
+                      {parseInt(scoreA) > parseInt(scoreB) ? 'Team A Wins' :
+                       parseInt(scoreB) > parseInt(scoreA) ? 'Team B Wins' : 'Draw'}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <h4 className="font-medium text-red-600 mb-2">Team B</h4>
+                  <div className="space-y-1">
+                    {teamB.map((player) => (
+                      <div key={player.id} className="text-sm text-gray-600">{player.name}</div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep('form-teams')}>
+                Back
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!canSubmitScore || submitScoreMutation.isPending}
+              >
+                {submitScoreMutation.isPending ? 'Submitting...' : 'Submit Score'}
+              </Button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Submit Match Result</DialogTitle>
+          <DialogDescription>
+            Record the results of a completed {group.name} event
+          </DialogDescription>
+        </DialogHeader>
+
+        {renderStepContent()}
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -10,12 +10,13 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown, Send } from "lucide-react";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown, Send, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { PollsTab } from "@/components/groups/PollsTab";
+import { ScoreboardTab } from "@/components/groups/ScoreboardTab";
 import type { SportsGroup, SportsGroupMember, User } from "@/lib/types";
 
 interface GroupMessage {
@@ -37,7 +38,7 @@ export default function GroupDetails() {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [showMembers, setShowMembers] = useState(false);
-  const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'settings'>('feed');
+  const [activeTab, setActiveTab] = useState<'feed' | 'events' | 'polls' | 'scoreboard' | 'settings'>('feed');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearchQuery, setInviteSearchQuery] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
@@ -45,7 +46,7 @@ export default function GroupDetails() {
   const groupId = parseInt(id || "0");
 
   // Manual notification clearing - only when user explicitly interacts
-  const handleTabChange = (tab: 'feed' | 'events' | 'polls' | 'settings') => {
+  const handleTabChange = (tab: 'feed' | 'events' | 'polls' | 'scoreboard' | 'settings') => {
     setActiveTab(tab);
     if (groupId && user) {
       if (tab === 'polls') {
@@ -339,7 +340,7 @@ export default function GroupDetails() {
 
       {/* Navigation Tabs */}
       <div className="mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-gray-50 rounded-lg">
           <Button 
             variant={activeTab === 'feed' ? 'default' : 'outline'}
             size="sm" 
@@ -381,6 +382,15 @@ export default function GroupDetails() {
                 {getNotificationCount(groupId, 'poll')}
               </Badge>
             )}
+          </Button>
+          <Button 
+            variant={activeTab === 'scoreboard' ? 'default' : 'outline'}
+            size="sm" 
+            className="flex items-center justify-center gap-2"
+            onClick={() => handleTabChange('scoreboard')}
+          >
+            <Trophy className="h-4 w-4" />
+            <span>Scoreboard</span>
           </Button>
           {isAdmin && (
             <Button 
@@ -732,6 +742,11 @@ export default function GroupDetails() {
         {/* Polls Tab */}
         {activeTab === 'polls' && (
           <PollsTab groupId={groupId} />
+        )}
+
+        {/* Scoreboard Tab */}
+        {activeTab === 'scoreboard' && (
+          <ScoreboardTab group={group} />
         )}
 
         {/* Settings Tab */}

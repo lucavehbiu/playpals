@@ -22,7 +22,11 @@ import {
   sportsGroupPollResponses, type SportsGroupPollResponse, type InsertSportsGroupPollResponse,
   sportsGroupJoinRequests, type SportsGroupJoinRequest, type InsertSportsGroupJoinRequest,
   skillMatcherPreferences, type SkillMatcherPreference, type InsertSkillMatcherPreference,
-  skillMatches, type SkillMatch, type InsertSkillMatch
+  skillMatches, type SkillMatch, type InsertSkillMatch,
+  matchResults, type MatchResult, type InsertMatchResult,
+  matchParticipants, type MatchParticipant, type InsertMatchParticipant,
+  playerStatistics, type PlayerStatistics, type InsertPlayerStatistics,
+  matchResultNotifications, type MatchResultNotification, type InsertMatchResultNotification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, like, avg, sql, gte, lt } from "drizzle-orm";
@@ -216,6 +220,32 @@ export interface IStorage {
   deleteSkillMatch(id: number): Promise<boolean>;
   generateSkillMatches(userId: number, sportType: string): Promise<any[]>;
   findCompatiblePlayers(userId: number, sportType: string): Promise<any[]>;
+
+  // Scoreboard/Match Results methods
+  getMatchResult(id: number): Promise<MatchResult | undefined>;
+  getMatchResultByEvent(eventId: number): Promise<MatchResult | undefined>;
+  getMatchResultsByGroup(groupId: number): Promise<MatchResult[]>;
+  createMatchResult(result: InsertMatchResult): Promise<MatchResult>;
+  updateMatchResult(id: number, resultData: Partial<MatchResult>): Promise<MatchResult | undefined>;
+  deleteMatchResult(id: number): Promise<boolean>;
+  
+  // Match Participants methods
+  getMatchParticipants(matchId: number): Promise<MatchParticipant[]>;
+  createMatchParticipant(participant: InsertMatchParticipant): Promise<MatchParticipant>;
+  updateMatchParticipant(id: number, participantData: Partial<MatchParticipant>): Promise<MatchParticipant | undefined>;
+  deleteMatchParticipant(id: number): Promise<boolean>;
+
+  // Player Statistics methods
+  getPlayerStatistics(userId: number, groupId: number, sportType: string): Promise<PlayerStatistics | undefined>;
+  getPlayerStatisticsByGroup(groupId: number, sportType?: string): Promise<PlayerStatistics[]>;
+  createPlayerStatistics(stats: InsertPlayerStatistics): Promise<PlayerStatistics>;
+  updatePlayerStatistics(id: number, statsData: Partial<PlayerStatistics>): Promise<PlayerStatistics | undefined>;
+  deletePlayerStatistics(id: number): Promise<boolean>;
+
+  // Match Result Notifications methods
+  getMatchResultNotifications(userId: number): Promise<MatchResultNotification[]>;
+  createMatchResultNotification(notification: InsertMatchResultNotification): Promise<MatchResultNotification>;
+  markMatchResultNotificationViewed(id: number): Promise<boolean>;
 
   // Session store
   sessionStore: session.Store;
@@ -4129,6 +4159,164 @@ export class DatabaseStorage implements IStorage {
   async createSportsGroupJoinRequest(request: any): Promise<any> { return request; }
   async updateSportsGroupJoinRequest(id: number, requestData: any): Promise<any> { return requestData; }
   async deleteSportsGroupJoinRequest(id: number): Promise<boolean> { return true; }
+
+  // Scoreboard/Match Results methods
+  async getMatchResult(id: number): Promise<MatchResult | undefined> {
+    const [result] = await db.select().from(matchResults).where(eq(matchResults.id, id));
+    return result;
+  }
+
+  async getMatchResultByEvent(eventId: number): Promise<MatchResult | undefined> {
+    const [result] = await db.select().from(matchResults).where(eq(matchResults.eventId, eventId));
+    return result;
+  }
+
+  async getMatchResultsByGroup(groupId: number): Promise<MatchResult[]> {
+    return await db.select().from(matchResults).where(eq(matchResults.groupId, groupId)).orderBy(desc(matchResults.createdAt));
+  }
+
+  async createMatchResult(result: InsertMatchResult): Promise<MatchResult> {
+    const [newResult] = await db.insert(matchResults).values(result).returning();
+    return newResult;
+  }
+
+  async updateMatchResult(id: number, resultData: Partial<MatchResult>): Promise<MatchResult | undefined> {
+    try {
+      const [updatedResult] = await db
+        .update(matchResults)
+        .set(resultData)
+        .where(eq(matchResults.id, id))
+        .returning();
+      return updatedResult;
+    } catch (error) {
+      console.error("Error updating match result:", error);
+      return undefined;
+    }
+  }
+
+  async deleteMatchResult(id: number): Promise<boolean> {
+    try {
+      await db.delete(matchResults).where(eq(matchResults.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting match result:", error);
+      return false;
+    }
+  }
+
+  // Match Participants methods
+  async getMatchParticipants(matchId: number): Promise<MatchParticipant[]> {
+    return await db.select().from(matchParticipants).where(eq(matchParticipants.matchId, matchId));
+  }
+
+  async createMatchParticipant(participant: InsertMatchParticipant): Promise<MatchParticipant> {
+    const [newParticipant] = await db.insert(matchParticipants).values(participant).returning();
+    return newParticipant;
+  }
+
+  async updateMatchParticipant(id: number, participantData: Partial<MatchParticipant>): Promise<MatchParticipant | undefined> {
+    try {
+      const [updatedParticipant] = await db
+        .update(matchParticipants)
+        .set(participantData)
+        .where(eq(matchParticipants.id, id))
+        .returning();
+      return updatedParticipant;
+    } catch (error) {
+      console.error("Error updating match participant:", error);
+      return undefined;
+    }
+  }
+
+  async deleteMatchParticipant(id: number): Promise<boolean> {
+    try {
+      await db.delete(matchParticipants).where(eq(matchParticipants.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting match participant:", error);
+      return false;
+    }
+  }
+
+  // Player Statistics methods
+  async getPlayerStatistics(userId: number, groupId: number, sportType: string): Promise<PlayerStatistics | undefined> {
+    const [stats] = await db.select()
+      .from(playerStatistics)
+      .where(and(
+        eq(playerStatistics.userId, userId),
+        eq(playerStatistics.groupId, groupId),
+        eq(playerStatistics.sportType, sportType)
+      ));
+    return stats;
+  }
+
+  async getPlayerStatisticsByGroup(groupId: number, sportType?: string): Promise<PlayerStatistics[]> {
+    const query = db.select().from(playerStatistics).where(eq(playerStatistics.groupId, groupId));
+    
+    if (sportType) {
+      query.where(and(eq(playerStatistics.groupId, groupId), eq(playerStatistics.sportType, sportType)));
+    }
+    
+    return await query.orderBy(desc(playerStatistics.matchesWon));
+  }
+
+  async createPlayerStatistics(stats: InsertPlayerStatistics): Promise<PlayerStatistics> {
+    const [newStats] = await db.insert(playerStatistics).values(stats).returning();
+    return newStats;
+  }
+
+  async updatePlayerStatistics(id: number, statsData: Partial<PlayerStatistics>): Promise<PlayerStatistics | undefined> {
+    try {
+      const [updatedStats] = await db
+        .update(playerStatistics)
+        .set({
+          ...statsData,
+          updatedAt: new Date()
+        })
+        .where(eq(playerStatistics.id, id))
+        .returning();
+      return updatedStats;
+    } catch (error) {
+      console.error("Error updating player statistics:", error);
+      return undefined;
+    }
+  }
+
+  async deletePlayerStatistics(id: number): Promise<boolean> {
+    try {
+      await db.delete(playerStatistics).where(eq(playerStatistics.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting player statistics:", error);
+      return false;
+    }
+  }
+
+  // Match Result Notifications methods
+  async getMatchResultNotifications(userId: number): Promise<MatchResultNotification[]> {
+    return await db.select()
+      .from(matchResultNotifications)
+      .where(eq(matchResultNotifications.userId, userId))
+      .orderBy(desc(matchResultNotifications.createdAt));
+  }
+
+  async createMatchResultNotification(notification: InsertMatchResultNotification): Promise<MatchResultNotification> {
+    const [newNotification] = await db.insert(matchResultNotifications).values(notification).returning();
+    return newNotification;
+  }
+
+  async markMatchResultNotificationViewed(id: number): Promise<boolean> {
+    try {
+      await db
+        .update(matchResultNotifications)
+        .set({ viewed: true })
+        .where(eq(matchResultNotifications.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error marking match result notification as viewed:", error);
+      return false;
+    }
+  }
 }
 
 // Initialize storage - use DatabaseStorage for persistent data
@@ -4349,7 +4537,7 @@ Promise.all(testUsers.map(async (userData) => {
       isPublic: true,
       isFree: true,
       cost: 0,
-      creatorId: validUsers[4].id,
+      creatorId: validUsers[0].id,
       eventImage: null
     },
     {
@@ -4364,7 +4552,7 @@ Promise.all(testUsers.map(async (userData) => {
       isPublic: true,
       isFree: false,
       cost: 35,
-      creatorId: validUsers[4].id,
+      creatorId: validUsers[1].id,
       eventImage: null
     },
     
@@ -4381,7 +4569,7 @@ Promise.all(testUsers.map(async (userData) => {
       isPublic: true,
       isFree: true,
       cost: 0,
-      creatorId: validUsers[5].id,
+      creatorId: validUsers[3].id,
       eventImage: null
     },
     {
@@ -4428,7 +4616,7 @@ Promise.all(testUsers.map(async (userData) => {
       isPublic: true,
       isFree: true,
       cost: 0,
-      creatorId: validUsers[4].id,
+      creatorId: validUsers[2].id,
       eventImage: null
     },
     {
@@ -4497,13 +4685,13 @@ Promise.all(testUsers.map(async (userData) => {
     { userId: validUsers[3].id, sportType: "badminton", skillLevel: "advanced", yearsExperience: 4, isVisible: true },
     
     // David Chen preferences
-    { userId: validUsers[4].id, sportType: "crossfit", skillLevel: "expert", yearsExperience: 8, isVisible: true },
-    { userId: validUsers[4].id, sportType: "hiking", skillLevel: "advanced", yearsExperience: 10, isVisible: true },
-    { userId: validUsers[4].id, sportType: "cycling", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
+    { userId: validUsers[2].id, sportType: "crossfit", skillLevel: "expert", yearsExperience: 8, isVisible: true },
+    { userId: validUsers[2].id, sportType: "hiking", skillLevel: "advanced", yearsExperience: 10, isVisible: true },
+    { userId: validUsers[2].id, sportType: "cycling", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
     
     // Lisa Park preferences
-    { userId: validUsers[5].id, sportType: "swimming", skillLevel: "expert", yearsExperience: 14, isVisible: true },
-    { userId: validUsers[5].id, sportType: "volleyball", skillLevel: "advanced", yearsExperience: 5, isVisible: true }
+    { userId: validUsers[3].id, sportType: "swimming", skillLevel: "expert", yearsExperience: 14, isVisible: true },
+    { userId: validUsers[3].id, sportType: "volleyball", skillLevel: "advanced", yearsExperience: 5, isVisible: true }
   ];
   
   for (const pref of userSportPrefs) {

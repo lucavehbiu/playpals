@@ -21,6 +21,10 @@ import {
   insertSportsGroupSchema,
   insertSkillMatcherPreferenceSchema,
   insertSkillMatchSchema,
+  insertMatchResultSchema,
+  insertMatchParticipantSchema,
+  insertPlayerStatisticsSchema,
+  insertMatchResultNotificationSchema,
   type User,
   type Event,
   type RSVP,
@@ -38,6 +42,10 @@ import {
   type InsertTeamJoinRequest,
   type SkillMatcherPreference,
   type SkillMatch,
+  type MatchResult,
+  type MatchParticipant,
+  type PlayerStatistics,
+  type MatchResultNotification,
   playerRatings,
   teamJoinRequests
 } from "@shared/schema";
@@ -3825,6 +3833,196 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to update event visibility' });
     }
   });
+
+  // ======= SCOREBOARD API ROUTES =======
+
+  // Get match result by event ID
+  app.get('/api/events/:eventId/match-result', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const matchResult = await storage.getMatchResultByEvent(eventId);
+      
+      if (!matchResult) {
+        return res.status(404).json({ error: 'Match result not found' });
+      }
+      
+      res.json(matchResult);
+    } catch (error) {
+      console.error('Error fetching match result:', error);
+      res.status(500).json({ error: 'Failed to fetch match result' });
+    }
+  });
+
+  // Get match results for a group
+  app.get('/api/groups/:groupId/match-results', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const userId = req.user?.id;
+
+      // Check if user is member of the group
+      const membership = await storage.getSportsGroupMember(groupId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: 'Not authorized to view this group' });
+      }
+
+      const matchResults = await storage.getMatchResultsByGroup(groupId);
+      res.json(matchResults);
+    } catch (error) {
+      console.error('Error fetching match results:', error);
+      res.status(500).json({ error: 'Failed to fetch match results' });
+    }
+  });
+
+  // Create/submit match result
+  app.post('/api/events/:eventId/match-result', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user?.id;
+      
+      // Validate input
+      const parsed = insertMatchResultSchema.safeParse({
+        ...req.body,
+        eventId,
+        submittedBy: userId
+      });
+      
+      if (!parsed.success) {
+        return res.status(400).json({ error: 'Invalid match result data', details: parsed.error.issues });
+      }
+
+      // Check if user participated in the event
+      const rsvp = await storage.getRSVPByUserAndEvent(userId, eventId);
+      if (!rsvp || rsvp.status !== 'approved') {
+        return res.status(403).json({ error: 'Only event participants can submit match results' });
+      }
+
+      // Create match result
+      const matchResult = await storage.createMatchResult(parsed.data);
+      
+      // Create participants
+      const teamAUsers = parsed.data.teamA as number[];
+      const teamBUsers = parsed.data.teamB as number[];
+      
+      const participants = [
+        ...teamAUsers.map(userId => ({ matchId: matchResult.id, userId, team: 'A' as const, isWinner: parsed.data.winningSide === 'A' })),
+        ...teamBUsers.map(userId => ({ matchId: matchResult.id, userId, team: 'B' as const, isWinner: parsed.data.winningSide === 'B' }))
+      ];
+
+      for (const participant of participants) {
+        await storage.createMatchParticipant(participant);
+      }
+
+      // Update player statistics
+      await updatePlayerStatistics(matchResult, participants);
+
+      res.json(matchResult);
+    } catch (error) {
+      console.error('Error creating match result:', error);
+      res.status(500).json({ error: 'Failed to create match result' });
+    }
+  });
+
+  // Get player statistics for a group
+  app.get('/api/groups/:groupId/player-statistics', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const userId = req.user?.id;
+      const { sportType } = req.query;
+
+      // Check if user is member of the group
+      const membership = await storage.getSportsGroupMember(groupId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: 'Not authorized to view this group' });
+      }
+
+      const statistics = await storage.getPlayerStatisticsByGroup(groupId, sportType as string);
+      res.json(statistics);
+    } catch (error) {
+      console.error('Error fetching player statistics:', error);
+      res.status(500).json({ error: 'Failed to fetch player statistics' });
+    }
+  });
+
+  // Get match result notifications for a user
+  app.get('/api/users/:userId/match-result-notifications', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const requestingUserId = req.user?.id;
+
+      // Only allow users to view their own notifications
+      if (userId !== requestingUserId) {
+        return res.status(403).json({ error: 'Not authorized to view these notifications' });
+      }
+
+      const notifications = await storage.getMatchResultNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching match result notifications:', error);
+      res.status(500).json({ error: 'Failed to fetch match result notifications' });
+    }
+  });
+
+  // Mark match result notification as viewed
+  app.patch('/api/match-result-notifications/:notificationId/viewed', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const notificationId = parseInt(req.params.notificationId);
+      const success = await storage.markMatchResultNotificationViewed(notificationId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as viewed:', error);
+      res.status(500).json({ error: 'Failed to mark notification as viewed' });
+    }
+  });
+
+  // Helper function to update player statistics
+  async function updatePlayerStatistics(matchResult: MatchResult, participants: any[]) {
+    const groupId = matchResult.groupId;
+    const sportType = matchResult.sportType;
+
+    for (const participant of participants) {
+      try {
+        // Get or create player statistics
+        let stats = await storage.getPlayerStatistics(participant.userId, groupId, sportType);
+        
+        if (!stats) {
+          stats = await storage.createPlayerStatistics({
+            userId: participant.userId,
+            groupId,
+            sportType,
+            matchesPlayed: 0,
+            matchesWon: 0,
+            matchesLost: 0,
+            matchesDrawn: 0,
+            totalScoreFor: 0,
+            totalScoreAgainst: 0
+          });
+        }
+
+        // Update statistics
+        const isWinner = participant.isWinner;
+        const isDraw = matchResult.winningSide === null;
+        const scoreFor = participant.team === 'A' ? matchResult.scoreA : matchResult.scoreB;
+        const scoreAgainst = participant.team === 'A' ? matchResult.scoreB : matchResult.scoreA;
+
+        await storage.updatePlayerStatistics(stats.id, {
+          matchesPlayed: stats.matchesPlayed + 1,
+          matchesWon: stats.matchesWon + (isWinner ? 1 : 0),
+          matchesLost: stats.matchesLost + (!isWinner && !isDraw ? 1 : 0),
+          matchesDrawn: stats.matchesDrawn + (isDraw ? 1 : 0),
+          totalScoreFor: stats.totalScoreFor + (scoreFor || 0),
+          totalScoreAgainst: stats.totalScoreAgainst + (scoreAgainst || 0),
+          lastPlayed: new Date()
+        });
+      } catch (error) {
+        console.error('Error updating player statistics:', error);
+      }
+    }
+  }
   
   return httpServer;
 }
