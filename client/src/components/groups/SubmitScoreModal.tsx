@@ -82,10 +82,17 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   // Submit match result mutation
   const submitScoreMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/events/${selectedEvent?.id}/match-result`, {
-        method: 'POST',
-        body: data
-      });
+      console.log('Making API request to:', `/api/events/${selectedEvent?.id}/match-result`);
+      console.log('Request data:', data);
+      
+      try {
+        const result = await apiRequest('POST', `/api/events/${selectedEvent?.id}/match-result`, data);
+        console.log('API response:', result);
+        return result;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
@@ -260,6 +267,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     };
 
     console.log('About to submit matchData:', matchData);
+    console.log('selectedEvent.id:', selectedEvent.id);
     submitScoreMutation.mutate(matchData);
   };
 
