@@ -77,6 +77,8 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     enabled: !!selectedEvent?.id
   });
 
+
+
   // Submit match result mutation
   const submitScoreMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -114,7 +116,9 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   });
 
   // Use event participants who accepted the RSVP for team formation
-  const approvedParticipants = eventParticipants.filter((rsvp: any) => rsvp.status === 'approved');
+  const approvedParticipants = eventParticipants.length > 0 
+    ? eventParticipants.filter((rsvp: any) => rsvp.status === 'approved')
+    : groupMembers.map((member: any) => ({ user: member.user }));
   
   const availableMembers = approvedParticipants.filter((rsvp: any) => 
     !teamA.some(p => p.id === rsvp.user.id) && 
@@ -127,6 +131,9 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     enabled: !!group.id && autoBalanceEnabled
   });
 
+  const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
+  const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA && scoreB;
+
   console.log('Debug - selectedEvent:', selectedEvent);
   console.log('Debug - eventParticipants:', eventParticipants);
   console.log('Debug - approvedParticipants:', approvedParticipants);
@@ -137,9 +144,6 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   console.log('Debug - scoreA:', scoreA);
   console.log('Debug - scoreB:', scoreB);
   console.log('Debug - canSubmitScore:', canSubmitScore);
-
-  const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
-  const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA && scoreB;
 
   const addToTeam = (rsvp: any, team: 'A' | 'B') => {
     const targetTeam = team === 'A' ? teamA : teamB;
