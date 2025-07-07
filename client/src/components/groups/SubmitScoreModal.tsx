@@ -132,7 +132,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   });
 
   const canFormTeams = teamA.length === formation.players && teamB.length === formation.players;
-  const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA && scoreB;
+  const canSubmitScore = teamA.length > 0 && teamB.length > 0 && scoreA !== '' && scoreB !== '';
 
   console.log('Debug - selectedEvent:', selectedEvent);
   console.log('Debug - eventParticipants:', eventParticipants);
@@ -144,6 +144,9 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   console.log('Debug - scoreA:', scoreA);
   console.log('Debug - scoreB:', scoreB);
   console.log('Debug - canSubmitScore:', canSubmitScore);
+  console.log('Debug - canSubmitScore type:', typeof canSubmitScore);
+  console.log('Debug - scoreA type:', typeof scoreA);
+  console.log('Debug - scoreB type:', typeof scoreB);
 
   const addToTeam = (rsvp: any, team: 'A' | 'B') => {
     const targetTeam = team === 'A' ? teamA : teamB;
@@ -563,16 +566,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                 Back
               </Button>
               <Button 
-                onClick={() => {
-                  console.log('Submit button clicked - canSubmitScore:', canSubmitScore);
-                  console.log('teamA length:', teamA.length);
-                  console.log('teamB length:', teamB.length);
-                  console.log('scoreA:', scoreA);
-                  console.log('scoreB:', scoreB);
-                  if (canSubmitScore) {
-                    handleSubmit();
-                  }
-                }}
+                onClick={handleSubmit}
                 disabled={!canSubmitScore || submitScoreMutation.isPending}
                 size="sm"
               >
