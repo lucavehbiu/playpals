@@ -107,9 +107,9 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
       setScoreA('');
       setScoreB('');
       setStep('select-event');
-      setOpen(false);
       
       onSuccess();
+      onClose();
     },
     onError: (error: any) => {
       toast({
