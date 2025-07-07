@@ -3886,8 +3886,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get submitter info
       const submitter = await storage.getUser(matchResult.submittedBy);
       
+      // Get player names for teams
+      const teamAPlayers = await Promise.all(
+        matchResult.teamA.map(async (playerId: number) => {
+          const player = await storage.getUser(playerId);
+          return player ? { id: player.id, name: player.name } : { id: playerId, name: `Player ${playerId}` };
+        })
+      );
+      
+      const teamBPlayers = await Promise.all(
+        matchResult.teamB.map(async (playerId: number) => {
+          const player = await storage.getUser(playerId);
+          return player ? { id: player.id, name: player.name } : { id: playerId, name: `Player ${playerId}` };
+        })
+      );
+      
       res.json({
         ...matchResult,
+        teamAPlayers,
+        teamBPlayers,
         submitter: submitter ? {
           id: submitter.id,
           name: submitter.name,

@@ -699,16 +699,38 @@ const EventDetails = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">Match Result</h3>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <div className="text-lg font-bold text-gray-900">
-                          Team A: {matchResult.scoreA} - {matchResult.scoreB} :Team B
+                      <div className="space-y-2 mt-2">
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-bold text-gray-900">
+                            {matchResult.scoreA} - {matchResult.scoreB}
+                          </div>
+                          {matchResult.winningSide && (
+                            <Badge variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}>
+                              {matchResult.winningSide === 'A' ? 'Team A Wins' : 
+                               matchResult.winningSide === 'B' ? 'Team B Wins' : 'Draw'}
+                            </Badge>
+                          )}
                         </div>
-                        {matchResult.winningSide && (
-                          <Badge variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}>
-                            {matchResult.winningSide === 'A' ? 'Team A Wins' : 
-                             matchResult.winningSide === 'B' ? 'Team B Wins' : 'Draw'}
-                          </Badge>
-                        )}
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="space-y-1">
+                            <div className="font-medium text-gray-700">Team A</div>
+                            <div className="text-gray-600">
+                              {matchResult.teamAPlayers ? 
+                                matchResult.teamAPlayers.map((p: any) => p.name).join(', ') :
+                                'Team A'
+                              }
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="font-medium text-gray-700">Team B</div>
+                            <div className="text-gray-600">
+                              {matchResult.teamBPlayers ? 
+                                matchResult.teamBPlayers.map((p: any) => p.name).join(', ') :
+                                'Team B'
+                              }
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       {matchResult.submitter && (
                         <p className="text-sm text-gray-600 mt-1">
