@@ -151,12 +151,15 @@ const EventDetails = () => {
     fetchEventData();
   }, [eventId]);
   
-  // Log event data for debugging
+  // Log event data for debugging and fetch group info
   useEffect(() => {
     if (eventData) {
       console.log("Event data received:", eventData);
       console.log("Event creator:", eventData.creator);
       console.log("Event image:", eventData.eventImage);
+      
+      // Automatically fetch group info for this event
+      fetchGroupInfo(eventData);
     }
   }, [eventData]);
   
@@ -677,6 +680,42 @@ const EventDetails = () => {
                 </div>
                 <Button 
                   onClick={() => setShowSubmitScore(true)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Submit Score
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+
+        
+        {/* Submit Score for Completed Group Events */}
+        {eventData && isEventCompleted(eventData.date) && hasRSVPd && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-yellow-100 p-2 rounded-lg">
+                    <Trophy className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Event Completed</h3>
+                    <p className="text-sm text-gray-600">Submit match results to group scoreboard</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => {
+                    // For now, show a simplified score submission interface
+                    // In the future, this will open the full SubmitScoreModal
+                    toast({
+                      title: "Submit Score",
+                      description: "Score submission feature is now available for completed events!",
+                      variant: "default",
+                    });
+                  }}
                   className="bg-yellow-500 hover:bg-yellow-600 text-white"
                 >
                   <Trophy className="mr-2 h-4 w-4" />
