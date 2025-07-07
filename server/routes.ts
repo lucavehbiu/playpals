@@ -3879,6 +3879,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       const userId = req.user?.id;
       
+      console.log('Match result submission - eventId:', eventId, 'userId:', userId);
+      console.log('Request body:', req.body);
+      
       // Validate input
       const parsed = insertMatchResultSchema.safeParse({
         ...req.body,
@@ -3886,7 +3889,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submittedBy: userId
       });
       
+      console.log('Validation result:', parsed.success);
       if (!parsed.success) {
+        console.log('Validation errors:', parsed.error.issues);
         return res.status(400).json({ error: 'Invalid match result data', details: parsed.error.issues });
       }
 
