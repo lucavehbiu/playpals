@@ -895,9 +895,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // User onboarding preferences routes
-  app.get('/api/onboarding-preferences/:userId', async (req: Request, res: Response) => {
+  app.get('/api/onboarding-preferences/:userId', authenticateUser, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
+      const authenticatedUserId = (req.user as any).id;
+      
+      // Ensure users can only access their own preferences
+      if (userId !== authenticatedUserId) {
+        return res.status(403).json({ message: "Not authorized to access these preferences" });
+      }
+      
       const preference = await storage.getUserOnboardingPreference(userId);
       
       if (!preference) {
