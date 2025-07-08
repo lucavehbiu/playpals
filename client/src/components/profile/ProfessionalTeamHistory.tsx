@@ -76,10 +76,13 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
     if (!user) return;
     
     try {
-      const response = await apiRequest(`/api/users/${user.id}/professional-team-history`, {
-        method: 'GET'
+      const response = await fetch(`/api/users/${user.id}/professional-team-history`, {
+        credentials: 'include'
       });
-      setTeamHistory(response);
+      if (response.ok) {
+        const data = await response.json();
+        setTeamHistory(data);
+      }
     } catch (error) {
       console.error('Error fetching team history:', error);
     }
@@ -95,10 +98,7 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
         ? { ...values, yearTo: undefined }
         : values;
 
-      await apiRequest(`/api/users/${user.id}/professional-team-history`, {
-        method: 'POST',
-        body: submitData
-      });
+      await apiRequest('POST', `/api/users/${user.id}/professional-team-history`, submitData);
       
       toast({
         title: "Team history added",
@@ -121,9 +121,7 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
 
   const deleteTeamHistory = async (id: number) => {
     try {
-      await apiRequest(`/api/professional-team-history/${id}`, {
-        method: 'DELETE'
-      });
+      await apiRequest('DELETE', `/api/professional-team-history/${id}`);
       
       toast({
         title: "Team history removed",
