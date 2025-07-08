@@ -91,10 +91,7 @@ export default function ProfileCompletion() {
     if (!user) return;
     
     try {
-      await apiRequest(`/api/users/${user.id}/profile-completion`, {
-        method: 'PUT',
-        body: { completionLevel: level }
-      });
+      await apiRequest('PUT', `/api/users/${user.id}/profile-completion`, { completionLevel: level });
       refetch();
     } catch (error) {
       console.error('Error updating profile completion:', error);
