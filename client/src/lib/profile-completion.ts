@@ -22,8 +22,15 @@ export function calculateProfileCompletion(user: getUserData | null): ProfileCom
   const completedSections: string[] = [];
   const missingSections: string[] = [];
 
-  // Check basic info (name, bio, location)
-  if (user.name && user.bio && user.location) {
+  // Check basic info - user has at least name and email from registration
+  let basicInfoScore = 0;
+  if (user.name) basicInfoScore++;
+  if (user.bio) basicInfoScore++;
+  if (user.location) basicInfoScore++;
+  
+  // Consider basic info complete if user has name (from registration)
+  // Since name is from registration, this gives users a head start
+  if (basicInfoScore >= 1) {
     completedSections.push('basic-info');
   } else {
     missingSections.push('basic-info');

@@ -299,7 +299,7 @@ const Profile = () => {
         <div className="px-2 overflow-x-auto scrollbar-hide">
           <nav className="flex justify-around -mb-px">
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'profile'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -308,7 +308,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
               <span>Profile</span>
@@ -326,7 +326,7 @@ const Profile = () => {
             </motion.button>
             
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'events'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -335,7 +335,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
               </svg>
               <span>Events</span>
@@ -353,7 +353,7 @@ const Profile = () => {
             </motion.button>
             
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'teams'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -362,7 +362,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
               <span>Teams</span>
@@ -380,7 +380,7 @@ const Profile = () => {
             </motion.button>
 
             <motion.button
-              className={`py-3.5 px-4 font-medium text-sm flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
                 activeTab === 'friends'
                   ? 'border-b-2 border-primary text-primary relative'
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -389,7 +389,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
               <span>Friends</span>
@@ -410,7 +410,7 @@ const Profile = () => {
       </div>
       
       {/* Tab content */}
-      <div className="p-6">
+      <div className="p-6 h-[calc(100vh-200px)] overflow-y-auto">
         {activeTab === 'profile' && (
           <div>
             {/* Profile Completion Banner - Only show for own profile */}
