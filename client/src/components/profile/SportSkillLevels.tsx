@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Star } from "lucide-react";
+import { Plus, Trash2, Star, ChevronDown } from "lucide-react";
 import { sportTypes } from "@shared/schema";
 
 const skillLevelSchema = z.object({
@@ -219,51 +219,66 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                 <FormField
                   control={form.control}
                   name="experienceLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Experience Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="never">
-                            <div className="flex flex-col py-1">
-                              <span className="font-medium">Never played</span>
-                              <span className="text-xs text-gray-500">No experience with this sport</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="beginner">
-                            <div className="flex flex-col py-1">
-                              <span className="font-medium">Beginner</span>
-                              <span className="text-xs text-gray-500">Less than 1x per week - just starting out</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="intermediate">
-                            <div className="flex flex-col py-1">
-                              <span className="font-medium">Intermediate</span>
-                              <span className="text-xs text-gray-500">1-2x per week - comfortable with basics</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="advanced">
-                            <div className="flex flex-col py-1">
-                              <span className="font-medium">Advanced</span>
-                              <span className="text-xs text-gray-500">3-4x per week - skilled and confident</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="expert">
-                            <div className="flex flex-col py-1">
-                              <span className="font-medium">Expert</span>
-                              <span className="text-xs text-gray-500">5+ times per week - highly skilled athlete</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const getDisplayValue = (value: string) => {
+                      switch (value) {
+                        case "never": return "Never played";
+                        case "beginner": return "Beginner";
+                        case "intermediate": return "Intermediate";
+                        case "advanced": return "Advanced";
+                        case "expert": return "Expert";
+                        default: return "Select experience level";
+                      }
+                    };
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Experience Level</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select experience level">
+                                {field.value ? getDisplayValue(field.value) : "Select experience level"}
+                              </SelectValue>
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="min-w-[300px]">
+                            <SelectItem value="never" className="py-3">
+                              <div className="flex flex-col space-y-1">
+                                <span className="font-medium">Never played</span>
+                                <span className="text-xs text-gray-500">No experience with this sport</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="beginner" className="py-3">
+                              <div className="flex flex-col space-y-1">
+                                <span className="font-medium">Beginner</span>
+                                <span className="text-xs text-gray-500">Less than 1x per week - just starting out</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="intermediate" className="py-3">
+                              <div className="flex flex-col space-y-1">
+                                <span className="font-medium">Intermediate</span>
+                                <span className="text-xs text-gray-500">1-2x per week - comfortable with basics</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="advanced" className="py-3">
+                              <div className="flex flex-col space-y-1">
+                                <span className="font-medium">Advanced</span>
+                                <span className="text-xs text-gray-500">3-4x per week - skilled and confident</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="expert" className="py-3">
+                              <div className="flex flex-col space-y-1">
+                                <span className="font-medium">Expert</span>
+                                <span className="text-xs text-gray-500">5+ times per week - highly skilled athlete</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <div className="space-y-4">
