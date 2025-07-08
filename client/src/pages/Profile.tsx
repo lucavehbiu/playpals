@@ -160,7 +160,7 @@ const Profile = () => {
   }
   
   return (
-    <div className="rounded-xl shadow-lg overflow-hidden bg-background">
+    <div className="bg-background min-h-screen">
       {/* Profile header with golden ratio background pattern */}
       <div 
         className="relative bg-gradient-to-br from-primary/95 to-blue-900 p-6 pb-8 text-white overflow-hidden"
@@ -410,7 +410,7 @@ const Profile = () => {
       </div>
       
       {/* Tab content */}
-      <div className="p-6 h-[calc(100vh-200px)] overflow-y-auto">
+      <div className="p-6">
         {activeTab === 'profile' && (
           <div>
             {/* Profile Completion Banner - Only show for own profile */}
