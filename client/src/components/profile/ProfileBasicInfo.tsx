@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const basicInfoSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  bio: z.string().min(10, "Bio must be at least 10 characters"),
-  location: z.string().min(1, "Location is required"),
+  bio: z.string().optional(),
+  location: z.string().optional(),
   headline: z.string().optional()
 });
 
@@ -47,10 +47,7 @@ export function ProfileBasicInfo({ onComplete, onCancel }: ProfileBasicInfoProps
     
     setIsLoading(true);
     try {
-      await apiRequest(`/api/users/${user.id}`, {
-        method: 'PUT',
-        body: values
-      });
+      await apiRequest('PUT', `/api/users/${user.id}`, values);
       
       toast({
         title: "Profile updated successfully",
