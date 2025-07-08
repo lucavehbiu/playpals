@@ -19,7 +19,6 @@ interface ProfileSection {
   description: string;
   icon: any;
   completed: boolean;
-  points: number;
   component: React.ComponentType<any>;
 }
 
@@ -38,22 +37,22 @@ export default function ProfileCompletion() {
   useEffect(() => {
     if (!user) return;
 
-    let points = 0;
-    const maxPoints = 100;
+    let completedSections = 0;
+    const totalSections = 4;
 
-    // Basic info (30 points)
-    if (user.name && user.bio && user.location) points += 30;
+    // Basic info
+    if (user.name && user.bio && user.location) completedSections++;
     
-    // Phone verification (20 points)
-    if (user.phoneNumber && user.isPhoneVerified) points += 20;
+    // Phone verification
+    if (user.phoneNumber && user.isPhoneVerified) completedSections++;
 
-    // Sport preferences (25 points)
+    // Sport preferences - would check sport skill levels
     // This would need to check user sport preferences
     
-    // Professional team history (25 points)
+    // Professional team history - would check team history
     // This would need to check professional team history
 
-    const percentage = Math.round((points / maxPoints) * 100);
+    const percentage = Math.round((completedSections / totalSections) * 100);
     setCompletionLevel(percentage);
 
     // Update backend if changed
@@ -83,7 +82,6 @@ export default function ProfileCompletion() {
       description: 'Add your name, bio, and location to help others find you',
       icon: User,
       completed: !!(user?.name && user?.bio && user?.location),
-      points: 30,
       component: ProfileBasicInfo
     },
     {
@@ -92,7 +90,6 @@ export default function ProfileCompletion() {
       description: 'Add and verify your phone number for enhanced security',
       icon: Phone,
       completed: !!(user?.phoneNumber && user?.isPhoneVerified),
-      points: 20,
       component: PhoneVerification
     },
     {
@@ -101,7 +98,6 @@ export default function ProfileCompletion() {
       description: 'Share your experience level in different sports',
       icon: Star,
       completed: false, // Will be calculated from sport skill levels
-      points: 25,
       component: SportSkillLevels
     },
     {
@@ -110,7 +106,6 @@ export default function ProfileCompletion() {
       description: 'Add your professional, college, or youth team experience',
       icon: Trophy,
       completed: false, // Will be calculated from team history
-      points: 25,
       component: ProfessionalTeamHistory
     }
   ];
@@ -165,8 +160,7 @@ export default function ProfileCompletion() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">{section.points} points</div>
-                    {section.completed && <div className="text-xs text-green-600">✓ Completed</div>}
+                    {section.completed && <div className="text-sm text-green-600 font-medium">✓ Completed</div>}
                   </div>
                 </div>
               </CardHeader>

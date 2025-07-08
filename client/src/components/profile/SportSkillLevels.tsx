@@ -17,8 +17,6 @@ import { sportTypes } from "@shared/schema";
 const skillLevelSchema = z.object({
   sportType: z.string().min(1, "Sport type is required"),
   experienceLevel: z.enum(["never", "beginner", "intermediate", "advanced", "expert"]),
-  timesPerWeek: z.number().min(0).max(20),
-  yearsPlaying: z.number().min(0).max(50),
   competitiveLevel: z.enum(["recreational", "competitive", "professional"]).optional(),
   preferredPosition: z.string().optional()
 });
@@ -27,8 +25,6 @@ interface SportSkillLevel {
   id: number;
   sportType: string;
   experienceLevel: string;
-  timesPerWeek: number;
-  yearsPlaying: number;
   competitiveLevel?: string;
   preferredPosition?: string;
 }
@@ -50,8 +46,6 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
     defaultValues: {
       sportType: "",
       experienceLevel: "beginner",
-      timesPerWeek: 1,
-      yearsPlaying: 1,
       competitiveLevel: "recreational",
       preferredPosition: ""
     }
@@ -156,10 +150,6 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                       <Badge className={getExperienceBadge(skill.experienceLevel)}>
                         {skill.experienceLevel}
                       </Badge>
-                      <span>•</span>
-                      <span>{skill.timesPerWeek}x per week</span>
-                      <span>•</span>
-                      <span>{skill.yearsPlaying} years</span>
                     </div>
                     {skill.competitiveLevel && (
                       <div className="text-sm text-gray-500 mb-1">
@@ -201,101 +191,57 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
           <CardContent className="px-0 pb-0">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sportType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sport</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a sport" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sportTypes.map((sport) => (
-                              <SelectItem key={sport} value={sport}>
-                                {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="experienceLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Experience Level</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="never">Never played</SelectItem>
-                            <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                            <SelectItem value="expert">Expert</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="timesPerWeek"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Times per Week</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="sportType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sport</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            max="20"
-                            {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                          />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sport" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {sportTypes.map((sport) => (
+                            <SelectItem key={sport} value={sport}>
+                              {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="yearsPlaying"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Years Playing</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="experienceLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Experience Level</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            max="50"
-                            {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                          />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="never">Never played</SelectItem>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                          <SelectItem value="expert">Expert</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="competitiveLevel"

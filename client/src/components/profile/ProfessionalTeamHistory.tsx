@@ -220,152 +220,144 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
           <CardContent className="px-0 pb-0">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="teamName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Team Name</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="teamName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Team Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Lakers, Manchester United" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sportType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sport</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input placeholder="e.g., Lakers, Manchester United" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sport" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {sportTypes.map((sport) => (
+                            <SelectItem key={sport} value={sport}>
+                              {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="sportType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sport</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a sport" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sportTypes.map((sport) => (
-                              <SelectItem key={sport} value={sport}>
-                                {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="teamType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Team Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="professional">Professional</SelectItem>
-                            <SelectItem value="college">College</SelectItem>
-                            <SelectItem value="youth">Youth</SelectItem>
-                            <SelectItem value="amateur">Amateur</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="position"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Position (Optional)</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="teamType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Team Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input placeholder="e.g., Point Guard, Midfielder" {...field} />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="college">College</SelectItem>
+                          <SelectItem value="youth">Youth</SelectItem>
+                          <SelectItem value="amateur">Amateur</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="position"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Position (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Point Guard, Midfielder" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isCurrentTeam"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          I currently play for this team
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="yearFrom"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Year</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="1950" 
+                          max={new Date().getFullYear()}
+                          {...field}
+                          onChange={e => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {!isCurrentTeam && (
                   <FormField
                     control={form.control}
-                    name="isCurrentTeam"
+                    name="yearTo"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormItem>
+                        <FormLabel>End Year</FormLabel>
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
+                          <Input 
+                            type="number" 
+                            min="1950" 
+                            max={new Date().getFullYear()}
+                            {...field}
+                            onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
                           />
                         </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            I currently play for this team
-                          </FormLabel>
-                        </div>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="yearFrom"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Start Year</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1950" 
-                              max={new Date().getFullYear()}
-                              {...field}
-                              onChange={e => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {!isCurrentTeam && (
-                      <FormField
-                        control={form.control}
-                        name="yearTo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>End Year</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="1950" 
-                                max={new Date().getFullYear()}
-                                {...field}
-                                onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                </div>
+                )}
 
                 <FormField
                   control={form.control}
