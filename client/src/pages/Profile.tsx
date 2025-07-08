@@ -446,37 +446,37 @@ const Profile = () => {
             )}
             
             {/* Sports Interests Section - Moved to first position */}
-            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
-              <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+            <div className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
                 Sports Interests
               </h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+              <div className="flex flex-wrap gap-3">
+                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
                     <circle cx="12" cy="12" r="6" fill="currentColor" />
                   </svg>
                   Basketball
                 </span>
-                <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
                     <circle cx="12" cy="12" r="6" fill="currentColor" />
                   </svg>
                   Soccer
                 </span>
-                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
                     <circle cx="12" cy="12" r="6" fill="currentColor" />
                   </svg>
                   Volleyball
                 </span>
-                <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
                     <circle cx="12" cy="12" r="6" fill="currentColor" />
                   </svg>
@@ -486,87 +486,91 @@ const Profile = () => {
             </div>
 
             {/* Contact Information Section - Vertical layout */}
-            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
-              <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <div className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
                 Contact Information
               </h3>
               <div className="space-y-3">
-                <div className="flex flex-col rounded-lg bg-gray-50 dark:bg-gray-700/50 p-2.5">
-                  <span className="text-gray-500 dark:text-gray-400 font-medium mb-1">Email:</span>
-                  <span className="text-gray-800 dark:text-gray-200 break-all">{user.email}</span>
+                <div className="flex flex-col rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
+                  <span className="text-gray-500 dark:text-gray-400 font-medium mb-2">Email:</span>
+                  <span className="text-gray-800 dark:text-gray-200 break-all text-lg">{user.email}</span>
                 </div>
               </div>
             </div>
 
             {/* About Me section */}
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-              </svg>
-              About Me
-            </h2>
-            <div className="p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 shadow-sm mb-6" style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                {user.bio || "No bio provided yet. Edit your profile to add a bio."}
-              </p>
+            <div className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                </svg>
+                About Me
+              </h3>
+              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
+                  {user.bio || "No bio provided yet. Edit your profile to add a bio."}
+                </p>
+              </div>
             </div>
             
             {/* Sport-Specific Statistics */}
             {user.sportStatistics && user.sportStatistics.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                  </svg>
-                  Sport Statistics
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.sportStatistics.map((stat: any, index: number) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 capitalize">{stat.sportType}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          stat.winRate >= 60 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                          stat.winRate >= 40 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
-                          {stat.winRate.toFixed(1)}% Win Rate
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-4 gap-3 text-center text-sm">
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
-                          <div className="font-medium text-gray-900 dark:text-gray-100">{stat.totalMatches}</div>
-                          <div className="text-gray-500 dark:text-gray-400">Matches</div>
+              <div className="mb-4">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Sport Statistics
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {user.sportStatistics.map((stat: any, index: number) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-5 border border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 capitalize text-lg">{stat.sportType}</h4>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            stat.winRate >= 60 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                            stat.winRate >= 40 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
+                            {stat.winRate.toFixed(1)}% Win Rate
+                          </span>
                         </div>
-                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
-                          <div className="font-medium text-green-600 dark:text-green-400">{stat.totalWins}</div>
-                          <div className="text-gray-500 dark:text-gray-400">Won</div>
-                        </div>
-                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2">
-                          <div className="font-medium text-red-600 dark:text-red-400">{stat.totalLosses}</div>
-                          <div className="text-gray-500 dark:text-gray-400">Lost</div>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
-                          <div className="font-medium text-gray-600 dark:text-gray-400">{stat.totalDraws}</div>
-                          <div className="text-gray-500 dark:text-gray-400">Draw</div>
-                        </div>
-                      </div>
-                      
-                      {(stat.totalScoreFor > 0 || stat.totalScoreAgainst > 0) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">Score Ratio:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{stat.totalScoreFor}:{stat.totalScoreAgainst}</span>
+                        
+                        <div className="grid grid-cols-4 gap-3 text-center">
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-lg">{stat.totalMatches}</div>
+                            <div className="text-gray-500 dark:text-gray-400 text-sm">Matches</div>
+                          </div>
+                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                            <div className="font-medium text-green-600 dark:text-green-400 text-lg">{stat.totalWins}</div>
+                            <div className="text-gray-500 dark:text-gray-400 text-sm">Won</div>
+                          </div>
+                          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
+                            <div className="font-medium text-red-600 dark:text-red-400 text-lg">{stat.totalLosses}</div>
+                            <div className="text-gray-500 dark:text-gray-400 text-sm">Lost</div>
+                          </div>
+                          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                            <div className="font-medium text-gray-600 dark:text-gray-400 text-lg">{stat.totalDraws}</div>
+                            <div className="text-gray-500 dark:text-gray-400 text-sm">Draw</div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        
+                        {(stat.totalScoreFor > 0 || stat.totalScoreAgainst > 0) && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Score Ratio:</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">{stat.totalScoreFor}:{stat.totalScoreAgainst}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
