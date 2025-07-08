@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { NotificationBell } from "./NotificationsPopover";
 import playPalsLogo from "@/assets/playpals-logo.jpg";
+import { calculateProfileCompletion } from "@/lib/profile-completion";
 
 type SearchResult = {
   id: number;
@@ -25,6 +26,7 @@ const Header = () => {
   const { user, logoutMutation } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const { getTotalNotificationCount } = useGroupNotifications();
+  const profileCompletion = calculateProfileCompletion(user);
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
@@ -395,7 +397,7 @@ const Header = () => {
               <div className="flex items-center">
                 <div className="relative" ref={profileMenuRef}>
                   <div 
-                    className="h-9 w-9 cursor-pointer rounded-full hover:ring-2 hover:ring-primary/20 transition-all"
+                    className="h-9 w-9 cursor-pointer rounded-full hover:ring-2 hover:ring-primary/20 transition-all relative"
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                   >
                     <Avatar>
@@ -407,6 +409,11 @@ const Header = () => {
                         </AvatarFallback>
                       )}
                     </Avatar>
+                    {profileCompletion.showRibbon && (
+                      <div className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium shadow-sm">
+                        {profileCompletion.completionPercentage}%
+                      </div>
+                    )}
                   </div>
                   
                   {/* Profile dropdown menu */}
@@ -424,6 +431,17 @@ const Header = () => {
                             View Profile
                           </div>
                         </Link>
+                        
+                        {!profileCompletion.isComplete && (
+                          <Link href="/profile-completion">
+                            <div className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Complete Profile ({profileCompletion.completionPercentage}%)
+                            </div>
+                          </Link>
+                        )}
                         
                         <Link href="/profile/edit">
                           <div className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center">

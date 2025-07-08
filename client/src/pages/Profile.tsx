@@ -2,12 +2,14 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X } from "lucide-react";
+import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { calculateProfileCompletion } from "@/lib/profile-completion";
+import { Link } from "wouter";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -21,6 +23,9 @@ const Profile = () => {
   
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
+  
+  // Calculate profile completion
+  const profileCompletion = calculateProfileCompletion(user);
 
   // Handle logout with navigation
   const handleLogout = () => {
@@ -408,6 +413,49 @@ const Profile = () => {
       <div className="p-6">
         {activeTab === 'profile' && (
           <div>
+            {/* Profile Completion Banner - Only show for own profile */}
+            {isOwnProfile && !profileCompletion.isComplete && (
+              <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="text-lg font-semibold text-orange-900">Complete Your Profile</h3>
+                    </div>
+                    <p className="text-orange-800 mb-3">
+                      Your profile is {profileCompletion.completionPercentage}% complete. 
+                      A complete profile helps others connect with you and builds trust in the community.
+                    </p>
+                    <div className="w-full bg-orange-200 rounded-full h-2 mb-3">
+                      <div 
+                        className="bg-orange-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${profileCompletion.completionPercentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profileCompletion.missingSections.map((section) => (
+                        <span key={section} className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                          {section === 'basic-info' ? 'Basic Info' : 
+                           section === 'phone-verification' ? 'Phone Verification' :
+                           section === 'sport-skills' ? 'Sport Skills' : 
+                           'Team History'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <Link href="/profile-completion">
+                      <Button className="bg-orange-600 hover:bg-orange-700 text-white flex items-center">
+                        Complete Profile
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* About Me section with golden ratio proportions */}
             <h2 className="text-xl font-bold mb-4 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
