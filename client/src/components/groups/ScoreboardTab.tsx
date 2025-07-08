@@ -27,8 +27,13 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
   // Fetch player statistics for the group
   const { data: playerStats = [], isLoading: statsLoading } = useQuery({
     queryKey: [`/api/groups/${group.id}/player-statistics`],
-    enabled: !!group.id
+    enabled: !!group.id,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0 // Don't cache
   });
+
+  // Debug logging
+  console.log('ScoreboardTab - playerStats:', playerStats, 'loading:', statsLoading);
 
   const formatScore = (result: MatchResult) => {
     if (result.sportType === 'tennis' || result.sportType === 'padel') {
@@ -141,6 +146,7 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
     if (statsLoading) {
       return (
         <div className="space-y-4">
+          <div className="text-center text-gray-500">Loading player statistics...</div>
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
           ))}
@@ -201,15 +207,15 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
                       <div className="font-medium text-gray-900 text-sm">{stats.playerName || `Player ${stats.userId}`}</div>
                       <div className="text-xs text-gray-500">{stats.sportType}</div>
                     </td>
-                    <td className="py-2 px-1 text-center text-sm font-medium">{stats.matchesPlayed}</td>
+                    <td className="py-2 px-1 text-center text-sm font-medium">{stats.matchesPlayed || 0}</td>
                     <td className="py-2 px-1 text-center text-sm">
-                      <span className="text-green-600 font-medium">{stats.matchesWon}</span>
+                      <span className="text-green-600 font-medium">{stats.matchesWon || 0}</span>
                     </td>
                     <td className="py-2 px-1 text-center text-sm">
-                      <span className="text-red-600 font-medium">{stats.matchesLost}</span>
+                      <span className="text-red-600 font-medium">{stats.matchesLost || 0}</span>
                     </td>
                     <td className="py-2 px-1 text-center text-sm">
-                      <span className="text-gray-600 font-medium">{stats.matchesDrawn}</span>
+                      <span className="text-gray-600 font-medium">{stats.matchesDrawn || 0}</span>
                     </td>
                     <td className="py-2 px-1 text-center">
                       <div className={`inline-flex items-center px-1 py-1 rounded-full text-xs font-medium ${
