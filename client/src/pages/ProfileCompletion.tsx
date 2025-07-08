@@ -79,8 +79,8 @@ export default function ProfileCompletion() {
       // Sport skill levels
       if (sportSkillsData.length > 0) completedSections++;
       
-      // Professional team history
-      if (teamHistoryData.length > 0) completedSections++;
+      // Professional team history - completed if has entries OR user marked "no professional experience"
+      if (teamHistoryData.length > 0 || user.hasNoProfessionalExperience) completedSections++;
 
       const percentage = Math.round((completedSections / totalSections) * 100);
       setCompletionLevel(percentage);

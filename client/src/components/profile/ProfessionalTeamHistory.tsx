@@ -416,7 +416,21 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
       ))}
 
       <div className="flex space-x-4 pt-4">
-        <Button onClick={onComplete}>
+        <Button onClick={async () => {
+          if (hasNoProfessionalExperience && user) {
+            // Save the "no professional experience" preference to user profile
+            try {
+              await apiRequest('PUT', `/api/users/${user.id}`, { hasNoProfessionalExperience: true });
+              toast({
+                title: "Preference saved",
+                description: "Your professional experience preference has been saved."
+              });
+            } catch (error) {
+              console.error('Error saving preference:', error);
+            }
+          }
+          onComplete();
+        }}>
           {(teamHistory.length > 0 || hasNoProfessionalExperience) ? "Complete Profile" : "Skip for Now"}
         </Button>
         <Button variant="outline" onClick={onCancel}>

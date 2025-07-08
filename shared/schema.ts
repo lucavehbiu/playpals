@@ -76,6 +76,7 @@ export const users = pgTable("users", {
   location: text("location"),
   phoneNumber: text("phone_number"), // Hidden from other users, for verification only
   isPhoneVerified: boolean("is_phone_verified").default(false),
+  hasNoProfessionalExperience: boolean("has_no_professional_experience").default(false),
   profileCompletionLevel: integer("profile_completion_level").default(0), // 0-100%
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
