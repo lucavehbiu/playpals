@@ -23,9 +23,6 @@ const Profile = () => {
   
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
-  
-  // Calculate profile completion
-  const profileCompletion = calculateProfileCompletion(user);
 
   // Handle logout with navigation
   const handleLogout = () => {
@@ -41,6 +38,9 @@ const Profile = () => {
     queryKey: [`/api/users/${userId}`],
     enabled: !!userId,
   });
+  
+  // Calculate profile completion after user data is loaded
+  const profileCompletion = calculateProfileCompletion(authUser);
   
   // Get events created by the user
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
