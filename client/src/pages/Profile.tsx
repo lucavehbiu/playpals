@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X, ArrowRight } from "lucide-react";
+import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X, ArrowRight, User, Calendar, Users, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useParams } from "wouter";
@@ -308,9 +308,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
+              <User className="h-6 w-6 mr-2" />
               <span>Profile</span>
               {activeTab === 'profile' && (
                 <motion.div 
@@ -335,9 +333,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
+              <Calendar className="h-6 w-6 mr-2" />
               <span>Events</span>
               {activeTab === 'events' && (
                 <motion.div 
@@ -362,9 +358,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-              </svg>
+              <Users className="h-6 w-6 mr-2" />
               <span>Teams</span>
               {activeTab === 'teams' && (
                 <motion.div 
@@ -389,9 +383,7 @@ const Profile = () => {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
+              <UserCheck className="h-6 w-6 mr-2" />
               <span>Friends</span>
               {activeTab === 'friends' && (
                 <motion.div 
@@ -416,43 +408,39 @@ const Profile = () => {
             {/* Profile Completion Banner - Only show for own profile */}
             {isOwnProfile && !profileCompletion.isComplete && (
               <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="text-lg font-semibold text-orange-900">Complete Your Profile</h3>
-                    </div>
-                    <p className="text-orange-800 mb-3">
-                      Your profile is {profileCompletion.completionPercentage}% complete. 
-                      A complete profile helps others connect with you and builds trust in the community.
-                    </p>
-                    <div className="w-full bg-orange-200 rounded-full h-2 mb-3">
-                      <div 
-                        className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${profileCompletion.completionPercentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {profileCompletion.missingSections.map((section) => (
-                        <span key={section} className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-                          {section === 'basic-info' ? 'Basic Info' : 
-                           section === 'phone-verification' ? 'Phone Verification' :
-                           section === 'sport-skills' ? 'Sport Skills' : 
-                           'Team History'}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <Link href="/profile-completion">
-                      <Button className="bg-orange-600 hover:bg-orange-700 text-white flex items-center">
-                        Complete Profile
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
+                <div className="flex items-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-orange-900">Complete Your Profile</h3>
+                </div>
+                <p className="text-orange-800 mb-3">
+                  Your profile is {profileCompletion.completionPercentage}% complete. 
+                  A complete profile helps others connect with you and builds trust in the community.
+                </p>
+                <div className="w-full bg-orange-200 rounded-full h-2 mb-3">
+                  <div 
+                    className="bg-orange-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${profileCompletion.completionPercentage}%` }}
+                  ></div>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {profileCompletion.missingSections.map((section) => (
+                    <span key={section} className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                      {section === 'basic-info' ? 'Basic Info' : 
+                       section === 'phone-verification' ? 'Phone Verification' :
+                       section === 'sport-skills' ? 'Sport Skills' : 
+                       'Team History'}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex justify-end">
+                  <Link href="/profile-completion">
+                    <Button className="bg-orange-600 hover:bg-orange-700 text-white flex items-center">
+                      Complete Profile
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             )}
