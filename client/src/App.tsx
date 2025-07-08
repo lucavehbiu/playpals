@@ -22,6 +22,7 @@ import Invitations from "@/pages/Invitations";
 import NotificationHistory from "@/pages/NotificationHistory";
 import AuthPage from "@/pages/auth-page";
 import SportPreferencesPage from "@/pages/sports-preferences";
+import ProfileCompletion from "@/pages/ProfileCompletion";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -63,6 +64,7 @@ function Router() {
                   <ProtectedRoute path="/notifications" component={NotificationHistory} />
                   <ProtectedRoute path="/profile" component={Profile} />
                   <ProtectedRoute path="/profile/:userId" component={Profile} />
+                  <ProtectedRoute path="/profile-completion" component={ProfileCompletion} />
                   <Route path="*" component={NotFound} />
                 </Switch>
               </div>

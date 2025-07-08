@@ -35,6 +35,15 @@ export const skillLevels = ["beginner", "intermediate", "advanced", "expert"] as
 // Activity frequency types
 export const activityFrequencies = ["rarely", "occasionally", "regularly", "frequently"] as const;
 
+// Sport experience levels (times per week)
+export const sportExperienceLevels = [
+  "never", // Never played
+  "beginner", // 1-2 times per week
+  "intermediate", // 3-4 times per week  
+  "advanced", // 5-6 times per week
+  "expert" // Daily (7+ times per week)
+] as const;
+
 // Team size preferences
 export const teamSizePreferences = ["small", "medium", "large", "any"] as const;
 
@@ -65,6 +74,9 @@ export const users = pgTable("users", {
   bio: text("bio"),
   headline: text("headline"),
   location: text("location"),
+  phoneNumber: text("phone_number"), // Hidden from other users, for verification only
+  isPhoneVerified: boolean("is_phone_verified").default(false),
+  profileCompletionLevel: integer("profile_completion_level").default(0), // 0-100%
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -149,6 +161,7 @@ export const userSportPreferences = pgTable("user_sport_preferences", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   sportType: text("sport_type").notNull(),
   skillLevel: text("skill_level").notNull(),
+  experienceLevel: text("experience_level").notNull(), // How often they play per week
   yearsExperience: integer("years_experience").default(0),
   isVisible: boolean("is_visible").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -172,6 +185,39 @@ export const userOnboardingPreferences = pgTable("user_onboarding_preferences", 
 }, (t) => ({
   // Ensure a user can only have one onboarding preferences entry
   uniqueUserOnboarding: unique().on(t.userId),
+}));
+
+// Professional Team History table
+export const professionalTeamHistory = pgTable("professional_team_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  teamName: text("team_name").notNull(),
+  sportType: text("sport_type").notNull(),
+  teamType: text("team_type").notNull(), // "professional", "youth", "college", "amateur"
+  position: text("position"),
+  yearFrom: integer("year_from"),
+  yearTo: integer("year_to"),
+  isCurrentTeam: boolean("is_current_team").default(false),
+  achievements: text("achievements"), // Any notable achievements or titles
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Sport Skill Levels table (detailed breakdown for each sport)
+export const sportSkillLevels = pgTable("sport_skill_levels", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sportType: text("sport_type").notNull(),
+  experienceLevel: text("experience_level").notNull(), // never, beginner, intermediate, advanced, expert
+  timesPerWeek: integer("times_per_week").default(0), // How many times per week they play
+  yearsPlaying: integer("years_playing").default(0),
+  competitiveLevel: text("competitive_level"), // "recreational", "competitive", "professional"
+  preferredPosition: text("preferred_position"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  // Ensure a user can only have one skill level entry per sport
+  uniqueUserSportSkill: unique().on(t.userId, t.sportType),
 }));
 
 // Player Ratings table
@@ -878,6 +924,18 @@ export const insertSportsGroupJoinRequestSchema = createInsertSchema(sportsGroup
   createdAt: true,
 });
 
+// New schemas for profile completion features
+export const insertProfessionalTeamHistorySchema = createInsertSchema(professionalTeamHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSportSkillLevelSchema = createInsertSchema(sportSkillLevels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -963,6 +1021,13 @@ export type InsertSportsGroupPollResponse = z.infer<typeof insertSportsGroupPoll
 
 export type SportsGroupJoinRequest = typeof sportsGroupJoinRequests.$inferSelect;
 export type InsertSportsGroupJoinRequest = z.infer<typeof insertSportsGroupJoinRequestSchema>;
+
+// New types for profile completion features
+export type ProfessionalTeamHistory = typeof professionalTeamHistory.$inferSelect;
+export type InsertProfessionalTeamHistory = z.infer<typeof insertProfessionalTeamHistorySchema>;
+
+export type SportSkillLevel = typeof sportSkillLevels.$inferSelect;
+export type InsertSportSkillLevel = z.infer<typeof insertSportSkillLevelSchema>;
 
 export type SportType = typeof sportTypes[number];
 export type RSVPStatus = typeof rsvpStatusTypes[number];

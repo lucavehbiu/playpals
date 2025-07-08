@@ -26,7 +26,9 @@ import {
   matchResults, type MatchResult, type InsertMatchResult,
   matchParticipants, type MatchParticipant, type InsertMatchParticipant,
   playerStatistics, type PlayerStatistics, type InsertPlayerStatistics,
-  matchResultNotifications, type MatchResultNotification, type InsertMatchResultNotification
+  matchResultNotifications, type MatchResultNotification, type InsertMatchResultNotification,
+  professionalTeamHistory, type ProfessionalTeamHistory, type InsertProfessionalTeamHistory,
+  sportSkillLevels, type SportSkillLevel, type InsertSportSkillLevel
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, like, avg, sql, gte, lt } from "drizzle-orm";
@@ -246,6 +248,22 @@ export interface IStorage {
   getMatchResultNotifications(userId: number): Promise<MatchResultNotification[]>;
   createMatchResultNotification(notification: InsertMatchResultNotification): Promise<MatchResultNotification>;
   markMatchResultNotificationViewed(id: number): Promise<boolean>;
+
+  // Professional Team History methods
+  getProfessionalTeamHistory(userId: number): Promise<ProfessionalTeamHistory[]>;
+  createProfessionalTeamHistory(history: InsertProfessionalTeamHistory): Promise<ProfessionalTeamHistory>;
+  updateProfessionalTeamHistory(id: number, historyData: Partial<ProfessionalTeamHistory>): Promise<ProfessionalTeamHistory | undefined>;
+  deleteProfessionalTeamHistory(id: number): Promise<boolean>;
+
+  // Sport Skill Levels methods
+  getSportSkillLevels(userId: number): Promise<SportSkillLevel[]>;
+  getSportSkillLevel(userId: number, sportType: string): Promise<SportSkillLevel | undefined>;
+  createSportSkillLevel(skillLevel: InsertSportSkillLevel): Promise<SportSkillLevel>;
+  updateSportSkillLevel(id: number, skillData: Partial<SportSkillLevel>): Promise<SportSkillLevel | undefined>;
+  deleteSportSkillLevel(id: number): Promise<boolean>;
+
+  // Profile completion methods
+  updateUserProfileCompletion(userId: number, completionLevel: number): Promise<User | undefined>;
 
   // Session store
   sessionStore: session.Store;
@@ -4315,6 +4333,105 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error marking match result notification as viewed:", error);
       return false;
+    }
+  }
+
+  // Professional Team History methods
+  async getProfessionalTeamHistory(userId: number): Promise<ProfessionalTeamHistory[]> {
+    return await db.select()
+      .from(professionalTeamHistory)
+      .where(eq(professionalTeamHistory.userId, userId))
+      .orderBy(desc(professionalTeamHistory.yearFrom));
+  }
+
+  async createProfessionalTeamHistory(history: InsertProfessionalTeamHistory): Promise<ProfessionalTeamHistory> {
+    const [newHistory] = await db.insert(professionalTeamHistory).values(history).returning();
+    return newHistory;
+  }
+
+  async updateProfessionalTeamHistory(id: number, historyData: Partial<ProfessionalTeamHistory>): Promise<ProfessionalTeamHistory | undefined> {
+    try {
+      const [updatedHistory] = await db
+        .update(professionalTeamHistory)
+        .set(historyData)
+        .where(eq(professionalTeamHistory.id, id))
+        .returning();
+      return updatedHistory;
+    } catch (error) {
+      console.error("Error updating professional team history:", error);
+      return undefined;
+    }
+  }
+
+  async deleteProfessionalTeamHistory(id: number): Promise<boolean> {
+    try {
+      await db.delete(professionalTeamHistory).where(eq(professionalTeamHistory.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting professional team history:", error);
+      return false;
+    }
+  }
+
+  // Sport Skill Levels methods
+  async getSportSkillLevels(userId: number): Promise<SportSkillLevel[]> {
+    return await db.select()
+      .from(sportSkillLevels)
+      .where(eq(sportSkillLevels.userId, userId))
+      .orderBy(sportSkillLevels.sportType);
+  }
+
+  async getSportSkillLevel(userId: number, sportType: string): Promise<SportSkillLevel | undefined> {
+    const [skillLevel] = await db.select()
+      .from(sportSkillLevels)
+      .where(and(
+        eq(sportSkillLevels.userId, userId),
+        eq(sportSkillLevels.sportType, sportType)
+      ));
+    return skillLevel;
+  }
+
+  async createSportSkillLevel(skillLevel: InsertSportSkillLevel): Promise<SportSkillLevel> {
+    const [newSkillLevel] = await db.insert(sportSkillLevels).values(skillLevel).returning();
+    return newSkillLevel;
+  }
+
+  async updateSportSkillLevel(id: number, skillData: Partial<SportSkillLevel>): Promise<SportSkillLevel | undefined> {
+    try {
+      const [updatedSkillLevel] = await db
+        .update(sportSkillLevels)
+        .set({ ...skillData, updatedAt: new Date() })
+        .where(eq(sportSkillLevels.id, id))
+        .returning();
+      return updatedSkillLevel;
+    } catch (error) {
+      console.error("Error updating sport skill level:", error);
+      return undefined;
+    }
+  }
+
+  async deleteSportSkillLevel(id: number): Promise<boolean> {
+    try {
+      await db.delete(sportSkillLevels).where(eq(sportSkillLevels.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting sport skill level:", error);
+      return false;
+    }
+  }
+
+  // Profile completion methods
+  async updateUserProfileCompletion(userId: number, completionLevel: number): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set({ profileCompletionLevel: completionLevel })
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser;
+    } catch (error) {
+      console.error("Error updating user profile completion:", error);
+      return undefined;
     }
   }
 }

@@ -1,0 +1,368 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Star } from "lucide-react";
+import { sportTypes } from "@shared/schema";
+
+const skillLevelSchema = z.object({
+  sportType: z.string().min(1, "Sport type is required"),
+  experienceLevel: z.enum(["never", "beginner", "intermediate", "advanced", "expert"]),
+  timesPerWeek: z.number().min(0).max(20),
+  yearsPlaying: z.number().min(0).max(50),
+  competitiveLevel: z.enum(["recreational", "competitive", "professional"]).optional(),
+  preferredPosition: z.string().optional()
+});
+
+interface SportSkillLevel {
+  id: number;
+  sportType: string;
+  experienceLevel: string;
+  timesPerWeek: number;
+  yearsPlaying: number;
+  competitiveLevel?: string;
+  preferredPosition?: string;
+}
+
+interface SportSkillLevelsProps {
+  onComplete: () => void;
+  onCancel: () => void;
+}
+
+export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [skillLevels, setSkillLevels] = useState<SportSkillLevel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const form = useForm<z.infer<typeof skillLevelSchema>>({
+    resolver: zodResolver(skillLevelSchema),
+    defaultValues: {
+      sportType: "",
+      experienceLevel: "beginner",
+      timesPerWeek: 1,
+      yearsPlaying: 1,
+      competitiveLevel: "recreational",
+      preferredPosition: ""
+    }
+  });
+
+  useEffect(() => {
+    fetchSkillLevels();
+  }, [user]);
+
+  const fetchSkillLevels = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await apiRequest(`/api/users/${user.id}/sport-skill-levels`);
+      setSkillLevels(response);
+    } catch (error) {
+      console.error('Error fetching skill levels:', error);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof skillLevelSchema>) => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      await apiRequest(`/api/users/${user.id}/sport-skill-levels`, {
+        method: 'POST',
+        body: values
+      });
+      
+      toast({
+        title: "Skill level added",
+        description: `Added ${values.sportType} skill level to your profile.`
+      });
+      
+      form.reset();
+      setIsEditing(false);
+      fetchSkillLevels();
+    } catch (error: any) {
+      toast({
+        title: "Error adding skill level",
+        description: error.message || "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteSkillLevel = async (id: number) => {
+    try {
+      await apiRequest(`/api/sport-skill-levels/${id}`, {
+        method: 'DELETE'
+      });
+      
+      toast({
+        title: "Skill level removed",
+        description: "The skill level has been removed from your profile."
+      });
+      
+      fetchSkillLevels();
+    } catch (error) {
+      toast({
+        title: "Error removing skill level",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getExperienceBadge = (level: string) => {
+    switch (level) {
+      case 'expert': return 'bg-red-100 text-red-800';
+      case 'advanced': return 'bg-orange-100 text-orange-800';
+      case 'intermediate': return 'bg-blue-100 text-blue-800';
+      case 'beginner': return 'bg-green-100 text-green-800';
+      case 'never': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold">Sport Skill Levels</h3>
+      
+      <div className="text-sm text-gray-600">
+        Share your experience level in different sports to help others find teammates with similar abilities.
+      </div>
+
+      {/* Existing Skill Levels */}
+      {skillLevels.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium">Your Sport Skills</h4>
+          {skillLevels.map((skill) => (
+            <Card key={skill.id} className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-4">
+                  <Star className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <h5 className="font-medium capitalize">{skill.sportType}</h5>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                      <Badge className={getExperienceBadge(skill.experienceLevel)}>
+                        {skill.experienceLevel}
+                      </Badge>
+                      <span>•</span>
+                      <span>{skill.timesPerWeek}x per week</span>
+                      <span>•</span>
+                      <span>{skill.yearsPlaying} years</span>
+                    </div>
+                    {skill.competitiveLevel && (
+                      <div className="text-sm text-gray-500 mb-1">
+                        Level: {skill.competitiveLevel}
+                      </div>
+                    )}
+                    {skill.preferredPosition && (
+                      <div className="text-sm text-gray-700">
+                        Position: {skill.preferredPosition}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => deleteSkillLevel(skill.id)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Add New Skill Level */}
+      {!isEditing ? (
+        <Button onClick={() => setIsEditing(true)} variant="outline" className="w-full">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Sport Skill Level
+        </Button>
+      ) : (
+        <Card className="p-4">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="text-base">Add Sport Skill Level</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sportType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sport</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a sport" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {sportTypes.map((sport) => (
+                              <SelectItem key={sport} value={sport}>
+                                {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="experienceLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Experience Level</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="never">Never played</SelectItem>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="timesPerWeek"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Times per Week</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="20"
+                            {...field}
+                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="yearsPlaying"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Years Playing</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="50"
+                            {...field}
+                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="competitiveLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Competitive Level (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="recreational">Recreational</SelectItem>
+                            <SelectItem value="competitive">Competitive</SelectItem>
+                            <SelectItem value="professional">Professional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="preferredPosition"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preferred Position (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Point Guard, Midfielder" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex space-x-4">
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Adding..." : "Add Skill Level"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditing(false);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex space-x-4 pt-4">
+        <Button onClick={onComplete}>
+          {skillLevels.length > 0 ? "Complete Profile" : "Skip for Now"}
+        </Button>
+        <Button variant="outline" onClick={onCancel}>
+          Back
+        </Button>
+      </div>
+    </div>
+  );
+}

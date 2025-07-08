@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { storage } from "./storage";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import { z } from "zod";
 import { 
   insertUserSchema, 
   insertEventSchema, 
@@ -25,6 +26,8 @@ import {
   insertMatchParticipantSchema,
   insertPlayerStatisticsSchema,
   insertMatchResultNotificationSchema,
+  insertProfessionalTeamHistorySchema,
+  insertSportSkillLevelSchema,
   type User,
   type Event,
   type RSVP,
@@ -46,6 +49,8 @@ import {
   type MatchParticipant,
   type PlayerStatistics,
   type MatchResultNotification,
+  type ProfessionalTeamHistory,
+  type SportSkillLevel,
   playerRatings,
   playerStatistics,
   teamJoinRequests
@@ -4135,6 +4140,278 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   }
+
+  // Professional Team History routes
+  app.get('/api/users/:userId/professional-team-history', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only access your own team history" });
+      }
+      
+      const history = await storage.getProfessionalTeamHistory(userId);
+      res.json(history);
+    } catch (error) {
+      console.error('Error fetching professional team history:', error);
+      res.status(500).json({ message: "Error fetching team history" });
+    }
+  });
+
+  app.post('/api/users/:userId/professional-team-history', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only manage your own team history" });
+      }
+      
+      const historyData = { ...req.body, userId };
+      const validatedData = insertProfessionalTeamHistorySchema.parse(historyData);
+      
+      const history = await storage.createProfessionalTeamHistory(validatedData);
+      res.status(201).json(history);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team history data", errors: error.errors });
+      }
+      console.error('Error creating professional team history:', error);
+      res.status(500).json({ message: "Error creating team history" });
+    }
+  });
+
+  app.put('/api/professional-team-history/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const historyId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get existing history to check ownership
+      const existingHistory = await storage.getProfessionalTeamHistory(authenticatedUser.id);
+      const history = existingHistory.find(h => h.id === historyId);
+      
+      if (!history) {
+        return res.status(404).json({ message: "Team history not found" });
+      }
+      
+      if (history.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own team history" });
+      }
+      
+      const validatedData = insertProfessionalTeamHistorySchema.partial().parse(req.body);
+      const updatedHistory = await storage.updateProfessionalTeamHistory(historyId, validatedData);
+      
+      if (!updatedHistory) {
+        return res.status(404).json({ message: "Team history not found or update failed" });
+      }
+      
+      res.json(updatedHistory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team history data", errors: error.errors });
+      }
+      console.error('Error updating professional team history:', error);
+      res.status(500).json({ message: "Error updating team history" });
+    }
+  });
+
+  app.delete('/api/professional-team-history/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const historyId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get existing history to check ownership
+      const existingHistory = await storage.getProfessionalTeamHistory(authenticatedUser.id);
+      const history = existingHistory.find(h => h.id === historyId);
+      
+      if (!history) {
+        return res.status(404).json({ message: "Team history not found" });
+      }
+      
+      if (history.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only delete your own team history" });
+      }
+      
+      const deleted = await storage.deleteProfessionalTeamHistory(historyId);
+      if (!deleted) {
+        return res.status(500).json({ message: "Error deleting team history" });
+      }
+      
+      res.json({ message: "Team history deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting professional team history:', error);
+      res.status(500).json({ message: "Error deleting team history" });
+    }
+  });
+
+  // Sport Skill Levels routes
+  app.get('/api/users/:userId/sport-skill-levels', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only access your own skill levels" });
+      }
+      
+      const skillLevels = await storage.getSportSkillLevels(userId);
+      res.json(skillLevels);
+    } catch (error) {
+      console.error('Error fetching sport skill levels:', error);
+      res.status(500).json({ message: "Error fetching skill levels" });
+    }
+  });
+
+  app.post('/api/users/:userId/sport-skill-levels', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only manage your own skill levels" });
+      }
+      
+      const skillData = { ...req.body, userId };
+      const validatedData = insertSportSkillLevelSchema.parse(skillData);
+      
+      // Check if skill level already exists for this sport
+      const existing = await storage.getSportSkillLevel(userId, validatedData.sportType);
+      if (existing) {
+        return res.status(400).json({ message: "Skill level already exists for this sport" });
+      }
+      
+      const skillLevel = await storage.createSportSkillLevel(validatedData);
+      res.status(201).json(skillLevel);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid skill level data", errors: error.errors });
+      }
+      console.error('Error creating sport skill level:', error);
+      res.status(500).json({ message: "Error creating skill level" });
+    }
+  });
+
+  app.put('/api/sport-skill-levels/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const skillId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get existing skill levels to check ownership
+      const existingSkillLevels = await storage.getSportSkillLevels(authenticatedUser.id);
+      const skillLevel = existingSkillLevels.find(s => s.id === skillId);
+      
+      if (!skillLevel) {
+        return res.status(404).json({ message: "Skill level not found" });
+      }
+      
+      if (skillLevel.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own skill levels" });
+      }
+      
+      const validatedData = insertSportSkillLevelSchema.partial().parse(req.body);
+      const updatedSkillLevel = await storage.updateSportSkillLevel(skillId, validatedData);
+      
+      if (!updatedSkillLevel) {
+        return res.status(404).json({ message: "Skill level not found or update failed" });
+      }
+      
+      res.json(updatedSkillLevel);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid skill level data", errors: error.errors });
+      }
+      console.error('Error updating sport skill level:', error);
+      res.status(500).json({ message: "Error updating skill level" });
+    }
+  });
+
+  app.delete('/api/sport-skill-levels/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const skillId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Get existing skill levels to check ownership
+      const existingSkillLevels = await storage.getSportSkillLevels(authenticatedUser.id);
+      const skillLevel = existingSkillLevels.find(s => s.id === skillId);
+      
+      if (!skillLevel) {
+        return res.status(404).json({ message: "Skill level not found" });
+      }
+      
+      if (skillLevel.userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only delete your own skill levels" });
+      }
+      
+      const deleted = await storage.deleteSportSkillLevel(skillId);
+      if (!deleted) {
+        return res.status(500).json({ message: "Error deleting skill level" });
+      }
+      
+      res.json({ message: "Skill level deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting sport skill level:', error);
+      res.status(500).json({ message: "Error deleting skill level" });
+    }
+  });
+
+  // Profile completion routes
+  app.put('/api/users/:userId/profile-completion', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own profile completion" });
+      }
+      
+      const { completionLevel } = req.body;
+      
+      if (typeof completionLevel !== 'number' || completionLevel < 0 || completionLevel > 100) {
+        return res.status(400).json({ message: "Completion level must be a number between 0 and 100" });
+      }
+      
+      const updatedUser = await storage.updateUserProfileCompletion(userId, completionLevel);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found or update failed" });
+      }
+      
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating profile completion:', error);
+      res.status(500).json({ message: "Error updating profile completion" });
+    }
+  });
+
+  app.put('/api/users/:userId/phone-verification', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (isNaN(userId) || userId !== authenticatedUser.id) {
+        return res.status(403).json({ message: "Forbidden - You can only update your own phone verification" });
+      }
+      
+      const { phoneNumber, isVerified } = req.body;
+      
+      const updatedUser = await storage.updateUser(userId, { 
+        phoneNumber, 
+        isPhoneVerified: isVerified 
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found or update failed" });
+      }
+      
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating phone verification:', error);
+      res.status(500).json({ message: "Error updating phone verification" });
+    }
+  });
   
   return httpServer;
 }
