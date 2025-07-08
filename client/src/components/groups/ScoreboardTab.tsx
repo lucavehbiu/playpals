@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Target, Users, Calendar, Medal, TrendingUp } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Trophy, Target, Users, Calendar, Medal, TrendingUp, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import type { MatchResult, PlayerStatistics, SportsGroup } from '@shared/schema';
@@ -17,6 +18,9 @@ interface ScoreboardTabProps {
 export function ScoreboardTab({ group }: ScoreboardTabProps) {
   const { user } = useAuth();
   const [showSubmitScore, setShowSubmitScore] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+  const [sortBy, setSortBy] = useState<'winRate' | 'matchesPlayed'>('winRate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Fetch match results for the group
   const { data: matchResults = [], isLoading: matchResultsLoading } = useQuery({
@@ -34,6 +38,32 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
 
   // Debug logging
   console.log('ScoreboardTab - playerStats:', playerStats, 'loading:', statsLoading);
+
+  // Sort players based on current sort settings
+  const sortedPlayerStats = [...playerStats].sort((a, b) => {
+    const aValue = sortBy === 'winRate' ? a.winRate || 0 : a.matchesPlayed || 0;
+    const bValue = sortBy === 'winRate' ? b.winRate || 0 : b.matchesPlayed || 0;
+    
+    if (sortOrder === 'desc') {
+      return bValue - aValue;
+    } else {
+      return aValue - bValue;
+    }
+  });
+
+  const handleSort = (column: 'winRate' | 'matchesPlayed') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
+
+  const getSortIcon = (column: 'winRate' | 'matchesPlayed') => {
+    if (sortBy !== column) return <ArrowUpDown className="h-3 w-3" />;
+    return sortOrder === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />;
+  };
 
   const formatScore = (result: MatchResult) => {
     if (result.sportType === 'tennis' || result.sportType === 'padel') {
@@ -172,27 +202,36 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '40px'}}>#</th>
-                <th className="text-left py-3 px-3 font-medium text-gray-700" style={{minWidth: '120px'}}>Player</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '60px'}}>Games</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '50px'}}>Won</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '50px'}}>Lost</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '50px'}}>Draw</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700" style={{width: '70px'}}>Win %</th>
+                <th className="text-center py-3 px-2 font-medium text-gray-700 w-12">#</th>
+                <th className="text-left py-3 px-3 font-medium text-gray-700">Player</th>
+                <th 
+                  className="text-center py-3 px-2 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 w-20"
+                  onClick={() => handleSort('matchesPlayed')}
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span>Games</span>
+                    {getSortIcon('matchesPlayed')}
+                  </div>
+                </th>
+                <th 
+                  className="text-center py-3 px-2 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 w-20"
+                  onClick={() => handleSort('winRate')}
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span>Win %</span>
+                    {getSortIcon('winRate')}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {playerStats.map((stats: any, index) => {
+              {sortedPlayerStats.map((stats: any, index) => {
                 const winRate = stats.winRate ? stats.winRate.toFixed(1) : '0.0';
                 
                 return (
                   <tr 
                     key={stats.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      // Navigate to player profile when clicked
-                      window.location.href = `/profile/${stats.userId}`;
-                    }}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-3 px-2 text-center">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mx-auto ${
@@ -203,30 +242,29 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
                         {index + 1}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="font-medium text-gray-900">{stats.playerName || `Player ${stats.userId}`}</div>
+                    <td 
+                      className="py-3 px-3 cursor-pointer"
+                      onClick={() => {
+                        window.location.href = `/profile/${stats.userId}`;
+                      }}
+                    >
+                      <div className="font-medium text-gray-900 hover:text-blue-600">{stats.playerName || `Player ${stats.userId}`}</div>
                       <div className="text-xs text-gray-500">{stats.sportType}</div>
                     </td>
                     <td className="py-3 px-2 text-center">
                       <div className="font-semibold text-gray-900">{stats.matchesPlayed || 0}</div>
                     </td>
                     <td className="py-3 px-2 text-center">
-                      <div className="font-semibold text-green-600">{stats.matchesWon || 0}</div>
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <div className="font-semibold text-red-600">{stats.matchesLost || 0}</div>
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <div className="font-semibold text-gray-600">{stats.matchesDrawn || 0}</div>
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <div className={`px-2 py-1 rounded text-xs font-bold ${
-                        parseFloat(winRate) >= 60 ? 'bg-green-500 text-white' : 
-                        parseFloat(winRate) >= 40 ? 'bg-yellow-500 text-white' : 
-                        'bg-gray-500 text-white'
-                      }`}>
+                      <button
+                        onClick={() => setSelectedPlayer(stats)}
+                        className={`px-3 py-1 rounded-full text-sm font-bold transition-all hover:scale-105 cursor-pointer ${
+                          parseFloat(winRate) >= 60 ? 'bg-green-500 hover:bg-green-600 text-white' : 
+                          parseFloat(winRate) >= 40 ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 
+                          'bg-gray-500 hover:bg-gray-600 text-white'
+                        }`}
+                      >
                         {winRate}%
-                      </div>
+                      </button>
                     </td>
                   </tr>
                 );
@@ -280,6 +318,69 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
           }}
         />
       )}
+
+      {/* Player Details Modal */}
+      <Dialog open={!!selectedPlayer} onOpenChange={() => setSelectedPlayer(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              <span>{selectedPlayer?.playerName} Stats</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPlayer && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {selectedPlayer.winRate?.toFixed(1) || '0.0'}%
+                </div>
+                <div className="text-sm text-gray-500">Win Rate</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3 text-center">
+                  <div className="text-lg font-semibold text-gray-900">
+                    {selectedPlayer.matchesPlayed || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">Total Games</div>
+                </div>
+                
+                <div className="bg-green-50 rounded-lg p-3 text-center">
+                  <div className="text-lg font-semibold text-green-600">
+                    {selectedPlayer.matchesWon || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">Won</div>
+                </div>
+                
+                <div className="bg-red-50 rounded-lg p-3 text-center">
+                  <div className="text-lg font-semibold text-red-600">
+                    {selectedPlayer.matchesLost || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">Lost</div>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-3 text-center">
+                  <div className="text-lg font-semibold text-gray-600">
+                    {selectedPlayer.matchesDrawn || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">Draw</div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-3">
+                <div className="text-xs text-gray-500 mb-2">Additional Stats</div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Sport: <span className="font-medium">{selectedPlayer.sportType}</span></div>
+                  <div>Last Played: <span className="font-medium">
+                    {selectedPlayer.lastPlayed ? new Date(selectedPlayer.lastPlayed).toLocaleDateString() : 'Never'}
+                  </span></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
