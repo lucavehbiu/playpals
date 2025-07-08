@@ -444,7 +444,65 @@ const Profile = () => {
                 </div>
               </div>
             )}
-            {/* About Me section with golden ratio proportions */}
+            
+            {/* Sports Interests Section - Moved to first position */}
+            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+                Sports Interests
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
+                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="6" fill="currentColor" />
+                  </svg>
+                  Basketball
+                </span>
+                <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
+                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="6" fill="currentColor" />
+                  </svg>
+                  Soccer
+                </span>
+                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
+                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="6" fill="currentColor" />
+                  </svg>
+                  Volleyball
+                </span>
+                <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
+                  <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="6" fill="currentColor" />
+                  </svg>
+                  Tennis
+                </span>
+              </div>
+            </div>
+
+            {/* Contact Information Section - Vertical layout */}
+            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                Contact Information
+              </h3>
+              <div className="space-y-3">
+                <div className="flex flex-col rounded-lg bg-gray-50 dark:bg-gray-700/50 p-2.5">
+                  <span className="text-gray-500 dark:text-gray-400 font-medium mb-1">Email:</span>
+                  <span className="text-gray-800 dark:text-gray-200 break-all">{user.email}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* About Me section */}
             <h2 className="text-xl font-bold mb-4 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
@@ -513,63 +571,7 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Info sections in golden ratio grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.618fr)' }}>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700 col-span-1">
-                <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  Contact Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex flex-col rounded-lg bg-gray-50 dark:bg-gray-700/50 p-2.5">
-                    <span className="text-gray-500 dark:text-gray-400 font-medium mb-1">Email:</span>
-                    <span className="text-gray-800 dark:text-gray-200 break-all">{user.email}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700 col-span-1 md:col-span-2">
-                <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                  </svg>
-                  Sports Interests
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                    <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="12" cy="12" r="6" fill="currentColor" />
-                    </svg>
-                    Basketball
-                  </span>
-                  <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                    <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="12" cy="12" r="6" fill="currentColor" />
-                    </svg>
-                    Soccer
-                  </span>
-                  <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                    <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="12" cy="12" r="6" fill="currentColor" />
-                    </svg>
-                    Volleyball
-                  </span>
-                  <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1.5 rounded-full text-xs font-medium flex items-center">
-                    <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="12" cy="12" r="6" fill="currentColor" />
-                    </svg>
-                    Tennis
-                  </span>
-                </div>
-              </div>
-            </div>
+
           </div>
         )}
         
