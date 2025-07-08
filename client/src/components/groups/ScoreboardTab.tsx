@@ -163,16 +163,16 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
     return (
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Rank</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Player</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700">Matches</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700">Won</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700">Lost</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700">Draw</th>
-                <th className="text-center py-3 px-2 font-medium text-gray-700">Win %</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-8 sm:w-12">#</th>
+                <th className="text-left py-2 px-2 font-medium text-gray-700 min-w-[120px]">Player</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-12 sm:w-16">Matches</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-10 sm:w-12">Won</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-10 sm:w-12">Lost</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-10 sm:w-12">Draw</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700 w-14 sm:w-16">Win %</th>
               </tr>
             </thead>
             <tbody>
@@ -188,35 +188,37 @@ export function ScoreboardTab({ group }: ScoreboardTabProps) {
                       window.location.href = `/profile/${stats.userId}`;
                     }}
                   >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                          index === 0 ? 'bg-yellow-500' : 
-                          index === 1 ? 'bg-gray-400' : 
-                          index === 2 ? 'bg-orange-500' : 'bg-blue-500'
-                        }`}>
-                          {index + 1}
-                        </div>
+                    <td className="py-2 px-1 text-center">
+                      <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-xs font-bold text-white mx-auto ${
+                        index === 0 ? 'bg-yellow-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                      }`}>
+                        {index + 1}
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-gray-900">{stats.playerName || `Player ${stats.userId}`}</div>
+                    <td className="py-2 px-2">
+                      <div className="font-medium text-gray-900 text-sm">{stats.playerName || `Player ${stats.userId}`}</div>
                       <div className="text-xs text-gray-500">{stats.sportType}</div>
                     </td>
-                    <td className="py-3 px-2 text-center font-medium">{stats.matchesPlayed}</td>
-                    <td className="py-3 px-2 text-center">
+                    <td className="py-2 px-1 text-center text-sm font-medium">{stats.matchesPlayed}</td>
+                    <td className="py-2 px-1 text-center text-sm">
                       <span className="text-green-600 font-medium">{stats.matchesWon}</span>
                     </td>
-                    <td className="py-3 px-2 text-center">
+                    <td className="py-2 px-1 text-center text-sm">
                       <span className="text-red-600 font-medium">{stats.matchesLost}</span>
                     </td>
-                    <td className="py-3 px-2 text-center">
+                    <td className="py-2 px-1 text-center text-sm">
                       <span className="text-gray-600 font-medium">{stats.matchesDrawn}</span>
                     </td>
-                    <td className="py-3 px-2 text-center">
-                      <Badge variant={parseFloat(winRate) >= 60 ? 'default' : 'outline'} className="text-xs">
+                    <td className="py-2 px-1 text-center">
+                      <div className={`inline-flex items-center px-1 py-1 rounded-full text-xs font-medium ${
+                        parseFloat(winRate) >= 60 ? 'bg-green-100 text-green-800' : 
+                        parseFloat(winRate) >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }`}>
                         {winRate}%
-                      </Badge>
+                      </div>
                     </td>
                   </tr>
                 );
