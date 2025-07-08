@@ -40,6 +40,7 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
   const [skillLevels, setSkillLevels] = useState<SportSkillLevel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [userPreferredSports, setUserPreferredSports] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof skillLevelSchema>>({
     resolver: zodResolver(skillLevelSchema),
@@ -53,6 +54,7 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
   useEffect(() => {
     fetchSkillLevels();
+    fetchUserPreferredSports();
   }, [user]);
 
   const fetchSkillLevels = async () => {
@@ -68,6 +70,24 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
       }
     } catch (error) {
       console.error('Error fetching skill levels:', error);
+    }
+  };
+
+  const fetchUserPreferredSports = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch(`/api/onboarding-preferences/${user.id}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserPreferredSports(data.preferredSports || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user preferred sports:', error);
+      // Fallback to all sports if user hasn't completed onboarding
+      setUserPreferredSports([...sportTypes]);
     }
   };
 
@@ -204,7 +224,7 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {sportTypes.map((sport) => (
+                          {userPreferredSports.map((sport) => (
                             <SelectItem key={sport} value={sport}>
                               {sport.charAt(0).toUpperCase() + sport.slice(1)}
                             </SelectItem>

@@ -52,6 +52,7 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
   const [teamHistory, setTeamHistory] = useState<ProfessionalTeamHistory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [hasNoProfessionalExperience, setHasNoProfessionalExperience] = useState(false);
 
   const form = useForm<z.infer<typeof teamHistorySchema>>({
     resolver: zodResolver(teamHistorySchema),
@@ -82,6 +83,10 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
       if (response.ok) {
         const data = await response.json();
         setTeamHistory(data);
+        // Check if user has explicitly set "no professional experience"
+        if (data.length === 0) {
+          // Could add a user preference here to remember "no professional experience" selection
+        }
       }
     } catch (error) {
       console.error('Error fetching team history:', error);
@@ -158,8 +163,20 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
         Add your experience with professional, college, youth, or amateur teams to showcase your athletic background.
       </div>
 
+      {/* No Professional Experience Option */}
+      <div className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg">
+        <Checkbox 
+          id="noProfessionalExperience"
+          checked={hasNoProfessionalExperience}
+          onCheckedChange={(checked) => setHasNoProfessionalExperience(!!checked)}
+        />
+        <label htmlFor="noProfessionalExperience" className="text-sm font-medium">
+          I have no professional team experience
+        </label>
+      </div>
+
       {/* Existing Team History */}
-      {teamHistory.length > 0 && (
+      {!hasNoProfessionalExperience && teamHistory.length > 0 && (
         <div className="space-y-3">
           <h4 className="font-medium">Your Team History</h4>
           {teamHistory.map((team) => (
@@ -207,7 +224,7 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
       )}
 
       {/* Add New Team History */}
-      {!isEditing ? (
+      {!hasNoProfessionalExperience && (!isEditing ? (
         <Button onClick={() => setIsEditing(true)} variant="outline" className="w-full">
           <Plus className="h-4 w-4 mr-2" />
           Add Team History
@@ -396,11 +413,11 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
             </Form>
           </CardContent>
         </Card>
-      )}
+      ))}
 
       <div className="flex space-x-4 pt-4">
         <Button onClick={onComplete}>
-          {teamHistory.length > 0 ? "Complete Profile" : "Skip for Now"}
+          {(teamHistory.length > 0 || hasNoProfessionalExperience) ? "Complete Profile" : "Skip for Now"}
         </Button>
         <Button variant="outline" onClick={onCancel}>
           Back
