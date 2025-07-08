@@ -40,7 +40,11 @@ const Profile = () => {
   });
   
   // Calculate profile completion after user data is loaded
-  const profileCompletion = calculateProfileCompletion(authUser);
+  const profileCompletion = calculateProfileCompletion({
+    user: authUser,
+    sportSkillLevels: [],
+    professionalTeamHistory: []
+  });
   
   // Get events created by the user
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({

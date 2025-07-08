@@ -8,7 +8,15 @@ export interface ProfileCompletionStatus {
   showRibbon: boolean;
 }
 
-export function calculateProfileCompletion(user: getUserData | null): ProfileCompletionStatus {
+export interface ProfileCompletionData {
+  user: getUserData | null;
+  sportSkillLevels: any[];
+  professionalTeamHistory: any[];
+}
+
+export function calculateProfileCompletion(data: ProfileCompletionData): ProfileCompletionStatus {
+  const { user, sportSkillLevels, professionalTeamHistory } = data;
+  
   if (!user) {
     return {
       completionPercentage: 0,
@@ -22,31 +30,39 @@ export function calculateProfileCompletion(user: getUserData | null): ProfileCom
   const completedSections: string[] = [];
   const missingSections: string[] = [];
 
-  // Check basic info - user has at least name and email from registration
+  // Check basic info - user has at least name and bio
   let basicInfoScore = 0;
-  if (user.name) basicInfoScore++;
-  if (user.bio) basicInfoScore++;
-  if (user.location) basicInfoScore++;
+  if (user.name && user.name.trim() !== '') basicInfoScore++;
+  if (user.bio && user.bio.trim() !== '') basicInfoScore++;
+  if (user.location && user.location.trim() !== '') basicInfoScore++;
   
-  // Consider basic info complete if user has name (from registration)
-  // Since name is from registration, this gives users a head start
-  if (basicInfoScore >= 1) {
+  // Consider basic info complete if user has name and bio
+  if (basicInfoScore >= 2) {
     completedSections.push('basic-info');
   } else {
     missingSections.push('basic-info');
   }
 
-  // Check phone verification (placeholder - would need actual phone verification status)
-  // For now, we'll assume no phone verification initially
-  missingSections.push('phone-verification');
+  // Check phone verification - use actual verification status
+  if (user.isPhoneVerified) {
+    completedSections.push('phone-verification');
+  } else {
+    missingSections.push('phone-verification');
+  }
 
-  // Check sport skills (placeholder - would need actual sport skills data)
-  // For now, we'll assume no sport skills initially
-  missingSections.push('sport-skills');
+  // Check sport skills - user needs at least one sport skill level
+  if (sportSkillLevels && sportSkillLevels.length > 0) {
+    completedSections.push('sport-skills');
+  } else {
+    missingSections.push('sport-skills');
+  }
 
-  // Check team history (placeholder - would need actual team history data)  
-  // For now, we'll assume no team history initially
-  missingSections.push('team-history');
+  // Check team history - user needs at least one entry or marked as "no professional experience"
+  if (professionalTeamHistory && professionalTeamHistory.length > 0) {
+    completedSections.push('team-history');
+  } else {
+    missingSections.push('team-history');
+  }
 
   const completionPercentage = Math.round((completedSections.length / 4) * 100);
   const isComplete = completionPercentage === 100;

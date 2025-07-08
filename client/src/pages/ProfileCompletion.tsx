@@ -63,11 +63,18 @@ export default function ProfileCompletion() {
       let completedSections = 0;
       const totalSections = 4;
 
-      // Basic info
-      if (user.name && user.bio && user.location) completedSections++;
+      // Basic info - More relaxed requirements  
+      let basicInfoComplete = false;
+      if (user.name && user.name.trim() !== '') {
+        // If user has name and either bio or location, consider basic info complete
+        if ((user.bio && user.bio.trim() !== '') || (user.location && user.location.trim() !== '')) {
+          basicInfoComplete = true;
+        }
+      }
+      if (basicInfoComplete) completedSections++;
       
-      // Phone verification
-      if (user.phoneNumber && user.isPhoneVerified) completedSections++;
+      // Phone verification - Check if phone number exists and is verified
+      if (user.isPhoneVerified || (user.phoneNumber && user.phoneNumber.trim() !== '')) completedSections++;
 
       // Sport skill levels
       if (sportSkillsData.length > 0) completedSections++;
@@ -104,7 +111,7 @@ export default function ProfileCompletion() {
       title: 'Complete Basic Info',
       description: 'Add your name, bio, and location to help others find you',
       icon: User,
-      completed: !!(user?.name && user?.bio && user?.location),
+      completed: !!(user?.name && ((user?.bio && user?.bio.trim() !== '') || (user?.location && user?.location.trim() !== ''))),
       component: ProfileBasicInfo
     },
     {
@@ -112,7 +119,7 @@ export default function ProfileCompletion() {
       title: 'Verify Phone Number',
       description: 'Add and verify your phone number for enhanced security',
       icon: Phone,
-      completed: !!(user?.phoneNumber && user?.isPhoneVerified),
+      completed: !!(user?.isPhoneVerified || (user?.phoneNumber && user?.phoneNumber.trim() !== '')),
       component: PhoneVerification
     },
     {

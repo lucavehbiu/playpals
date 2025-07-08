@@ -26,7 +26,11 @@ const Header = () => {
   const { user, logoutMutation } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const { getTotalNotificationCount } = useGroupNotifications();
-  const profileCompletion = calculateProfileCompletion(user);
+  const profileCompletion = calculateProfileCompletion({
+    user,
+    sportSkillLevels: [],
+    professionalTeamHistory: []
+  });
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
