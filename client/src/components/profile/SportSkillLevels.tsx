@@ -229,17 +229,38 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="never">Never played</SelectItem>
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
-                          <SelectItem value="expert">Expert</SelectItem>
+                          <SelectItem value="never">
+                            <div className="flex flex-col py-1">
+                              <span className="font-medium">Never played</span>
+                              <span className="text-xs text-gray-500">No experience with this sport</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="beginner">
+                            <div className="flex flex-col py-1">
+                              <span className="font-medium">Beginner</span>
+                              <span className="text-xs text-gray-500">Less than 1x per week - just starting out</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="intermediate">
+                            <div className="flex flex-col py-1">
+                              <span className="font-medium">Intermediate</span>
+                              <span className="text-xs text-gray-500">1-2x per week - comfortable with basics</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="advanced">
+                            <div className="flex flex-col py-1">
+                              <span className="font-medium">Advanced</span>
+                              <span className="text-xs text-gray-500">3-4x per week - skilled and confident</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="expert">
+                            <div className="flex flex-col py-1">
+                              <span className="font-medium">Expert</span>
+                              <span className="text-xs text-gray-500">5+ times per week - highly skilled athlete</span>
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
-                      <div className="text-xs text-gray-500 mt-1">
-                        <div>Never played: No experience • Beginner: Less than 1x/week</div>
-                        <div>Intermediate: 1-2x/week • Advanced: 3-4x/week • Expert: 5+x/week</div>
-                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
