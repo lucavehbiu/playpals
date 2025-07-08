@@ -57,7 +57,7 @@ export default function ProfileCompletion() {
         credentials: 'include'
       });
       const teamHistoryData = teamHistoryResponse.ok ? await teamHistoryResponse.json() : [];
-      setTeamHistoryCompleted(teamHistoryData.length > 0);
+      setTeamHistoryCompleted(teamHistoryData.length > 0 || user.hasNoProfessionalExperience);
 
       // Calculate completion
       let completedSections = 0;
@@ -135,7 +135,7 @@ export default function ProfileCompletion() {
       title: 'Professional Team History',
       description: 'Add your professional, college, or youth team experience',
       icon: Trophy,
-      completed: teamHistoryCompleted,
+      completed: teamHistoryCompleted || !!(user?.hasNoProfessionalExperience),
       component: ProfessionalTeamHistory
     }
   ];
