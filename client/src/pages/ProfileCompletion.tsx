@@ -32,34 +32,60 @@ export default function ProfileCompletion() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [completionLevel, setCompletionLevel] = useState(0);
+  const [sportSkillsCompleted, setSportSkillsCompleted] = useState(false);
+  const [teamHistoryCompleted, setTeamHistoryCompleted] = useState(false);
 
   // Calculate profile completion based on user data
   useEffect(() => {
     if (!user) return;
-
-    let completedSections = 0;
-    const totalSections = 4;
-
-    // Basic info
-    if (user.name && user.bio && user.location) completedSections++;
-    
-    // Phone verification
-    if (user.phoneNumber && user.isPhoneVerified) completedSections++;
-
-    // Sport preferences - would check sport skill levels
-    // This would need to check user sport preferences
-    
-    // Professional team history - would check team history
-    // This would need to check professional team history
-
-    const percentage = Math.round((completedSections / totalSections) * 100);
-    setCompletionLevel(percentage);
-
-    // Update backend if changed
-    if (user.profileCompletionLevel !== percentage) {
-      updateProfileCompletion(percentage);
-    }
+    checkCompletionStatus();
   }, [user]);
+
+  const checkCompletionStatus = async () => {
+    if (!user) return;
+
+    try {
+      // Check sport skill levels
+      const sportSkillsResponse = await fetch(`/api/users/${user.id}/sport-skill-levels`, {
+        credentials: 'include'
+      });
+      const sportSkillsData = sportSkillsResponse.ok ? await sportSkillsResponse.json() : [];
+      setSportSkillsCompleted(sportSkillsData.length > 0);
+
+      // Check professional team history
+      const teamHistoryResponse = await fetch(`/api/users/${user.id}/professional-team-history`, {
+        credentials: 'include'
+      });
+      const teamHistoryData = teamHistoryResponse.ok ? await teamHistoryResponse.json() : [];
+      setTeamHistoryCompleted(teamHistoryData.length > 0);
+
+      // Calculate completion
+      let completedSections = 0;
+      const totalSections = 4;
+
+      // Basic info
+      if (user.name && user.bio && user.location) completedSections++;
+      
+      // Phone verification
+      if (user.phoneNumber && user.isPhoneVerified) completedSections++;
+
+      // Sport skill levels
+      if (sportSkillsData.length > 0) completedSections++;
+      
+      // Professional team history
+      if (teamHistoryData.length > 0) completedSections++;
+
+      const percentage = Math.round((completedSections / totalSections) * 100);
+      setCompletionLevel(percentage);
+
+      // Update backend if changed
+      if (user.profileCompletionLevel !== percentage) {
+        updateProfileCompletion(percentage);
+      }
+    } catch (error) {
+      console.error('Error checking completion status:', error);
+    }
+  };
 
   const updateProfileCompletion = async (level: number) => {
     if (!user) return;
@@ -97,7 +123,7 @@ export default function ProfileCompletion() {
       title: 'Add Sport Skill Levels',
       description: 'Share your experience level in different sports',
       icon: Star,
-      completed: false, // Will be calculated from sport skill levels
+      completed: sportSkillsCompleted,
       component: SportSkillLevels
     },
     {
@@ -105,7 +131,7 @@ export default function ProfileCompletion() {
       title: 'Professional Team History',
       description: 'Add your professional, college, or youth team experience',
       icon: Trophy,
-      completed: false, // Will be calculated from team history
+      completed: teamHistoryCompleted,
       component: ProfessionalTeamHistory
     }
   ];
@@ -140,7 +166,7 @@ export default function ProfileCompletion() {
       </div>
 
       <div className="grid gap-6 mb-8">
-        {profileSections.map((section) => {
+        {profileSections.filter(section => !section.completed).map((section) => {
           const IconComponent = section.icon;
           return (
             <Card key={section.id} className={`cursor-pointer transition-colors ${
@@ -181,6 +207,7 @@ export default function ProfileCompletion() {
                     onComplete={() => {
                       setActiveSection(null);
                       refetch();
+                      checkCompletionStatus();
                     }}
                     onCancel={() => setActiveSection(null)}
                   />

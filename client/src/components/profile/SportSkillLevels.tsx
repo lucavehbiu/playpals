@@ -80,9 +80,22 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
       const response = await fetch(`/api/onboarding-preferences/${user.id}`, {
         credentials: 'include'
       });
+      console.log('API Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        setUserPreferredSports(data.preferredSports || []);
+        console.log('User onboarding data:', data);
+        console.log('Preferred sports from API:', data.preferredSports);
+        
+        if (data.preferredSports && data.preferredSports.length > 0) {
+          setUserPreferredSports(data.preferredSports);
+        } else {
+          // If no preferred sports found, fallback to all sports
+          setUserPreferredSports([...sportTypes]);
+        }
+      } else {
+        console.log('API response not ok, using all sports');
+        setUserPreferredSports([...sportTypes]);
       }
     } catch (error) {
       console.error('Error fetching user preferred sports:', error);
