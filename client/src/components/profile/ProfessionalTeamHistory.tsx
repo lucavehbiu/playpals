@@ -76,7 +76,9 @@ export function ProfessionalTeamHistory({ onComplete, onCancel }: ProfessionalTe
     if (!user) return;
     
     try {
-      const response = await apiRequest(`/api/users/${user.id}/professional-team-history`);
+      const response = await apiRequest(`/api/users/${user.id}/professional-team-history`, {
+        method: 'GET'
+      });
       setTeamHistory(response);
     } catch (error) {
       console.error('Error fetching team history:', error);

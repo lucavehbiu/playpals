@@ -59,7 +59,9 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
     if (!user) return;
     
     try {
-      const response = await apiRequest(`/api/users/${user.id}/sport-skill-levels`);
+      const response = await apiRequest(`/api/users/${user.id}/sport-skill-levels`, {
+        method: 'GET'
+      });
       setSkillLevels(response);
     } catch (error) {
       console.error('Error fetching skill levels:', error);
