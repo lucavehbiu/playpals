@@ -42,8 +42,12 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
     sportSkillLevels: sportSkillLevels?.length || 0,
     professionalTeamHistory: professionalTeamHistory?.length || 0,
     sportSkillLevelsData: sportSkillLevels,
-    professionalTeamHistoryData: professionalTeamHistory
+    professionalTeamHistoryData: professionalTeamHistory,
+    completedSections: [],
+    missingSections: []
   });
+
+  console.log('Expected completion: Basic Info (✓), Sport Skills (' + (sportSkillLevels?.length > 0 ? '✓' : '❌') + '), Team History (' + (user.hasNoProfessionalExperience ? '✓' : '❌') + '), Phone (' + (user.isPhoneVerified ? '✓' : '❌') + ')');
 
   // Check basic info - user has at least name and bio
   let basicInfoScore = 0;

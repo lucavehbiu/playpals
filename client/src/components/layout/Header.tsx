@@ -28,12 +28,12 @@ const Header = () => {
   const { getTotalNotificationCount } = useGroupNotifications();
   // Fetch sport skill levels and team history for accurate completion calculation
   const { data: sportSkillLevels = [], isLoading: skillsLoading } = useQuery({
-    queryKey: ['/api/users', user?.id, 'sport-skill-levels'],
+    queryKey: [`/api/users/${user?.id}/sport-skill-levels`],
     enabled: !!user
   });
 
   const { data: professionalTeamHistory = [], isLoading: historyLoading } = useQuery({
-    queryKey: ['/api/users', user?.id, 'professional-team-history'],
+    queryKey: [`/api/users/${user?.id}/professional-team-history`],
     enabled: !!user
   });
 
