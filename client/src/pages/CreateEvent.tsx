@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, ArrowRight, CalendarIcon, MapPinIcon, Users, Clock, Globe, Lock, UserPlus, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarIcon, MapPinIcon, Users, Clock, Globe, Lock, UserPlus, CheckCircle, ImageIcon, Camera, Sparkles, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +24,7 @@ const STEPS = [
   { id: 'players', label: 'Min Players', icon: '👥' },
   { id: 'price', label: 'Price', icon: '💰' },
   { id: 'description', label: 'Description', icon: '📄' },
+  { id: 'image', label: 'Event Image', icon: '🖼️' },
   { id: 'visibility', label: 'Public/Private', icon: '🔒' }
 ];
 
@@ -53,6 +54,7 @@ const CreateEvent = () => {
     maxParticipants: urlParams.get('maxParticipants') || "10",
     price: "0",
     description: urlParams.get('description') || "",
+    eventImage: "",
     isPrivate: groupId ? true : false
   });
   
@@ -60,6 +62,37 @@ const CreateEvent = () => {
   const [inviteFriendsModalOpen, setInviteFriendsModalOpen] = useState(false);
   const [createdEventId, setCreatedEventId] = useState<number | null>(null);
   
+  // Image generation state
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  
+  // Mutation for generating event images
+  const generateImageMutation = useMutation({
+    mutationFn: async ({ sportType, title }: { sportType: string; title: string }) => {
+      setIsGeneratingImage(true);
+      const response = await apiRequest('POST', '/api/generate-event-image', {
+        sportType,
+        title
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.imageUrl) {
+        setImagePreview(data.imageUrl);
+        setFormData(prev => ({ ...prev, eventImage: data.imageUrl }));
+      }
+      setIsGeneratingImage(false);
+    },
+    onError: () => {
+      setIsGeneratingImage(false);
+      toast({
+        title: "Error",
+        description: "Failed to generate image. Please try uploading one instead.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Mutation for creating an event
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
@@ -430,6 +463,93 @@ const CreateEvent = () => {
               className="text-lg p-4 min-h-[120px] resize-none"
               autoFocus
             />
+          </div>
+        );
+        
+      case 'image':
+        return (
+          <div className="space-y-6">
+            <Label className="text-lg font-medium">Add an image to your event</Label>
+            <p className="text-gray-600">Help people visualize your event with a great image</p>
+            
+            {imagePreview || formData.eventImage ? (
+              <div className="relative">
+                <img 
+                  src={imagePreview || formData.eventImage} 
+                  alt="Event preview" 
+                  className="w-full h-48 object-cover rounded-lg border"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2 bg-white"
+                  onClick={() => {
+                    setImagePreview("");
+                    setFormData(prev => ({ ...prev, eventImage: "" }));
+                  }}
+                >
+                  Remove
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col items-center justify-center space-y-2 border-2 border-dashed"
+                    onClick={() => document.getElementById('imageUpload')?.click()}
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-600">Upload Image</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col items-center justify-center space-y-2 border-2 border-dashed"
+                    onClick={() => generateImageMutation.mutate({ 
+                      sportType: formData.sportType, 
+                      title: formData.title 
+                    })}
+                    disabled={isGeneratingImage}
+                  >
+                    {isGeneratingImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <span className="text-sm text-gray-600">Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm text-gray-600">Generate with AI</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const result = event.target?.result as string;
+                        setImagePreview(result);
+                        setFormData(prev => ({ ...prev, eventImage: result }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                
+                <p className="text-sm text-gray-500 text-center">
+                  Skip this step if you prefer to add an image later
+                </p>
+              </div>
+            )}
           </div>
         );
         

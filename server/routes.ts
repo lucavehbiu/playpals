@@ -137,6 +137,81 @@ async function checkAndNotifyNewSuggestions(pollId: number, groupId: number, res
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   setupAuth(app);
+
+  // SVG Image generation endpoint
+  app.post('/api/generate-event-image', async (req: Request, res: Response) => {
+    try {
+      const { sportType, title } = req.body;
+      
+      // Define sport-specific colors and icons
+      const sportConfig: Record<string, { color: string; icon: string; bgColor: string }> = {
+        basketball: { color: '#FF6B35', icon: '🏀', bgColor: '#FFF3E0' },
+        football: { color: '#4CAF50', icon: '⚽', bgColor: '#E8F5E8' },
+        tennis: { color: '#FFEB3B', icon: '🎾', bgColor: '#FFFDE7' },
+        volleyball: { color: '#2196F3', icon: '🏐', bgColor: '#E3F2FD' },
+        soccer: { color: '#4CAF50', icon: '⚽', bgColor: '#E8F5E8' },
+        baseball: { color: '#795548', icon: '⚾', bgColor: '#EFEBE9' },
+        badminton: { color: '#9C27B0', icon: '🏸', bgColor: '#F3E5F5' },
+        swimming: { color: '#00BCD4', icon: '🏊', bgColor: '#E0F2F1' },
+        running: { color: '#FF5722', icon: '🏃', bgColor: '#FBE9E7' },
+        cycling: { color: '#607D8B', icon: '🚴', bgColor: '#ECEFF1' },
+        padel: { color: '#FF9800', icon: '🎾', bgColor: '#FFF3E0' },
+        squash: { color: '#673AB7', icon: '🎾', bgColor: '#EDE7F6' },
+        default: { color: '#2196F3', icon: '⚽', bgColor: '#E3F2FD' }
+      };
+
+      const config = sportConfig[sportType.toLowerCase()] || sportConfig.default;
+      
+      // Create SVG image
+      const svg = `
+        <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:${config.bgColor};stop-opacity:1" />
+              <stop offset="100%" style="stop-color:${config.color};stop-opacity:0.1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Background -->
+          <rect width="400" height="200" fill="url(#bg)" />
+          
+          <!-- Sport icon background circle -->
+          <circle cx="80" cy="100" r="35" fill="${config.color}" fill-opacity="0.2" />
+          
+          <!-- Sport icon -->
+          <text x="80" y="110" font-size="30" text-anchor="middle" dominant-baseline="middle">${config.icon}</text>
+          
+          <!-- Event title -->
+          <text x="140" y="90" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">
+            ${title.length > 25 ? title.substring(0, 25) + '...' : title}
+          </text>
+          
+          <!-- Sport type -->
+          <text x="140" y="115" font-family="Arial, sans-serif" font-size="14" fill="${config.color}" font-weight="600">
+            ${sportType.charAt(0).toUpperCase() + sportType.slice(1)} Event
+          </text>
+          
+          <!-- Decorative elements -->
+          <circle cx="350" cy="50" r="3" fill="${config.color}" fill-opacity="0.3" />
+          <circle cx="370" cy="70" r="2" fill="${config.color}" fill-opacity="0.4" />
+          <circle cx="330" cy="80" r="2" fill="${config.color}" fill-opacity="0.3" />
+          
+          <circle cx="350" cy="150" r="2" fill="${config.color}" fill-opacity="0.3" />
+          <circle cx="330" cy="170" r="3" fill="${config.color}" fill-opacity="0.4" />
+          <circle cx="370" cy="160" r="1" fill="${config.color}" fill-opacity="0.3" />
+        </svg>
+      `;
+
+      // Convert SVG to data URL
+      const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+      
+      res.json({ imageUrl: svgDataUrl });
+    } catch (error) {
+      console.error('Error generating image:', error);
+      res.status(500).json({ message: 'Failed to generate image' });
+    }
+  });
+
   // User routes
   app.post('/api/users', async (req: Request, res: Response) => {
     try {
