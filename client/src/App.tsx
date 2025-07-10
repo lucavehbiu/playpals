@@ -18,6 +18,7 @@ import EventDetails from "@/pages/EventDetails";
 import ManageEvent from "@/pages/ManageEvent";
 import EditEvent from "@/pages/EditEvent";
 import CreateEvent from "@/pages/CreateEvent";
+import CreateEventInvite from "@/pages/CreateEventInvite";
 import Invitations from "@/pages/Invitations";
 import NotificationHistory from "@/pages/NotificationHistory";
 import AuthPage from "@/pages/auth-page";
@@ -50,6 +51,8 @@ function Router() {
                   </ProtectedRoute>
                   <ProtectedRoute path="/discover" component={Discover} />
                   <ProtectedRoute path="/events/create" component={CreateEvent} />
+                  <ProtectedRoute path="/create-event" component={CreateEvent} />
+                  <ProtectedRoute path="/create-event/invite" component={CreateEventInvite} />
                   <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
                   <ProtectedRoute path="/events/:id/edit" component={EditEvent} />
                   <ProtectedRoute path="/events/:id" component={EventDetails} />

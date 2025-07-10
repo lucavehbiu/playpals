@@ -203,6 +203,28 @@ const CreateEvent = () => {
       return;
     }
     
+    // If it's a private event and not from a group, navigate to invitation page
+    if (formData.isPrivate && !groupId) {
+      // Store form data in session storage and navigate to invitation page
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        sportType: formData.sportType,
+        location: formData.location,
+        date: formData.date,
+        time: formData.time,
+        duration: formData.duration,
+        maxParticipants: formData.maxParticipants,
+        price: formData.price,
+        isPrivate: formData.isPrivate
+      };
+      
+      sessionStorage.setItem('pendingEventData', JSON.stringify(eventData));
+      setLocation('/create-event/invite');
+      return;
+    }
+    
+    // For public events or group events, create directly
     // Combine date and time
     const startDateTime = new Date(`${formData.date}T${formData.time}`);
     
@@ -522,10 +544,17 @@ const CreateEvent = () => {
             {createEventMutation.isPending ? (
               "Creating..."
             ) : currentStep === STEPS.length - 1 ? (
-              <>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Create Event
-              </>
+              formData.isPrivate && !groupId ? (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Choose Invitees
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Create Event
+                </>
+              )
             ) : (
               <>
                 Next
