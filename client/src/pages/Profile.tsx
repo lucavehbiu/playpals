@@ -258,11 +258,11 @@ const Profile = () => {
               </div>
             </div>
             
-            {/* User information with golden ratio spacing */}
-            <div className="mt-4 sm:mt-0 sm:ml-5 max-w-[180px] sm:max-w-full">
-              <h1 className="text-2xl font-bold tracking-tight truncate text-white shadow-sm">{user.name}</h1>
-              <p className="text-blue-100 font-medium truncate shadow-sm">@{user.username}</p>
-              <div className="flex items-center mt-1.5 gap-3">
+            {/* User information with compact layout */}
+            <div className="mt-4 sm:mt-0 sm:ml-5">
+              <h1 className="text-2xl font-bold tracking-tight text-white shadow-sm">{user.name}</h1>
+              <p className="text-blue-100 font-medium shadow-sm">@{user.username}</p>
+              <div className="flex items-center mt-2 gap-2">
                 {/* Rating section - clickable for other users */}
                 <div className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm">
                   {!isOwnProfile ? (
@@ -281,20 +281,13 @@ const Profile = () => {
                   )}
                 </div>
                 
-                {/* Matches count */}
+                {/* Matches count - smaller */}
                 <div className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm">
-                  <svg className="w-4 h-4 text-green-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 text-green-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-white font-medium">{userMatches?.totalMatches || 0} matches</span>
+                  <span className="text-white text-sm font-medium">{userMatches?.totalMatches || 0}</span>
                 </div>
-                
-                {user.headline && (
-                  <div className="text-sm text-blue-100 max-w-[200px] sm:max-w-full">
-                    <span>•</span>
-                    <span className="ml-2 truncate block">{user.headline}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -725,20 +718,7 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* About Me section */}
-            <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                </svg>
-                About Me
-              </h3>
-              <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
-                  {user.bio || "No bio provided yet. Edit your profile to add a bio."}
-                </p>
-              </div>
-            </div>
+
             
             {/* Sport-Specific Statistics */}
             {user.sportStatistics && user.sportStatistics.length > 0 && (
