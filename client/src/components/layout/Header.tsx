@@ -27,21 +27,29 @@ const Header = () => {
   const { pendingCount: notificationCount } = useNotifications();
   const { getTotalNotificationCount } = useGroupNotifications();
   // Fetch sport skill levels and team history for accurate completion calculation
-  const { data: sportSkillLevels = [] } = useQuery({
+  const { data: sportSkillLevels = [], isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/users', user?.id, 'sport-skill-levels'],
     enabled: !!user
   });
 
-  const { data: professionalTeamHistory = [] } = useQuery({
+  const { data: professionalTeamHistory = [], isLoading: historyLoading } = useQuery({
     queryKey: ['/api/users', user?.id, 'professional-team-history'],
     enabled: !!user
   });
 
-  const profileCompletion = calculateProfileCompletion({
-    user,
-    sportSkillLevels,
-    professionalTeamHistory
-  });
+  // Only calculate completion when data is loaded or when no user
+  const profileCompletion = (!user || (!skillsLoading && !historyLoading)) ? 
+    calculateProfileCompletion({
+      user,
+      sportSkillLevels,
+      professionalTeamHistory
+    }) : {
+      completionPercentage: 0,
+      isComplete: false,
+      completedSections: [],
+      missingSections: [],
+      showRibbon: false
+    };
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
