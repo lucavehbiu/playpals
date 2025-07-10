@@ -4518,7 +4518,19 @@ const testUsers: InsertUser[] = [
     email: "carlos@example.com",
     bio: "Ultra-marathon runner and trail enthusiast. Love exploring new hiking paths.",
     location: "Denver, CO",
-    headline: "Ultra Runner & Trail Explorer"
+    headline: "Ultra Runner & Trail Explorer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#4f46e5"/>
+          <stop offset="100%" style="stop-color:#7c3aed"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg1)"/>
+      <circle cx="60" cy="45" r="22" fill="#fbbf24"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fbbf24"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">CM</text>
+    </svg>`)
   },
   {
     username: "nina_volleyball",
@@ -4527,7 +4539,19 @@ const testUsers: InsertUser[] = [
     email: "nina@example.com",
     bio: "Beach volleyball player and coach. Organizing local tournaments and training camps.",
     location: "San Diego, CA",
-    headline: "Beach Volleyball Coach"
+    headline: "Beach Volleyball Coach",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ec4899"/>
+          <stop offset="100%" style="stop-color:#f97316"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg2)"/>
+      <circle cx="60" cy="45" r="22" fill="#fef3c7"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fef3c7"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">NT</text>
+    </svg>`)
   },
   {
     username: "jordan_climbing",
@@ -4536,7 +4560,19 @@ const testUsers: InsertUser[] = [
     email: "jordan@example.com", 
     bio: "Rock climbing instructor and outdoor adventure guide. Safety first, fun always!",
     location: "Boulder, CO",
-    headline: "Rock Climbing Instructor"
+    headline: "Rock Climbing Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#10b981"/>
+          <stop offset="100%" style="stop-color:#0ea5e9"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg3)"/>
+      <circle cx="60" cy="45" r="22" fill="#fed7aa"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fed7aa"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">JL</text>
+    </svg>`)
   },
   {
     username: "priya_yoga",
@@ -4545,7 +4581,19 @@ const testUsers: InsertUser[] = [
     email: "priya@example.com",
     bio: "Certified yoga instructor specializing in power yoga and meditation practices.",
     location: "Austin, TX",
-    headline: "Power Yoga Instructor"
+    headline: "Power Yoga Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6"/>
+          <stop offset="100%" style="stop-color:#ec4899"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg4)"/>
+      <circle cx="60" cy="45" r="22" fill="#f3e8ff"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#f3e8ff"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">PP</text>
+    </svg>`)
   },
   {
     username: "tyler_cycling",
@@ -4554,7 +4602,19 @@ const testUsers: InsertUser[] = [
     email: "tyler@example.com",
     bio: "Competitive cyclist and bike shop owner. Organizing weekly group rides and races.",
     location: "Portland, OR", 
-    headline: "Competitive Cyclist & Shop Owner"
+    headline: "Competitive Cyclist & Shop Owner",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#06b6d4"/>
+          <stop offset="100%" style="stop-color:#3b82f6"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg5)"/>
+      <circle cx="60" cy="45" r="22" fill="#ddd6fe"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#ddd6fe"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">TJ</text>
+    </svg>`)
   },
   {
     username: "maya_boxing",
@@ -4563,7 +4623,19 @@ const testUsers: InsertUser[] = [
     email: "maya@example.com",
     bio: "Professional boxing trainer and former amateur champion. Training fighters of all levels.",
     location: "Las Vegas, NV",
-    headline: "Professional Boxing Trainer"
+    headline: "Professional Boxing Trainer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#dc2626"/>
+          <stop offset="100%" style="stop-color:#ea580c"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg6)"/>
+      <circle cx="60" cy="45" r="22" fill="#fde68a"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fde68a"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">MR</text>
+    </svg>`)
   },
   {
     username: "ethan_golf",
@@ -4572,7 +4644,19 @@ const testUsers: InsertUser[] = [
     email: "ethan@example.com", 
     bio: "Golf pro and course designer. Teaching proper swing techniques and course management.",
     location: "Scottsdale, AZ",
-    headline: "Golf Professional & Course Designer"
+    headline: "Golf Professional & Course Designer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#059669"/>
+          <stop offset="100%" style="stop-color:#ca8a04"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg7)"/>
+      <circle cx="60" cy="45" r="22" fill="#fef9c3"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fef9c3"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">ED</text>
+    </svg>`)
   },
   {
     username: "sophia_dance",
@@ -4581,7 +4665,19 @@ const testUsers: InsertUser[] = [
     email: "sophia@example.com",
     bio: "Dance fitness instructor and choreographer. Making fitness fun through movement!",
     location: "Miami, FL",
-    headline: "Dance Fitness Instructor"
+    headline: "Dance Fitness Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f59e0b"/>
+          <stop offset="100%" style="stop-color:#ef4444"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg8)"/>
+      <circle cx="60" cy="45" r="22" fill="#fecaca"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fecaca"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">SK</text>
+    </svg>`)
   },
   {
     username: "marcus_martial",
@@ -4590,7 +4686,19 @@ const testUsers: InsertUser[] = [
     email: "marcus@example.com",
     bio: "Mixed martial arts instructor and former competitor. Teaching discipline and technique.",
     location: "Las Vegas, NV", 
-    headline: "MMA Instructor & Former Fighter"
+    headline: "MMA Instructor & Former Fighter",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg9" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#374151"/>
+          <stop offset="100%" style="stop-color:#1f2937"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg9)"/>
+      <circle cx="60" cy="45" r="22" fill="#f9fafb"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#f9fafb"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">MB</text>
+    </svg>`)
   },
   {
     username: "zoe_skating",
@@ -4599,7 +4707,19 @@ const testUsers: InsertUser[] = [
     email: "zoe@example.com",
     bio: "Figure skating coach and former competitive skater. Training the next generation!",
     location: "Minneapolis, MN",
-    headline: "Figure Skating Coach"
+    headline: "Figure Skating Coach",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg10" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#a855f7"/>
+          <stop offset="100%" style="stop-color:#06b6d4"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg10)"/>
+      <circle cx="60" cy="45" r="22" fill="#e0e7ff"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#e0e7ff"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">ZW</text>
+    </svg>`)
   }
 ];
 
