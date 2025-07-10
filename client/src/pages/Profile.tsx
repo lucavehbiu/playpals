@@ -87,8 +87,11 @@ const Profile = () => {
     enabled: !!authUser?.id && !isOwnProfile,
   });
 
-  // Get user's sport statistics for win rates - This will be added to user data later
-  // For now, check if user object has sportStatistics property
+  // Get user's onboarding preferences to show all selected sports
+  const { data: onboardingPreferences } = useQuery({
+    queryKey: [`/api/onboarding-preferences/${authUser?.id}`],
+    enabled: !!authUser?.id,
+  });
 
   // Mutation for responding to friend requests
   const respondToFriendRequestMutation = useMutation({
@@ -463,59 +466,63 @@ const Profile = () => {
               </div>
             )}
             
-            {/* Sports Skills Section - Show actual user sport skills with levels and win rates */}
+            {/* Sports Section - Show all registered sports with skill levels and win rates */}
             <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
               <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
-                Sport Skills & Performance
+                Sports & Performance
               </h3>
-              {sportSkillLevels && sportSkillLevels.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {sportSkillLevels.map((skill: any) => {
-                    // Find win rate for this sport from statistics
-                    const sportStats = user.sportStatistics?.find((stat: any) => 
-                      stat.sportType.toLowerCase() === skill.sportType.toLowerCase()
+              {onboardingPreferences?.preferredSports && onboardingPreferences.preferredSports.length > 0 ? (
+                <div className="space-y-3">
+                  {onboardingPreferences.preferredSports.map((sport: string) => {
+                    // Find skill level for this sport
+                    const skillData = sportSkillLevels?.find((skill: any) => 
+                      skill.sportType.toLowerCase() === sport.toLowerCase()
                     );
                     
-                    const getSkillColor = (level: string) => {
-                      switch(level.toLowerCase()) {
-                        case 'beginner': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-                        case 'intermediate': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-                        case 'advanced': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-                        case 'expert': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-                        default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-                      }
-                    };
+                    // Find win rate for this sport from statistics
+                    const sportStats = user.sportStatistics?.find((stat: any) => 
+                      stat.sportType.toLowerCase() === sport.toLowerCase()
+                    );
 
                     const getSportIcon = (sportType: string) => {
                       switch(sportType.toLowerCase()) {
                         case 'football':
                         case 'soccer':
                           return (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                             </svg>
                           );
                         case 'basketball':
                           return (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.05 0-2.05-.16-3-.46l1.58-1.58c.69.41 1.47.7 2.42.7s1.73-.29 2.42-.7L17 19.54c-.95.3-1.95.46-3 .46zm7.54-3L17 14.46c.41-.69.7-1.47.7-2.42s-.29-1.73-.7-2.42L19.54 7c.3.95.46 1.95.46 3s-.16 2.05-.46 3zM7 12c0-.95-.29-1.73-.7-2.42L4.46 7c-.3.95-.46 1.95-.46 3s.16 2.05.46 3L6.3 14.42c.41-.69.7-1.47.7-2.42z"/>
                             </svg>
                           );
                         case 'tennis':
                           return (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.1 0-2.15-.18-3.14-.5L12 16.36l3.14 3.14c-.99.32-2.04.5-3.14.5zm0-3.64L8.86 19.5c-1.86-1.19-3.22-3.07-3.72-5.29L8.64 12 5.14 8.79c.5-2.22 1.86-4.1 3.72-5.29L12 6.64l3.14-3.14c1.86 1.19 3.22 3.07 3.72 5.29L15.36 12l3.5 2.21c-.5 2.22-1.86 4.1-3.72 5.29L12 16.36z"/>
+                            </svg>
+                          );
+                        case 'cycling':
+                          return (
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M5 13c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm14-6c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-7.5-10L15 9H9l3.5 0zm.5-2h2l1.5 3-1 2H9l-1-2L9.5 7z"/>
+                            </svg>
+                          );
+                        case 'running':
+                          return (
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
                             </svg>
                           );
                         default:
                           return (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
                               <circle cx="12" cy="12" r="6" fill="currentColor" />
                             </svg>
@@ -524,42 +531,30 @@ const Profile = () => {
                     };
 
                     return (
-                      <div key={skill.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center">
-                            <div className="mr-3 text-gray-600 dark:text-gray-300">
-                              {getSportIcon(skill.sportType)}
-                            </div>
+                      <div key={sport} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center space-x-4">
+                          <div className="text-gray-600 dark:text-gray-300">
+                            {getSportIcon(sport)}
+                          </div>
+                          <div>
                             <h4 className="font-semibold text-gray-900 dark:text-gray-100 capitalize">
-                              {skill.sportType}
+                              {sport}
                             </h4>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSkillColor(skill.experienceLevel)}`}>
-                            {skill.experienceLevel}
-                          </span>
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">Level:</span>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                              {skill.competitiveLevel}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">Win Rate:</span>
+                        <div className="flex items-center space-x-6 text-sm">
+                          <div className="text-center">
+                            <div className="text-gray-500 dark:text-gray-400 text-xs">Level</div>
                             <div className="font-medium text-gray-900 dark:text-gray-100">
-                              {sportStats ? `${sportStats.winRate.toFixed(1)}%` : 'No matches yet'}
+                              {skillData?.experienceLevel || 'Not set'}
                             </div>
                           </div>
-                          {skill.preferredPosition && (
-                            <div className="col-span-2">
-                              <span className="text-gray-500 dark:text-gray-400">Position:</span>
-                              <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                                {skill.preferredPosition}
-                              </div>
+                          <div className="text-center">
+                            <div className="text-gray-500 dark:text-gray-400 text-xs">Win Rate</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {sportStats ? `${sportStats.winRate.toFixed(1)}%` : '-'}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -570,14 +565,7 @@ const Profile = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-3 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                   </svg>
-                  No sport skills added yet
-                  {isOwnProfile && (
-                    <div className="mt-2">
-                      <Link href="/profile-completion">
-                        <Button variant="outline" size="sm">Add Sport Skills</Button>
-                      </Link>
-                    </div>
-                  )}
+                  No sports selected during registration
                 </div>
               )}
             </div>
