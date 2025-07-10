@@ -4509,6 +4509,97 @@ const testUsers: InsertUser[] = [
     bio: "Competitive swimmer and water polo player. Ocean swimming enthusiast.",
     location: "San Diego, CA",
     headline: "Competitive Swimmer"
+  },
+  // New 10 random users
+  {
+    username: "carlos_runner",
+    password: "password123",
+    name: "Carlos Martinez",
+    email: "carlos@example.com",
+    bio: "Ultra-marathon runner and trail enthusiast. Love exploring new hiking paths.",
+    location: "Denver, CO",
+    headline: "Ultra Runner & Trail Explorer"
+  },
+  {
+    username: "nina_volleyball",
+    password: "password123", 
+    name: "Nina Thompson",
+    email: "nina@example.com",
+    bio: "Beach volleyball player and coach. Organizing local tournaments and training camps.",
+    location: "San Diego, CA",
+    headline: "Beach Volleyball Coach"
+  },
+  {
+    username: "jordan_climbing",
+    password: "password123",
+    name: "Jordan Lee",
+    email: "jordan@example.com", 
+    bio: "Rock climbing instructor and outdoor adventure guide. Safety first, fun always!",
+    location: "Boulder, CO",
+    headline: "Rock Climbing Instructor"
+  },
+  {
+    username: "priya_yoga",
+    password: "password123",
+    name: "Priya Patel",
+    email: "priya@example.com",
+    bio: "Certified yoga instructor specializing in power yoga and meditation practices.",
+    location: "Austin, TX",
+    headline: "Power Yoga Instructor"
+  },
+  {
+    username: "tyler_cycling",
+    password: "password123",
+    name: "Tyler Johnson",
+    email: "tyler@example.com",
+    bio: "Competitive cyclist and bike shop owner. Organizing weekly group rides and races.",
+    location: "Portland, OR", 
+    headline: "Competitive Cyclist & Shop Owner"
+  },
+  {
+    username: "maya_boxing",
+    password: "password123",
+    name: "Maya Rivera",
+    email: "maya@example.com",
+    bio: "Professional boxing trainer and former amateur champion. Training fighters of all levels.",
+    location: "Las Vegas, NV",
+    headline: "Professional Boxing Trainer"
+  },
+  {
+    username: "ethan_golf",
+    password: "password123",
+    name: "Ethan Davis",
+    email: "ethan@example.com", 
+    bio: "Golf pro and course designer. Teaching proper swing techniques and course management.",
+    location: "Scottsdale, AZ",
+    headline: "Golf Professional & Course Designer"
+  },
+  {
+    username: "sophia_dance",
+    password: "password123",
+    name: "Sophia Kim",
+    email: "sophia@example.com",
+    bio: "Dance fitness instructor and choreographer. Making fitness fun through movement!",
+    location: "Miami, FL",
+    headline: "Dance Fitness Instructor"
+  },
+  {
+    username: "marcus_martial",
+    password: "password123",
+    name: "Marcus Brown",
+    email: "marcus@example.com",
+    bio: "Mixed martial arts instructor and former competitor. Teaching discipline and technique.",
+    location: "Las Vegas, NV", 
+    headline: "MMA Instructor & Former Fighter"
+  },
+  {
+    username: "zoe_skating",
+    password: "password123",
+    name: "Zoe Wilson",
+    email: "zoe@example.com",
+    bio: "Figure skating coach and former competitive skater. Training the next generation!",
+    location: "Minneapolis, MN",
+    headline: "Figure Skating Coach"
   }
 ];
 
@@ -4779,6 +4870,177 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 10,
       creatorId: validUsers[3].id,
+      eventImage: null
+    },
+    
+    // Events from the 10 new users (starting from index 6)
+    // Carlos Martinez - Running events
+    {
+      title: "Mountain Trail Ultra Run",
+      description: "50K trail run through Rocky Mountain trails. Advanced runners only. Aid stations provided.",
+      sportType: "running",
+      date: new Date(Date.now() + 1900800000), // 22 days from now
+      location: "Rocky Mountain National Park",
+      locationCoordinates: { lat: 40.3428, lng: -105.6836 },
+      maxParticipants: 20,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 40,
+      creatorId: validUsers[6]?.id || validUsers[0].id,
+      eventImage: null
+    },
+    
+    // Nina Thompson - Volleyball events
+    {
+      title: "Beach Volleyball Tournament",
+      description: "Professional level beach volleyball tournament. Teams of 2. Cash prizes for winners!",
+      sportType: "volleyball",
+      date: new Date(Date.now() + 2073600000), // 24 days from now
+      location: "Mission Beach Volleyball Courts",
+      locationCoordinates: { lat: 32.7767, lng: -117.2533 },
+      maxParticipants: 16,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[7]?.id || validUsers[1].id,
+      eventImage: null
+    },
+    
+    // Jordan Lee - Rock Climbing
+    {
+      title: "Indoor Climbing Workshop",
+      description: "Learn proper climbing techniques and safety. Equipment included. Perfect for beginners.",
+      sportType: "climbing",
+      date: new Date(Date.now() + 2160000000), // 25 days from now
+      location: "Boulder Rock Club",
+      locationCoordinates: { lat: 40.0150, lng: -105.2705 },
+      maxParticipants: 10,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 35,
+      creatorId: validUsers[8]?.id || validUsers[2].id,
+      eventImage: null
+    },
+    
+    // Priya Patel - Yoga events
+    {
+      title: "Power Yoga Flow Class",
+      description: "Intense 90-minute power yoga session. Build strength and flexibility. All levels welcome.",
+      sportType: "yoga",
+      date: new Date(Date.now() + 2246400000), // 26 days from now
+      location: "Austin Yoga Center",
+      locationCoordinates: { lat: 30.2672, lng: -97.7431 },
+      maxParticipants: 25,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 20,
+      creatorId: validUsers[9]?.id || validUsers[3].id,
+      eventImage: null
+    },
+    
+    // Tyler Johnson - Cycling
+    {
+      title: "Portland Century Ride",
+      description: "100-mile cycling challenge through scenic Oregon countryside. Support vehicle included.",
+      sportType: "cycling",
+      date: new Date(Date.now() + 2332800000), // 27 days from now
+      location: "Portland Cycling Club",
+      locationCoordinates: { lat: 45.5152, lng: -122.6784 },
+      maxParticipants: 30,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[10]?.id || validUsers[0].id,
+      eventImage: null
+    },
+    
+    // Maya Rivera - Boxing
+    {
+      title: "Boxing Fundamentals Workshop",
+      description: "Learn proper boxing stance, jab, cross, and footwork. Gloves provided. Great workout!",
+      sportType: "boxing",
+      date: new Date(Date.now() + 2419200000), // 28 days from now
+      location: "Las Vegas Boxing Gym",
+      locationCoordinates: { lat: 36.1699, lng: -115.1398 },
+      maxParticipants: 15,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[11]?.id || validUsers[1].id,
+      eventImage: null
+    },
+    
+    // Ethan Davis - Golf
+    {
+      title: "Golf Swing Analysis Clinic",
+      description: "Professional golf instruction with video analysis. Improve your swing technique.",
+      sportType: "golf",
+      date: new Date(Date.now() + 2505600000), // 29 days from now
+      location: "Scottsdale Golf Course",
+      locationCoordinates: { lat: 33.4942, lng: -111.9261 },
+      maxParticipants: 8,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 50,
+      creatorId: validUsers[12]?.id || validUsers[2].id,
+      eventImage: null
+    },
+    
+    // Sophia Kim - Dance Fitness
+    {
+      title: "Dance Cardio Blast",
+      description: "High-energy dance fitness class mixing hip-hop, Latin, and pop moves. No experience needed!",
+      sportType: "dance",
+      date: new Date(Date.now() + 2592000000), // 30 days from now
+      location: "Miami Dance Studio",
+      locationCoordinates: { lat: 25.7617, lng: -80.1918 },
+      maxParticipants: 20,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[13]?.id || validUsers[3].id,
+      eventImage: null
+    },
+    
+    // Marcus Brown - Martial Arts
+    {
+      title: "MMA Introduction Class",
+      description: "Learn basic mixed martial arts techniques including striking and grappling. Beginner friendly.",
+      sportType: "martial_arts",
+      date: new Date(Date.now() + 2678400000), // 31 days from now
+      location: "Las Vegas MMA Academy",
+      locationCoordinates: { lat: 36.1699, lng: -115.1398 },
+      maxParticipants: 12,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[14]?.id || validUsers[0].id,
+      eventImage: null
+    },
+    
+    // Zoe Wilson - Figure Skating
+    {
+      title: "Figure Skating Basics",
+      description: "Learn fundamental figure skating moves including forward and backward skating, stops, and turns.",
+      sportType: "skating",
+      date: new Date(Date.now() + 2764800000), // 32 days from now
+      location: "Minneapolis Ice Arena",
+      locationCoordinates: { lat: 44.9778, lng: -93.2650 },
+      maxParticipants: 10,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[15]?.id || validUsers[1].id,
       eventImage: null
     }
   ];
