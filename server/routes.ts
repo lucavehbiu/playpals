@@ -162,45 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const config = sportConfig[sportType.toLowerCase()] || sportConfig.default;
       
-      // Create SVG image
-      const svg = `
-        <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:${config.bgColor};stop-opacity:1" />
-              <stop offset="100%" style="stop-color:${config.color};stop-opacity:0.1" />
-            </linearGradient>
-          </defs>
-          
-          <!-- Background -->
-          <rect width="400" height="200" fill="url(#bg)" />
-          
-          <!-- Sport icon background circle -->
-          <circle cx="80" cy="100" r="35" fill="${config.color}" fill-opacity="0.2" />
-          
-          <!-- Sport icon -->
-          <text x="80" y="110" font-size="30" text-anchor="middle" dominant-baseline="middle">${config.icon}</text>
-          
-          <!-- Event title -->
-          <text x="140" y="90" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">
-            ${title.length > 25 ? title.substring(0, 25) + '...' : title}
-          </text>
-          
-          <!-- Sport type -->
-          <text x="140" y="115" font-family="Arial, sans-serif" font-size="14" fill="${config.color}" font-weight="600">
-            ${sportType.charAt(0).toUpperCase() + sportType.slice(1)} Event
-          </text>
-          
-          <!-- Decorative elements -->
-          <circle cx="350" cy="50" r="3" fill="${config.color}" fill-opacity="0.3" />
-          <circle cx="370" cy="70" r="2" fill="${config.color}" fill-opacity="0.4" />
-          <circle cx="330" cy="80" r="2" fill="${config.color}" fill-opacity="0.3" />
-          
-          <circle cx="350" cy="150" r="2" fill="${config.color}" fill-opacity="0.3" />
-          <circle cx="330" cy="170" r="3" fill="${config.color}" fill-opacity="0.4" />
-          <circle cx="370" cy="160" r="1" fill="${config.color}" fill-opacity="0.3" />
-        </svg>
-      `;
+      // Create compact SVG image
+      const svg = `<svg width="200" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="100" fill="${config.bgColor}"/><circle cx="30" cy="50" r="15" fill="${config.color}" opacity="0.3"/><text x="30" y="55" font-size="16" text-anchor="middle">${config.icon}</text><text x="60" y="35" font-family="Arial" font-size="12" font-weight="bold" fill="#333">${title.length > 20 ? title.substring(0, 20) + '...' : title}</text><text x="60" y="50" font-family="Arial" font-size="10" fill="${config.color}">${sportType}</text></svg>`;
 
       // Convert SVG to data URL
       const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
