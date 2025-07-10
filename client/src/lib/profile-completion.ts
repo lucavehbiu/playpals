@@ -58,7 +58,7 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
   }
 
   // Check team history - user needs at least one entry or marked as "no professional experience"
-  if (professionalTeamHistory && professionalTeamHistory.length > 0) {
+  if ((professionalTeamHistory && professionalTeamHistory.length > 0) || user.hasNoProfessionalExperience) {
     completedSections.push('team-history');
   } else {
     missingSections.push('team-history');

@@ -26,10 +26,21 @@ const Header = () => {
   const { user, logoutMutation } = useAuth();
   const { pendingCount: notificationCount } = useNotifications();
   const { getTotalNotificationCount } = useGroupNotifications();
+  // Fetch sport skill levels and team history for accurate completion calculation
+  const { data: sportSkillLevels = [] } = useQuery({
+    queryKey: ['/api/users', user?.id, 'sport-skill-levels'],
+    enabled: !!user
+  });
+
+  const { data: professionalTeamHistory = [] } = useQuery({
+    queryKey: ['/api/users', user?.id, 'professional-team-history'],
+    enabled: !!user
+  });
+
   const profileCompletion = calculateProfileCompletion({
     user,
-    sportSkillLevels: [],
-    professionalTeamHistory: []
+    sportSkillLevels,
+    professionalTeamHistory
   });
   
   // Search functionality
