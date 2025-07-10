@@ -420,11 +420,15 @@ const Profile = () => {
             </div>
             <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
               <div className="flex gap-4">
-                {profileCompletion.sections.map((section, index) => (
-                  <span key={index} className={section.completed ? 'text-green-600' : 'text-gray-400'}>
-                    {section.completed ? '✓' : '○'} {section.name}
-                  </span>
-                ))}
+                {profileCompletion.sections && profileCompletion.sections.length > 0 ? 
+                  profileCompletion.sections.map((section, index) => (
+                    <span key={index} className={section.completed ? 'text-green-600' : 'text-gray-400'}>
+                      {section.completed ? '✓' : '○'} {section.name}
+                    </span>
+                  )) : (
+                    <span className="text-gray-400">Loading profile sections...</span>
+                  )
+                }
               </div>
               {profileCompletion.percentage < 100 && (
                 <Link href="/profile-completion">
@@ -483,14 +487,42 @@ const Profile = () => {
             {/* Sport Skills */}
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <h3 className="text-lg font-semibold mb-4">Sport Skills</h3>
-              {isOwnProfile ? (
-                <Link href="/profile-completion#sport-skills">
-                  <Button variant="outline" size="sm">
-                    Manage Sport Skills <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
+              {sportSkillLevels && sportSkillLevels.length > 0 ? (
+                <div className="space-y-3">
+                  {sportSkillLevels.map((skill: any) => (
+                    <div key={skill.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium capitalize">{skill.sportType}</h4>
+                        <p className="text-sm text-gray-600">
+                          {skill.experienceLevel} • {skill.competitiveLevel}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-medium text-primary">
+                          {skill.experienceLevel}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {isOwnProfile && (
+                    <Link href="/profile-completion#sport-skills">
+                      <Button variant="outline" size="sm" className="mt-3">
+                        Manage Sport Skills <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ) : isOwnProfile ? (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 mb-3">No sport skills added yet.</p>
+                  <Link href="/profile-completion#sport-skills">
+                    <Button variant="outline" size="sm">
+                      Add Sport Skills <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
               ) : (
-                <p className="text-gray-500">Sport skills information is available on the full profile.</p>
+                <p className="text-gray-500 text-center py-6">No sport skills information available.</p>
               )}
             </div>
           </div>
