@@ -138,6 +138,7 @@ export interface IStorage {
   updatePlayerRating(id: number, ratingData: Partial<PlayerRating>): Promise<PlayerRating | undefined>;
   deletePlayerRating(id: number): Promise<boolean>;
   getAveragePlayerRating(userId: number, sportType?: string): Promise<number>;
+  getUserMatchesCount(userId: number): Promise<number>;
   
   // User onboarding preferences methods
   getUserOnboardingPreference(userId: number): Promise<UserOnboardingPreference | undefined>;
@@ -2795,6 +2796,20 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: rsvps.id });
     
     return result.length > 0;
+  }
+
+  async getUserMatchesCount(userId: number): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(rsvps)
+        .where(and(eq(rsvps.userId, userId), eq(rsvps.status, 'approved')));
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting user matches count:', error);
+      return 0;
+    }
   }
   
   // Sport Preferences methods

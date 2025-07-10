@@ -4419,6 +4419,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error updating phone verification" });
     }
   });
+
+  // Get user's total matches count
+  app.get('/api/users/:userId/matches-count', async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const totalMatches = await storage.getUserMatchesCount(parseInt(userId));
+      res.json({ totalMatches });
+    } catch (error) {
+      console.error('Error getting user matches count:', error);
+      res.status(500).json({ message: 'Failed to get matches count' });
+    }
+  });
   
   return httpServer;
 }

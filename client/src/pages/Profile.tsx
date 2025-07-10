@@ -69,6 +69,16 @@ const Profile = () => {
     queryKey: [`/api/player-ratings/average/${userId}`],
     enabled: !!userId,
   });
+
+  // Get total matches played by the user
+  const { data: userMatches } = useQuery<{totalMatches: number}>({
+    queryKey: [`/api/users/${userId}/matches-count`],
+    enabled: !!userId,
+  });
+
+  // State for rating modal
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
   
   // Get teams the user is a member of
   const { data: userTeams = [], isLoading: teamsLoading } = useQuery({
@@ -118,6 +128,40 @@ const Profile = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to update friend request",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation for submitting player rating
+  const submitRatingMutation = useMutation({
+    mutationFn: async ({ rating }: { rating: number }) => {
+      const res = await apiRequest("POST", "/api/player-ratings", {
+        ratedUserId: parseInt(userId),
+        rating: rating,
+        eventId: null // General rating not tied to specific event
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to submit rating");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/player-ratings/average/${userId}`] });
+      setShowRatingModal(false);
+      setSelectedRating(0);
+      toast({
+        title: "Success",
+        description: "Rating submitted successfully",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Rating submission error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit rating",
         variant: "destructive",
       });
     }
@@ -218,13 +262,35 @@ const Profile = () => {
             <div className="mt-4 sm:mt-0 sm:ml-5 max-w-[180px] sm:max-w-full">
               <h1 className="text-2xl font-bold tracking-tight truncate text-white shadow-sm">{user.name}</h1>
               <p className="text-blue-100 font-medium truncate shadow-sm">@{user.username}</p>
-              <div className="flex items-center mt-1.5">
+              <div className="flex items-center mt-1.5 gap-3">
+                {/* Rating section - clickable for other users */}
                 <div className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm">
-                  <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                  <span className="text-white font-medium">{averageRating ? averageRating.toFixed(1) : "4.7"}</span>
+                  {!isOwnProfile ? (
+                    <button 
+                      onClick={() => setShowRatingModal(true)}
+                      className="flex items-center hover:bg-white/20 rounded px-1 py-0.5 transition-colors"
+                    >
+                      <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
+                      <span className="text-white font-medium">{playerRating?.average ? playerRating.average.toFixed(1) : "0.0"}</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
+                      <span className="text-white font-medium">{playerRating?.average ? playerRating.average.toFixed(1) : "0.0"}</span>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Matches count */}
+                <div className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm">
+                  <svg className="w-4 h-4 text-green-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-white font-medium">{userMatches?.totalMatches || 0} matches</span>
+                </div>
+                
                 {user.headline && (
-                  <div className="ml-3 text-sm text-blue-100 max-w-[200px] sm:max-w-full">
+                  <div className="text-sm text-blue-100 max-w-[200px] sm:max-w-full">
                     <span>•</span>
                     <span className="ml-2 truncate block">{user.headline}</span>
                   </div>
@@ -422,6 +488,54 @@ const Profile = () => {
           </nav>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4">Rate {user.name}</h3>
+            <div className="flex justify-center gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setSelectedRating(star)}
+                  className="text-2xl transition-colors"
+                >
+                  <Star 
+                    className={`w-8 h-8 ${
+                      star <= selectedRating 
+                        ? 'text-yellow-400 fill-yellow-400' 
+                        : 'text-gray-300'
+                    }`} 
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowRatingModal(false);
+                  setSelectedRating(0);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedRating > 0) {
+                    submitRatingMutation.mutate({ rating: selectedRating });
+                  }
+                }}
+                disabled={selectedRating === 0 || submitRatingMutation.isPending}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              >
+                {submitRatingMutation.isPending ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Tab content */}
       <div className="px-2 py-3 max-w-full">
