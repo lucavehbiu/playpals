@@ -267,7 +267,7 @@ const Profile = () => {
                 {!isOwnProfile ? (
                   <button 
                     onClick={() => setShowRatingModal(true)}
-                    className="flex items-center bg-white/30 rounded-full px-2 py-0.5 shadow-sm hover:bg-white/40 transition-colors border-0 m-0 outline-none focus:outline-none"
+                    className="flex items-center bg-white/30 rounded-full shadow-sm hover:bg-white/40 transition-colors border-0 m-0 outline-none focus:outline-none"
                     style={{ padding: '2px 8px' }}
                   >
                     <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
