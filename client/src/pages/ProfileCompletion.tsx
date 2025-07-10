@@ -186,7 +186,7 @@ export default function ProfileCompletion() {
       </div>
 
       <div className="grid gap-6 mb-8">
-        {profileSections.filter(section => !section.completed).map((section) => {
+        {profileSections.map((section) => {
           const IconComponent = section.icon;
           return (
             <Card key={section.id} id={section.id} className={`cursor-pointer transition-colors ${
