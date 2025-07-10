@@ -41,8 +41,8 @@ const Profile = () => {
   
   // Fetch sport skill levels and team history for accurate completion calculation
   const { data: sportSkillLevels = [] } = useQuery({
-    queryKey: [`/api/users/${authUser?.id}/sport-skill-levels`],
-    enabled: !!authUser,
+    queryKey: [`/api/users/${userId}/sport-skill-levels`],
+    enabled: !!userId,
     staleTime: 0 // Always refetch to get latest data
   });
 
@@ -100,8 +100,8 @@ const Profile = () => {
 
   // Get user's onboarding preferences to show all selected sports
   const { data: onboardingPreferences } = useQuery({
-    queryKey: [`/api/onboarding-preferences/${authUser?.id}`],
-    enabled: !!authUser?.id,
+    queryKey: [`/api/onboarding-preferences/${userId}`],
+    enabled: !!userId,
   });
 
   // Mutation for responding to friend requests
