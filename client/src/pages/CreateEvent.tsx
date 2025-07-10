@@ -251,7 +251,8 @@ const CreateEvent = () => {
         duration: formData.duration,
         maxParticipants: formData.maxParticipants,
         price: formData.price,
-        isPrivate: formData.isPrivate
+        isPrivate: formData.isPrivate,
+        eventImage: formData.eventImage || null // Include image for private events too
       };
       
       sessionStorage.setItem('pendingEventData', JSON.stringify(eventData));
@@ -277,6 +278,7 @@ const CreateEvent = () => {
       isPublic: !formData.isPrivate,
       isFree: parseFloat(formData.price) === 0,
       cost: Math.round((parseFloat(formData.price) || 0) * 100), // Convert to cents for backend
+      eventImage: formData.eventImage || null, // Include the image data
     };
     
     createEventMutation.mutate(eventData);

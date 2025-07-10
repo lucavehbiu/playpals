@@ -61,6 +61,7 @@ const CreateEventInvite = () => {
         isPublic: false, // Always private for this flow
         isFree: parseFloat(eventData.price) === 0,
         cost: Math.round((parseFloat(eventData.price) || 0) * 100),
+        eventImage: eventData.eventImage || null, // Include image data
       };
       
       const response = await apiRequest('POST', '/api/events', finalEventData);
