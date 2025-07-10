@@ -199,6 +199,8 @@ const CreateEvent = () => {
         return parseFloat(formData.price) >= 0;
       case 'description':
         return true; // Optional field
+      case 'image':
+        return true; // Optional field - can skip
       case 'visibility':
         return true; // Always valid
       default:
