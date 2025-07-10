@@ -475,16 +475,23 @@ const Profile = () => {
                 Sports & Performance
               </h3>
               {onboardingPreferences?.preferredSports && onboardingPreferences.preferredSports.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {onboardingPreferences.preferredSports.map((sport: string) => {
+                    // Map sport names (soccer in preferences = football in skills)
+                    const sportMapping: { [key: string]: string } = {
+                      'soccer': 'football',
+                      'football': 'football'
+                    };
+                    const skillSportType = sportMapping[sport.toLowerCase()] || sport.toLowerCase();
+                    
                     // Find skill level for this sport
                     const skillData = sportSkillLevels?.find((skill: any) => 
-                      skill.sportType.toLowerCase() === sport.toLowerCase()
+                      skill.sportType.toLowerCase() === skillSportType
                     );
                     
                     // Find win rate for this sport from statistics
                     const sportStats = user.sportStatistics?.find((stat: any) => 
-                      stat.sportType.toLowerCase() === sport.toLowerCase()
+                      stat.sportType.toLowerCase() === skillSportType
                     );
 
                     const getSportIcon = (sportType: string) => {
@@ -531,30 +538,41 @@ const Profile = () => {
                     };
 
                     return (
-                      <div key={sport} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center space-x-4">
+                      <div key={sport} 
+                           className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer transition-colors"
+                           onClick={() => {
+                             if (isOwnProfile) {
+                               setLocation('/profile-completion');
+                             }
+                           }}>
+                        <div className="flex items-center space-x-2">
                           <div className="text-gray-600 dark:text-gray-300">
                             {getSportIcon(sport)}
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 capitalize">
-                              {sport}
-                            </h4>
-                          </div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 capitalize text-sm">
+                            {sport}
+                          </h4>
                         </div>
-                        <div className="flex items-center space-x-6 text-sm">
-                          <div className="text-center">
+                        <div className="flex items-center space-x-3 text-xs">
+                          <div className="text-center min-w-[50px]">
                             <div className="text-gray-500 dark:text-gray-400 text-xs">Level</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
                               {skillData?.experienceLevel || 'Not set'}
                             </div>
                           </div>
-                          <div className="text-center">
+                          <div className="text-center min-w-[40px]">
                             <div className="text-gray-500 dark:text-gray-400 text-xs">Win Rate</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
                               {sportStats ? `${sportStats.winRate.toFixed(1)}%` : '-'}
                             </div>
                           </div>
+                          {isOwnProfile && (
+                            <div className="text-gray-400 dark:text-gray-500">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
