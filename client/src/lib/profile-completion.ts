@@ -30,6 +30,19 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
   const completedSections: string[] = [];
   const missingSections: string[] = [];
 
+  // Debug logging
+  console.log('Profile completion calculation:', {
+    user: {
+      name: user.name,
+      bio: user.bio,
+      location: user.location,
+      isPhoneVerified: user.isPhoneVerified,
+      hasNoProfessionalExperience: user.hasNoProfessionalExperience
+    },
+    sportSkillLevels: sportSkillLevels?.length || 0,
+    professionalTeamHistory: professionalTeamHistory?.length || 0
+  });
+
   // Check basic info - user has at least name and bio
   let basicInfoScore = 0;
   if (user.name && user.name.trim() !== '') basicInfoScore++;
