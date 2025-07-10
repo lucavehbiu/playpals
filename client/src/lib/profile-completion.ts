@@ -40,7 +40,9 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
       hasNoProfessionalExperience: user.hasNoProfessionalExperience
     },
     sportSkillLevels: sportSkillLevels?.length || 0,
-    professionalTeamHistory: professionalTeamHistory?.length || 0
+    professionalTeamHistory: professionalTeamHistory?.length || 0,
+    sportSkillLevelsData: sportSkillLevels,
+    professionalTeamHistoryData: professionalTeamHistory
   });
 
   // Check basic info - user has at least name and bio
