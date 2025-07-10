@@ -5008,7 +5008,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 40,
       creatorId: validUsers[6]?.id || validUsers[0].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="runbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#10b981"/>
+            <stop offset="100%" style="stop-color:#059669"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#runbg)"/>
+        <path d="M50 150 Q100 100 150 120 T250 100" stroke="white" stroke-width="3" fill="none"/>
+        <circle cx="80" cy="130" r="3" fill="white"/>
+        <circle cx="180" cy="110" r="3" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">TRAIL RUN</text>
+      </svg>`)
     },
     
     // Nina Thompson - Volleyball events
@@ -5025,7 +5037,18 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 25,
       creatorId: validUsers[7]?.id || validUsers[1].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="volleybg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f59e0b"/>
+            <stop offset="100%" style="stop-color:#d97706"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#volleybg)"/>
+        <circle cx="150" cy="100" r="15" fill="white" stroke="#d97706" stroke-width="2"/>
+        <rect x="140" y="170" width="20" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">VOLLEYBALL</text>
+      </svg>`)
     },
     
     // Jordan Lee - Rock Climbing
@@ -5042,7 +5065,18 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 35,
       creatorId: validUsers[8]?.id || validUsers[2].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="climbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#7c3aed"/>
+            <stop offset="100%" style="stop-color:#5b21b6"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#climbg)"/>
+        <path d="M50 180 L100 140 L150 160 L200 120 L250 140" stroke="white" stroke-width="4" fill="none"/>
+        <circle cx="120" cy="150" r="4" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">CLIMBING</text>
+      </svg>`)
     },
     
     // Priya Patel - Yoga events
@@ -5059,7 +5093,20 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 20,
       creatorId: validUsers[9]?.id || validUsers[3].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="yogabg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#06b6d4"/>
+            <stop offset="100%" style="stop-color:#0891b2"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#yogabg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="40" fill="white"/>
+        <rect x="125" y="115" width="15" height="5" fill="white"/>
+        <rect x="160" y="115" width="15" height="5" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">YOGA</text>
+      </svg>`)
     },
     
     // Tyler Johnson - Cycling
@@ -5076,7 +5123,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 30,
       creatorId: validUsers[10]?.id || validUsers[0].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bikebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6"/>
+            <stop offset="100%" style="stop-color:#1d4ed8"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#bikebg)"/>
+        <circle cx="100" cy="130" r="20" fill="none" stroke="white" stroke-width="3"/>
+        <circle cx="200" cy="130" r="20" fill="none" stroke="white" stroke-width="3"/>
+        <path d="M120 130 L180 130 L150 100 Z" stroke="white" stroke-width="3" fill="none"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">CYCLING</text>
+      </svg>`)
     },
     
     // Maya Rivera - Boxing
@@ -5093,7 +5152,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 25,
       creatorId: validUsers[11]?.id || validUsers[1].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="boxbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#dc2626"/>
+            <stop offset="100%" style="stop-color:#b91c1c"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#boxbg)"/>
+        <circle cx="120" cy="110" r="12" fill="white"/>
+        <circle cx="180" cy="110" r="12" fill="white"/>
+        <rect x="140" y="120" width="20" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">BOXING</text>
+      </svg>`)
     },
     
     // Ethan Davis - Golf
@@ -5110,7 +5181,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 50,
       creatorId: validUsers[12]?.id || validUsers[2].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="golfbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#059669"/>
+            <stop offset="100%" style="stop-color:#047857"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#golfbg)"/>
+        <circle cx="200" cy="160" r="6" fill="white"/>
+        <path d="M100 120 Q150 100 200 160" stroke="white" stroke-width="3" fill="none"/>
+        <rect x="145" y="95" width="3" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">GOLF</text>
+      </svg>`)
     },
     
     // Sophia Kim - Dance Fitness
@@ -5127,7 +5210,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 15,
       creatorId: validUsers[13]?.id || validUsers[3].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dancebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ec4899"/>
+            <stop offset="100%" style="stop-color:#db2777"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#dancebg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <path d="M150 100 L130 140 M150 100 L170 140" stroke="white" stroke-width="4"/>
+        <path d="M135 120 L165 120" stroke="white" stroke-width="4"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">DANCE</text>
+      </svg>`)
     },
     
     // Marcus Brown - Martial Arts
@@ -5144,7 +5239,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 30,
       creatorId: validUsers[14]?.id || validUsers[0].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="mmabg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#374151"/>
+            <stop offset="100%" style="stop-color:#1f2937"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#mmabg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="40" fill="white"/>
+        <path d="M135 110 L125 130 M165 110 L175 130" stroke="white" stroke-width="4"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="bold">MMA</text>
+      </svg>`)
     },
     
     // Zoe Wilson - Figure Skating
@@ -5161,7 +5268,19 @@ Promise.all(testUsers.map(async (userData) => {
       isFree: false,
       cost: 25,
       creatorId: validUsers[15]?.id || validUsers[1].id,
-      eventImage: null
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="icebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0ea5e9"/>
+            <stop offset="100%" style="stop-color:#0284c7"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#icebg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="30" fill="white"/>
+        <path d="M100 150 Q150 120 200 150" stroke="white" stroke-width="3" fill="none"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">SKATING</text>
+      </svg>`)
     }
   ];
   
