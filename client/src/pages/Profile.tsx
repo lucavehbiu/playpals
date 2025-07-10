@@ -573,7 +573,7 @@ const Profile = () => {
               </div>
             )}
             
-            {/* Sports Section - Show all registered sports with skill levels and win rates */}
+            {/* Sports Section - Show all sport skills */}
             <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
               <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -581,33 +581,14 @@ const Profile = () => {
                 </svg>
                 Sports & Performance
               </h3>
-              {onboardingPreferences?.preferredSports && onboardingPreferences.preferredSports.length > 0 ? (
+              {sportSkillLevels && sportSkillLevels.length > 0 ? (
                 <div className="space-y-2">
-                  {onboardingPreferences.preferredSports.map((sport: string) => {
-                    console.log('Processing sport:', sport);
-                    console.log('Sport skill levels:', sportSkillLevels);
-                    
-                    // Map sport names (soccer in preferences = football in skills, others direct match)
-                    const sportMapping: { [key: string]: string } = {
-                      'soccer': 'soccer', // Changed from 'football' to 'soccer'
-                      'football': 'soccer',
-                      'tennis': 'tennis',
-                      'running': 'running', 
-                      'basketball': 'basketball',
-                      'cycling': 'cycling'
-                    };
-                    const skillSportType = sportMapping[sport.toLowerCase()] || sport.toLowerCase();
-                    console.log(`Mapped ${sport} to ${skillSportType}`);
-                    
-                    // Find skill level for this sport
-                    const skillData = sportSkillLevels?.find((skill: any) => 
-                      skill.sportType.toLowerCase() === skillSportType.toLowerCase()
-                    );
-                    console.log('Found skill data:', skillData);
+                  {sportSkillLevels.map((skillData: any) => {
+                    const sport = skillData.sportType;
                     
                     // Find win rate for this sport from statistics
                     const sportStats = user.sportStatistics?.find((stat: any) => 
-                      stat.sportType.toLowerCase() === skillSportType
+                      stat.sportType.toLowerCase() === sport.toLowerCase()
                     );
 
                     const getSportIcon = (sportType: string) => {
@@ -654,7 +635,7 @@ const Profile = () => {
                     };
 
                     return (
-                      <div key={sport} 
+                      <div key={skillData.id} 
                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer transition-colors"
                            onClick={() => {
                              if (isOwnProfile) {
@@ -674,7 +655,7 @@ const Profile = () => {
                           <div className="text-center min-w-[50px]">
                             <div className="text-gray-500 dark:text-gray-400 text-xs">Level</div>
                             <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
-                              {skillData?.experienceLevel || 'Not set'}
+                              {skillData.experienceLevel || 'Not set'}
                             </div>
                           </div>
                           <div className="text-center min-w-[40px]">
@@ -700,7 +681,16 @@ const Profile = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-3 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                   </svg>
-                  No sports selected during registration
+                  No sport skills added yet
+                  {isOwnProfile && (
+                    <div className="mt-3">
+                      <Link href="/profile-completion#sport-skills">
+                        <Button variant="outline" size="sm">
+                          Add Sport Skills
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
