@@ -50,6 +50,7 @@ export default function ProfileCompletion() {
         credentials: 'include'
       });
       const sportSkillsData = sportSkillsResponse.ok ? await sportSkillsResponse.json() : [];
+      console.log('ProfileCompletion - Sport skills data:', sportSkillsData, 'Length:', sportSkillsData.length);
       setSportSkillsCompleted(sportSkillsData.length > 0);
 
       // Check professional team history
