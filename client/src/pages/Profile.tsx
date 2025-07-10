@@ -42,7 +42,8 @@ const Profile = () => {
   // Fetch sport skill levels and team history for accurate completion calculation
   const { data: sportSkillLevels = [] } = useQuery({
     queryKey: [`/api/users/${authUser?.id}/sport-skill-levels`],
-    enabled: !!authUser
+    enabled: !!authUser,
+    staleTime: 0 // Always refetch to get latest data
   });
 
   const { data: professionalTeamHistory = [] } = useQuery({
@@ -477,10 +478,14 @@ const Profile = () => {
               {onboardingPreferences?.preferredSports && onboardingPreferences.preferredSports.length > 0 ? (
                 <div className="space-y-2">
                   {onboardingPreferences.preferredSports.map((sport: string) => {
-                    // Map sport names (soccer in preferences = football in skills)
+                    // Map sport names (soccer in preferences = football in skills, others direct match)
                     const sportMapping: { [key: string]: string } = {
                       'soccer': 'football',
-                      'football': 'football'
+                      'football': 'football',
+                      'tennis': 'tennis',
+                      'running': 'running', 
+                      'basketball': 'basketball',
+                      'cycling': 'cycling'
                     };
                     const skillSportType = sportMapping[sport.toLowerCase()] || sport.toLowerCase();
                     
