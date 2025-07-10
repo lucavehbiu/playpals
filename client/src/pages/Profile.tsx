@@ -584,21 +584,26 @@ const Profile = () => {
               {onboardingPreferences?.preferredSports && onboardingPreferences.preferredSports.length > 0 ? (
                 <div className="space-y-2">
                   {onboardingPreferences.preferredSports.map((sport: string) => {
+                    console.log('Processing sport:', sport);
+                    console.log('Sport skill levels:', sportSkillLevels);
+                    
                     // Map sport names (soccer in preferences = football in skills, others direct match)
                     const sportMapping: { [key: string]: string } = {
-                      'soccer': 'football',
-                      'football': 'football',
+                      'soccer': 'soccer', // Changed from 'football' to 'soccer'
+                      'football': 'soccer',
                       'tennis': 'tennis',
                       'running': 'running', 
                       'basketball': 'basketball',
                       'cycling': 'cycling'
                     };
                     const skillSportType = sportMapping[sport.toLowerCase()] || sport.toLowerCase();
+                    console.log(`Mapped ${sport} to ${skillSportType}`);
                     
                     // Find skill level for this sport
                     const skillData = sportSkillLevels?.find((skill: any) => 
-                      skill.sportType.toLowerCase() === skillSportType
+                      skill.sportType.toLowerCase() === skillSportType.toLowerCase()
                     );
+                    console.log('Found skill data:', skillData);
                     
                     // Find win rate for this sport from statistics
                     const sportStats = user.sportStatistics?.find((stat: any) => 
