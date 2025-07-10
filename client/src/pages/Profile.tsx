@@ -39,11 +39,22 @@ const Profile = () => {
     enabled: !!userId,
   });
   
+  // Fetch sport skill levels and team history for accurate completion calculation
+  const { data: sportSkillLevels = [] } = useQuery({
+    queryKey: [`/api/users/${authUser?.id}/sport-skill-levels`],
+    enabled: !!authUser
+  });
+
+  const { data: professionalTeamHistory = [] } = useQuery({
+    queryKey: [`/api/users/${authUser?.id}/professional-team-history`],
+    enabled: !!authUser
+  });
+
   // Calculate profile completion after user data is loaded
   const profileCompletion = calculateProfileCompletion({
     user: authUser,
-    sportSkillLevels: [],
-    professionalTeamHistory: []
+    sportSkillLevels,
+    professionalTeamHistory
   });
   
   // Get events created by the user

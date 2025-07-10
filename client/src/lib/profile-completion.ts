@@ -87,12 +87,7 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
   const isComplete = completionPercentage === 100;
   const showRibbon = completionPercentage < 100 && completionPercentage > 0;
 
-  console.log('Final calculation:', {
-    completedSections,
-    missingSections,
-    completionPercentage,
-    totalSections: 4
-  });
+
 
   return {
     completionPercentage,
