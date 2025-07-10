@@ -35,6 +35,21 @@ export default function ProfileCompletion() {
   const [sportSkillsCompleted, setSportSkillsCompleted] = useState(false);
   const [teamHistoryCompleted, setTeamHistoryCompleted] = useState(false);
 
+  // Check for URL hash to auto-open specific section
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'sport-skills') {
+      setActiveSection('sport-skills');
+      // Scroll to section after a brief delay to ensure it's rendered
+      setTimeout(() => {
+        const element = document.getElementById('sport-skills');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, []);
+
   // Calculate profile completion based on user data
   useEffect(() => {
     if (!user) return;
@@ -174,7 +189,7 @@ export default function ProfileCompletion() {
         {profileSections.filter(section => !section.completed).map((section) => {
           const IconComponent = section.icon;
           return (
-            <Card key={section.id} className={`cursor-pointer transition-colors ${
+            <Card key={section.id} id={section.id} className={`cursor-pointer transition-colors ${
               section.completed ? 'border-green-200 bg-green-50' : 'hover:border-gray-300'
             }`}>
               <CardHeader>

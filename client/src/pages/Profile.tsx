@@ -542,7 +542,8 @@ const Profile = () => {
                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer transition-colors"
                            onClick={() => {
                              if (isOwnProfile) {
-                               setLocation('/profile-completion');
+                               // Navigate to profile completion page and scroll to sport skills section
+                               setLocation('/profile-completion#sport-skills');
                              }
                            }}>
                         <div className="flex items-center space-x-2">
