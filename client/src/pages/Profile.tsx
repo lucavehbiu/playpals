@@ -279,15 +279,12 @@ const Profile = () => {
     }
   }, [friendshipStatus, sendFriendRequestMutation.isPending]);
   
-  // Debug logging
-  console.log('Debug friendship status:', {
-    userId,
-    friendshipStatus,
-    allFriendRequests,
-    friends,
-    friendRequests,
-    buttonConfig
-  });
+  // Force component re-render when friendship status changes
+  const [renderKey, setRenderKey] = useState(0);
+  
+  useEffect(() => {
+    setRenderKey(prev => prev + 1);
+  }, [friendshipStatus, allFriendRequests?.sent]);
   
   const incomingRequest = Array.isArray(friendRequests) ? 
     friendRequests.find((request: any) => 
@@ -1139,6 +1136,7 @@ const Profile = () => {
                   </div>
                 ) : (
                   <button 
+                    key={`friend-btn-${renderKey}`}
                     className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-md 
                     inline-flex items-center justify-center ${buttonConfig.className}`}
                     onClick={() => {
