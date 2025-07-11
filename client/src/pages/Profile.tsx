@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { UserProfile, Event, PlayerRating, Post } from "@/lib/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, ThumbsUp, Share2, LogOut, Check, X, ArrowRight, User, Calendar, Users, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -242,7 +242,7 @@ const Profile = () => {
   const friendshipStatus = getFriendshipStatus();
   
   // Create computed button text and styles based on friendship status
-  const buttonConfig = React.useMemo(() => {
+  const buttonConfig = useMemo(() => {
     if (sendFriendRequestMutation.isPending) {
       return {
         text: 'Sending...',
