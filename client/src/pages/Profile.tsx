@@ -106,6 +106,33 @@ const Profile = () => {
     enabled: !!userId,
   });
 
+  // Mutation for sending friend requests
+  const sendFriendRequestMutation = useMutation({
+    mutationFn: async (receiverId: number) => {
+      const res = await apiRequest("POST", "/api/friend-requests", { receiverId });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to send friend request");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Friend request sent successfully",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Friend request send error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send friend request",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Mutation for responding to friend requests
   const respondToFriendRequestMutation = useMutation({
     mutationFn: async ({ requestId, status }: { requestId: number, status: string }) => {
@@ -354,16 +381,14 @@ const Profile = () => {
             ) : (
               <button 
                 className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
-                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
-                onClick={() => toast({
-                  title: "Add Friend",
-                  description: "Friend request would be sent in the full app."
-                })}
+                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center disabled:opacity-50"
+                onClick={() => sendFriendRequestMutation.mutate(parseInt(userId))}
+                disabled={sendFriendRequestMutation.isPending}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                 </svg>
-                Add Friend
+                {sendFriendRequestMutation.isPending ? 'Sending...' : 'Add Friend'}
               </button>
             )}
           </div>
