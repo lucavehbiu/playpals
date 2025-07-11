@@ -4428,10 +4428,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const authenticatedUser = (req as any).user as User;
       
-      if (isNaN(userId) || userId !== authenticatedUser.id) {
-        return res.status(403).json({ message: "Forbidden - You can only access your own skill levels" });
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
       }
       
+      // Allow viewing other users' sport skill levels for profile viewing
       const skillLevels = await storage.getSportSkillLevels(userId);
       res.json(skillLevels);
     } catch (error) {

@@ -106,6 +106,19 @@ const Profile = () => {
     enabled: !!authUser?.id && !isOwnProfile,
   });
 
+  // Get target user's friends list to calculate mutual friends
+  const { data: targetUserFriends = [] } = useQuery({
+    queryKey: [`/api/users/${userId}/friends`],
+    enabled: !!userId && !isOwnProfile,
+  });
+
+  // Calculate mutual friends
+  const mutualFriends = !isOwnProfile ? friends.filter((friend: any) => 
+    targetUserFriends.some((targetFriend: any) => targetFriend.id === friend.id)
+  ) : [];
+
+  const mutualFriendsCount = mutualFriends.length;
+
   // Get user's onboarding preferences to show all selected sports
   const { data: onboardingPreferences } = useQuery({
     queryKey: [`/api/onboarding-preferences/${userId}`],
@@ -387,6 +400,16 @@ const Profile = () => {
                   </svg>
                   <span className="text-white font-medium">{userMatches?.totalMatches || 0}</span>
                 </div>
+                
+                {/* Mutual friends count - only show for other users */}
+                {!isOwnProfile && mutualFriendsCount > 0 && (
+                  <div className="flex items-center bg-white/30 rounded-full shadow-sm" style={{ padding: '2px 8px' }}>
+                    <svg className="w-4 h-4 text-blue-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                    <span className="text-white font-medium">{mutualFriendsCount} mutual</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
