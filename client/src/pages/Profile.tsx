@@ -453,13 +453,17 @@ const Profile = () => {
               <button 
                 className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
                 hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center disabled:opacity-50"
-                onClick={() => sendFriendRequestMutation.mutate(parseInt(userId))}
-                disabled={sendFriendRequestMutation.isPending}
+                onClick={() => {
+                  if (friendshipStatus === 'none') {
+                    sendFriendRequestMutation.mutate(parseInt(userId));
+                  }
+                }}
+                disabled={buttonConfig.disabled}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                 </svg>
-                {sendFriendRequestMutation.isPending ? 'Sending...' : 'Add Friend'}
+                {buttonConfig.text}
               </button>
             )}
           </div>
