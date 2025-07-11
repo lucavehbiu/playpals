@@ -108,8 +108,8 @@ const Profile = () => {
 
   // Mutation for sending friend requests
   const sendFriendRequestMutation = useMutation({
-    mutationFn: async (receiverId: number) => {
-      const res = await apiRequest("POST", "/api/friend-requests", { receiverId });
+    mutationFn: async (friendId: number) => {
+      const res = await apiRequest("POST", "/api/friend-requests", { friendId });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to send friend request");
