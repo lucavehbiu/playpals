@@ -71,13 +71,6 @@ const MobileNav = () => {
           isActive={location.startsWith('/myevents')} 
         />
         
-        <NavItem 
-          href="/search" 
-          icon={<SearchIcon className="h-[22px] w-[22px]" />} 
-          label="Search" 
-          isActive={location.startsWith('/search')} 
-        />
-        
         {/* Create Button */}
         <div ref={createButtonRef} className="relative -top-5">
           <div className="flex flex-col items-center">
