@@ -123,10 +123,19 @@ const Profile = () => {
       return res.json();
     },
     onSuccess: () => {
-      // Refresh friend requests and friends data
+      // Manually refetch all friend-related queries to ensure fresh data
+      queryClient.refetchQueries({ queryKey: ['/api/users', authUser?.id, 'all-friend-requests'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users', authUser?.id, 'friends'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users', authUser?.id, 'friend-requests'] });
+      
+      // Also invalidate all related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/users', authUser?.id, 'friend-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', authUser?.id, 'all-friend-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', authUser?.id, 'friends'] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friend-requests`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/all-friend-requests`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friends`] });
+      
       toast({
         title: "Success",
         description: "Friend request sent successfully",
@@ -1099,7 +1108,11 @@ const Profile = () => {
                         ? 'bg-green-100 text-green-700 cursor-default' 
                         : 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50'
                     }`}
-                    onClick={() => friendshipStatus === 'none' && sendFriendRequestMutation.mutate(parseInt(userId))}
+                    onClick={() => {
+                      if (friendshipStatus === 'none') {
+                        sendFriendRequestMutation.mutate(parseInt(userId));
+                      }
+                    }}
                     disabled={sendFriendRequestMutation.isPending || friendshipStatus !== 'none'}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
