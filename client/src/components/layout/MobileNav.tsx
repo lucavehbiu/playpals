@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { 
   HomeIcon, 
-  SearchIcon, 
   BellIcon, 
   UsersIcon, 
   CalendarIcon, 
@@ -55,7 +54,7 @@ const MobileNav = () => {
   return (
     <>
       {/* Fixed Mobile Nav at Bottom */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden"> 
         {/* Nav Items - Home, Events, Create, Groups, Teams */}
         <NavItem 
           href="/" 
