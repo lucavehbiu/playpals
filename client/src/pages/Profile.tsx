@@ -231,6 +231,16 @@ const Profile = () => {
   };
 
   const friendshipStatus = getFriendshipStatus();
+  
+  // Debug logging
+  console.log('Debug friendship status:', {
+    userId,
+    friendshipStatus,
+    allFriendRequests,
+    friends,
+    friendRequests
+  });
+  
   const incomingRequest = Array.isArray(friendRequests) ? 
     friendRequests.find((request: any) => 
       request.userId === parseInt(userId) && request.status === 'pending'
