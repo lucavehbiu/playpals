@@ -269,14 +269,19 @@ const Header = () => {
             
             {/* Search bar - Only show on larger screens */}
             <div ref={searchRef} className="hidden lg:flex w-[260px] ml-4 relative">
-              <div className="relative rounded-full bg-gray-100 pl-10 pr-4 py-2 w-full">
+              <div 
+                className="relative rounded-full bg-gray-100 pl-10 pr-4 py-2 w-full cursor-pointer hover:bg-gray-200 transition-colors"
+                onClick={() => setLocation('/search')}
+              >
                 <Search className="h-5 w-5 text-gray-500 absolute left-3 top-2" />
                 <input 
                   type="text" 
                   placeholder="Search PlayPals" 
-                  className="bg-transparent border-none outline-none text-sm w-full"
+                  className="bg-transparent border-none outline-none text-sm w-full cursor-pointer"
                   value={searchQuery}
                   onChange={handleSearchInputChange}
+                  onFocus={() => setLocation('/search')}
+                  readOnly
                 />
               </div>
               

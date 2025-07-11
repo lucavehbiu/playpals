@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Feed from "@/pages/Feed";
 import MyEvents from "@/pages/MyEvents";
 import Discover from "@/pages/Discover";
+import GlobalSearch from "@/pages/GlobalSearch";
 import Profile from "@/pages/Profile";
 import Teams from "@/pages/Teams";
 import TeamDetails from "@/pages/TeamDetails";
@@ -50,6 +51,7 @@ function Router() {
                     <MyEvents />
                   </ProtectedRoute>
                   <ProtectedRoute path="/discover" component={Discover} />
+                  <ProtectedRoute path="/search" component={GlobalSearch} />
                   <ProtectedRoute path="/events/create" component={CreateEvent} />
                   <ProtectedRoute path="/create-event" component={CreateEvent} />
                   <ProtectedRoute path="/create-event/invite" component={CreateEventInvite} />
