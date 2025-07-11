@@ -78,6 +78,10 @@ export const users = pgTable("users", {
   isPhoneVerified: boolean("is_phone_verified").default(false),
   hasNoProfessionalExperience: boolean("has_no_professional_experience").default(false),
   profileCompletionLevel: integer("profile_completion_level").default(0), // 0-100%
+  // Privacy settings
+  emailPrivacy: text("email_privacy").default("private"), // "public" or "private"
+  phonePrivacy: text("phone_privacy").default("private"), // "public" or "private"
+  locationPrivacy: text("location_privacy").default("public"), // "public" or "private"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

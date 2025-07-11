@@ -300,7 +300,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden - Cannot update another user's profile" });
       }
       
-      const updatedUser = await storage.updateUser(userId, req.body);
+      // Map frontend privacy settings to backend field names
+      const updateData = { ...req.body };
+      if (updateData.emailPrivacy) {
+        updateData.email_privacy = updateData.emailPrivacy;
+        delete updateData.emailPrivacy;
+      }
+      if (updateData.phonePrivacy) {
+        updateData.phone_privacy = updateData.phonePrivacy;
+        delete updateData.phonePrivacy;
+      }
+      if (updateData.locationPrivacy) {
+        updateData.location_privacy = updateData.locationPrivacy;
+        delete updateData.locationPrivacy;
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -310,6 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = updatedUser;
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error('Error updating user:', error);
       res.status(500).json({ message: "Error updating user" });
     }
   });
