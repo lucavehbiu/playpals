@@ -409,7 +409,7 @@ const Header = () => {
             <div className="flex items-center space-x-2">
               {/* Mobile Search Button */}
               <div className="lg:hidden">
-                <Link href="/discover">
+                <Link href="/search">
                   <button type="button" className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300">
                     <Search className="h-5 w-5" />
                   </button>
