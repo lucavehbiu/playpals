@@ -104,6 +104,7 @@ The build process creates optimized bundles with automatic code splitting and mo
 - July 4, 2025. BUGFIX: Enhanced notification system debugging - added comprehensive logging to track when automatic event suggestion notifications are triggered and ensure proper delivery to all group members
 - July 7, 2025. FEATURE COMPLETE: Added comprehensive Submit Score functionality to completed events - participants can now submit match results directly from individual event pages for events that are part of sports groups, with visual indicators for completed events and trophy icons
 - July 7, 2025. ENHANCEMENT: Fixed player statistics display system - replaced "Player 4" IDs with actual player names like "Emma Davis" in scoreboard tables, created compact table format with columns for Rank, Player, Matches, Won, Lost, Draw, Win %, and added sport-specific statistics to user profiles showing performance across different sports
+- July 11, 2025. BUGFIX: Fixed Add Friend button functionality - corrected API parameter mismatch (friendId vs receiverId), implemented dynamic button states showing "Request Sent" after sending friend request, added proper loading states and visual feedback with color-coded button states (yellow for sent, green for friends, blue for incoming requests)
 
 ## User Preferences
 

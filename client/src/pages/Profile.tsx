@@ -94,6 +94,12 @@ const Profile = () => {
     enabled: !!authUser?.id && !isOwnProfile,
   });
 
+  // Get all friend requests (including sent ones) to check for outgoing requests
+  const { data: allFriendRequests } = useQuery({
+    queryKey: [`/api/users/${authUser?.id}/all-friend-requests`],
+    enabled: !!authUser?.id && !isOwnProfile,
+  });
+
   // Get friends list to check if already friends
   const { data: friends = [] } = useQuery({
     queryKey: [`/api/users/${authUser?.id}/friends`],
@@ -117,6 +123,10 @@ const Profile = () => {
       return res.json();
     },
     onSuccess: () => {
+      // Refresh friend requests and friends data
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/all-friend-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authUser?.id}/friends`] });
       toast({
         title: "Success",
         description: "Friend request sent successfully",
@@ -210,6 +220,12 @@ const Profile = () => {
         request.userId === parseInt(userId) && request.status === 'pending'
       );
     if (hasIncomingRequest) return 'incoming';
+
+    // Check if there's an outgoing friend request to this user
+    const hasOutgoingRequest = allFriendRequests?.sent?.some((request: any) => 
+      request.friendId === parseInt(userId) && request.status === 'pending'
+    );
+    if (hasOutgoingRequest) return 'outgoing';
 
     return 'none';
   };
@@ -1065,16 +1081,24 @@ const Profile = () => {
                   </div>
                 ) : (
                   <button 
-                    className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 
-                    transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
-                    inline-flex items-center justify-center disabled:opacity-50"
-                    onClick={() => sendFriendRequestMutation.mutate(parseInt(userId))}
-                    disabled={sendFriendRequestMutation.isPending}
+                    className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-md 
+                    inline-flex items-center justify-center ${
+                      friendshipStatus === 'outgoing' 
+                        ? 'bg-yellow-100 text-yellow-700 cursor-default' 
+                        : friendshipStatus === 'friends' 
+                        ? 'bg-green-100 text-green-700 cursor-default' 
+                        : 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50'
+                    }`}
+                    onClick={() => friendshipStatus === 'none' && sendFriendRequestMutation.mutate(parseInt(userId))}
+                    disabled={sendFriendRequestMutation.isPending || friendshipStatus !== 'none'}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                     </svg>
-                    {sendFriendRequestMutation.isPending ? 'Sending...' : 'Send Friend Request'}
+                    {sendFriendRequestMutation.isPending ? 'Sending...' : 
+                     friendshipStatus === 'outgoing' ? 'Request Sent' :
+                     friendshipStatus === 'friends' ? 'Friends' :
+                     'Send Friend Request'}
                   </button>
                 )}
               </div>
