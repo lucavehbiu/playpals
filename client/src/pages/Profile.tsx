@@ -241,13 +241,52 @@ const Profile = () => {
 
   const friendshipStatus = getFriendshipStatus();
   
+  // Create computed button text and styles based on friendship status
+  const buttonConfig = React.useMemo(() => {
+    if (sendFriendRequestMutation.isPending) {
+      return {
+        text: 'Sending...',
+        className: 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50',
+        disabled: true
+      };
+    }
+    
+    switch (friendshipStatus) {
+      case 'outgoing':
+        return {
+          text: 'Request Sent',
+          className: 'bg-yellow-100 text-yellow-700 cursor-default',
+          disabled: true
+        };
+      case 'friends':
+        return {
+          text: 'Friends',
+          className: 'bg-green-100 text-green-700 cursor-default',
+          disabled: true
+        };
+      case 'incoming':
+        return {
+          text: 'Respond to Request',
+          className: 'bg-blue-100 text-blue-700 cursor-default',
+          disabled: true
+        };
+      default:
+        return {
+          text: 'Send Friend Request',
+          className: 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50',
+          disabled: false
+        };
+    }
+  }, [friendshipStatus, sendFriendRequestMutation.isPending]);
+  
   // Debug logging
   console.log('Debug friendship status:', {
     userId,
     friendshipStatus,
     allFriendRequests,
     friends,
-    friendRequests
+    friendRequests,
+    buttonConfig
   });
   
   const incomingRequest = Array.isArray(friendRequests) ? 
@@ -1101,27 +1140,18 @@ const Profile = () => {
                 ) : (
                   <button 
                     className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-md 
-                    inline-flex items-center justify-center ${
-                      friendshipStatus === 'outgoing' 
-                        ? 'bg-yellow-100 text-yellow-700 cursor-default' 
-                        : friendshipStatus === 'friends' 
-                        ? 'bg-green-100 text-green-700 cursor-default' 
-                        : 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50'
-                    }`}
+                    inline-flex items-center justify-center ${buttonConfig.className}`}
                     onClick={() => {
                       if (friendshipStatus === 'none') {
                         sendFriendRequestMutation.mutate(parseInt(userId));
                       }
                     }}
-                    disabled={sendFriendRequestMutation.isPending || friendshipStatus !== 'none'}
+                    disabled={buttonConfig.disabled}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                     </svg>
-                    {sendFriendRequestMutation.isPending ? 'Sending...' : 
-                     friendshipStatus === 'outgoing' ? 'Request Sent' :
-                     friendshipStatus === 'friends' ? 'Friends' :
-                     'Send Friend Request'}
+                    {buttonConfig.text}
                   </button>
                 )}
               </div>
