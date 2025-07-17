@@ -3546,7 +3546,7 @@ export class DatabaseStorage implements IStorage {
           ...event,
           creator: user,
           currentParticipants: currentParticipants,
-          minParticipants: 2 // Default minimum participants for completion
+          minParticipants: event.maxParticipants // Use maxParticipants as minimum for completion
         });
       }
 

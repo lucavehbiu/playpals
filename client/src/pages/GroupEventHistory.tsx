@@ -142,8 +142,8 @@ export default function GroupEventHistory() {
                 const eventDate = new Date(event.date);
                 const isRecentPast = Date.now() - eventDate.getTime() < 7 * 24 * 60 * 60 * 1000; // Within last 7 days
                 
-                // Determine if event is completed based on minimum participants
-                const minRequired = event.minParticipants || 2; // Default to 2 if not specified
+                // Determine if event is completed based on maximum participants being reached
+                const minRequired = event.maxParticipants; // Event must be full to be completed
                 const isCompleted = event.currentParticipants >= minRequired;
 
                 return (
@@ -153,9 +153,9 @@ export default function GroupEventHistory() {
                       isCompleted ? 'border-green-200 bg-green-50' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="font-semibold text-lg">{event.title}</h3>
                           <Badge variant="outline" className="text-xs">
                             {event.sportType}
@@ -201,13 +201,14 @@ export default function GroupEventHistory() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 min-w-0">
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => {
                             window.location.href = `/events/${event.id}`;
                           }}
+                          className="whitespace-nowrap"
                         >
                           View Details
                         </Button>
@@ -215,7 +216,7 @@ export default function GroupEventHistory() {
                           <Button 
                             variant="default" 
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                             onClick={() => {
                               window.location.href = `/events/${event.id}?tab=score`;
                             }}
