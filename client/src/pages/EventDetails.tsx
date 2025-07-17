@@ -93,8 +93,7 @@ const EventDetails = () => {
   const [matchResult, setMatchResult] = useState<any>(null);
   
   // Load event data
-  useEffect(() => {
-    async function fetchEventData() {
+  const fetchEventData = async () => {
       if (!eventId) {
         setLoadError(new Error("No event ID provided"));
         setIsLoading(false);
@@ -162,8 +161,9 @@ const EventDetails = () => {
       } finally {
         setIsLoading(false);
       }
-    }
+    };
     
+  useEffect(() => {
     fetchEventData();
   }, [eventId]);
   
@@ -523,7 +523,7 @@ const EventDetails = () => {
         </div>
         
         {/* Join/Decline Buttons for Group Events - No RSVP yet */}
-        {!isCreator && !hasRSVPd && (
+        {!isCreator && !hasRSVPd && !isEventCompleted(eventData.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -547,7 +547,7 @@ const EventDetails = () => {
         )}
 
         {/* Join/Decline Buttons for Group Events - Pending RSVP */}
-        {!isCreator && hasRSVPd && rsvpStatus === "pending" && (
+        {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -603,15 +603,17 @@ const EventDetails = () => {
                   <p className="text-sm text-green-600">You're confirmed to attend this event</p>
                 </div>
               </div>
-              <Button 
-                variant="outline"
-                size="sm"
-                className="border-red-200 text-red-600 hover:bg-red-50"
-                onClick={() => declineEventMutation.mutate()}
-                disabled={declineEventMutation.isPending}
-              >
-                {declineEventMutation.isPending ? "Leaving..." : "Leave Event"}
-              </Button>
+              {!isEventCompleted(eventData.date) && (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="border-red-200 text-red-600 hover:bg-red-50"
+                  onClick={() => declineEventMutation.mutate()}
+                  disabled={declineEventMutation.isPending}
+                >
+                  {declineEventMutation.isPending ? "Leaving..." : "Leave Event"}
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -624,39 +626,41 @@ const EventDetails = () => {
                 <X className="h-6 w-6 mr-3 text-red-600" />
                 <div>
                   <p className="font-medium text-red-800">You declined this event</p>
-                  <p className="text-sm text-red-600">Changed your mind? You can still join!</p>
+                  <p className="text-sm text-red-600">{isEventCompleted(eventData.date) ? "Event has ended" : "Changed your mind? You can still join!"}</p>
                 </div>
               </div>
-              <Button 
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => {
-                  // Update existing RSVP to approved status
-                  if (userRSVP) {
-                    apiRequest("PUT", `/api/rsvps/${userRSVP.id}`, { status: "approved" })
-                      .then(() => {
-                        if (eventId) {
-                          fetchRsvps(eventId);
-                        }
-                        toast({
-                          title: "Joined Event",
-                          description: "You have successfully joined this event!",
+              {!isEventCompleted(eventData.date) && (
+                <Button 
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    // Update existing RSVP to approved status
+                    if (userRSVP) {
+                      apiRequest("PUT", `/api/rsvps/${userRSVP.id}`, { status: "approved" })
+                        .then(() => {
+                          if (eventId) {
+                            fetchRsvps(eventId);
+                          }
+                          toast({
+                            title: "Joined Event",
+                            description: "You have successfully joined this event!",
+                          });
+                        })
+                        .catch((error) => {
+                          toast({
+                            title: "Error",
+                            description: "Failed to join event",
+                            variant: "destructive",
+                          });
                         });
-                      })
-                      .catch((error) => {
-                        toast({
-                          title: "Error",
-                          description: "Failed to join event",
-                          variant: "destructive",
-                        });
-                      });
-                  }
-                }}
-                disabled={joinEventMutation.isPending}
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Join Event
-              </Button>
+                    }
+                  }}
+                  disabled={joinEventMutation.isPending}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Join Event
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -687,7 +691,7 @@ const EventDetails = () => {
         )}
         
         {/* Submit Score Section for Completed Events */}
-        {eventData && isEventCompleted(eventData.date) && hasRSVPd && groupInfo?.group && (
+        {eventData && isEventCompleted(eventData.date) && hasRSVPd && rsvpStatus === "approved" && groupInfo?.group && (
           <div className="mb-6">
             {matchResult ? (
               // Show match result if it exists
