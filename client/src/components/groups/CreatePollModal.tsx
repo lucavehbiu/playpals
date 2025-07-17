@@ -39,7 +39,7 @@ function getUpcomingWeeks() {
     const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     
     weeks.push({
-      value: `${weekStart.toISOString()}-${weekEnd.toISOString()}`,
+      value: `${weekStart.toISOString()}|${weekEnd.toISOString()}`,
       label: `Week ${weekNumber} (${startMonth} - ${endMonth})`,
       startDate: weekStart,
       endDate: weekEnd
@@ -116,7 +116,8 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
       return;
     }
 
-    const [startDateStr, endDateStr] = selectedWeek.split('-');
+    // Parse the selectedWeek value which is in format: "startISO|endISO"
+    const [startDateStr, endDateStr] = selectedWeek.split('|');
     const weekStart = new Date(startDateStr);
     const weekEnd = new Date(endDateStr);
 
