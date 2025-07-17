@@ -21,11 +21,18 @@ function getUpcomingWeeks() {
   const today = new Date();
   
   for (let i = 0; i < 8; i++) {
+    // Start with today and add weeks, then adjust to start of week (Monday)
     const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() + (i * 7) - today.getDay()); // Start of week (Sunday)
+    weekStart.setDate(today.getDate() + (i * 7));
     
+    // Adjust to start of week (Monday) - if today is Sunday (0), go back 6 days
+    const dayOfWeek = weekStart.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    weekStart.setDate(weekStart.getDate() - daysToSubtract);
+    
+    // End of week is 6 days after start
     const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+    weekEnd.setDate(weekStart.getDate() + 6);
     
     const weekNumber = getWeekNumber(weekStart);
     const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

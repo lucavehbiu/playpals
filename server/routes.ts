@@ -3455,14 +3455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Debug log the poll data
-      console.log('Created poll:', {
-        id: newPoll.id,
-        title: newPoll.title,
-        isActive: newPoll.isActive,
-        endDate: newPoll.endDate,
-        now: new Date().toISOString()
-      });
+
       
       res.status(201).json(newPoll);
     } catch (error) {
