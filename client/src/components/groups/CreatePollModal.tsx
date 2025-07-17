@@ -208,7 +208,9 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
               </Label>
               <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a week for the event" />
+                  <SelectValue placeholder="Choose a week for the event">
+                    {selectedWeek ? upcomingWeeks.find(w => w.value === selectedWeek)?.label : "Choose a week for the event"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {upcomingWeeks.map(week => (
