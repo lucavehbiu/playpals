@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, ArrowLeft, Clock } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Clock, Trophy, Users } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 interface Event {
@@ -15,6 +15,7 @@ interface Event {
   location: string;
   maxParticipants: number;
   currentParticipants: number;
+  minParticipants?: number;
   creator: {
     id: number;
     name: string;
@@ -140,11 +141,17 @@ export default function GroupEventHistory() {
               {events.map((event) => {
                 const eventDate = new Date(event.date);
                 const isRecentPast = Date.now() - eventDate.getTime() < 7 * 24 * 60 * 60 * 1000; // Within last 7 days
+                
+                // Determine if event is completed based on minimum participants
+                const minRequired = event.minParticipants || 2; // Default to 2 if not specified
+                const isCompleted = event.currentParticipants >= minRequired;
 
                 return (
                   <div
                     key={event.id}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    className={`border rounded-lg p-4 hover:bg-gray-50 transition-colors ${
+                      isCompleted ? 'border-green-200 bg-green-50' : ''
+                    }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -153,6 +160,16 @@ export default function GroupEventHistory() {
                           <Badge variant="outline" className="text-xs">
                             {event.sportType}
                           </Badge>
+                          {isCompleted ? (
+                            <Badge variant="default" className="text-xs bg-green-600">
+                              <Trophy className="h-3 w-3 mr-1" />
+                              Completed
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs bg-gray-400">
+                              Not Completed
+                            </Badge>
+                          )}
                           {isRecentPast && (
                             <Badge variant="secondary" className="text-xs">
                               Recent
@@ -167,6 +184,10 @@ export default function GroupEventHistory() {
                             <Calendar className="h-4 w-4" />
                             {eventDate.toLocaleDateString()} at {eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {event.currentParticipants}/{event.maxParticipants} participants
+                          </span>
                           {event.location && (
                             <span className="flex items-center gap-1">
                               <MapPin className="h-4 w-4" />
@@ -180,15 +201,30 @@ export default function GroupEventHistory() {
                           </p>
                         )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          window.location.href = `/events/${event.id}`;
-                        }}
-                      >
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            window.location.href = `/events/${event.id}`;
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        {isCompleted && (
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              window.location.href = `/events/${event.id}?tab=score`;
+                            }}
+                          >
+                            <Trophy className="h-3 w-3 mr-1" />
+                            Set Score
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

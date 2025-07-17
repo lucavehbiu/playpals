@@ -31,7 +31,7 @@ import {
   sportSkillLevels, type SportSkillLevel, type InsertSportSkillLevel
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, like, avg, sql, gte, lt } from "drizzle-orm";
+import { eq, and, desc, asc, or, like, avg, sql, gte, lt, count } from "drizzle-orm";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -3529,10 +3529,28 @@ export class DatabaseStorage implements IStorage {
         ))
         .orderBy(desc(events.date));
 
-      return groupEvents.map(({ event, user }) => ({
-        ...event,
-        creator: user,
-      }));
+      // Get participant counts for each event
+      const eventsWithCounts = [];
+      for (const { event, user } of groupEvents) {
+        // Count approved participants for this event
+        const participantCount = await db
+          .select({ count: count() })
+          .from(rsvps)
+          .where(and(
+            eq(rsvps.eventId, event.id),
+            eq(rsvps.status, 'approved')
+          ));
+        
+        const currentParticipants = participantCount[0]?.count || 0;
+        eventsWithCounts.push({
+          ...event,
+          creator: user,
+          currentParticipants: currentParticipants,
+          minParticipants: 2 // Default minimum participants for completion
+        });
+      }
+
+      return eventsWithCounts;
     } catch (error) {
       console.error('Error fetching group event history:', error);
       return [];
