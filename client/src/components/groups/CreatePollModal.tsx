@@ -21,26 +21,18 @@ function getUpcomingWeeks() {
   const today = new Date();
   
   for (let i = 0; i < 8; i++) {
-    // Start with today and add weeks, then adjust to start of week (Monday)
     const weekStart = new Date(today);
     weekStart.setDate(today.getDate() + (i * 7));
     
-    // Adjust to start of week (Monday) - if today is Sunday (0), go back 6 days
-    const dayOfWeek = weekStart.getDay();
-    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    weekStart.setDate(weekStart.getDate() - daysToSubtract);
-    
-    // End of week is 6 days after start
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     
-    const weekNumber = getWeekNumber(weekStart);
     const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     
     weeks.push({
-      value: `${weekStart.toISOString()}|${weekEnd.toISOString()}`,
-      label: `Week ${weekNumber} (${startMonth} - ${endMonth})`,
+      value: weekEnd.toISOString(),
+      label: `${startMonth} - ${endMonth}`,
       startDate: weekStart,
       endDate: weekEnd
     });
@@ -116,10 +108,8 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
       return;
     }
 
-    // Parse the selectedWeek value which is in format: "startISO|endISO"
-    const [startDateStr, endDateStr] = selectedWeek.split('|');
-    const weekStart = new Date(startDateStr);
-    const weekEnd = new Date(endDateStr);
+    // Parse the selectedWeek value which is now just the end date
+    const weekEnd = new Date(selectedWeek);
 
     // Create time slots for each day of the selected week
     const timeSlots = [];
@@ -208,9 +198,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
               </Label>
               <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a week for the event">
-                    {selectedWeek ? upcomingWeeks.find(w => w.value === selectedWeek)?.label : "Choose a week for the event"}
-                  </SelectValue>
+                  <SelectValue placeholder="Choose a week for the event" />
                 </SelectTrigger>
                 <SelectContent>
                   {upcomingWeeks.map(week => (
