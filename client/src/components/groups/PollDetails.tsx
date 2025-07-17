@@ -122,9 +122,12 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         credentials: 'include'
       });
       if (!response.ok) {
+        console.log('Failed to fetch user responses:', response.status);
         return [];
       }
-      return response.json();
+      const data = await response.json();
+      console.log('User responses received:', data);
+      return data;
     },
     enabled: !!user,
   });
