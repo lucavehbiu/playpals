@@ -3384,14 +3384,12 @@ export class DatabaseStorage implements IStorage {
       return adminGroups;
     }
 
+    // Get all member groups (including those where user is also admin)
     const memberGroups = await db
       .select()
       .from(sportsGroups)
       .where(
-        and(
-          or(...memberGroupIdsArray.map(groupId => eq(sportsGroups.id, groupId))),
-          sql`${sportsGroups.adminId} != ${userId}`
-        )
+        or(...memberGroupIdsArray.map(groupId => eq(sportsGroups.id, groupId)))
       );
 
     // Combine and deduplicate
