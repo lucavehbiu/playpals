@@ -3014,7 +3014,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE id = ${requestId}
         `);
         
-        res.json({ message: 'Invitation accepted successfully' });
+        // Get the group information for the response
+        const group = await storage.getSportsGroup(groupId);
+        
+        res.json({ 
+          message: 'Invitation accepted successfully',
+          group: group,
+          member: {
+            groupId,
+            userId: authenticatedUser.id,
+            role: 'member'
+          }
+        });
       } else if (action === 'decline') {
         // Delete the invitation notification
         await db.execute(sql`
@@ -3443,6 +3454,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+      
+      // Debug log the poll data
+      console.log('Created poll:', {
+        id: newPoll.id,
+        title: newPoll.title,
+        isActive: newPoll.isActive,
+        endDate: newPoll.endDate,
+        now: new Date().toISOString()
+      });
       
       res.status(201).json(newPoll);
     } catch (error) {

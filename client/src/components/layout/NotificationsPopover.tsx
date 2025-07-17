@@ -266,9 +266,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       return res.json();
     },
     onSuccess: (data, variables) => {
-      // Refresh group notifications
+      // Refresh group notifications and user's groups list
       if (user) {
         queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/group-notifications`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/users`, user.id, `sports-groups`] });
       }
       toast({
         title: "Success",

@@ -3586,6 +3586,13 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .orderBy(desc(sportsGroupPolls.createdAt));
+      
+      // Debug log the polls
+      console.log(`Fetching polls for group ${groupId}:`, polls.length, 'active polls found');
+      polls.forEach(poll => {
+        console.log(`Poll ${poll.id}: ${poll.title}, isActive: ${poll.isActive}, endDate: ${poll.endDate}`);
+      });
+      
       return polls;
     } catch (error) {
       console.error('Error fetching sports group polls:', error);
