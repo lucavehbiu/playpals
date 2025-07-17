@@ -65,6 +65,14 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     enabled: !!group.id
   });
 
+  // Filter events to only show completed events without scores
+  const completedEventsWithoutScores = groupEvents.filter((event: Event) => {
+    const eventDate = new Date(event.date);
+    const isCompleted = eventDate < new Date();
+    const hasNoScore = !event.matchResult; // Assuming matchResult indicates if score exists
+    return isCompleted && hasNoScore;
+  });
+
   // Fetch group members for team formation
   const { data: groupMembers = [] } = useQuery({
     queryKey: [`/api/groups/${group.id}/members`],
@@ -124,13 +132,8 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   const formation = TEAM_FORMATIONS[sportType as keyof typeof TEAM_FORMATIONS] || TEAM_FORMATIONS.other;
   const scoringType = SPORT_SCORING_TYPES[sportType as keyof typeof SPORT_SCORING_TYPES] || 'points';
 
-  const availableEvents = groupEvents.filter((event: Event) => {
-    // Only show events from the past 7 days that don't have results yet
-    const eventDate = new Date(event.dateTime);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return eventDate >= weekAgo && eventDate <= new Date();
-  });
+  // Use the filtered completed events without scores for selection
+  const availableEvents = completedEventsWithoutScores;
 
   // Use event participants who accepted the RSVP for team formation
   const approvedParticipants = eventParticipants.length > 0 

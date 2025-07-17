@@ -691,7 +691,7 @@ const EventDetails = () => {
         )}
         
         {/* Submit Score Section for Completed Events */}
-        {eventData && isEventCompleted(eventData.date) && hasRSVPd && rsvpStatus === "approved" && groupInfo?.group && (
+        {eventData && isEventCompleted(eventData.date) && hasRSVPd && (rsvpStatus === "approved" || rsvpStatus === "pending") && groupInfo?.group && (
           <div className="mb-6">
             {matchResult ? (
               // Show match result if it exists
