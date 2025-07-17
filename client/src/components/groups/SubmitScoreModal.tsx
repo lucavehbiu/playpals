@@ -68,9 +68,10 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   // Filter events to only show completed events without scores
   const completedEventsWithoutScores = groupEvents.filter((event: Event) => {
     const eventDate = new Date(event.date);
-    const isCompleted = eventDate < new Date();
+    const isPastDate = eventDate < new Date();
+    const isFullCapacity = (event.currentParticipants || 0) >= (event.maxParticipants || 0);
     const hasNoScore = !event.matchResult; // Assuming matchResult indicates if score exists
-    return isCompleted && hasNoScore;
+    return isPastDate && isFullCapacity && hasNoScore;
   });
 
   // Fetch group members for team formation

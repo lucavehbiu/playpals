@@ -296,9 +296,11 @@ const EventDetails = () => {
     return format(date, "EEEE, MMMM d, yyyy");
   };
 
-  // Helper function to check if event is completed (past date)
+  // Helper function to check if event is completed (past date AND full capacity)
   const isEventCompleted = (eventDate: string) => {
-    return new Date(eventDate) < new Date();
+    const isPastDate = new Date(eventDate) < new Date();
+    const isFullCapacity = actualParticipantCount >= (eventData?.maxParticipants || 0);
+    return isPastDate && isFullCapacity;
   };
   
   // State for image loading
@@ -691,7 +693,7 @@ const EventDetails = () => {
         )}
         
         {/* Submit Score Section for Completed Events */}
-        {eventData && isEventCompleted(eventData.date) && hasRSVPd && (rsvpStatus === "approved" || rsvpStatus === "pending") && groupInfo?.group && (
+        {eventData && isEventCompleted(eventData.date) && hasRSVPd && rsvpStatus === "approved" && groupInfo?.group && (
           <div className="mb-6">
             {matchResult ? (
               // Show match result if it exists
