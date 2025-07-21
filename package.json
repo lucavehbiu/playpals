@@ -13,6 +13,8 @@
   "dependencies": {
     "@auth/core": "^0.38.0",
     "@auth/express": "^0.9.0",
+    "@googlemaps/js-api-loader": "^1.16.10",
+    "@googlemaps/react-wrapper": "^1.2.0",
     "@headlessui/react": "^2.2.1",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
