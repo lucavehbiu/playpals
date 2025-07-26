@@ -119,7 +119,21 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
       };
       
       console.log('Creating tournament with payload:', payload);
-      return apiRequest('/api/tournaments', 'POST', payload);
+      const response = await fetch('/api/tournaments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
