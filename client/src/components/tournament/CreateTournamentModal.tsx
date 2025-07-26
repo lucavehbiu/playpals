@@ -109,9 +109,9 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
         tournamentType: data.tournamentType,
         maxParticipants: data.maxParticipants,
         location: data.location || 'TBD', // Provide default value since location is required
-        startDate: data.startDate ? new Date(data.startDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
-        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline).toISOString() : null,
+        startDate: data.startDate ? new Date(data.startDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : null,
         isPublic: data.isPublic ?? true,
         // Remove fields that don't exist in the tournament schema
       };
