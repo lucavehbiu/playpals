@@ -370,7 +370,7 @@ export const sportsGroupMembers = pgTable("sports_group_members", {
 }));
 
 // Sports Group Chat Messages table
-export const sportsGroupMessages = pgTable("sports_group_messages", {
+export const sportsGroupMessages: any = pgTable("sports_group_messages", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
