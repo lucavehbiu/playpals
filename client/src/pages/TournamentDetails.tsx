@@ -17,29 +17,74 @@ export default function TournamentDetails() {
 
   const { data: tournament, isLoading: tournamentLoading } = useQuery<Tournament>({
     queryKey: ['/api/tournaments', tournamentId],
-    queryFn: () => apiRequest(`/api/tournaments/${tournamentId}`, 'GET'),
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch tournament');
+      }
+      return response.json();
+    },
   });
 
   const { data: participants = [] } = useQuery<TournamentParticipant[]>({
     queryKey: ['/api/tournaments', tournamentId, 'participants'],
-    queryFn: () => apiRequest(`/api/tournaments/${tournamentId}/participants`, 'GET'),
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}/participants`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch participants');
+      }
+      return response.json();
+    },
     enabled: !!tournament,
   });
 
   const { data: matches = [] } = useQuery<TournamentMatch[]>({
     queryKey: ['/api/tournaments', tournamentId, 'matches'],
-    queryFn: () => apiRequest(`/api/tournaments/${tournamentId}/matches`, 'GET'),
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}/matches`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch matches');
+      }
+      return response.json();
+    },
     enabled: !!tournament,
   });
 
   const { data: standings = [] } = useQuery<TournamentStanding[]>({
     queryKey: ['/api/tournaments', tournamentId, 'standings'],
-    queryFn: () => apiRequest(`/api/tournaments/${tournamentId}/standings`, 'GET'),
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}/standings`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch standings');
+      }
+      return response.json();
+    },
     enabled: !!tournament,
   });
 
   const joinTournamentMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/tournaments/${tournamentId}/join`, 'POST', {}),
+    mutationFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to join tournament');
+      }
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: 'Successfully joined tournament!',

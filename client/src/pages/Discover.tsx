@@ -56,6 +56,37 @@ const Discover = () => {
       description: `You're joining event #${eventId}. This would open a join flow in the full app.`,
     });
   };
+
+  const handleJoinTournament = async (tournamentId: number) => {
+    try {
+      const response = await fetch(`/api/tournaments/${tournamentId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to join tournament');
+      }
+
+      toast({
+        title: "Successfully joined tournament!",
+        description: "You are now registered for this tournament.",
+      });
+
+      // Refresh tournaments data
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Failed to join tournament",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Apply all filters to events and tournaments
   const filteredEvents = events?.filter(event => {
@@ -643,6 +674,7 @@ const Discover = () => {
                         <Button 
                           size="sm"
                           className="flex-1 bg-yellow-500 hover:bg-yellow-600"
+                          onClick={() => handleJoinTournament(tournament.id)}
                         >
                           Join
                         </Button>
