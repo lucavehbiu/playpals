@@ -104,18 +104,16 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
     mutationFn: async (data: CreateTournamentForm) => {
       const payload = {
         name: data.name,
-        description: data.description || '',
+        description: data.description || null,
         sportType: data.sportType,
         tournamentType: data.tournamentType,
         maxParticipants: data.maxParticipants,
-        location: data.location || '',
-        startDate: data.startDate ? new Date(data.startDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 1 week from now
+        location: data.location || 'TBD', // Provide default value since location is required
+        startDate: data.startDate ? new Date(data.startDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
         registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline).toISOString() : null,
-        entryFee: data.entryFee ? Math.round(data.entryFee * 100) : null, // Convert to cents
-        prizePool: data.prizePool ? Math.round(data.prizePool * 100) : null, // Convert to cents
         isPublic: data.isPublic ?? true,
-        rulesDescription: data.rulesDescription || '',
+        // Remove fields that don't exist in the tournament schema
       };
       
       console.log('Creating tournament with payload:', payload);

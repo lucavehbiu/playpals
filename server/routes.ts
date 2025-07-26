@@ -4690,6 +4690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(tournament);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error('Tournament validation errors:', error.errors);
         return res.status(400).json({ message: "Invalid tournament data", errors: error.errors });
       }
       console.error('Error creating tournament:', error);
