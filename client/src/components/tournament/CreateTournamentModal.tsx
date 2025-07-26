@@ -103,10 +103,22 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
   const createTournamentMutation = useMutation({
     mutationFn: async (data: CreateTournamentForm) => {
       const payload = {
-        ...data,
-        entryFee: data.entryFee ? data.entryFee * 100 : null, // Convert to cents
-        prizePool: data.prizePool ? data.prizePool * 100 : null, // Convert to cents
+        name: data.name,
+        description: data.description || '',
+        sportType: data.sportType,
+        tournamentType: data.tournamentType,
+        maxParticipants: data.maxParticipants,
+        location: data.location || '',
+        startDate: data.startDate ? new Date(data.startDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 1 week from now
+        endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
+        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline).toISOString() : null,
+        entryFee: data.entryFee ? Math.round(data.entryFee * 100) : null, // Convert to cents
+        prizePool: data.prizePool ? Math.round(data.prizePool * 100) : null, // Convert to cents
+        isPublic: data.isPublic ?? true,
+        rulesDescription: data.rulesDescription || '',
       };
+      
+      console.log('Creating tournament with payload:', payload);
       return apiRequest('/api/tournaments', 'POST', payload);
     },
     onSuccess: () => {
@@ -119,6 +131,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
       onSuccess?.();
     },
     onError: (error: any) => {
+      console.error('Tournament creation error:', error);
       toast({
         title: 'Error creating tournament',
         description: error.message || 'Please try again.',
