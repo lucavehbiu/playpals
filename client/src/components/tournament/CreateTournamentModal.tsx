@@ -123,7 +123,12 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload, (key, value) => {
+          if (value instanceof Date) {
+            return value.toISOString();
+          }
+          return value;
+        }),
       });
       
       if (!response.ok) {

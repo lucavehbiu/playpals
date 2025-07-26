@@ -4684,10 +4684,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Received tournament data:', JSON.stringify(req.body, null, 2));
       console.log('User ID:', authenticatedUser.id);
       
-      const validatedData = insertTournamentSchema.parse({
+      // Convert date strings back to Date objects
+      const processedBody = {
         ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
+        registrationDeadline: req.body.registrationDeadline ? new Date(req.body.registrationDeadline) : null,
         creatorId: authenticatedUser.id
-      });
+      };
+      
+      const validatedData = insertTournamentSchema.parse(processedBody);
       
       console.log('Validated tournament data:', JSON.stringify(validatedData, null, 2));
       
