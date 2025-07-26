@@ -181,7 +181,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Tournament</DialogTitle>
           <DialogDescription>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { CreateTournamentModal } from '@/components/tournament/CreateTournamentM
 import type { Tournament } from '@shared/schema';
 
 export default function Tournaments() {
-  const [showCreateModal, setShowCreateModal] = useState(true); // Open modal immediately
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: tournaments = [], isLoading } = useQuery<Tournament[]>({
@@ -179,14 +180,15 @@ export default function Tournaments() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {/* Navigate to tournament details */}}
-                    >
-                      View Details
-                    </Button>
+                    <Link href={`/tournaments/${tournament.id}`}>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1 w-full"
+                      >
+                        View Details
+                      </Button>
+                    </Link>
                     
                     {tournament.status === 'open' && (
                       <Button 
