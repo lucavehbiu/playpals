@@ -19,7 +19,7 @@ const createEventSchema = z.object({
   date: z.string(),
   time: z.string(),
   location: z.string().min(3, "Please provide a valid location"),
-  locationAddress: z.string().optional(),
+
   locationLatitude: z.string().optional(),
   locationLongitude: z.string().optional(),
   locationPlaceId: z.string().optional(),
@@ -68,7 +68,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       date: new Date().toISOString().split("T")[0],
       time: "18:00",
       location: "",
-      locationAddress: "",
+
       locationLatitude: "",
       locationLongitude: "",
       locationPlaceId: "",
@@ -87,7 +87,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const handleLocationSelect = (locationResult: { placeId: string; address: string; lat: number; lng: number; name?: string }) => {
     setSelectedLocation(locationResult);
     setValue("location", locationResult.name || locationResult.address);
-    setValue("locationAddress", locationResult.address);
+
     setValue("locationLatitude", locationResult.lat.toString());
     setValue("locationLongitude", locationResult.lng.toString());
     setValue("locationPlaceId", locationResult.placeId);
@@ -172,7 +172,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         sportType: data.sportType,
         date: dateTime.toISOString(),
         location: data.location,
-        locationAddress: data.locationAddress,
+
         locationLatitude: data.locationLatitude,
         locationLongitude: data.locationLongitude,
         locationPlaceId: data.locationPlaceId,

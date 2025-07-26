@@ -853,9 +853,7 @@ const EventDetails = () => {
                       <MapPinIcon className="h-5 w-5 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
                       <div>
                         <p className="font-medium">{eventData.location}</p>
-                        {eventData.locationAddress && eventData.locationAddress !== eventData.location && (
-                          <p className="text-sm text-gray-600">{eventData.locationAddress}</p>
-                        )}
+
                       </div>
                     </div>
                     <div className="rounded-lg overflow-hidden">
@@ -864,7 +862,7 @@ const EventDetails = () => {
                           latitude={parseFloat(eventData.locationLatitude)}
                           longitude={parseFloat(eventData.locationLongitude)}
                           title={eventData.title}
-                          address={eventData.locationAddress || eventData.location}
+                          address={eventData.location}
                         />
                       </GoogleMapsWrapper>
                     </div>

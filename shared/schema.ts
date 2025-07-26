@@ -135,7 +135,6 @@ export const events = pgTable("events", {
   date: timestamp("date").notNull(),
   location: text("location").notNull(),
   locationCoordinates: jsonb("location_coordinates"),
-  locationAddress: text("location_address"), // Full address from Google Maps
   locationLatitude: text("location_latitude"), // Latitude for Google Maps
   locationLongitude: text("location_longitude"), // Longitude for Google Maps
   locationPlaceId: text("location_place_id"), // Google Places ID
@@ -1191,7 +1190,6 @@ export const tournaments = pgTable('tournaments', {
   sportType: text('sport_type', { enum: sportTypes }).notNull(),
   tournamentType: text('tournament_type', { enum: tournamentTypes }).notNull(),
   location: text('location').notNull(),
-  locationAddress: text('location_address'),
   locationLatitude: text('location_latitude'),
   locationLongitude: text('location_longitude'),
   locationPlaceId: text('location_place_id'),
