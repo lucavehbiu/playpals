@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 import { MakePublicModal } from "@/components/event/MakePublicModal";
 import { SubmitScoreModal } from "@/components/groups/SubmitScoreModal";
+import EventMap from "@/components/maps/EventMap";
+import GoogleMapsWrapper from "@/components/maps/GoogleMapsWrapper";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -841,6 +843,36 @@ const EventDetails = () => {
               </div>
               
               <Separator />
+              
+              {/* Location Section with Google Maps */}
+              {eventData.locationLatitude && eventData.locationLongitude && (
+                <div>
+                  <h3 className="text-xl font-semibold mb-3">Location</h3>
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <div className="flex items-start mb-3">
+                      <MapPinIcon className="h-5 w-5 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{eventData.location}</p>
+                        {eventData.locationAddress && eventData.locationAddress !== eventData.location && (
+                          <p className="text-sm text-gray-600">{eventData.locationAddress}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-lg overflow-hidden">
+                      <GoogleMapsWrapper>
+                        <EventMap
+                          latitude={parseFloat(eventData.locationLatitude)}
+                          longitude={parseFloat(eventData.locationLongitude)}
+                          title={eventData.title}
+                          address={eventData.locationAddress || eventData.location}
+                        />
+                      </GoogleMapsWrapper>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {eventData.locationLatitude && eventData.locationLongitude && <Separator />}
               
               <div>
                 <h3 className="text-xl font-semibold mb-3">Organizer</h3>

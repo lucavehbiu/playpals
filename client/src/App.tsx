@@ -10,6 +10,7 @@ import GlobalSearch from "@/pages/GlobalSearch";
 import Profile from "@/pages/Profile";
 import Teams from "@/pages/Teams";
 import TeamDetails from "@/pages/TeamDetails";
+import Tournaments from "@/pages/Tournaments";
 import Groups from "@/pages/Groups";
 import GroupDetails from "@/pages/GroupDetails";
 import GroupEventHistory from "@/pages/GroupEventHistory";
@@ -60,6 +61,7 @@ function Router() {
                   <ProtectedRoute path="/events/:id" component={EventDetails} />
                   <ProtectedRoute path="/teams" component={Teams} />
                   <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
+                  <ProtectedRoute path="/tournaments" component={Tournaments} />
                   <ProtectedRoute path="/groups" component={Groups} />
                   <ProtectedRoute path="/groups/:id/events/history" component={GroupEventHistory} />
                   <ProtectedRoute path="/groups/:id" component={GroupDetails} />

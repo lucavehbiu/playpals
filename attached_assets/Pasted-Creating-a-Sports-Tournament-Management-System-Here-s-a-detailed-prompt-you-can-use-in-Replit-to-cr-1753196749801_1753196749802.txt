@@ -1,0 +1,201 @@
+Creating a Sports Tournament Management System
+Here's a detailed prompt you can use in Replit to create a comprehensive sports tournament management system:
+
+Prompt for Replit:
+
+Create a complete web application for managing amateur sports tournaments that is as user-friendly and simple as possible. The application should have these features:
+
+Core Application Features
+1. Homepage and Navigation
+Simple dashboard with clear options
+
+Navigation menu with sections: "Create Tournament", "My Tournaments", "Results", "Statistics"
+
+Responsive design that works on phones and computers
+
+2. Tournament Creation (Simple Wizard)
+Create a wizard with steps that guides the user step by step:
+
+Step 1: Basic Information
+
+Tournament name
+
+Sport (dropdown: Padel, Tennis, Football, Basketball, Volleyball, Table Tennis, Badminton, Other)
+
+Start date and time
+
+Location
+
+Description (optional)
+
+Step 2: Tournament Format Selection
+Create visual cards for each format with short descriptions:
+
+Round Robin - "Everyone plays everyone"
+
+Single Elimination - "One loss and you're out"
+
+Double Elimination - "Two chances for everyone"
+
+Americano - "Switch partners (ideal for Padel)"
+
+Box League - "Small groups + finals"
+
+Swiss System - "Smart pairings"
+
+Ladder - "Challenge system"
+
+King/Queen of Court - "Defend your position"
+
+Fast4 - "Quick format"
+
+Friendly Cup - "Fun and socializing"
+
+Step 3: Specific Configuration
+Based on the chosen format, show relevant options:
+
+Type: Individual or teams
+
+Maximum number of participants
+
+Point system (for point-based formats)
+
+Match duration
+
+Special rules
+
+Step 4: Participant Management
+
+Manual addition of participants/teams
+
+Import from CSV
+
+Registration link for participants to sign up themselves
+
+Limit number of participants
+
+3. Functionality for Each Tournament Format
+Round Robin:
+
+Automatic fixture table generation
+
+Point system: Win=3, Draw=1, Loss=0 (customizable)
+
+Automatic ranking with tie-breaker rules
+
+Live results table
+
+Single/Double Elimination:
+
+Automatic visual bracket generation
+
+Automated updating of upcoming matches
+
+Graphical visualization of path to finals
+
+Americano:
+
+Automatic rotation generation
+
+Individual point calculation
+
+Live ranking table
+
+Timer for each round
+
+Swiss System:
+
+Intelligent pairing based on results
+
+Option for set number of rounds
+
+Automatic tie-breaker
+
+4. Match and Results Management
+Simple interface for entering results
+
+Option for self-reporting by players
+
+Result confirmation from both parties
+
+Complete match history
+
+Option for comments and notes
+
+5. Administrator Dashboard
+Tournament overview
+
+Participant list with status
+
+Control of pending matches
+
+Results export (PDF, CSV)
+
+Printing of brackets and tables
+
+6. Participants and Notifications
+Participant profile with history
+
+Email/SMS notifications for upcoming matches
+
+Personal match calendar
+
+Mobile-friendly application
+
+Technical Specifications
+Frontend:
+HTML5, CSS3, modern JavaScript
+
+Framework: React or Vue.js for interactivity
+
+Bootstrap or Tailwind for styling
+
+Mandatory responsive design
+
+Backend:
+Node.js with Express.js
+
+Database: SQLite for start (easy to migrate to PostgreSQL)
+
+RESTful API for all operations
+
+Simple authentication with JWT
+
+Advanced Features (Optional):
+PWA (Progressive Web App) that works offline
+
+QR codes for quick registration
+
+Live scoring with WebSockets
+
+Calendar integration (Google Calendar, Outlook)
+
+Advanced statistics and charts
+
+Database Structure
+Create tables for:
+
+tournaments (tournaments)
+
+participants (participants)
+
+matches (matches)
+
+results (results)
+
+tournament_settings (configuration)
+
+User Flow
+Tournament is created with wizard
+
+Participants are added
+
+Matches are generated automatically
+
+Results are entered for each match
+
+Rankings are updated in real-time
+
+Final results are exported
+
+Make the code clean, well-commented, and test every functionality. The highest priority is ease of use - a person without technical knowledge should be able to create and manage a tournament within 5 minutes.

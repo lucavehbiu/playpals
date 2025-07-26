@@ -28,6 +28,10 @@ import {
   insertMatchResultNotificationSchema,
   insertProfessionalTeamHistorySchema,
   insertSportSkillLevelSchema,
+  insertTournamentSchema,
+  insertTournamentParticipantSchema,
+  insertTournamentMatchSchema,
+  insertTournamentStandingSchema,
   type User,
   type Event,
   type RSVP,
@@ -51,12 +55,15 @@ import {
   type MatchResultNotification,
   type ProfessionalTeamHistory,
   type SportSkillLevel,
+  type Tournament,
+  type TournamentParticipant,
+  type TournamentMatch,
+  type TournamentStanding,
   playerRatings,
   playerStatistics,
   teamJoinRequests
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
 import { setupAuth } from "./auth";
 
 // Authentication middleware using Passport
@@ -4616,5 +4623,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ============= TOURNAMENT API =============
+
+  // Get all tournaments
+  app.get('/api/tournaments', async (req: Request, res: Response) => {
+    try {
+      const tournaments = await storage.getAllTournaments();
+      res.json(tournaments);
+    } catch (error) {
+      console.error('Error fetching tournaments:', error);
+      res.status(500).json({ message: 'Error fetching tournaments' });
+    }
+  });
+
+  // Get public tournaments
+  app.get('/api/tournaments/public', async (req: Request, res: Response) => {
+    try {
+      const tournaments = await storage.getPublicTournaments();
+      res.json(tournaments);
+    } catch (error) {
+      console.error('Error fetching public tournaments:', error);
+      res.status(500).json({ message: 'Error fetching public tournaments' });
+    }
+  });
+
+  // Get tournament by ID
+  app.get('/api/tournaments/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tournament = await storage.getTournament(id);
+      
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      res.json(tournament);
+    } catch (error) {
+      console.error('Error fetching tournament:', error);
+      res.status(500).json({ message: 'Error fetching tournament' });
+    }
+  });
+
+  // Get tournaments by creator
+  app.get('/api/tournaments/creator/:creatorId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const creatorId = parseInt(req.params.creatorId);
+      const tournaments = await storage.getTournamentsByCreator(creatorId);
+      res.json(tournaments);
+    } catch (error) {
+      console.error('Error fetching tournaments by creator:', error);
+      res.status(500).json({ message: 'Error fetching tournaments' });
+    }
+  });
+
+  // Create tournament
+  app.post('/api/tournaments', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const authenticatedUser = (req as any).user as User;
+      
+      const validatedData = insertTournamentSchema.parse({
+        ...req.body,
+        creatorId: authenticatedUser.id
+      });
+      
+      const tournament = await storage.createTournament(validatedData);
+      res.status(201).json(tournament);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid tournament data", errors: error.errors });
+      }
+      console.error('Error creating tournament:', error);
+      res.status(500).json({ message: 'Error creating tournament' });
+    }
+  });
+
+  // Update tournament
+  app.put('/api/tournaments/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      const tournament = await storage.getTournament(id);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Only creator can update tournament
+      if (tournament.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Unauthorized to update this tournament' });
+      }
+      
+      const updatedTournament = await storage.updateTournament(id, req.body);
+      res.json(updatedTournament);
+    } catch (error) {
+      console.error('Error updating tournament:', error);
+      res.status(500).json({ message: 'Error updating tournament' });
+    }
+  });
+
+  // Delete tournament
+  app.delete('/api/tournaments/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      const tournament = await storage.getTournament(id);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Only creator can delete tournament
+      if (tournament.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Unauthorized to delete this tournament' });
+      }
+      
+      const deleted = await storage.deleteTournament(id);
+      if (deleted) {
+        res.json({ message: 'Tournament deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Error deleting tournament' });
+      }
+    } catch (error) {
+      console.error('Error deleting tournament:', error);
+      res.status(500).json({ message: 'Error deleting tournament' });
+    }
+  });
+
+  // Get tournament participants
+  app.get('/api/tournaments/:id/participants', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const participants = await storage.getTournamentParticipants(id);
+      res.json(participants);
+    } catch (error) {
+      console.error('Error fetching tournament participants:', error);
+      res.status(500).json({ message: 'Error fetching participants' });
+    }
+  });
+
+  // Join tournament
+  app.post('/api/tournaments/:id/join', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const tournamentId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Check if tournament is still accepting participants
+      if (tournament.status !== 'open') {
+        return res.status(400).json({ message: 'Tournament registration is closed' });
+      }
+      
+      // Check if user is already a participant
+      const participants = await storage.getTournamentParticipants(tournamentId);
+      const isAlreadyParticipant = participants.some(p => p.userId === authenticatedUser.id);
+      
+      if (isAlreadyParticipant) {
+        return res.status(400).json({ message: 'You are already registered for this tournament' });
+      }
+      
+      // Check if tournament is full
+      if (participants.length >= tournament.maxParticipants) {
+        return res.status(400).json({ message: 'Tournament is full' });
+      }
+      
+      // Add participant
+      const participant = await storage.createTournamentParticipant({
+        tournamentId,
+        participantName: authenticatedUser.name || authenticatedUser.username,
+        userId: authenticatedUser.id,
+        registrationDate: new Date(),
+        status: 'registered'
+      });
+      
+      // Check if tournament is now full and start it automatically
+      const updatedParticipants = await storage.getTournamentParticipants(tournamentId);
+      if (updatedParticipants.length >= tournament.maxParticipants) {
+        // Generate tournament schedule
+        await storage.generateTournamentSchedule(tournamentId);
+        await storage.updateTournamentStatus(tournamentId, 'active');
+      }
+      
+      res.status(201).json(participant);
+    } catch (error) {
+      console.error('Error joining tournament:', error);
+      res.status(500).json({ message: 'Error joining tournament' });
+    }
+  });
+
+  // Leave tournament
+  app.delete('/api/tournaments/:id/leave', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const tournamentId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Can only leave if tournament hasn't started
+      if (tournament.status !== 'open') {
+        return res.status(400).json({ message: 'Cannot leave tournament after it has started' });
+      }
+      
+      // Find and remove participant
+      const participants = await storage.getTournamentParticipants(tournamentId);
+      const participant = participants.find(p => p.userId === authenticatedUser.id);
+      
+      if (!participant) {
+        return res.status(400).json({ message: 'You are not registered for this tournament' });
+      }
+      
+      const removed = await storage.deleteTournamentParticipant(participant.id);
+      if (removed) {
+        res.json({ message: 'Successfully left tournament' });
+      } else {
+        res.status(500).json({ message: 'Error leaving tournament' });
+      }
+    } catch (error) {
+      console.error('Error leaving tournament:', error);
+      res.status(500).json({ message: 'Error leaving tournament' });
+    }
+  });
+
+  // Get tournament matches
+  app.get('/api/tournaments/:id/matches', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const matches = await storage.getTournamentMatches(id);
+      res.json(matches);
+    } catch (error) {
+      console.error('Error fetching tournament matches:', error);
+      res.status(500).json({ message: 'Error fetching matches' });
+    }
+  });
+
+  // Update match result
+  app.put('/api/tournaments/matches/:matchId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const matchId = parseInt(req.params.matchId);
+      const authenticatedUser = (req as any).user as User;
+      const { participant1Score, participant2Score, winnerId } = req.body;
+      
+      const match = await storage.getTournamentMatch(matchId);
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+      
+      const tournament = await storage.getTournament(match.tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Only tournament creator can update match results
+      if (tournament.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Unauthorized to update match results' });
+      }
+      
+      // Update match
+      const updatedMatch = await storage.updateTournamentMatch(matchId, {
+        participant1Score,
+        participant2Score,
+        winnerId,
+        status: 'completed'
+      });
+      
+      // Update tournament standings based on result
+      if (winnerId) {
+        const winnerParticipant = await storage.getTournamentParticipant(winnerId);
+        const loserParticipant = await storage.getTournamentParticipant(
+          winnerId === match.participant1Id ? match.participant2Id : match.participant1Id
+        );
+        
+        if (winnerParticipant) {
+          const winnerStanding = await storage.getTournamentStandings(match.tournamentId);
+          const currentWinnerStanding = winnerStanding.find(s => s.participantId === winnerId);
+          
+          if (currentWinnerStanding) {
+            await storage.updateTournamentStanding(currentWinnerStanding.id, {
+              matchesPlayed: (currentWinnerStanding.matchesPlayed || 0) + 1,
+              wins: (currentWinnerStanding.wins || 0) + 1,
+              points: (currentWinnerStanding.points || 0) + 3,
+              goalsFor: (currentWinnerStanding.goalsFor || 0) + (participant1Score || 0),
+              goalDifference: (currentWinnerStanding.goalDifference || 0) + Math.abs((participant1Score || 0) - (participant2Score || 0))
+            });
+          }
+        }
+        
+        if (loserParticipant) {
+          const loserStanding = await storage.getTournamentStandings(match.tournamentId);
+          const currentLoserStanding = loserStanding.find(s => s.participantId === loserParticipant.id);
+          
+          if (currentLoserStanding) {
+            await storage.updateTournamentStanding(currentLoserStanding.id, {
+              matchesPlayed: (currentLoserStanding.matchesPlayed || 0) + 1,
+              losses: (currentLoserStanding.losses || 0) + 1,
+              goalsAgainst: (currentLoserStanding.goalsAgainst || 0) + (participant2Score || 0),
+              goalDifference: (currentLoserStanding.goalDifference || 0) - Math.abs((participant1Score || 0) - (participant2Score || 0))
+            });
+          }
+        }
+      }
+      
+      res.json(updatedMatch);
+    } catch (error) {
+      console.error('Error updating match result:', error);
+      res.status(500).json({ message: 'Error updating match result' });
+    }
+  });
+
+  // Get tournament standings
+  app.get('/api/tournaments/:id/standings', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const standings = await storage.getTournamentStandings(id);
+      res.json(standings);
+    } catch (error) {
+      console.error('Error fetching tournament standings:', error);
+      res.status(500).json({ message: 'Error fetching standings' });
+    }
+  });
+
+  // Generate tournament schedule (manual trigger)
+  app.post('/api/tournaments/:id/generate-schedule', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const tournamentId = parseInt(req.params.id);
+      const authenticatedUser = (req as any).user as User;
+      
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Only creator can generate schedule
+      if (tournament.creatorId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Unauthorized to generate schedule' });
+      }
+      
+      const matches = await storage.generateTournamentSchedule(tournamentId);
+      await storage.updateTournamentStatus(tournamentId, 'active');
+      
+      res.json({ 
+        message: 'Tournament schedule generated successfully',
+        matches: matches.length,
+        tournament: await storage.getTournament(tournamentId)
+      });
+    } catch (error) {
+      console.error('Error generating tournament schedule:', error);
+      res.status(500).json({ message: 'Error generating tournament schedule' });
+    }
+  });
+
   return httpServer;
 }

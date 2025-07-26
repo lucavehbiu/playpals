@@ -135,6 +135,10 @@ export const events = pgTable("events", {
   date: timestamp("date").notNull(),
   location: text("location").notNull(),
   locationCoordinates: jsonb("location_coordinates"),
+  locationAddress: text("location_address"), // Full address from Google Maps
+  locationLatitude: text("location_latitude"), // Latitude for Google Maps
+  locationLongitude: text("location_longitude"), // Longitude for Google Maps
+  locationPlaceId: text("location_place_id"), // Google Places ID
   maxParticipants: integer("max_participants").notNull(),
   currentParticipants: integer("current_participants").default(1).notNull(),
   isPublic: boolean("is_public").default(true).notNull(),
@@ -1165,3 +1169,196 @@ export type InsertMatchResultNotification = z.infer<typeof insertMatchResultNoti
 
 export type MatchResultStatus = typeof matchResultStatuses[number];
 export type SportScoringType = keyof typeof sportScoringTypes;
+
+// Tournament system
+export const tournamentTypes = [
+  'round_robin',
+  'single_elimination', 
+  'double_elimination',
+  'americano',
+  'box_league',
+  'swiss_system',
+  'ladder',
+  'king_of_court',
+  'fast4',
+  'friendly_cup'
+] as const;
+
+export const tournaments = pgTable('tournaments', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  sportType: text('sport_type', { enum: sportTypes }).notNull(),
+  tournamentType: text('tournament_type', { enum: tournamentTypes }).notNull(),
+  location: text('location').notNull(),
+  locationAddress: text('location_address'),
+  locationLatitude: text('location_latitude'),
+  locationLongitude: text('location_longitude'),
+  locationPlaceId: text('location_place_id'),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  maxParticipants: integer('max_participants').notNull(),
+  participantType: text('participant_type', { enum: ['individual', 'team'] }).default('individual'),
+  winPoints: integer('win_points').default(3),
+  drawPoints: integer('draw_points').default(1),
+  lossPoints: integer('loss_points').default(0),
+  matchDuration: integer('match_duration').default(90), // minutes
+  status: text('status', { enum: ['draft', 'open', 'full', 'active', 'completed', 'cancelled'] }).default('draft'),
+  creatorId: integer('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  tournamentImage: text('tournament_image'),
+  registrationDeadline: timestamp('registration_deadline'),
+  isPublic: boolean('is_public').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const tournamentParticipants = pgTable('tournament_participants', {
+  id: serial('id').primaryKey(),
+  tournamentId: integer('tournament_id').references(() => tournaments.id, { onDelete: 'cascade' }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  teamName: text('team_name'), // For team tournaments
+  participantName: text('participant_name').notNull(), // Display name
+  registrationDate: timestamp('registration_date').defaultNow(),
+  status: text('status', { enum: ['registered', 'confirmed', 'withdrawn'] }).default('registered'),
+  seedPosition: integer('seed_position'), // For seeded tournaments
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tournamentMatches = pgTable('tournament_matches', {
+  id: serial('id').primaryKey(),
+  tournamentId: integer('tournament_id').references(() => tournaments.id, { onDelete: 'cascade' }).notNull(),
+  participant1Id: integer('participant1_id').references(() => tournamentParticipants.id, { onDelete: 'cascade' }).notNull(),
+  participant2Id: integer('participant2_id').references(() => tournamentParticipants.id, { onDelete: 'cascade' }),
+  roundNumber: integer('round_number').notNull(),
+  matchNumber: integer('match_number').notNull(),
+  scheduledDate: timestamp('scheduled_date'),
+  actualDate: timestamp('actual_date'),
+  status: text('status', { enum: ['scheduled', 'in_progress', 'completed', 'cancelled'] }).default('scheduled'),
+  participant1Score: integer('participant1_score'),
+  participant2Score: integer('participant2_score'),
+  winnerId: integer('winner_id').references(() => tournamentParticipants.id),
+  notes: text('notes'),
+  bracketPosition: text('bracket_position'), // For elimination tournaments
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const tournamentStandings = pgTable('tournament_standings', {
+  id: serial('id').primaryKey(),
+  tournamentId: integer('tournament_id').references(() => tournaments.id, { onDelete: 'cascade' }).notNull(),
+  participantId: integer('participant_id').references(() => tournamentParticipants.id, { onDelete: 'cascade' }).notNull(),
+  matchesPlayed: integer('matches_played').default(0),
+  wins: integer('wins').default(0),
+  draws: integer('draws').default(0),
+  losses: integer('losses').default(0),
+  points: integer('points').default(0),
+  goalsFor: integer('goals_for').default(0), // Or points scored
+  goalsAgainst: integer('goals_against').default(0), // Or points conceded
+  goalDifference: integer('goal_difference').default(0),
+  position: integer('position'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Tournament relations
+export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [tournaments.creatorId],
+    references: [users.id],
+    relationName: "tournament_creator",
+  }),
+  participants: many(tournamentParticipants, { relationName: "tournament_participants" }),
+  matches: many(tournamentMatches, { relationName: "tournament_matches" }),
+  standings: many(tournamentStandings, { relationName: "tournament_standings" }),
+}));
+
+export const tournamentParticipantsRelations = relations(tournamentParticipants, ({ one, many }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentParticipants.tournamentId],
+    references: [tournaments.id],
+    relationName: "tournament_participants",
+  }),
+  user: one(users, {
+    fields: [tournamentParticipants.userId],
+    references: [users.id],
+    relationName: "user_tournament_participations",
+  }),
+  matchesAsParticipant1: many(tournamentMatches, { relationName: "participant1_matches" }),
+  matchesAsParticipant2: many(tournamentMatches, { relationName: "participant2_matches" }),
+  standings: many(tournamentStandings, { relationName: "participant_standings" }),
+}));
+
+export const tournamentMatchesRelations = relations(tournamentMatches, ({ one }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentMatches.tournamentId],
+    references: [tournaments.id],
+    relationName: "tournament_matches",
+  }),
+  participant1: one(tournamentParticipants, {
+    fields: [tournamentMatches.participant1Id],
+    references: [tournamentParticipants.id],
+    relationName: "participant1_matches",
+  }),
+  participant2: one(tournamentParticipants, {
+    fields: [tournamentMatches.participant2Id],
+    references: [tournamentParticipants.id],
+    relationName: "participant2_matches",
+  }),
+  winner: one(tournamentParticipants, {
+    fields: [tournamentMatches.winnerId],
+    references: [tournamentParticipants.id],
+    relationName: "won_matches",
+  }),
+}));
+
+export const tournamentStandingsRelations = relations(tournamentStandings, ({ one }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentStandings.tournamentId],
+    references: [tournaments.id],
+    relationName: "tournament_standings",
+  }),
+  participant: one(tournamentParticipants, {
+    fields: [tournamentStandings.participantId],
+    references: [tournamentParticipants.id],
+    relationName: "participant_standings",
+  }),
+}));
+
+// Tournament insert schemas
+export const insertTournamentSchema = createInsertSchema(tournaments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTournamentMatchSchema = createInsertSchema(tournamentMatches).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentStandingSchema = createInsertSchema(tournamentStandings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Tournament types
+export type Tournament = typeof tournaments.$inferSelect;
+export type InsertTournament = z.infer<typeof insertTournamentSchema>;
+
+export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
+export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
+
+export type TournamentMatch = typeof tournamentMatches.$inferSelect;
+export type InsertTournamentMatch = z.infer<typeof insertTournamentMatchSchema>;
+
+export type TournamentStanding = typeof tournamentStandings.$inferSelect;
+export type InsertTournamentStanding = z.infer<typeof insertTournamentStandingSchema>;
+
+export type TournamentType = typeof tournamentTypes[number];

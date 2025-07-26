@@ -28,7 +28,11 @@ import {
   playerStatistics, type PlayerStatistics, type InsertPlayerStatistics,
   matchResultNotifications, type MatchResultNotification, type InsertMatchResultNotification,
   professionalTeamHistory, type ProfessionalTeamHistory, type InsertProfessionalTeamHistory,
-  sportSkillLevels, type SportSkillLevel, type InsertSportSkillLevel
+  sportSkillLevels, type SportSkillLevel, type InsertSportSkillLevel,
+  tournaments, type Tournament, type InsertTournament,
+  tournamentParticipants, type TournamentParticipant, type InsertTournamentParticipant,
+  tournamentMatches, type TournamentMatch, type InsertTournamentMatch,
+  tournamentStandings, type TournamentStanding, type InsertTournamentStanding
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, like, avg, sql, gte, lt, count } from "drizzle-orm";
@@ -265,6 +269,40 @@ export interface IStorage {
 
   // Profile completion methods
   updateUserProfileCompletion(userId: number, completionLevel: number): Promise<User | undefined>;
+
+  // Tournament methods
+  getTournament(id: number): Promise<Tournament | undefined>;
+  getTournamentsByCreator(creatorId: number): Promise<Tournament[]>;
+  getPublicTournaments(): Promise<Tournament[]>;
+  getAllTournaments(): Promise<Tournament[]>;
+  createTournament(tournament: InsertTournament): Promise<Tournament>;
+  updateTournament(id: number, tournamentData: Partial<Tournament>): Promise<Tournament | undefined>;
+  deleteTournament(id: number): Promise<boolean>;
+  
+  // Tournament participant methods
+  getTournamentParticipant(id: number): Promise<TournamentParticipant | undefined>;
+  getTournamentParticipants(tournamentId: number): Promise<TournamentParticipant[]>;
+  createTournamentParticipant(participant: InsertTournamentParticipant): Promise<TournamentParticipant>;
+  updateTournamentParticipant(id: number, participantData: Partial<TournamentParticipant>): Promise<TournamentParticipant | undefined>;
+  deleteTournamentParticipant(id: number): Promise<boolean>;
+  
+  // Tournament match methods
+  getTournamentMatch(id: number): Promise<TournamentMatch | undefined>;
+  getTournamentMatches(tournamentId: number): Promise<TournamentMatch[]>;
+  createTournamentMatch(match: InsertTournamentMatch): Promise<TournamentMatch>;
+  updateTournamentMatch(id: number, matchData: Partial<TournamentMatch>): Promise<TournamentMatch | undefined>;
+  deleteTournamentMatch(id: number): Promise<boolean>;
+  
+  // Tournament standings methods
+  getTournamentStanding(id: number): Promise<TournamentStanding | undefined>;
+  getTournamentStandings(tournamentId: number): Promise<TournamentStanding[]>;
+  createTournamentStanding(standing: InsertTournamentStanding): Promise<TournamentStanding>;
+  updateTournamentStanding(id: number, standingData: Partial<TournamentStanding>): Promise<TournamentStanding | undefined>;
+  deleteTournamentStanding(id: number): Promise<boolean>;
+  
+  // Tournament management methods
+  generateTournamentSchedule(tournamentId: number): Promise<TournamentMatch[]>;
+  updateTournamentStatus(tournamentId: number, status: string): Promise<Tournament | undefined>;
 
   // Session store
   sessionStore: session.Store;
@@ -4468,9 +4506,240 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
+
+  // Tournament methods
+  async getTournament(id: number): Promise<Tournament | undefined> {
+    const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, id));
+    return tournament || undefined;
+  }
+
+  async getTournamentsByCreator(creatorId: number): Promise<Tournament[]> {
+    return await db.select().from(tournaments).where(eq(tournaments.creatorId, creatorId));
+  }
+
+  async getPublicTournaments(): Promise<Tournament[]> {
+    return await db.select().from(tournaments).where(eq(tournaments.isPublic, true));
+  }
+
+  async getAllTournaments(): Promise<Tournament[]> {
+    return await db.select().from(tournaments).orderBy(desc(tournaments.createdAt));
+  }
+
+  async createTournament(tournament: InsertTournament): Promise<Tournament> {
+    const [newTournament] = await db.insert(tournaments).values(tournament).returning();
+    return newTournament;
+  }
+
+  async updateTournament(id: number, tournamentData: Partial<Tournament>): Promise<Tournament | undefined> {
+    const [updatedTournament] = await db
+      .update(tournaments)
+      .set({ ...tournamentData, updatedAt: new Date() })
+      .where(eq(tournaments.id, id))
+      .returning();
+    return updatedTournament || undefined;
+  }
+
+  async deleteTournament(id: number): Promise<boolean> {
+    const result = await db.delete(tournaments).where(eq(tournaments.id, id));
+    return result.count > 0;
+  }
+
+  // Tournament participant methods
+  async getTournamentParticipant(id: number): Promise<TournamentParticipant | undefined> {
+    const [participant] = await db.select().from(tournamentParticipants).where(eq(tournamentParticipants.id, id));
+    return participant || undefined;
+  }
+
+  async getTournamentParticipants(tournamentId: number): Promise<TournamentParticipant[]> {
+    return await db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId));
+  }
+
+  async createTournamentParticipant(participant: InsertTournamentParticipant): Promise<TournamentParticipant> {
+    const [newParticipant] = await db.insert(tournamentParticipants).values(participant).returning();
+    return newParticipant;
+  }
+
+  async updateTournamentParticipant(id: number, participantData: Partial<TournamentParticipant>): Promise<TournamentParticipant | undefined> {
+    const [updatedParticipant] = await db
+      .update(tournamentParticipants)
+      .set(participantData)
+      .where(eq(tournamentParticipants.id, id))
+      .returning();
+    return updatedParticipant || undefined;
+  }
+
+  async deleteTournamentParticipant(id: number): Promise<boolean> {
+    const result = await db.delete(tournamentParticipants).where(eq(tournamentParticipants.id, id));
+    return result.count > 0;
+  }
+
+  // Tournament match methods
+  async getTournamentMatch(id: number): Promise<TournamentMatch | undefined> {
+    const [match] = await db.select().from(tournamentMatches).where(eq(tournamentMatches.id, id));
+    return match || undefined;
+  }
+
+  async getTournamentMatches(tournamentId: number): Promise<TournamentMatch[]> {
+    return await db.select().from(tournamentMatches).where(eq(tournamentMatches.tournamentId, tournamentId));
+  }
+
+  async createTournamentMatch(match: InsertTournamentMatch): Promise<TournamentMatch> {
+    const [newMatch] = await db.insert(tournamentMatches).values(match).returning();
+    return newMatch;
+  }
+
+  async updateTournamentMatch(id: number, matchData: Partial<TournamentMatch>): Promise<TournamentMatch | undefined> {
+    const [updatedMatch] = await db
+      .update(tournamentMatches)
+      .set({ ...matchData, updatedAt: new Date() })
+      .where(eq(tournamentMatches.id, id))
+      .returning();
+    return updatedMatch || undefined;
+  }
+
+  async deleteTournamentMatch(id: number): Promise<boolean> {
+    const result = await db.delete(tournamentMatches).where(eq(tournamentMatches.id, id));
+    return result.count > 0;
+  }
+
+  // Tournament standings methods
+  async getTournamentStanding(id: number): Promise<TournamentStanding | undefined> {
+    const [standing] = await db.select().from(tournamentStandings).where(eq(tournamentStandings.id, id));
+    return standing || undefined;
+  }
+
+  async getTournamentStandings(tournamentId: number): Promise<TournamentStanding[]> {
+    return await db.select().from(tournamentStandings)
+      .where(eq(tournamentStandings.tournamentId, tournamentId))
+      .orderBy(desc(tournamentStandings.points), desc(tournamentStandings.goalDifference));
+  }
+
+  async createTournamentStanding(standing: InsertTournamentStanding): Promise<TournamentStanding> {
+    const [newStanding] = await db.insert(tournamentStandings).values(standing).returning();
+    return newStanding;
+  }
+
+  async updateTournamentStanding(id: number, standingData: Partial<TournamentStanding>): Promise<TournamentStanding | undefined> {
+    const [updatedStanding] = await db
+      .update(tournamentStandings)
+      .set({ ...standingData, updatedAt: new Date() })
+      .where(eq(tournamentStandings.id, id))
+      .returning();
+    return updatedStanding || undefined;
+  }
+
+  async deleteTournamentStanding(id: number): Promise<boolean> {
+    const result = await db.delete(tournamentStandings).where(eq(tournamentStandings.id, id));
+    return result.count > 0;
+  }
+
+  // Tournament management methods
+  async generateTournamentSchedule(tournamentId: number): Promise<TournamentMatch[]> {
+    const tournament = await this.getTournament(tournamentId);
+    const participants = await this.getTournamentParticipants(tournamentId);
+    
+    if (!tournament || participants.length < 2) {
+      return [];
+    }
+
+    const matches: InsertTournamentMatch[] = [];
+    
+    switch (tournament.tournamentType) {
+      case 'round_robin':
+        // Generate round robin matches (everyone plays everyone)
+        for (let i = 0; i < participants.length; i++) {
+          for (let j = i + 1; j < participants.length; j++) {
+            matches.push({
+              tournamentId,
+              participant1Id: participants[i].id,
+              participant2Id: participants[j].id,
+              roundNumber: 1,
+              matchNumber: matches.length + 1,
+              status: 'scheduled',
+              bracketPosition: `${i}-${j}`,
+            });
+          }
+        }
+        break;
+        
+      case 'single_elimination':
+        // Generate single elimination bracket
+        let round = 1;
+        let currentParticipants = [...participants];
+        let matchNumber = 1;
+        
+        while (currentParticipants.length > 1) {
+          const roundMatches: InsertTournamentMatch[] = [];
+          
+          for (let i = 0; i < currentParticipants.length; i += 2) {
+            if (i + 1 < currentParticipants.length) {
+              roundMatches.push({
+                tournamentId,
+                participant1Id: currentParticipants[i].id,
+                participant2Id: currentParticipants[i + 1].id,
+                roundNumber: round,
+                matchNumber: matchNumber++,
+                status: 'scheduled',
+                bracketPosition: `R${round}-M${Math.floor(i / 2) + 1}`,
+              });
+            }
+          }
+          
+          matches.push(...roundMatches);
+          currentParticipants = currentParticipants.slice(0, Math.ceil(currentParticipants.length / 2));
+          round++;
+        }
+        break;
+        
+      default:
+        // For other tournament types, create a simple round robin for now
+        for (let i = 0; i < participants.length; i++) {
+          for (let j = i + 1; j < participants.length; j++) {
+            matches.push({
+              tournamentId,
+              participant1Id: participants[i].id,
+              participant2Id: participants[j].id,
+              roundNumber: 1,
+              matchNumber: matches.length + 1,
+              status: 'scheduled',
+              bracketPosition: `${i}-${j}`,
+            });
+          }
+        }
+    }
+
+    // Insert all matches and return them
+    const createdMatches: TournamentMatch[] = [];
+    for (const match of matches) {
+      const createdMatch = await this.createTournamentMatch(match);
+      createdMatches.push(createdMatch);
+    }
+
+    // Create initial standings for all participants
+    for (const participant of participants) {
+      await this.createTournamentStanding({
+        tournamentId,
+        participantId: participant.id,
+        matchesPlayed: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        points: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        position: 0,
+      });
+    }
+
+    return createdMatches;
+  }
+
+  async updateTournamentStatus(tournamentId: number, status: string): Promise<Tournament | undefined> {
+    return await this.updateTournament(tournamentId, { status });
+  }
 }
 
-// Initialize storage - use DatabaseStorage for persistent data
 export const storage = new DatabaseStorage();
 
 // Initialize sample data for testing

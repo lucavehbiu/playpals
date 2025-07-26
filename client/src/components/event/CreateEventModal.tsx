@@ -8,6 +8,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
+import LocationSearch from "@/components/maps/LocationSearch";
+import GoogleMapsWrapper from "@/components/maps/GoogleMapsWrapper";
 
 // Form schema based on shared schema with additional validation
 const createEventSchema = z.object({
@@ -17,6 +19,10 @@ const createEventSchema = z.object({
   date: z.string(),
   time: z.string(),
   location: z.string().min(3, "Please provide a valid location"),
+  locationAddress: z.string().optional(),
+  locationLatitude: z.string().optional(),
+  locationLongitude: z.string().optional(),
+  locationPlaceId: z.string().optional(),
   maxParticipants: z.number().int().min(2, "Need at least 2 participants"),
   isPublic: z.preprocess(
     (value) => value === "true" || value === true,
@@ -46,6 +52,13 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isDragOver, setIsDragOver] = useState(false);
   
+  const [selectedLocation, setSelectedLocation] = useState<{
+    placeId: string;
+    address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
@@ -55,6 +68,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       date: new Date().toISOString().split("T")[0],
       time: "18:00",
       location: "",
+      locationAddress: "",
+      locationLatitude: "",
+      locationLongitude: "",
+      locationPlaceId: "",
       maxParticipants: 10,
       isPublic: true,
       isFree: true,
@@ -65,6 +82,16 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   
   // Watch the isFree field to show/hide cost field
   const isFree = watch("isFree");
+
+  // Handle location selection from Google Maps
+  const handleLocationSelect = (locationResult: { placeId: string; address: string; lat: number; lng: number; name?: string }) => {
+    setSelectedLocation(locationResult);
+    setValue("location", locationResult.name || locationResult.address);
+    setValue("locationAddress", locationResult.address);
+    setValue("locationLatitude", locationResult.lat.toString());
+    setValue("locationLongitude", locationResult.lng.toString());
+    setValue("locationPlaceId", locationResult.placeId);
+  };
 
   // Image handling functions
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +172,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         sportType: data.sportType,
         date: dateTime.toISOString(),
         location: data.location,
+        locationAddress: data.locationAddress,
+        locationLatitude: data.locationLatitude,
+        locationLongitude: data.locationLongitude,
+        locationPlaceId: data.locationPlaceId,
         maxParticipants: data.maxParticipants,
         isPublic: isPublic,
         isFree: isFree,
@@ -164,6 +195,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         description: "Event created successfully",
       });
       reset();
+      setSelectedLocation(null);
+      setImagePreview("");
       if (onEventCreated) onEventCreated();
     },
     onError: (error: any) => {
@@ -300,23 +333,24 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                 </div>
                 
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Location
                   </label>
-                  <input
-                    type="text"
-                    id="location"
-                    className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm ${errors.location ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="Search for a venue"
-                    {...register("location")}
-                  />
+                  <GoogleMapsWrapper>
+                    <LocationSearch
+                      onLocationSelect={handleLocationSelect}
+                      placeholder="Search for a venue or address"
+                      value={watch("location")}
+                    />
+                  </GoogleMapsWrapper>
                   {errors.location && (
                     <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
                   )}
-                  {/* Map would be integrated here */}
-                  <div className="mt-2 h-36 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-sm">
-                    Map View - Select Location
-                  </div>
+                  {selectedLocation && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
+                      ✓ Selected: {selectedLocation.address}
+                    </div>
+                  )}
                 </div>
                 
                 <div>
