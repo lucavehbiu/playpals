@@ -3,11 +3,15 @@ import { Event } from "@/lib/types";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { sportTypes } from "@shared/schema";
+import { sportTypes, type Tournament } from "@shared/schema";
 import { format, parseISO, isAfter, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
-import { Sparkles, Map, Calendar, Filter, X, Search } from "lucide-react";
+import { Sparkles, Map, Calendar, Filter, X, Search, Trophy, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 const Discover = () => {
   const { toast } = useToast();
@@ -17,9 +21,11 @@ const Discover = () => {
   const [dateFilter, setDateFilter] = useState<string>("");
   const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
+  const [contentType, setContentType] = useState<string>("all"); // "all", "events", "tournaments"
+  const [locationRange, setLocationRange] = useState<number>(10); // km range
   
   // Get all discoverable events for this user
-  const { data: events, isLoading, error } = useQuery<Event[]>({
+  const { data: events, isLoading: eventsLoading, error: eventsError } = useQuery<Event[]>({
     queryKey: ['/api/events', user?.id],
     queryFn: async () => {
       const url = new URL('/api/events', window.location.origin);
@@ -35,6 +41,15 @@ const Discover = () => {
     enabled: !!user, // Only run when user is loaded
   });
 
+  // Get all tournaments
+  const { data: tournaments, isLoading: tournamentsLoading, error: tournamentsError } = useQuery<Tournament[]>({
+    queryKey: ['/api/tournaments'],
+    enabled: !!user,
+  });
+
+  const isLoading = eventsLoading || tournamentsLoading;
+  const error = eventsError || tournamentsError;
+
   const handleJoinEvent = (eventId: number) => {
     toast({
       title: "Join Event",
@@ -42,8 +57,11 @@ const Discover = () => {
     });
   };
   
-  // Apply all filters to events
+  // Apply all filters to events and tournaments
   const filteredEvents = events?.filter(event => {
+    // Filter by content type
+    if (contentType === "tournaments") return false; // Skip events if showing tournaments only
+    
     // Filter by sport type
     if (selectedSport !== "all" && event.sportType !== selectedSport) {
       return false;
@@ -94,6 +112,57 @@ const Discover = () => {
     
     return true;
   });
+
+  const filteredTournaments = tournaments?.filter(tournament => {
+    // Filter by content type
+    if (contentType === "events") return false; // Skip tournaments if showing events only
+    
+    // Filter by sport type
+    if (selectedSport !== "all" && tournament.sportType !== selectedSport) {
+      return false;
+    }
+    
+    // Filter by location (case-insensitive partial match)
+    if (locationFilter && tournament.location && !tournament.location.toLowerCase().includes(locationFilter.toLowerCase())) {
+      return false;
+    }
+    
+    // Filter by date
+    if (dateFilter && tournament.startDate) {
+      const filterDate = parseISO(dateFilter);
+      const tournamentDate = new Date(tournament.startDate);
+      
+      const tournamentDateStart = new Date(
+        tournamentDate.getFullYear(),
+        tournamentDate.getMonth(),
+        tournamentDate.getDate()
+      );
+      
+      const filterDateStart = new Date(
+        filterDate.getFullYear(),
+        filterDate.getMonth(),
+        filterDate.getDate()
+      );
+      
+      if (tournamentDateStart < filterDateStart) {
+        return false;
+      }
+    }
+    
+    // Filter by free/paid (tournaments with entry fee)
+    if (showFreeOnly && tournament.entryFee && tournament.entryFee > 0) {
+      return false;
+    }
+    
+    // Filter by public/private
+    if (showPublicOnly && !tournament.isPublic) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  const totalResults = (filteredEvents?.length || 0) + (filteredTournaments?.length || 0);
   
   return (
     <div>
@@ -112,10 +181,10 @@ const Discover = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center">
                 <Sparkles className="w-6 h-6 mr-2 text-yellow-200" />
-                Discover Events
+                Discover Events & Tournaments
               </h1>
               <p className="text-blue-100 mt-1 max-w-lg">
-                Find sports events happening near you and connect with players sharing your interests
+                Find sports events and tournaments happening near you and connect with players sharing your interests
               </p>
             </div>
             
@@ -164,7 +233,7 @@ const Discover = () => {
           </h2>
           
           {/* Reset Button */}
-          {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly) && (
+          {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
             <motion.button
               className="flex items-center text-xs font-medium text-gray-500 hover:text-primary transition-colors py-1 px-2 rounded-full bg-gray-100 dark:bg-gray-700 dark:text-gray-300"
               onClick={() => {
@@ -173,6 +242,7 @@ const Discover = () => {
                 setDateFilter("");
                 setShowFreeOnly(false);
                 setShowPublicOnly(true);
+                setContentType("all");
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
@@ -184,7 +254,33 @@ const Discover = () => {
         </div>
         
         {/* Filters Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Content Type Filter */}
+          <div className="relative">
+            <div className="flex items-center mb-1.5">
+              <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
+                <Filter className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <label htmlFor="type-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Content Type
+              </label>
+            </div>
+            <div className="relative">
+              <select
+                id="type-filter"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="events">Events Only</option>
+                <option value="tournaments">Tournaments Only</option>
+              </select>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <Filter className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
           {/* Sport Filter */}
           <div className="relative">
             <div className="flex items-center mb-1.5">
@@ -219,7 +315,7 @@ const Discover = () => {
             </div>
           </div>
           
-          {/* Location Filter */}
+          {/* Location Filter with Range */}
           <div className="relative">
             <div className="flex items-center mb-1.5">
               <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-2">
@@ -229,25 +325,43 @@ const Discover = () => {
                 Location
               </label>
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                id="location-filter"
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                placeholder="City, venue, area..."
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-              />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <Search className="h-4 w-4" />
+            <div className="space-y-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  id="location-filter"
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                  placeholder="City, venue, area..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <Search className="h-4 w-4" />
+                </div>
+                {locationFilter && (
+                  <button 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setLocationFilter("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
+              
               {locationFilter && (
-                <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setLocationFilter("")}
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <MapPin className="h-3 w-3" />
+                  <span>Within {locationRange} km</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={locationRange}
+                    onChange={(e) => setLocationRange(parseInt(e.target.value))}
+                    className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <span className="font-medium">{locationRange}km</span>
+                </div>
               )}
             </div>
           </div>
@@ -405,9 +519,10 @@ const Discover = () => {
           >
             <div className="flex items-center">
               <span className="h-8 px-3 rounded-full bg-primary/10 flex items-center text-primary text-sm font-medium">
-                <span className="mr-1.5 font-semibold">{filteredEvents?.length || 0}</span> Events Found
+                <span className="mr-1.5 font-semibold">{totalResults}</span> 
+                {contentType === "events" ? "Events" : contentType === "tournaments" ? "Tournaments" : "Items"} Found
               </span>
-              {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly) && (
+              {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
                 <div className="ml-3 text-xs text-gray-500">
                   <span className="inline-flex items-center">
                     <Filter className="w-3 h-3 mr-1 text-gray-400" />
@@ -418,7 +533,7 @@ const Discover = () => {
             </div>
             
             <div className="mt-2 sm:mt-0">
-              {filteredEvents && filteredEvents.length > 0 && (
+              {totalResults > 0 && (
                 <div className="relative inline-block">
                   <select className="pl-3 pr-8 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
                     <option value="latest">Newest First</option>
@@ -435,26 +550,111 @@ const Discover = () => {
             </div>
           </motion.div>
           
-          {/* Event Cards Grid with Staggered Animation */}
+          {/* Events and Tournaments Grid with Staggered Animation */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents && filteredEvents.length > 0 ? (
-              filteredEvents.map((event, index) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.4, 
-                    delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1) // Cap the maximum delay
-                  }}
-                >
-                  <EventCard 
-                    event={event} 
-                    onJoin={handleJoinEvent}
-                  />
-                </motion.div>
-              ))
-            ) : (
+            {/* Render Events */}
+            {filteredEvents && filteredEvents.length > 0 && filteredEvents.map((event, index) => (
+              <motion.div
+                key={`event-${event.id}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1)
+                }}
+              >
+                <EventCard 
+                  event={event} 
+                  onJoin={handleJoinEvent}
+                />
+              </motion.div>
+            ))}
+            
+            {/* Render Tournaments */}
+            {filteredTournaments && filteredTournaments.length > 0 && filteredTournaments.map((tournament, index) => (
+              <motion.div
+                key={`tournament-${tournament.id}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: 0.1 + ((filteredEvents?.length || 0) + index) * 0.1
+                }}
+              >
+                {/* Tournament Card - inline component */}
+                <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-semibold line-clamp-2 flex items-center gap-2">
+                        <Trophy className="text-yellow-500" size={18} />
+                        {tournament.name}
+                      </CardTitle>
+                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                        Tournament
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-medium capitalize">{tournament.sportType}</span>
+                      <span>•</span>
+                      <span>{tournament.tournamentType?.replace('_', ' ')}</span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    {tournament.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {tournament.description}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Trophy size={16} className="text-gray-400" />
+                        <span>0/{tournament.maxParticipants}</span>
+                      </div>
+                      
+                      {tournament.startDate && (
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-gray-400" />
+                          <span>{new Date(tournament.startDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+
+                      {tournament.location && (
+                        <div className="flex items-center gap-2 col-span-2">
+                          <MapPin size={16} className="text-gray-400" />
+                          <span className="line-clamp-1">{tournament.location}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Link href={`/tournaments/${tournament.id}`} className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="w-full"
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+                      
+                      {tournament.status === 'open' && (
+                        <Button 
+                          size="sm"
+                          className="flex-1 bg-yellow-500 hover:bg-yellow-600"
+                        >
+                          Join
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+            
+            {/* Empty State */}
+            {totalResults === 0 && (
               <motion.div 
                 className="col-span-3"
                 initial={{ opacity: 0 }}
@@ -479,6 +679,7 @@ const Discover = () => {
                       setDateFilter("");
                       setShowFreeOnly(false);
                       setShowPublicOnly(true);
+                      setContentType("all");
                     }}
                   >
                     <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
