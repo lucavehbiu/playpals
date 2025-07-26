@@ -4681,16 +4681,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const authenticatedUser = (req as any).user as User;
       
+      console.log('Received tournament data:', JSON.stringify(req.body, null, 2));
+      console.log('User ID:', authenticatedUser.id);
+      
       const validatedData = insertTournamentSchema.parse({
         ...req.body,
         creatorId: authenticatedUser.id
       });
       
+      console.log('Validated tournament data:', JSON.stringify(validatedData, null, 2));
+      
       const tournament = await storage.createTournament(validatedData);
       res.status(201).json(tournament);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error('Tournament validation errors:', error.errors);
+        console.error('Tournament validation errors:', JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid tournament data", errors: error.errors });
       }
       console.error('Error creating tournament:', error);

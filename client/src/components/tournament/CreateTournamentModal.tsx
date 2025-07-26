@@ -127,8 +127,15 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error('Tournament creation failed:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: 'Request failed' };
+        }
+        throw new Error(errorData.message || `HTTP ${response.status}: ${errorText}`);
       }
       
       return response.json();
