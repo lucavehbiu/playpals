@@ -117,6 +117,17 @@ const MobileNav = () => {
                     <CalendarPlusIcon className="h-4 w-4 mr-2 text-primary" /> 
                     Create Event
                   </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/tournaments");
+                    }}
+                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
+                  >
+                    <AwardIcon className="h-4 w-4 mr-2 text-primary" /> 
+                    Create Tournament
+                  </button>
                 </div>
                 
                 {/* Arrow at bottom */}
@@ -135,10 +146,10 @@ const MobileNav = () => {
         />
         
         <NavItem 
-          href="/tournaments" 
-          icon={<AwardIcon className="h-[22px] w-[22px]" />} 
-          label="Tournaments" 
-          isActive={location.startsWith('/tournaments')} 
+          href="/teams" 
+          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
+          label="Teams" 
+          isActive={location.startsWith('/teams')} 
         />
       </nav>
 

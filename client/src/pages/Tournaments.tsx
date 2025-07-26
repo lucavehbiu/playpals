@@ -9,7 +9,7 @@ import { CreateTournamentModal } from '@/components/tournament/CreateTournamentM
 import type { Tournament } from '@shared/schema';
 
 export default function Tournaments() {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(true); // Open modal immediately
   const queryClient = useQueryClient();
 
   const { data: tournaments = [], isLoading } = useQuery<Tournament[]>({
