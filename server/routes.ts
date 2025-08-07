@@ -443,18 +443,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/user/:userId', async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
-      console.log(`Fetching events for user ID: ${userId}`);
+      console.log(`Fetching all events for user ID: ${userId}`);
       
       if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const events = await storage.getEventsByCreator(userId);
-      console.log("Fetched user events:", events ? events.length : 0);
+      // Get RSVPs for the user to find participated events
+      const userRSVPs = await storage.getRSVPsByUser(userId);
+      const participatedEventIds = userRSVPs
+        .filter(rsvp => rsvp.status === 'approved')
+        .map(rsvp => rsvp.eventId);
+      
+      console.log("Participated event IDs:", participatedEventIds);
+      
+      // Fetch participated events individually
+      const participatedEvents = [];
+      for (const eventId of participatedEventIds) {
+        try {
+          const event = await storage.getEvent(eventId);
+          if (event) {
+            participatedEvents.push(event);
+          }
+        } catch (err) {
+          console.error(`Failed to fetch event ${eventId}:`, err);
+        }
+      }
+      
+      console.log("Fetched user events - Participated:", participatedEvents.length);
       
       // Add creator info to each event
       const eventsWithCreators = await Promise.all(
-        events.map(async (event) => {
+        participatedEvents.map(async (event) => {
           const creator = await storage.getUser(event.creatorId);
           return {
             ...event,
@@ -467,6 +487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
+      
+      // Sort by date (most recent first)
+      eventsWithCreators.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       res.json(eventsWithCreators || []);
     } catch (error) {

@@ -112,6 +112,7 @@ export interface IStorage {
   // Event methods
   getEvent(id: number): Promise<Event | undefined>;
   getEventsByCreator(creatorId: number): Promise<Event[]>;
+  getEventsByParticipant(userId: number): Promise<Event[]>;
   getPublicEvents(): Promise<Event[]>;
   getDiscoverableEvents(userId?: number | null): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
@@ -2590,11 +2591,31 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(events)
-      .where(and(
-        eq(events.creatorId, creatorId),
-        gte(events.date, new Date())
-      ))
+      .where(eq(events.creatorId, creatorId))
       .orderBy(events.date);
+  }
+
+  async getEventsByParticipant(userId: number): Promise<Event[]> {
+    // Use a subquery approach to get event IDs first, then fetch full events
+    const eventIds = await db
+      .select({ eventId: rsvps.eventId })
+      .from(rsvps)
+      .where(and(
+        eq(rsvps.userId, userId),
+        eq(rsvps.status, 'approved')
+      ));
+
+    if (eventIds.length === 0) {
+      return [];
+    }
+
+    const result = await db
+      .select()
+      .from(events)
+      .where(or(...eventIds.map(({ eventId }) => eq(events.id, eventId))))
+      .orderBy(desc(events.date));
+
+    return result;
   }
 
   async getPublicEvents(): Promise<Event[]> {
