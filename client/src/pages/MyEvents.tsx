@@ -169,12 +169,28 @@ const UpcomingEvents = ({
 
 // Component to display past events
 const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) => {
-  // Filter events that are in the past AND where the user participated (not created)
-  const pastEvents = events?.filter((event: any) => 
-    new Date(event.date) < new Date() && 
-    event.relationshipType === 'participated' &&
-    event.creatorId !== user?.id
-  ) || [];
+  // Filter events that are in the past (either created by user or participated in)
+  const pastEvents = events?.filter((event: any) => {
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    return eventDate < now && (
+      event.relationshipType === 'participated' || 
+      event.creatorId === user?.id
+    );
+  }) || [];
+  
+  console.log("Past Events Filter Results:", {
+    totalEvents: events?.length || 0,
+    pastEvents: pastEvents.length,
+    pastEventsData: pastEvents.map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      relationshipType: e.relationshipType,
+      creatorId: e.creatorId,
+      userId: user?.id
+    }))
+  });
   
   return (
     <motion.div
@@ -228,9 +244,9 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) 
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CalendarCheck className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No participated events</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">No past events</h3>
               <p className="text-gray-500">
-                You haven't participated in events created by other users yet. Explore events to join!
+                You haven't participated in any past events yet. Join some events to see them here!
               </p>
             </div>
           )}
