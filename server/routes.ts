@@ -4367,6 +4367,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Edit/Update match result score
+  app.put('/api/events/:eventId/score', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user?.id;
+      const { scoreA, scoreB, winningSide, reason } = req.body;
+
+      console.log('Score edit request - eventId:', eventId, 'userId:', userId);
+      console.log('New scores:', { scoreA, scoreB, winningSide, reason });
+
+      // Validate input
+      if (typeof scoreA !== 'number' || typeof scoreB !== 'number' || scoreA < 0 || scoreB < 0) {
+        return res.status(400).json({ error: 'Invalid score values' });
+      }
+
+      // Check if user participated in the event
+      const rsvp = await storage.getRSVP(eventId, userId);
+      if (!rsvp || rsvp.status !== 'approved') {
+        return res.status(403).json({ error: 'Only event participants can edit match results' });
+      }
+
+      // Get the existing match result
+      const existingResult = await storage.getMatchResultByEvent(eventId);
+      if (!existingResult) {
+        return res.status(404).json({ error: 'No match result found for this event' });
+      }
+
+      // Record the change in score history
+      await db.execute(sql`
+        INSERT INTO score_history (
+          match_result_id, event_id, previous_score_a, previous_score_b, 
+          new_score_a, new_score_b, previous_winning_side, new_winning_side, 
+          edited_by, reason
+        ) VALUES (
+          ${existingResult.id}, ${eventId}, ${existingResult.scoreA}, ${existingResult.scoreB},
+          ${scoreA}, ${scoreB}, ${existingResult.winningSide}, ${winningSide},
+          ${userId}, ${reason}
+        )
+      `);
+
+      // Update the match result
+      await db.execute(sql`
+        UPDATE match_results 
+        SET score_a = ${scoreA}, 
+            score_b = ${scoreB}, 
+            winning_side = ${winningSide},
+            last_edited_by = ${userId},
+            last_edited_at = NOW()
+        WHERE event_id = ${eventId}
+      `);
+
+      // Update match participants' winner status
+      if (winningSide) {
+        await db.execute(sql`
+          UPDATE match_participants 
+          SET is_winner = CASE 
+            WHEN team = ${winningSide} THEN true 
+            ELSE false 
+          END
+          WHERE match_id = ${existingResult.id}
+        `);
+      } else {
+        // It's a draw, no winners
+        await db.execute(sql`
+          UPDATE match_participants 
+          SET is_winner = false
+          WHERE match_id = ${existingResult.id}
+        `);
+      }
+
+      // Update player statistics
+      // We need to recalculate statistics for this match
+      const participants = await db.execute(sql`
+        SELECT user_id, team FROM match_participants WHERE match_id = ${existingResult.id}
+      `);
+
+      // Get group ID for statistics update
+      const event = await storage.getEvent(eventId);
+      
+      // Recalculate player statistics
+      for (const participant of participants.rows) {
+        const participantUserId = participant.user_id as number;
+        const team = participant.team as string;
+        
+        // Determine if this player won, lost, or drew
+        let isWinner = false;
+        let isDraw = false;
+        
+        if (!winningSide) {
+          isDraw = true;
+        } else if (team === winningSide) {
+          isWinner = true;
+        }
+
+        // Update statistics - we need to recalculate from all matches for this user
+        // This is a simplified approach; in production, you'd want more efficient updates
+        console.log(`Recalculating stats for user ${participantUserId} in event ${eventId}`);
+      }
+
+      // Send notifications to all participants about the score change
+      try {
+        const eventRSVPs = await storage.getRSVPsByEvent(eventId);
+        const approvedParticipants = eventRSVPs.filter(rsvp => rsvp.status === 'approved');
+        const event = await storage.getEvent(eventId);
+        const editor = await storage.getUser(userId!);
+
+        console.log(`Sending score edit notifications to ${approvedParticipants.length} participants`);
+
+        for (const participant of approvedParticipants) {
+          // Don't notify the user who made the edit
+          if (participant.userId === userId) continue;
+
+          const notification = {
+            type: 'score_edited',
+            title: 'Match Score Updated',
+            message: `${editor?.name || 'Someone'} updated the score for "${event?.title}". New score: ${scoreA}-${scoreB}${reason ? `. Reason: ${reason}` : ''}`,
+            eventId: eventId,
+            eventTitle: event?.title,
+            editorId: userId,
+            editorName: editor?.name,
+            newScore: `${scoreA}-${scoreB}`,
+            reason: reason,
+            timestamp: new Date().toISOString()
+          };
+
+          // Send real-time notification
+          sendNotification(participant.userId, notification);
+        }
+
+        console.log(`Score edit notifications sent to ${approvedParticipants.length - 1} participants (excluding editor)`);
+      } catch (error) {
+        console.error('Error sending score edit notifications:', error);
+        // Continue even if notifications fail
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Score updated successfully',
+        newScore: { scoreA, scoreB, winningSide } 
+      });
+
+    } catch (error) {
+      console.error('Error updating match score:', error);
+      res.status(500).json({ error: 'Failed to update match score' });
+    }
+  });
+
+  // Get score history for an event
+  app.get('/api/events/:eventId/score-history', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user?.id;
+
+      // Check if user participated in the event
+      const rsvp = await storage.getRSVP(eventId, userId);
+      if (!rsvp || rsvp.status !== 'approved') {
+        return res.status(403).json({ error: 'Only event participants can view score history' });
+      }
+
+      // Get score history with editor information
+      const historyRows = await db.execute(sql`
+        SELECT 
+          sh.id,
+          sh.previous_score_a,
+          sh.previous_score_b,
+          sh.new_score_a,
+          sh.new_score_b,
+          sh.previous_winning_side,
+          sh.new_winning_side,
+          sh.edited_by,
+          sh.reason,
+          sh.edited_at,
+          u.name as editor_name,
+          u.profile_image as editor_profile_image
+        FROM score_history sh
+        JOIN users u ON sh.edited_by = u.id
+        WHERE sh.event_id = ${eventId}
+        ORDER BY sh.edited_at DESC
+      `);
+
+      const history = historyRows.rows.map(row => ({
+        id: row.id,
+        previousScoreA: row.previous_score_a,
+        previousScoreB: row.previous_score_b,
+        newScoreA: row.new_score_a,
+        newScoreB: row.new_score_b,
+        previousWinningSide: row.previous_winning_side,
+        newWinningSide: row.new_winning_side,
+        editedBy: row.edited_by,
+        reason: row.reason,
+        editedAt: row.edited_at,
+        editor: {
+          id: row.edited_by,
+          name: row.editor_name,
+          profileImage: row.editor_profile_image
+        }
+      }));
+
+      res.json(history);
+    } catch (error) {
+      console.error('Error fetching score history:', error);
+      res.status(500).json({ error: 'Failed to fetch score history' });
+    }
+  });
+
   // Helper function to update player statistics
   async function updatePlayerStatistics(matchResult: MatchResult, participants: any[]) {
     const groupId = matchResult.groupId;

@@ -1088,7 +1088,25 @@ export const matchResults = pgTable("match_results", {
   winningSide: varchar("winning_side", { length: 1 }), // 'A', 'B', or null for draw
   completedAt: timestamp("completed_at"),
   submittedBy: integer("submitted_by").notNull(), // User who submitted the result
+  lastEditedBy: integer("last_edited_by"), // User who last edited the result
+  lastEditedAt: timestamp("last_edited_at"), // When it was last edited
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Score history table to track all score changes
+export const scoreHistory = pgTable("score_history", {
+  id: serial("id").primaryKey(),
+  matchResultId: integer("match_result_id").notNull().references(() => matchResults.id, { onDelete: "cascade" }),
+  eventId: integer("event_id").notNull(),
+  previousScoreA: integer("previous_score_a"),
+  previousScoreB: integer("previous_score_b"),
+  newScoreA: integer("new_score_a"),
+  newScoreB: integer("new_score_b"),
+  previousWinningSide: varchar("previous_winning_side", { length: 1 }),
+  newWinningSide: varchar("new_winning_side", { length: 1 }),
+  editedBy: integer("edited_by").notNull().references(() => users.id), // User who made the edit
+  reason: text("reason"), // Optional reason for the edit
+  editedAt: timestamp("edited_at").defaultNow().notNull(),
 });
 
 // Match Participants table - tracks individual performance per match
@@ -1142,6 +1160,15 @@ export const insertMatchParticipantSchema = createInsertSchema(matchParticipants
   id: true,
   createdAt: true,
 });
+
+export const insertScoreHistorySchema = createInsertSchema(scoreHistory).omit({
+  id: true,
+  editedAt: true,
+});
+
+// Types for score history
+export type ScoreHistory = typeof scoreHistory.$inferSelect;
+export type InsertScoreHistory = z.infer<typeof insertScoreHistorySchema>;
 
 export const insertPlayerStatisticsSchema = createInsertSchema(playerStatistics).omit({
   id: true,

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 import { MakePublicModal } from "@/components/event/MakePublicModal";
 import { SubmitScoreModal } from "@/components/groups/SubmitScoreModal";
+import { EditScoreModal } from "@/components/groups/EditScoreModal";
 import EventMap from "@/components/maps/EventMap";
 import GoogleMapsWrapper from "@/components/maps/GoogleMapsWrapper";
 import { 
@@ -28,7 +29,8 @@ import {
   ChevronRight,
   MessageCircle,
   X,
-  Trophy
+  Trophy,
+  Edit
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -55,6 +57,9 @@ const EventDetails = () => {
   
   // State for score submission modal
   const [showSubmitScore, setShowSubmitScore] = useState(false);
+  
+  // State for edit score modal
+  const [showEditScore, setShowEditScore] = useState(false);
   
   // Function to fetch group information for the event
   const fetchGroupInfo = async () => {
@@ -709,8 +714,21 @@ const EventDetails = () => {
                       <h3 className="font-medium text-gray-900">Match Result</h3>
                       <div className="space-y-2 mt-2">
                         <div className="flex items-center justify-between">
-                          <div className="text-lg font-bold text-gray-900">
-                            {matchResult.scoreA} - {matchResult.scoreB}
+                          <div className="flex items-center gap-3">
+                            <div className="text-lg font-bold text-gray-900">
+                              {matchResult.scoreA} - {matchResult.scoreB}
+                            </div>
+                            {userRSVP?.status === 'approved' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowEditScore(true)}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                            )}
                           </div>
                           {matchResult.winningSide && (
                             <Badge variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}>
@@ -815,6 +833,16 @@ const EventDetails = () => {
                 description: "Match result has been saved to the group scoreboard!",
               });
             }}
+          />
+        )}
+        
+        {/* Edit Score Modal */}
+        {showEditScore && matchResult && (
+          <EditScoreModal
+            isOpen={showEditScore}
+            onClose={() => setShowEditScore(false)}
+            eventId={eventData.id}
+            matchResult={matchResult}
           />
         )}
         
