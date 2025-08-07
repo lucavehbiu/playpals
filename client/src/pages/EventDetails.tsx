@@ -252,7 +252,10 @@ const EventDetails = () => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log("Fetched RSVPs for event", id, ":", data);
         setRsvps(data);
+      } else {
+        console.error("Failed to fetch RSVPs:", response.status, response.statusText);
       }
     } catch (error) {
       console.error("Error refreshing RSVPs:", error);
@@ -354,6 +357,9 @@ const EventDetails = () => {
   console.log("RSVPs array:", rsvps);
   console.log("Current user ID:", user?.id);
   console.log("Actual participants (approved only):", actualParticipantCount);
+  console.log("RSVP Status:", rsvpStatus);
+  console.log("Should show join button:", !isCreator && !hasRSVPd && !isEventCompleted(eventData.date));
+  console.log("Should show approved status:", !isCreator && hasRSVPd && rsvpStatus === "approved");
   
   // Sport badge colors (same as in EventCard)
   const getSportBadgeColor = (sport: string | undefined) => {
