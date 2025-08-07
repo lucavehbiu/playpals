@@ -1,7 +1,9 @@
 import { format } from "date-fns";
 import { Event } from "@/lib/types";
-import { CalendarIcon, MapPinIcon, ArrowUpRight } from "lucide-react";
+import { CalendarIcon, MapPinIcon, ArrowUpRight, Trophy, X, CheckCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 interface EventCardProps {
   event: Event;
@@ -21,6 +23,29 @@ const EventCard = ({
   onShare 
 }: EventCardProps) => {
   const [, setLocation] = useLocation();
+  const [matchResult, setMatchResult] = useState<any>(null);
+  const [rsvpData, setRsvpData] = useState<any[]>([]);
+  
+  // Fetch match result for past events
+  useEffect(() => {
+    if (isPast) {
+      // Fetch match result if it exists
+      fetch(`/api/events/${event.id}/match-result`, {
+        credentials: 'include'
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setMatchResult(data))
+      .catch(() => setMatchResult(null));
+      
+      // Fetch RSVP data to determine if event was full
+      fetch(`/api/rsvps/event/${event.id}`, {
+        credentials: 'include'
+      })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setRsvpData(data))
+      .catch(() => setRsvpData([]));
+    }
+  }, [event.id, isPast]);
   
   const navigateToEventDetails = (e: React.MouseEvent) => {
     // If the click is on a button, don't navigate
@@ -32,9 +57,14 @@ const EventCard = ({
     // Get the current page location to track where we're coming from
     const currentPath = window.location.pathname;
     
-    // Add the from parameter if coming from myevents page
+    // Add the from parameter based on current location
     if (currentPath.includes('/myevents')) {
       setLocation(`/events/${event.id}?from=myevents`);
+    } else if (currentPath.includes('/profile')) {
+      setLocation(`/events/${event.id}?from=profile`);
+    } else if (currentPath.includes('/groups/')) {
+      const groupId = currentPath.split('/groups/')[1]?.split('/')[0];
+      setLocation(`/events/${event.id}?from=group&groupId=${groupId}`);
     } else {
       setLocation(`/events/${event.id}`);
     }
@@ -68,21 +98,69 @@ const EventCard = ({
     return `${event.currentParticipants}/${event.maxParticipants} players`;
   };
   
+  // Determine event status for past events
+  const getEventStatus = () => {
+    if (!isPast) return null;
+    
+    const approvedRSVPs = rsvpData.filter(rsvp => rsvp.status === 'approved');
+    const actualParticipants = approvedRSVPs.length;
+    const wasFull = actualParticipants >= event.maxParticipants;
+    
+    if (matchResult) {
+      return {
+        type: 'completed',
+        label: 'Completed',
+        color: 'bg-green-500',
+        icon: <Trophy className="h-3 w-3" />,
+        score: `${matchResult.scoreA}-${matchResult.scoreB}`
+      };
+    } else if (wasFull) {
+      return {
+        type: 'played',
+        label: 'Event Happened',
+        color: 'bg-blue-500', 
+        icon: <CheckCircle className="h-3 w-3" />,
+        score: null
+      };
+    } else {
+      return {
+        type: 'canceled',
+        label: 'Not Enough Players',
+        color: 'bg-red-500',
+        icon: <X className="h-3 w-3" />,
+        score: null
+      };
+    }
+  };
+  
+  const eventStatus = getEventStatus();
+  
   return (
     <div 
-      className={`bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 relative ${isPast ? 'opacity-80 grayscale-[30%]' : ''} hover:opacity-100 hover:grayscale-0 ${isPast ? 'hover:-translate-y-1' : 'hover:-translate-y-0.5'}`}
+      className={`bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 relative ${isPast ? 'opacity-90' : ''} hover:opacity-100 ${isPast ? 'hover:-translate-y-1' : 'hover:-translate-y-0.5'}`}
       onClick={navigateToEventDetails}
     >
-      {/* Past event badge */}
-      {isPast && (
-        <div className="absolute top-2 left-2 z-10 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm">
-          Past Event
+      {/* Event status indicator for past events */}
+      {isPast && eventStatus && (
+        <div className={`absolute top-2 left-2 z-10 ${eventStatus.color} text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1`}>
+          {eventStatus.icon}
+          {eventStatus.label}
         </div>
       )}
       
-      <div className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1.5 shadow-sm">
-        <ArrowUpRight className="h-4 w-4 text-primary" />
-      </div>
+      {/* Score display for completed events */}
+      {isPast && eventStatus?.score && (
+        <div className="absolute top-2 right-2 z-10 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">
+          {eventStatus.score}
+        </div>
+      )}
+      
+      {/* Arrow icon - only show if no score is displayed */}
+      {(!isPast || !eventStatus?.score) && (
+        <div className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1.5 shadow-sm">
+          <ArrowUpRight className="h-4 w-4 text-primary" />
+        </div>
+      )}
       
       <div className="aspect-w-16 aspect-h-9 h-48 relative">
         <img 
