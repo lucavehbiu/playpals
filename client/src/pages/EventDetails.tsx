@@ -272,22 +272,33 @@ const EventDetails = () => {
   };
   
   const handleBack = () => {
-    // Check URL for a previous page parameter
-    const params = new URLSearchParams(window.location.search);
-    const from = params.get('from');
-    const groupId = params.get('groupId');
-    
-    // Route based on where we came from
-    if (from === 'myevents') {
-      setLocation("/myevents");
-    } else if (from === 'group' && groupId) {
-      setLocation(`/groups/${groupId}`);
-    } else if (groupInfo?.group) {
-      // If event is part of a group but no explicit 'from' param, go to group
-      setLocation(`/groups/${groupInfo.group.id}`);
+    // Try to use browser history first
+    if (window.history.length > 1) {
+      window.history.back();
     } else {
-      // Default to discover
-      setLocation("/discover");
+      // Fallback: Check URL for a previous page parameter
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get('from');
+      const groupId = params.get('groupId');
+      
+      // Route based on where we came from
+      if (from === 'myevents') {
+        setLocation("/myevents");
+      } else if (from === 'profile') {
+        setLocation("/profile");
+      } else if (from === 'discover') {
+        setLocation("/discover");
+      } else if (from === 'teams') {
+        setLocation("/teams");
+      } else if (from === 'group' && groupId) {
+        setLocation(`/groups/${groupId}`);
+      } else if (groupInfo?.group) {
+        // If event is part of a group but no explicit 'from' param, go to group
+        setLocation(`/groups/${groupInfo.group.id}`);
+      } else {
+        // Default to discover
+        setLocation("/discover");
+      }
     }
   };
   

@@ -65,8 +65,12 @@ const EventCard = ({
     } else if (currentPath.includes('/groups/')) {
       const groupId = currentPath.split('/groups/')[1]?.split('/')[0];
       setLocation(`/events/${event.id}?from=group&groupId=${groupId}`);
+    } else if (currentPath.includes('/discover')) {
+      setLocation(`/events/${event.id}?from=discover`);
+    } else if (currentPath.includes('/teams')) {
+      setLocation(`/events/${event.id}?from=teams`);
     } else {
-      setLocation(`/events/${event.id}`);
+      setLocation(`/events/${event.id}?from=discover`); // Default to discover instead of no parameter
     }
   };
   
