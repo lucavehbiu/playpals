@@ -4231,6 +4231,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update player statistics
       await updatePlayerStatistics(matchResult, participants);
 
+      // Create notifications for all event participants about the score submission
+      try {
+        // Get all approved RSVPs for this event
+        const eventRSVPs = await storage.getRSVPsByEvent(eventId);
+        const approvedParticipants = eventRSVPs.filter(rsvp => rsvp.status === 'approved');
+
+        // Get event details for notification
+        const event = await storage.getEvent(eventId);
+        const submitter = await storage.getUser(userId!);
+
+        console.log(`Creating score notifications for ${approvedParticipants.length} participants`);
+
+        // Check if this is a group event
+        const groupEvent = await storage.getSportsGroupEventByEventId(eventId);
+
+        // Create notifications for all participants except the submitter
+        for (const rsvp of approvedParticipants) {
+          if (rsvp.userId !== userId) { // Don't notify the person who submitted the score
+            if (groupEvent) {
+              // For group events, use the group notification system
+              await storage.createSportsGroupNotification({
+                userId: rsvp.userId,
+                groupId: groupEvent.groupId,
+                type: 'score_submitted',
+                title: 'Match Score Updated',
+                message: `${submitter?.name || 'Someone'} submitted the score for "${event?.title || 'an event'}"`,
+                referenceId: eventId,
+                viewed: false
+              });
+            } else {
+              // For regular events, create match result notifications
+              await storage.createMatchResultNotification({
+                userId: rsvp.userId,
+                eventId: eventId,
+                type: 'score_submitted',
+                title: 'Match Score Updated',
+                message: `${submitter?.name || 'Someone'} submitted the score for "${event?.title || 'an event'}"`,
+                viewed: false
+              });
+            }
+          }
+        }
+
+        console.log(`Successfully created score notifications for event ${eventId}`);
+      } catch (notificationError) {
+        console.error('Error creating score notifications:', notificationError);
+        // Don't fail the entire request if notifications fail
+      }
+
       res.json(matchResult);
     } catch (error) {
       console.error('Error creating match result:', error);
