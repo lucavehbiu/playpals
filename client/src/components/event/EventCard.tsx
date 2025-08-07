@@ -102,9 +102,12 @@ const EventCard = ({
   const getEventStatus = () => {
     if (!isPast) return null;
     
-    const approvedRSVPs = rsvpData.filter(rsvp => rsvp.status === 'approved');
-    const actualParticipants = approvedRSVPs.length;
+    // Use the event's currentParticipants field which is more accurate
+    const actualParticipants = event.currentParticipants;
     const wasFull = actualParticipants >= event.maxParticipants;
+    
+    // Debug logging
+    console.log(`Event ${event.id} (${event.title}): participants=${actualParticipants}/${event.maxParticipants}, wasFull=${wasFull}, hasMatchResult=${!!matchResult}`);
     
     if (matchResult) {
       return {
