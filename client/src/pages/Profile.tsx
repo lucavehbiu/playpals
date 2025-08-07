@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { calculateProfileCompletion } from "@/lib/profile-completion";
 import { Link } from "wouter";
 import { EditProfile } from "@/components/profile/EditProfile";
+import EventCard from "@/components/event/EventCard";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -915,36 +916,29 @@ const Profile = () => {
                 </div>
               </div>
             ) : events && events.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {events.map(event => (
-                  <div key={event.id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">{event.title}</h3>
-                      <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-                        {event.sport}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-3">{event.date} • {event.time}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">{event.description}</p>
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
-                        {event.location}
-                      </div>
-                      <a 
-                        href={`/events/${event.id}`} 
-                        className="text-primary text-sm font-medium flex items-center hover:underline"
-                      >
-                        View Details
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {events.map((event, index) => {
+                  const isPastEvent = new Date(event.date) < new Date();
+                  return (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <EventCard 
+                        event={event} 
+                        isManageable={isOwnProfile}
+                        onManage={(eventId) => setLocation(`/events/manage/${eventId}`)}
+                        onShare={(eventId) => toast({
+                          title: "Share Event",
+                          description: `You're sharing event #${eventId}. This would open sharing options in the full app.`,
+                        })}
+                        isPast={isPastEvent}
+                      />
+                    </motion.div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
