@@ -168,9 +168,13 @@ const UpcomingEvents = ({
 };
 
 // Component to display past events
-const PastEvents = ({ events, isLoading, error, onManage, onShare }: any) => {
-  // Filter events that are in the past
-  const pastEvents = events?.filter((event: Event) => new Date(event.date) < new Date()) || [];
+const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) => {
+  // Filter events that are in the past AND where the user participated (not created)
+  const pastEvents = events?.filter((event: any) => 
+    new Date(event.date) < new Date() && 
+    event.relationshipType === 'participated' &&
+    event.creatorId !== user?.id
+  ) || [];
   
   return (
     <motion.div
@@ -182,7 +186,7 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare }: any) => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold flex items-center">
           <CalendarCheck className="h-5 w-5 mr-2 text-primary" />
-          Past Events
+          Past Events (Participated)
         </h1>
       </div>
       
@@ -224,9 +228,9 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare }: any) => {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CalendarCheck className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No past events</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">No participated events</h3>
               <p className="text-gray-500">
-                You haven't participated in any events yet. Start by joining an event or creating your own!
+                You haven't participated in events created by other users yet. Explore events to join!
               </p>
             </div>
           )}

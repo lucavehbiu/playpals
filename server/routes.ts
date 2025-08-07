@@ -472,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Fetched user events - Participated:", participatedEvents.length);
       
-      // Add creator info to each event
+      // Add creator info and relationship type to each event
       const eventsWithCreators = await Promise.all(
         participatedEvents.map(async (event) => {
           const creator = await storage.getUser(event.creatorId);
@@ -483,7 +483,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               username: creator.username,
               name: creator.name,
               profileImage: creator.profileImage
-            } : null
+            } : null,
+            // Mark whether user created this event or just participated
+            relationshipType: event.creatorId === userId ? 'created' : 'participated'
           };
         })
       );
