@@ -12,6 +12,8 @@ import { calculateProfileCompletion } from "@/lib/profile-completion";
 import { Link } from "wouter";
 import { EditProfile } from "@/components/profile/EditProfile";
 import EventCard from "@/components/event/EventCard";
+import RatingModal from '@/components/rating/RatingModal';
+import PlayerRatingsSection from '@/components/rating/PlayerRatingsSection';
 
 const Profile = () => {
   const { toast } = useToast();
@@ -26,6 +28,8 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'events' | 'teams' | 'friends'>('profile');
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
 
   // Handle logout with navigation
   const handleLogout = () => {
@@ -79,9 +83,7 @@ const Profile = () => {
     enabled: !!userId,
   });
 
-  // State for rating modal
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [selectedRating, setSelectedRating] = useState(0);
+  // Rating modal state was already declared above
   
   // Get teams the user is a member of
   const { data: userTeams = [], isLoading: teamsLoading } = useQuery({
@@ -119,6 +121,18 @@ const Profile = () => {
   ) : [];
 
   const mutualFriendsCount = mutualFriends.length;
+
+  // Get player ratings for this user
+  const { data: playerRatings = [], isLoading: ratingsLoading } = useQuery<any[]>({
+    queryKey: [`/api/player-ratings/user/${userId}`],
+    enabled: !!userId,
+  });
+
+  // Get average rating for this user
+  const { data: averageRatingData } = useQuery<{ average: number }>({
+    queryKey: [`/api/player-ratings/average/${userId}`],
+    enabled: !!userId,
+  });
 
   // Get user's onboarding preferences to show all selected sports
   const { data: onboardingPreferences } = useQuery({
@@ -197,10 +211,12 @@ const Profile = () => {
 
   // Mutation for submitting player rating
   const submitRatingMutation = useMutation({
-    mutationFn: async ({ rating }: { rating: number }) => {
+    mutationFn: async ({ rating, comment, sportType }: { rating: number; comment: string; sportType: string }) => {
       const res = await apiRequest("POST", "/api/player-ratings", {
         ratedUserId: parseInt(userId),
         rating: rating,
+        comment: comment || null,
+        sportType: sportType,
         eventId: null // General rating not tied to specific event
       });
       if (!res.ok) {
@@ -211,6 +227,7 @@ const Profile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/player-ratings/average/${userId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/player-ratings/user/${userId}`] });
       setShowRatingModal(false);
       setSelectedRating(0);
       toast({
@@ -385,12 +402,12 @@ const Profile = () => {
                     style={{ padding: '2px 8px' }}
                   >
                     <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                    <span className="text-white font-medium">{playerRating?.average ? playerRating.average.toFixed(1) : "0.0"}</span>
+                    <span className="text-white font-medium">{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
                   </button>
                 ) : (
                   <div className="flex items-center bg-white/30 rounded-full shadow-sm" style={{ padding: '2px 8px' }}>
                     <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                    <span className="text-white font-medium">{playerRating?.average ? playerRating.average.toFixed(1) : "0.0"}</span>
+                    <span className="text-white font-medium">{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
                   </div>
                 )}
                 
@@ -895,6 +912,13 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Player Ratings Section */}
+            <PlayerRatingsSection 
+              ratings={playerRatings}
+              averageRating={averageRatingData?.average || null}
+              totalRatings={playerRatings.length}
+              isOwnProfile={isOwnProfile}
+            />
 
           </div>
         )}
@@ -1190,6 +1214,15 @@ const Profile = () => {
           }}
         />
       )}
+
+      {/* Rating Modal */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        onSubmit={handleSubmitRating}
+        userName={user?.name || "Player"}
+        isLoading={submitRatingMutation.isPending}
+      />
     </div>
   );
 };

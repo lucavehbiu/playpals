@@ -2954,12 +2954,27 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Player Ratings methods
-  async getPlayerRatings(userId: number): Promise<PlayerRating[]> {
+  async getPlayerRatings(userId: number): Promise<any[]> {
     try {
-      return db
-        .select()
+      const ratingsWithRater = await db
+        .select({
+          id: playerRatings.id,
+          rating: playerRatings.rating,
+          comment: playerRatings.comment,
+          sportType: playerRatings.sportType,
+          createdAt: playerRatings.createdAt,
+          rater: {
+            id: users.id,
+            name: users.name,
+            profileImage: users.profileImage
+          }
+        })
         .from(playerRatings)
-        .where(eq(playerRatings.ratedUserId, userId));
+        .leftJoin(users, eq(playerRatings.raterUserId, users.id))
+        .where(eq(playerRatings.ratedUserId, userId))
+        .orderBy(desc(playerRatings.createdAt));
+
+      return ratingsWithRater;
     } catch (error) {
       console.error('Error getting player ratings:', error);
       return [];
