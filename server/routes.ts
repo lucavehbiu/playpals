@@ -3704,7 +3704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timeSlots = await storage.getSportsGroupPollTimeSlots(pollId);
       const responses = await storage.getSportsGroupPollResponses(pollId);
       
-      // Analyze availability for each time slot
+      // Analyze availability for each time slot and find overlapping opportunities
       const analysis = timeSlots.map(slot => {
         const slotResponses = responses.filter(r => r.timeSlotId === slot.id);
         const availableCount = slotResponses.filter(r => r.isAvailable === true).length;
@@ -3721,9 +3721,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           meetsMinimum,
           potentialParticipants: availableCount,
           isUsedForEvent: !!slot.usedForEventId,
-          usedForEventId: slot.usedForEventId
+          usedForEventId: slot.usedForEventId,
+          availableUserIds: slotResponses.filter(r => r.isAvailable === true).map(r => r.userId)
         };
       });
+
+      // Find overlapping time opportunities for the same day
+      const overlappingOpportunities = [];
+      const groupedByDay = analysis.reduce((acc, slot) => {
+        if (!acc[slot.dayOfWeek]) acc[slot.dayOfWeek] = [];
+        acc[slot.dayOfWeek].push(slot);
+        return acc;
+      }, {} as {[key: number]: typeof analysis});
+
+      Object.entries(groupedByDay).forEach(([dayOfWeek, daySlots]) => {
+        daySlots.forEach(slot1 => {
+          daySlots.forEach(slot2 => {
+            if (slot1.id >= slot2.id) return; // Avoid duplicates and self-comparison
+            
+            // Check if time slots overlap or are adjacent
+            const slot1Start = slot1.startTime;
+            const slot1End = slot1.endTime;
+            const slot2Start = slot2.startTime;
+            const slot2End = slot2.endTime;
+            
+            // Find overlap period
+            const overlapStart = slot1Start > slot2Start ? slot1Start : slot2Start;
+            const overlapEnd = slot1End < slot2End ? slot1End : slot2End;
+            
+            if (overlapStart < overlapEnd) {
+              // There's an overlap - combine available users
+              const combinedUsers = [...new Set([...slot1.availableUserIds, ...slot2.availableUserIds])];
+              if (combinedUsers.length >= (poll.minMembers || 2)) {
+                overlappingOpportunities.push({
+                  dayOfWeek: parseInt(dayOfWeek),
+                  startTime: overlapStart,
+                  endTime: overlapEnd,
+                  availableCount: combinedUsers.length,
+                  combinedSlots: [slot1.id, slot2.id],
+                  availableUserIds: combinedUsers,
+                  meetsMinimum: true
+                });
+              }
+            }
+          });
+        });
+      });
+
+      console.log(`Found ${overlappingOpportunities.length} overlapping opportunities:`, overlappingOpportunities);
       
       // Sort by best availability
       const sortedSlots = analysis.sort((a, b) => {
@@ -3732,18 +3777,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return b.potentialParticipants - a.potentialParticipants;
       });
       
-      // Generate event suggestions (exclude already used time slots)
-      const suggestions = sortedSlots
+      // Generate event suggestions from both direct slots and overlapping opportunities
+      const directSuggestions = sortedSlots
         .filter(slot => slot.meetsMinimum && !slot.isUsedForEvent)
-        .slice(0, 5) // Top 5 suggestions
+        .slice(0, 3)
         .map(slot => ({
           timeSlot: slot,
           suggestedDate: getNextDateForDayOfWeek(slot.dayOfWeek),
           estimatedParticipants: slot.availableCount,
-          confidence: slot.availableCount >= (poll.minMembers || 2) ? 'high' : 'medium'
+          confidence: slot.availableCount >= (poll.minMembers || 2) ? 'high' : 'medium',
+          type: 'direct'
         }));
+
+      const overlapSuggestions = overlappingOpportunities
+        .slice(0, 5) // Top 5 overlapping opportunities
+        .map(overlap => ({
+          timeSlot: {
+            id: `overlap-${overlap.dayOfWeek}-${overlap.startTime}`,
+            dayOfWeek: overlap.dayOfWeek,
+            startTime: overlap.startTime,
+            endTime: overlap.endTime,
+            availableCount: overlap.availableCount,
+            meetsMinimum: overlap.meetsMinimum,
+            isUsedForEvent: false
+          },
+          suggestedDate: getNextDateForDayOfWeek(overlap.dayOfWeek),
+          estimatedParticipants: overlap.availableCount,
+          confidence: overlap.availableCount >= (poll.minMembers || 2) ? 'high' : 'medium',
+          type: 'overlap',
+          combinedSlots: overlap.combinedSlots
+        }));
+
+      const suggestions = [...overlapSuggestions, ...directSuggestions];
       
-      console.log(`Poll analysis complete. Total slots: ${timeSlots.length}, Viable slots: ${sortedSlots.filter(s => s.meetsMinimum).length}, Suggestions: ${suggestions.length}`);
+      console.log(`Poll analysis complete. Total slots: ${timeSlots.length}, Direct viable slots: ${sortedSlots.filter(s => s.meetsMinimum).length}, Overlap opportunities: ${overlappingOpportunities.length}, Total suggestions: ${suggestions.length}`);
       
       res.json({
         poll,
