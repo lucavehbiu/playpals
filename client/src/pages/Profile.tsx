@@ -246,6 +246,11 @@ const Profile = () => {
     }
   });
 
+  // Helper function to handle rating submission
+  const handleSubmitRating = (rating: number, comment: string, sportType: string) => {
+    submitRatingMutation.mutate({ rating, comment, sportType });
+  };
+
   // Function to determine friendship status and what buttons to show
   const getFriendshipStatus = () => {
     if (isOwnProfile) return 'own';
