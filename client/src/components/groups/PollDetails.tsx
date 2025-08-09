@@ -95,16 +95,6 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     [day: string]: { startTime: string; endTime: string; available: boolean }[]
   }>({});
 
-  // Load existing user responses into availability form when data changes
-  useEffect(() => {
-    if (userResponses && userResponses.length > 0 && showAvailabilityForm) {
-      console.log('Loading existing responses into form:', userResponses);
-      // TODO: Convert userResponses back to userAvailability format
-      // This is complex because we need to map timeSlotIds back to day/time ranges
-      // For now, we'll need the timeSlots data to reconstruct the availability
-    }
-  }, [userResponses, showAvailabilityForm]);
-
   // Fetch poll analysis for event suggestions
   const { data: pollAnalysis } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'analysis'],
@@ -142,6 +132,16 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
     enabled: !!user,
   });
+
+  // Load existing user responses into availability form when data changes
+  useEffect(() => {
+    if (userResponses && userResponses.length > 0 && showAvailabilityForm) {
+      console.log('Loading existing responses into form:', userResponses);
+      // TODO: Convert userResponses back to userAvailability format
+      // This is complex because we need to map timeSlotIds back to day/time ranges
+      // For now, we'll need the timeSlots data to reconstruct the availability
+    }
+  }, [userResponses, showAvailabilityForm]);
 
   // Submit responses mutation
   const submitResponsesMutation = useMutation({
