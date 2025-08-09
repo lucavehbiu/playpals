@@ -126,7 +126,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         return [];
       }
       const data = await response.json();
-      console.log('User responses received:', data);
+      console.log('User responses received for poll', poll.id, ':', data);
+      console.log('User responses array length:', data?.length);
       return data;
     },
     enabled: !!user,
@@ -309,15 +310,18 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
               </div>
               <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
                 <DialogTrigger asChild>
-                  {userResponses && userResponses.length > 0 ? (
-                    <Button variant="outline" size="sm">
-                      Update Availability
-                    </Button>
-                  ) : (
-                    <Button size="sm">
-                      Set Availability
-                    </Button>
-                  )}
+                  {(() => {
+                    console.log('Button render - userResponses:', userResponses, 'length:', userResponses?.length);
+                    return userResponses && userResponses.length > 0 ? (
+                      <Button variant="outline" size="sm">
+                        Update Availability
+                      </Button>
+                    ) : (
+                      <Button size="sm">
+                        Set Availability
+                      </Button>
+                    );
+                  })()}
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
