@@ -3709,13 +3709,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const slotResponses = responses.filter(r => r.timeSlotId === slot.id);
         const availableCount = slotResponses.filter(r => r.isAvailable === true).length;
         const unavailableCount = slotResponses.filter(r => r.isAvailable === false).length;
+        const meetsMinimum = availableCount >= (poll.minMembers || 2);
+        
+        console.log(`Slot ${slot.id} (${slot.dayOfWeek}/${slot.startTime}-${slot.endTime}): ${availableCount} available, min needed: ${poll.minMembers}, meets minimum: ${meetsMinimum}`);
         
         return {
           ...slot,
           availableCount,
           unavailableCount,
           totalResponses: slotResponses.length,
-          meetsMinimum: availableCount >= (poll.minMembers || 2),
+          meetsMinimum,
           potentialParticipants: availableCount,
           isUsedForEvent: !!slot.usedForEventId,
           usedForEventId: slot.usedForEventId
@@ -3739,6 +3742,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedParticipants: slot.availableCount,
           confidence: slot.availableCount >= (poll.minMembers || 2) ? 'high' : 'medium'
         }));
+      
+      console.log(`Poll analysis complete. Total slots: ${timeSlots.length}, Viable slots: ${sortedSlots.filter(s => s.meetsMinimum).length}, Suggestions: ${suggestions.length}`);
       
       res.json({
         poll,
