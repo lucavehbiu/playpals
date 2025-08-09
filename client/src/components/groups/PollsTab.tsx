@@ -4,7 +4,7 @@ import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Calendar, Clock, Users, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, Clock, Users, ArrowLeft, CheckCircle } from 'lucide-react';
 import { CreatePollModal } from './CreatePollModal';
 import { PollDetails } from './PollDetails';
 import { format } from 'date-fns';
@@ -28,6 +28,7 @@ interface Poll {
   };
   responseCount: number;
   timeSlotCount: number;
+  canCreateEvent?: boolean;
 }
 
 interface PollsTabProps {
@@ -48,7 +49,30 @@ export function PollsTab({ groupId }: PollsTabProps) {
         throw new Error('Failed to fetch polls');
       }
       const result = await response.json();
-      return Array.isArray(result) ? result : [];
+      const polls = Array.isArray(result) ? result : [];
+      
+      // Check each poll for event creation availability
+      const pollsWithStatus = await Promise.all(
+        polls.map(async (poll) => {
+          try {
+            const analysisResponse = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`, {
+              credentials: 'include'
+            });
+            if (analysisResponse.ok) {
+              const analysisData = await analysisResponse.json();
+              return {
+                ...poll,
+                canCreateEvent: analysisData.suggestions && analysisData.suggestions.length > 0
+              };
+            }
+          } catch (error) {
+            console.log('Error checking poll analysis:', error);
+          }
+          return { ...poll, canCreateEvent: false };
+        })
+      );
+      
+      return pollsWithStatus;
     },
     retry: 1,
   });
@@ -144,9 +168,17 @@ export function PollsTab({ groupId }: PollsTabProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-semibold">{poll.title}</h3>
-                      <Badge variant={poll.isActive ? "default" : "secondary"}>
-                        {poll.isActive ? "Active" : "Closed"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={poll.isActive ? "default" : "secondary"}>
+                          {poll.isActive ? "Active" : "Closed"}
+                        </Badge>
+                        {poll.canCreateEvent && (
+                          <Badge variant="destructive" className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Ready to Create Event
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     {poll.description && (
                       <p className="text-gray-600 mt-1">{poll.description}</p>

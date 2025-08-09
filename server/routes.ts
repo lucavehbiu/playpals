@@ -3811,6 +3811,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const suggestions = [...overlapSuggestions, ...directSuggestions];
       
       console.log(`Poll analysis complete. Total slots: ${timeSlots.length}, Direct viable slots: ${sortedSlots.filter(s => s.meetsMinimum).length}, Overlap opportunities: ${overlappingOpportunities.length}, Total suggestions: ${suggestions.length}`);
+
+      // Send notifications to all available members when new opportunities are created
+      if (suggestions.length > 0) {
+        // Get all users who have any availability for this poll
+        const allAvailableUserIds = [...new Set(responses
+          .filter(r => r.isAvailable === true)
+          .map(r => r.userId))];
+        
+        // Notify all available members about event creation opportunities
+        for (const userId of allAvailableUserIds) {
+          try {
+            // Check if user already has a recent event suggestion notification for this poll
+            const existingNotification = await storage.getSportsGroupNotifications(userId)
+              .then(notifications => notifications.find(n => 
+                n.type === 'event_suggestion' && 
+                n.groupId === groupId &&
+                n.referenceId === pollId &&
+                new Date(n.createdAt).getTime() > Date.now() - 24 * 60 * 60 * 1000 // Within last 24 hours
+              ));
+
+            if (!existingNotification) {
+              await storage.createSportsGroupNotification({
+                userId,
+                groupId,
+                type: 'event_suggestion',
+                title: 'Event Creation Available',
+                message: `${suggestions.length} event${suggestions.length > 1 ? 's' : ''} can now be created from poll "${poll.title}"`,
+                referenceId: pollId,
+                viewed: false
+              });
+              console.log(`Sent event suggestion notification to user ${userId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to notify user ${userId}:`, error);
+          }
+        }
+      }
       
       res.json({
         poll,
