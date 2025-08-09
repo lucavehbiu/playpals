@@ -3584,6 +3584,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const groupId = parseInt(req.params.groupId);
       const authenticatedUser = (req as any).user as User;
       
+      console.log(`Fetching user responses for poll ${pollId}, user ${authenticatedUser.id} (${authenticatedUser.name})`);
+      
       // Check if user is a member of this group
       const members = await storage.getSportsGroupMembers(groupId);
       const isMember = members.some(member => member.userId === authenticatedUser.id);
@@ -3593,6 +3595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const responses = await storage.getSportsGroupPollUserResponses(pollId, authenticatedUser.id);
+      console.log(`Found ${responses.length} responses for user ${authenticatedUser.id}:`, responses);
       res.json(responses);
     } catch (error) {
       console.error('Error fetching user poll responses:', error);
