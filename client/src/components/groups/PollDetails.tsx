@@ -310,18 +310,15 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
               </div>
               <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
                 <DialogTrigger asChild>
-                  {(() => {
-                    console.log('Button render - userResponses:', userResponses, 'length:', userResponses?.length);
-                    return userResponses && userResponses.length > 0 ? (
-                      <Button variant="outline" size="sm">
-                        Update Availability
-                      </Button>
-                    ) : (
-                      <Button size="sm">
-                        Set Availability
-                      </Button>
-                    );
-                  })()}
+                  {userResponses && userResponses.length > 0 ? (
+                    <Button variant="outline" size="sm">
+                      Update Availability
+                    </Button>
+                  ) : (
+                    <Button size="sm">
+                      Set Availability
+                    </Button>
+                  )}
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
                   <DialogHeader>

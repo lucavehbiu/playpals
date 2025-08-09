@@ -3356,6 +3356,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const responses = await storage.getSportsGroupPollResponses(poll.id);
         const timeSlots = await storage.getSportsGroupPollTimeSlots(poll.id);
         
+        // Count unique users who have responded (not individual response records)
+        const uniqueResponders = new Set(responses.map(r => r.userId)).size;
+        
         return {
           ...poll,
           creator: creator ? {
@@ -3364,7 +3367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: creator.username,
             profileImage: creator.profileImage
           } : null,
-          responseCount: responses.length,
+          responseCount: uniqueResponders,
           timeSlotCount: timeSlots.length
         };
       }));
