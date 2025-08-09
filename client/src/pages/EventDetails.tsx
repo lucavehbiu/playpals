@@ -318,7 +318,8 @@ const EventDetails = () => {
   };
 
   // Helper function to check if event is completed (past date AND full capacity)
-  const isEventCompleted = (eventDate: string) => {
+  const isEventCompleted = (eventDate: string | undefined) => {
+    if (!eventDate) return false;
     const isPastDate = new Date(eventDate) < new Date();
     const isFullCapacity = actualParticipantCount >= (eventData?.maxParticipants || 0);
     return isPastDate && isFullCapacity;
@@ -358,7 +359,7 @@ const EventDetails = () => {
   console.log("Current user ID:", user?.id);
   console.log("Actual participants (approved only):", actualParticipantCount);
   console.log("RSVP Status:", rsvpStatus);
-  console.log("Should show join button:", !isCreator && !hasRSVPd && !isEventCompleted(eventData.date));
+  console.log("Should show join button:", !isCreator && !hasRSVPd && !isEventCompleted(eventData?.date));
   console.log("Should show approved status:", !isCreator && hasRSVPd && rsvpStatus === "approved");
   
   // Sport badge colors (same as in EventCard)
@@ -549,7 +550,7 @@ const EventDetails = () => {
         </div>
         
         {/* Join/Decline Buttons for Group Events - No RSVP yet */}
-        {!isCreator && !hasRSVPd && !isEventCompleted(eventData.date) && (
+        {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -573,7 +574,7 @@ const EventDetails = () => {
         )}
 
         {/* Join/Decline Buttons for Group Events - Pending RSVP */}
-        {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData.date) && (
+        {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData?.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -629,7 +630,7 @@ const EventDetails = () => {
                   <p className="text-sm text-green-600">You're confirmed to attend this event</p>
                 </div>
               </div>
-              {!isEventCompleted(eventData.date) && (
+              {!isEventCompleted(eventData?.date) && (
                 <Button 
                   variant="outline"
                   size="sm"
@@ -652,10 +653,10 @@ const EventDetails = () => {
                 <X className="h-6 w-6 mr-3 text-red-600" />
                 <div>
                   <p className="font-medium text-red-800">You declined this event</p>
-                  <p className="text-sm text-red-600">{isEventCompleted(eventData.date) ? "Event has ended" : "Changed your mind? You can still join!"}</p>
+                  <p className="text-sm text-red-600">{isEventCompleted(eventData?.date) ? "Event has ended" : "Changed your mind? You can still join!"}</p>
                 </div>
               </div>
-              {!isEventCompleted(eventData.date) && (
+              {!isEventCompleted(eventData?.date) && (
                 <Button 
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-white"
