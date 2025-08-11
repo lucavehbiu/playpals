@@ -30,16 +30,19 @@ export default function TournamentDetails() {
     },
   });
 
-  const { data: participants = [] } = useQuery<TournamentParticipant[]>({
+  const { data: participants = [], isLoading: participantsLoading, error: participantsError } = useQuery<TournamentParticipant[]>({
     queryKey: ['/api/tournaments', tournamentId, 'participants'],
     queryFn: async () => {
+      console.log('Fetching participants for tournament:', tournamentId);
       const response = await fetch(`/api/tournaments/${tournamentId}/participants`, {
         credentials: 'include',
       });
       if (!response.ok) {
         throw new Error('Failed to fetch participants');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Fetched participants:', data);
+      return data;
     },
     enabled: !!tournament,
   });
@@ -228,6 +231,15 @@ export default function TournamentDetails() {
               {tournament.status === 'open' && user && (() => {
                 const isParticipant = participants.some(p => p.userId === user.id);
                 const isFull = participants.length >= tournament.maxParticipants;
+                
+                console.log('Tournament button logic:', {
+                  userId: user.id,
+                  participants: participants.map(p => ({ id: p.id, userId: p.userId, name: p.participantName })),
+                  isParticipant,
+                  isFull,
+                  participantCount: participants.length,
+                  maxParticipants: tournament.maxParticipants
+                });
                 
                 if (isParticipant && !isFull) {
                   return (
