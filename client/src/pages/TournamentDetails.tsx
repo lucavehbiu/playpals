@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Users, Calendar, MapPin, Clock, ArrowLeft } from 'lucide-react';
+import { Trophy, Users, Calendar, MapPin, Clock, ArrowLeft, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import type { Tournament, TournamentParticipant, TournamentMatch, TournamentStanding } from '@shared/schema';
 
 export default function TournamentDetails() {
@@ -14,6 +15,7 @@ export default function TournamentDetails() {
   const tournamentId = parseInt(params?.id || '0');
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: tournament, isLoading: tournamentLoading } = useQuery<Tournament>({
     queryKey: ['/api/tournaments', tournamentId],
@@ -223,15 +225,49 @@ export default function TournamentDetails() {
                 )}
               </div>
               
-              {tournament.status === 'open' && (
-                <Button 
-                  onClick={() => joinTournamentMutation.mutate()}
-                  disabled={joinTournamentMutation.isPending}
-                  className="ml-4"
-                >
-                  {joinTournamentMutation.isPending ? 'Joining...' : 'Join Tournament'}
-                </Button>
-              )}
+              {tournament.status === 'open' && user && (() => {
+                const isParticipant = participants.some(p => p.userId === user.id);
+                const isFull = participants.length >= tournament.maxParticipants;
+                
+                if (isParticipant && !isFull) {
+                  return (
+                    <Button 
+                      onClick={() => {
+                        toast({
+                          title: 'Invite Friends',
+                          description: 'Share the tournament link to invite your friends!',
+                        });
+                      }}
+                      className="ml-4"
+                    >
+                      <UserPlus size={18} className="mr-2" />
+                      Invite Friends
+                    </Button>
+                  );
+                } else if (isParticipant && isFull) {
+                  return (
+                    <Badge className="ml-4 bg-green-100 text-green-800 px-3 py-2">
+                      You're registered - Tournament Full
+                    </Badge>
+                  );
+                } else if (!isParticipant && isFull) {
+                  return (
+                    <Badge className="ml-4 bg-red-100 text-red-800 px-3 py-2">
+                      Tournament Full
+                    </Badge>
+                  );
+                } else {
+                  return (
+                    <Button 
+                      onClick={() => joinTournamentMutation.mutate()}
+                      disabled={joinTournamentMutation.isPending}
+                      className="ml-4"
+                    >
+                      {joinTournamentMutation.isPending ? 'Joining...' : 'Join Tournament'}
+                    </Button>
+                  );
+                }
+              })()}
             </div>
           </CardHeader>
           
