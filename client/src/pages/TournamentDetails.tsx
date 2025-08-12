@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -5,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Trophy, Users, Calendar, MapPin, Clock, ArrowLeft, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import type { Tournament, TournamentParticipant, TournamentMatch, TournamentStanding } from '@shared/schema';
+import type { Tournament, TournamentParticipant, TournamentMatch, TournamentStanding, User } from '@shared/schema';
 
 export default function TournamentDetails() {
   const [, params] = useRoute('/tournaments/:id');
@@ -16,6 +19,8 @@ export default function TournamentDetails() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
 
   const { data: tournament, isLoading: tournamentLoading } = useQuery<Tournament>({
     queryKey: ['/api/tournaments', tournamentId],
@@ -45,6 +50,20 @@ export default function TournamentDetails() {
       return data;
     },
     enabled: !!tournament,
+  });
+
+  // Fetch user's friends for invitation
+  const { data: friends = [] } = useQuery<User[]>({
+    queryKey: ['/api/users', user?.id, 'friends'],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await fetch(`/api/users/${user.id}/friends`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!user,
   });
 
   const { data: matches = [] } = useQuery<TournamentMatch[]>({
@@ -217,70 +236,134 @@ export default function TournamentDetails() {
         {/* Tournament Info Card */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <CardTitle className="flex items-center gap-3">
-                  <Trophy className="text-yellow-500" />
-                  Tournament Information
-                </CardTitle>
-                {tournament.description && (
-                  <p className="text-gray-600 mt-2">{tournament.description}</p>
-                )}
-              </div>
+            <CardTitle className="flex items-center gap-3 mb-4">
+              <Trophy className="text-yellow-500" />
+              Tournament Information
+            </CardTitle>
+            {tournament.description && (
+              <p className="text-gray-600 mb-4">{tournament.description}</p>
+            )}
+            
+            {/* Action Buttons - Properly contained within card */}
+            {tournament.status === 'open' && user && (() => {
+              const isParticipant = participants.some(p => p.userId === user.id);
+              const isFull = participants.length >= tournament.maxParticipants;
               
-              {tournament.status === 'open' && user && (() => {
-                const isParticipant = participants.some(p => p.userId === user.id);
-                const isFull = participants.length >= tournament.maxParticipants;
-                
-                console.log('Tournament button logic:', {
-                  userId: user.id,
-                  participants: participants.map(p => ({ id: p.id, userId: p.userId, name: p.participantName })),
-                  isParticipant,
-                  isFull,
-                  participantCount: participants.length,
-                  maxParticipants: tournament.maxParticipants
-                });
-                
-                if (isParticipant && !isFull) {
-                  return (
-                    <Button 
-                      onClick={() => {
-                        toast({
-                          title: 'Invite Friends',
-                          description: 'Share the tournament link to invite your friends!',
-                        });
-                      }}
-                      className="ml-4"
-                    >
-                      <UserPlus size={18} className="mr-2" />
-                      Invite Friends
-                    </Button>
-                  );
-                } else if (isParticipant && isFull) {
-                  return (
-                    <Badge className="ml-4 bg-green-100 text-green-800 px-3 py-2">
+              console.log('Tournament button logic:', {
+                userId: user.id,
+                participants: participants.map(p => ({ id: p.id, userId: p.userId, name: p.participantName })),
+                isParticipant,
+                isFull,
+                participantCount: participants.length,
+                maxParticipants: tournament.maxParticipants
+              });
+              
+              if (isParticipant && !isFull) {
+                return (
+                  <div className="flex justify-end">
+                    <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+                      <DialogTrigger asChild>
+                        <Button>
+                          <UserPlus size={18} className="mr-2" />
+                          Invite Friends
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Invite Friends to Tournament</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          {friends.length === 0 ? (
+                            <p className="text-gray-500 text-center py-4">
+                              No friends to invite. Add friends first!
+                            </p>
+                          ) : (
+                            <>
+                              <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {friends.map((friend) => (
+                                  <div key={friend.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`friend-${friend.id}`}
+                                      checked={selectedFriends.includes(friend.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedFriends([...selectedFriends, friend.id]);
+                                        } else {
+                                          setSelectedFriends(selectedFriends.filter(id => id !== friend.id));
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`friend-${friend.id}`}
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                      {friend.name || friend.username}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setShowInviteModal(false);
+                                    setSelectedFriends([]);
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    if (selectedFriends.length > 0) {
+                                      toast({
+                                        title: 'Invitations Sent!',
+                                        description: `Sent ${selectedFriends.length} tournament invitation${selectedFriends.length > 1 ? 's' : ''}.`,
+                                      });
+                                      setShowInviteModal(false);
+                                      setSelectedFriends([]);
+                                    }
+                                  }}
+                                  disabled={selectedFriends.length === 0}
+                                >
+                                  Send Invitations ({selectedFriends.length})
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                );
+              } else if (isParticipant && isFull) {
+                return (
+                  <div className="flex justify-end">
+                    <Badge className="bg-green-100 text-green-800 px-3 py-2">
                       You're registered - Tournament Full
                     </Badge>
-                  );
-                } else if (!isParticipant && isFull) {
-                  return (
-                    <Badge className="ml-4 bg-red-100 text-red-800 px-3 py-2">
+                  </div>
+                );
+              } else if (!isParticipant && isFull) {
+                return (
+                  <div className="flex justify-end">
+                    <Badge className="bg-red-100 text-red-800 px-3 py-2">
                       Tournament Full
                     </Badge>
-                  );
-                } else {
-                  return (
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex justify-end">
                     <Button 
                       onClick={() => joinTournamentMutation.mutate()}
                       disabled={joinTournamentMutation.isPending}
-                      className="ml-4"
                     >
                       {joinTournamentMutation.isPending ? 'Joining...' : 'Join Tournament'}
                     </Button>
-                  );
-                }
-              })()}
-            </div>
+                  </div>
+                );
+              }
+            })()}
           </CardHeader>
           
           <CardContent>
