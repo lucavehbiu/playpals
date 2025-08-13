@@ -56,19 +56,32 @@ export default function Groups() {
   });
 
   // Fetch user's groups (member groups)
-  const { data: userGroups = [], isLoading: isLoadingUserGroups } = useQuery({
+  const { data: userGroups = [], isLoading: isLoadingUserGroups, error: userGroupsError } = useQuery({
     queryKey: ["/api/users", user?.id, "sports-groups"],
     queryFn: async () => {
-      if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/sports-groups`);
-      if (!response.ok) throw new Error("Failed to fetch user groups");
-      return response.json();
+      if (!user?.id) {
+        console.log('No user ID available for groups fetch');
+        return [];
+      }
+      console.log(`Fetching groups for user ID: ${user.id}`);
+      const response = await fetch(`/api/users/${user.id}/sports-groups`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        console.error(`Failed to fetch user groups. Status: ${response.status}, Message: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch user groups: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('Fetched user groups data:', data);
+      return data;
     },
     enabled: !!user?.id,
   });
 
   // Fetch discoverable groups (public groups for joining)
-  const { data: discoverableGroups = [], isLoading: isLoadingDiscoverable } = useQuery({
+  const { data: discoverableGroups = [], isLoading: isLoadingDiscoverable, error: discoverableGroupsError } = useQuery({
     queryKey: ["/api/sports-groups/discoverable"],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -79,8 +92,13 @@ export default function Groups() {
         params.append("search", searchQuery);
       }
       
-      const response = await fetch(`/api/sports-groups/discoverable?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch discoverable groups");
+      const response = await fetch(`/api/sports-groups/discoverable?${params}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        console.error(`Failed to fetch discoverable groups. Status: ${response.status}`);
+        throw new Error("Failed to fetch discoverable groups");
+      }
       return response.json();
     },
   });
@@ -93,6 +111,7 @@ export default function Groups() {
       const response = await fetch("/api/sports-groups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({
           ...data,
           adminId: user?.id,
@@ -298,6 +317,21 @@ export default function Groups() {
           </Select>
         </div>
 
+        {/* Error Handling */}
+        {(userGroupsError || discoverableGroupsError) && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <h3 className="text-red-800 font-semibold mb-2">Error Loading Groups</h3>
+            <p className="text-red-700 text-sm">
+              {userGroupsError && `User groups: ${userGroupsError.message}`}
+              {userGroupsError && discoverableGroupsError && " | "}
+              {discoverableGroupsError && `Discoverable groups: ${discoverableGroupsError.message}`}
+            </p>
+            <p className="text-red-600 text-xs mt-2">
+              If this problem persists, please try refreshing the page or contact support.
+            </p>
+          </div>
+        )}
+
         {/* Groups Content */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -321,7 +355,21 @@ export default function Groups() {
             {/* My Groups Section */}
             <div>
               <h2 className="text-xl font-semibold mb-4">My Groups</h2>
-              {userGroups.length === 0 ? (
+              {userGroupsError ? (
+                <div className="text-center py-8 bg-red-50 rounded-lg border border-red-200">
+                  <Users className="h-8 w-8 text-red-400 mx-auto mb-3" />
+                  <p className="text-red-600 mb-2 font-medium">Failed to Load Your Groups</p>
+                  <p className="text-red-500 text-sm mb-4">Please check your connection and try again.</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "sports-groups"] });
+                    }}
+                  >
+                    Retry Loading Groups
+                  </Button>
+                </div>
+              ) : userGroups.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
                   <Users className="h-8 w-8 text-gray-400 mx-auto mb-3" />
                   <p className="text-gray-500 mb-4">You're not a member of any groups yet</p>
