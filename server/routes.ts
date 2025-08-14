@@ -2390,17 +2390,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's sports groups (groups they are members of) - alternative endpoint to bypass routing issues
-  app.get('/api/user-sports-groups/:userId', authenticateUser, async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.userId);
+  // Get user's sports groups (groups they are members of) - alternative endpoint using POST to bypass Vite routing
+  app.post('/api/my-sports-groups', authenticateUser, async (req: Request, res: Response) => {
     const authenticatedUser = (req as any).user as User;
     
-    if (authenticatedUser.id !== userId) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-    
     try {
-      const userGroups = await storage.getUserSportsGroups(userId);
+      const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
       
       // Build response data synchronously to avoid Promise issues
       const groupsWithDetails = [];
@@ -2424,23 +2419,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      return res.json(groupsWithDetails);
+      res.json(groupsWithDetails);
       
     } catch (error) {
       console.error('Error fetching user sports groups:', error);
-      return res.status(500).json({ message: "Error fetching user sports groups" });
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Error fetching user sports groups" });
+      }
     }
   });
 
   // Keep the original endpoint for backward compatibility but with a simpler implementation
   app.get('/api/users/:userId/sports-groups', authenticateUser, (req: Request, res: Response) => {
-    res.redirect(`/api/user-sports-groups/${req.params.userId}`);
+    const userId = parseInt(req.params.userId);
+    const authenticatedUser = (req as any).user as User;
+    
+    if (authenticatedUser.id !== userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+    
+    // Simply proxy to the working endpoint
+    res.redirect(307, `/api/user-sports-groups/${req.params.userId}`);
   });
 
-  // Get discoverable sports groups (public groups for joining) - alternative endpoint to bypass routing issues
-  app.get('/api/discover-sports-groups', authenticateUser, async (req: Request, res: Response) => {
+  // Get discoverable sports groups (public groups for joining) - using POST to bypass Vite routing
+  app.post('/api/browse-sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {
-      const { sportType, search } = req.query;
+      const { sportType, search } = req.body;
       const authenticatedUser = (req as any).user as User;
       
       const allGroups = await storage.getAllSportsGroups();
@@ -2482,17 +2488,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter by search query if provided
       if (search) {
-        const searchLower = (search as string).toLowerCase();
+        const searchLower = search.toLowerCase();
         filteredGroups = filteredGroups.filter(group => 
           group.name.toLowerCase().includes(searchLower) ||
           (group.description && group.description.toLowerCase().includes(searchLower))
         );
       }
       
-      return res.json(filteredGroups);
+      res.json(filteredGroups);
     } catch (error) {
       console.error('Error fetching discoverable sports groups:', error);
-      return res.status(500).json({ message: "Error fetching discoverable sports groups" });
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Error fetching discoverable sports groups" });
+      }
     }
   });
 

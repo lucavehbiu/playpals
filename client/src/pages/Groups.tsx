@@ -100,12 +100,14 @@ export default function Groups() {
         return [];
       }
       console.log(`Fetching groups for user ID: ${user.id}`);
-      const response = await fetch(`/api/user-sports-groups/${user.id}`, {
+      const response = await fetch(`/api/my-sports-groups`, {
+        method: 'POST',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({}),
       });
       if (!response.ok) {
         console.error(`Failed to fetch user groups. Status: ${response.status}, Message: ${response.statusText}`);
@@ -132,12 +134,17 @@ export default function Groups() {
         params.append("search", searchQuery);
       }
       
-      const response = await fetch(`/api/discover-sports-groups?${params}`, {
+      const response = await fetch(`/api/browse-sports-groups`, {
+        method: 'POST',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          sportType: selectedSport && selectedSport !== "all" ? selectedSport : null,
+          search: searchQuery || null
+        }),
       });
       if (!response.ok) {
         console.error(`Failed to fetch discoverable groups. Status: ${response.status}`);
