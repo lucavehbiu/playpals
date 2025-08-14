@@ -324,14 +324,41 @@ export default function TournamentDetails() {
                                   Cancel
                                 </Button>
                                 <Button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (selectedFriends.length > 0) {
-                                      toast({
-                                        title: 'Invitations Sent!',
-                                        description: `Sent ${selectedFriends.length} tournament invitation${selectedFriends.length > 1 ? 's' : ''}.`,
-                                      });
-                                      setShowInviteModal(false);
-                                      setSelectedFriends([]);
+                                      try {
+                                        const response = await apiRequest(`/api/tournaments/${tournament.id}/invite`, {
+                                          method: 'POST',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: JSON.stringify({ userIds: selectedFriends }),
+                                        });
+
+                                        if (response.ok) {
+                                          const data = await response.json();
+                                          toast({
+                                            title: 'Invitations Sent!',
+                                            description: data.message,
+                                          });
+                                          setShowInviteModal(false);
+                                          setSelectedFriends([]);
+                                        } else {
+                                          const errorData = await response.json();
+                                          toast({
+                                            title: 'Error',
+                                            description: errorData.message || 'Failed to send invitations',
+                                            variant: 'destructive',
+                                          });
+                                        }
+                                      } catch (error) {
+                                        console.error('Error sending tournament invitations:', error);
+                                        toast({
+                                          title: 'Error',
+                                          description: 'Failed to send tournament invitations',
+                                          variant: 'destructive',
+                                        });
+                                      }
                                     }
                                   }}
                                   disabled={selectedFriends.length === 0}

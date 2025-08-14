@@ -5394,6 +5394,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send tournament invitations
+  app.post('/api/tournaments/:id/invite', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const tournamentId = parseInt(req.params.id);
+      const { userIds } = req.body;
+      const authenticatedUser = (req as any).user as User;
+      
+      console.log('Tournament invitation request:', { tournamentId, userIds, inviterId: authenticatedUser.id });
+      
+      // Check if tournament exists
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      
+      // Check if tournament is still accepting invitations
+      if (tournament.status !== 'open') {
+        return res.status(400).json({ message: 'Tournament registration is closed' });
+      }
+      
+      // Check if user is a participant (only participants can invite friends)
+      const participants = await storage.getTournamentParticipants(tournamentId);
+      const isParticipant = participants.some(p => p.userId === authenticatedUser.id);
+      
+      if (!isParticipant) {
+        return res.status(403).json({ message: 'You must be a participant to invite others' });
+      }
+      
+      // Send invitations to each user
+      const invitations = [];
+      for (const userId of userIds) {
+        // Check if user is already a participant
+        const isAlreadyParticipant = participants.some(p => p.userId === userId);
+        if (isAlreadyParticipant) continue;
+        
+        // Check if there's already a pending invitation
+        const existingInvitation = await storage.getTournamentInvitationByTournamentAndUser(tournamentId, userId);
+        if (existingInvitation) continue;
+        
+        // Check if tournament would be full
+        if (participants.length >= tournament.maxParticipants) break;
+        
+        // Create invitation
+        const invitation = await storage.createTournamentInvitation({
+          tournamentId,
+          inviterId: authenticatedUser.id,
+          inviteeId: userId,
+          status: 'pending'
+        });
+        
+        invitations.push(invitation);
+        console.log('Created tournament invitation:', invitation);
+      }
+      
+      res.status(201).json({ 
+        message: `Sent ${invitations.length} tournament invitation${invitations.length !== 1 ? 's' : ''}`,
+        invitations 
+      });
+    } catch (error) {
+      console.error('Error sending tournament invitations:', error);
+      res.status(500).json({ message: 'Error sending tournament invitations' });
+    }
+  });
+
+  // Get user's tournament invitations
+  app.get('/api/users/:userId/tournament-invitations', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      // Users can only access their own invitations
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      
+      const invitations = await storage.getUserTournamentInvitations(userId);
+      res.json(invitations);
+    } catch (error) {
+      console.error('Error fetching tournament invitations:', error);
+      res.status(500).json({ message: 'Error fetching tournament invitations' });
+    }
+  });
+
+  // Accept/Decline tournament invitation
+  app.put('/api/tournament-invitations/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const { status } = req.body;
+      const authenticatedUser = (req as any).user as User;
+      
+      console.log('Tournament invitation response:', { invitationId, status, userId: authenticatedUser.id });
+      
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: 'Status must be accepted or declined' });
+      }
+      
+      // Get invitation
+      const invitation = await storage.getTournamentInvitation(invitationId);
+      if (!invitation) {
+        return res.status(404).json({ message: 'Invitation not found' });
+      }
+      
+      // Check if user is the invitee
+      if (invitation.inviteeId !== authenticatedUser.id) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      
+      // Check if invitation is still pending
+      if (invitation.status !== 'pending') {
+        return res.status(400).json({ message: 'Invitation has already been responded to' });
+      }
+      
+      // Update invitation status
+      const updatedInvitation = await storage.updateTournamentInvitation(invitationId, {
+        status,
+        respondedAt: new Date()
+      });
+      
+      // If accepted, add user as tournament participant
+      if (status === 'accepted') {
+        const tournament = await storage.getTournament(invitation.tournamentId);
+        if (!tournament) {
+          return res.status(404).json({ message: 'Tournament not found' });
+        }
+        
+        // Check if tournament is still accepting participants
+        if (tournament.status !== 'open') {
+          return res.status(400).json({ message: 'Tournament registration is closed' });
+        }
+        
+        // Check if tournament is full
+        const participants = await storage.getTournamentParticipants(invitation.tournamentId);
+        if (participants.length >= tournament.maxParticipants) {
+          return res.status(400).json({ message: 'Tournament is full' });
+        }
+        
+        // Add as participant
+        await storage.createTournamentParticipant({
+          tournamentId: invitation.tournamentId,
+          participantName: authenticatedUser.name || authenticatedUser.username,
+          userId: authenticatedUser.id,
+          registrationDate: new Date(),
+          status: 'registered'
+        });
+        
+        console.log('User joined tournament via invitation:', { userId: authenticatedUser.id, tournamentId: invitation.tournamentId });
+        
+        // Check if tournament is now full and start it automatically
+        const updatedParticipants = await storage.getTournamentParticipants(invitation.tournamentId);
+        if (updatedParticipants.length >= tournament.maxParticipants) {
+          await storage.generateTournamentSchedule(invitation.tournamentId);
+          await storage.updateTournamentStatus(invitation.tournamentId, 'active');
+        }
+      }
+      
+      res.json(updatedInvitation);
+    } catch (error) {
+      console.error('Error responding to tournament invitation:', error);
+      res.status(500).json({ message: 'Error responding to tournament invitation' });
+    }
+  });
+
   // Get tournament matches
   app.get('/api/tournaments/:id/matches', async (req: Request, res: Response) => {
     try {

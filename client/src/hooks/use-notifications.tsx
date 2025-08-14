@@ -58,6 +58,7 @@ export const useNotifications = () => {
         queryClient.refetchQueries({ queryKey: [`/api/rsvps/user/${user.id}`] });
         queryClient.refetchQueries({ queryKey: ['/api/teams/notifications'] });
         queryClient.refetchQueries({ queryKey: ['/api/teams/join-requests'] });
+        queryClient.refetchQueries({ queryKey: [`/api/users/${user.id}/tournament-invitations`] });
       }
     };
     
@@ -211,6 +212,29 @@ export const useNotifications = () => {
     enabled: !!user?.id,
     staleTime: 30000
   });
+
+  // Fetch tournament invitations
+  const { data: tournamentInvitations = [] } = useQuery<any[]>({
+    queryKey: [`/api/users/${user?.id}/tournament-invitations`],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const res = await fetch(`/api/users/${user.id}/tournament-invitations`);
+        if (res.ok) {
+          const invitations = await res.json();
+          // Only return pending invitations for notification count
+          return invitations.filter((invitation: any) => invitation.status === 'pending');
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching tournament invitations:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+    staleTime: 30000
+  });
   
   // Calculate total notification count
   useEffect(() => {
@@ -234,8 +258,11 @@ export const useNotifications = () => {
     // Count pending friend requests
     count += friendRequests.length;
     
+    // Count pending tournament invitations
+    count += tournamentInvitations.length;
+    
     setPendingCount(count);
-  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications, friendRequests]);
+  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications, friendRequests, tournamentInvitations]);
   
   // Mark a notification as viewed
   const markNotificationViewed = async (notificationId: number) => {
@@ -265,6 +292,8 @@ export const useNotifications = () => {
     eventResponses,
     joinRequests,
     teamMemberNotifications,
+    friendRequests,
+    tournamentInvitations,
     markNotificationViewed,
     markEventResponseViewed,
     isLoading: !rsvps

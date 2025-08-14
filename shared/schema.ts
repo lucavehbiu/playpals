@@ -1285,6 +1285,21 @@ export const tournamentStandings = pgTable('tournament_standings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Tournament invitations table
+export const tournamentInvitations = pgTable('tournament_invitations', {
+  id: serial('id').primaryKey(),
+  tournamentId: integer('tournament_id').references(() => tournaments.id, { onDelete: 'cascade' }).notNull(),
+  inviterId: integer('inviter_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  inviteeId: integer('invitee_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  status: text('status', { enum: ['pending', 'accepted', 'declined'] }).default('pending'),
+  message: text('message'), // Optional invitation message
+  createdAt: timestamp('created_at').defaultNow(),
+  respondedAt: timestamp('responded_at'),
+}, (table) => ({
+  // Ensure unique invitations - can't invite the same person twice to the same tournament
+  uniqueInvitation: unique().on(table.tournamentId, table.inviteeId),
+}));
+
 // Tournament relations
 export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
   creator: one(users, {
@@ -1295,6 +1310,7 @@ export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
   participants: many(tournamentParticipants, { relationName: "tournament_participants" }),
   matches: many(tournamentMatches, { relationName: "tournament_matches" }),
   standings: many(tournamentStandings, { relationName: "tournament_standings" }),
+  invitations: many(tournamentInvitations, { relationName: "tournament_invitations" }),
 }));
 
 export const tournamentParticipantsRelations = relations(tournamentParticipants, ({ one, many }) => ({
@@ -1349,6 +1365,24 @@ export const tournamentStandingsRelations = relations(tournamentStandings, ({ on
   }),
 }));
 
+export const tournamentInvitationsRelations = relations(tournamentInvitations, ({ one }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentInvitations.tournamentId],
+    references: [tournaments.id],
+    relationName: "tournament_invitations",
+  }),
+  inviter: one(users, {
+    fields: [tournamentInvitations.inviterId],
+    references: [users.id],
+    relationName: "sent_tournament_invitations",
+  }),
+  invitee: one(users, {
+    fields: [tournamentInvitations.inviteeId],
+    references: [users.id],
+    relationName: "received_tournament_invitations",
+  }),
+}));
+
 // Tournament insert schemas
 export const insertTournamentSchema = createInsertSchema(tournaments).omit({
   id: true,
@@ -1373,6 +1407,11 @@ export const insertTournamentStandingSchema = createInsertSchema(tournamentStand
   updatedAt: true,
 });
 
+export const insertTournamentInvitationSchema = createInsertSchema(tournamentInvitations).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Tournament types
 export type Tournament = typeof tournaments.$inferSelect;
 export type InsertTournament = z.infer<typeof insertTournamentSchema>;
@@ -1385,5 +1424,8 @@ export type InsertTournamentMatch = z.infer<typeof insertTournamentMatchSchema>;
 
 export type TournamentStanding = typeof tournamentStandings.$inferSelect;
 export type InsertTournamentStanding = z.infer<typeof insertTournamentStandingSchema>;
+
+export type TournamentInvitation = typeof tournamentInvitations.$inferSelect;
+export type InsertTournamentInvitation = z.infer<typeof insertTournamentInvitationSchema>;
 
 export type TournamentType = typeof tournamentTypes[number];

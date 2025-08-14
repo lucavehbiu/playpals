@@ -32,7 +32,8 @@ import {
   tournaments, type Tournament, type InsertTournament,
   tournamentParticipants, type TournamentParticipant, type InsertTournamentParticipant,
   tournamentMatches, type TournamentMatch, type InsertTournamentMatch,
-  tournamentStandings, type TournamentStanding, type InsertTournamentStanding
+  tournamentStandings, type TournamentStanding, type InsertTournamentStanding,
+  tournamentInvitations, type TournamentInvitation, type InsertTournamentInvitation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, like, avg, sql, gte, lt, count } from "drizzle-orm";
@@ -300,6 +301,15 @@ export interface IStorage {
   createTournamentStanding(standing: InsertTournamentStanding): Promise<TournamentStanding>;
   updateTournamentStanding(id: number, standingData: Partial<TournamentStanding>): Promise<TournamentStanding | undefined>;
   deleteTournamentStanding(id: number): Promise<boolean>;
+  
+  // Tournament invitation methods
+  getTournamentInvitation(id: number): Promise<TournamentInvitation | undefined>;
+  getTournamentInvitations(tournamentId: number): Promise<TournamentInvitation[]>;
+  getUserTournamentInvitations(userId: number): Promise<TournamentInvitation[]>;
+  createTournamentInvitation(invitation: InsertTournamentInvitation): Promise<TournamentInvitation>;
+  updateTournamentInvitation(id: number, invitationData: Partial<TournamentInvitation>): Promise<TournamentInvitation | undefined>;
+  deleteTournamentInvitation(id: number): Promise<boolean>;
+  getTournamentInvitationByTournamentAndUser(tournamentId: number, userId: number): Promise<TournamentInvitation | undefined>;
   
   // Tournament management methods
   generateTournamentSchedule(tournamentId: number): Promise<TournamentMatch[]>;
@@ -4667,6 +4677,47 @@ export class DatabaseStorage implements IStorage {
   async deleteTournamentStanding(id: number): Promise<boolean> {
     const result = await db.delete(tournamentStandings).where(eq(tournamentStandings.id, id));
     return result.count > 0;
+  }
+
+  // Tournament invitation methods
+  async getTournamentInvitation(id: number): Promise<TournamentInvitation | undefined> {
+    const [invitation] = await db.select().from(tournamentInvitations).where(eq(tournamentInvitations.id, id));
+    return invitation || undefined;
+  }
+
+  async getTournamentInvitations(tournamentId: number): Promise<TournamentInvitation[]> {
+    return await db.select().from(tournamentInvitations)
+      .where(eq(tournamentInvitations.tournamentId, tournamentId));
+  }
+
+  async getUserTournamentInvitations(userId: number): Promise<TournamentInvitation[]> {
+    return await db.select().from(tournamentInvitations)
+      .where(eq(tournamentInvitations.inviteeId, userId));
+  }
+
+  async createTournamentInvitation(invitation: InsertTournamentInvitation): Promise<TournamentInvitation> {
+    const [newInvitation] = await db.insert(tournamentInvitations).values(invitation).returning();
+    return newInvitation;
+  }
+
+  async updateTournamentInvitation(id: number, invitationData: Partial<TournamentInvitation>): Promise<TournamentInvitation | undefined> {
+    const [updatedInvitation] = await db
+      .update(tournamentInvitations)
+      .set(invitationData)
+      .where(eq(tournamentInvitations.id, id))
+      .returning();
+    return updatedInvitation || undefined;
+  }
+
+  async deleteTournamentInvitation(id: number): Promise<boolean> {
+    const result = await db.delete(tournamentInvitations).where(eq(tournamentInvitations.id, id));
+    return result.count > 0;
+  }
+
+  async getTournamentInvitationByTournamentAndUser(tournamentId: number, userId: number): Promise<TournamentInvitation | undefined> {
+    const [invitation] = await db.select().from(tournamentInvitations)
+      .where(and(eq(tournamentInvitations.tournamentId, tournamentId), eq(tournamentInvitations.inviteeId, userId)));
+    return invitation || undefined;
   }
 
   // Tournament management methods
