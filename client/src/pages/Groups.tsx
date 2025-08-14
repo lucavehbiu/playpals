@@ -131,6 +131,20 @@ export default function Groups() {
               profileImage: user.profileImage
             },
             createdAt: new Date('2024-02-20').toISOString()
+          },
+          {
+            id: 5,
+            name: "Padel Masters",
+            description: "Advanced padel training and tournaments",
+            sportType: "padel",
+            memberCount: 10,
+            isPrivate: false,
+            admin: {
+              id: 5,
+              name: "Carlos Rodriguez",
+              profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
+            },
+            createdAt: new Date('2024-01-20').toISOString()
           }
         ];
       }
