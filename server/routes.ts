@@ -2390,19 +2390,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's sports groups (groups they are members of)
-  app.get('/api/users/:userId/sports-groups', authenticateUser, async (req: Request, res: Response) => {
+  // Get user's sports groups (groups they are members of) - alternative endpoint to bypass routing issues
+  app.get('/api/user-sports-groups/:userId', authenticateUser, async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    const authenticatedUser = (req as any).user as User;
+    
+    if (authenticatedUser.id !== userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+    
     try {
-      const userId = parseInt(req.params.userId);
-      const authenticatedUser = (req as any).user as User;
-      
-      if (authenticatedUser.id !== userId) {
-        return res.status(403).json({ message: 'Unauthorized' });
-      }
-      
       const userGroups = await storage.getUserSportsGroups(userId);
       
-      // Simplified response without problematic Promise.all
+      // Build response data synchronously to avoid Promise issues
       const groupsWithDetails = [];
       for (const group of userGroups) {
         try {
@@ -2420,21 +2420,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (err) {
           console.error(`Error processing group ${group.id}:`, err);
-          // Skip this group if there's an error
+          // Continue with other groups
         }
       }
       
       return res.json(groupsWithDetails);
+      
     } catch (error) {
       console.error('Error fetching user sports groups:', error);
-      if (!res.headersSent) {
-        return res.status(500).json({ message: "Error fetching user sports groups" });
-      }
+      return res.status(500).json({ message: "Error fetching user sports groups" });
     }
   });
 
-  // Get discoverable sports groups (public groups for joining)
-  app.get('/api/sports-groups/discoverable', authenticateUser, async (req: Request, res: Response) => {
+  // Keep the original endpoint for backward compatibility but with a simpler implementation
+  app.get('/api/users/:userId/sports-groups', authenticateUser, (req: Request, res: Response) => {
+    res.redirect(`/api/user-sports-groups/${req.params.userId}`);
+  });
+
+  // Get discoverable sports groups (public groups for joining) - alternative endpoint to bypass routing issues
+  app.get('/api/discover-sports-groups', authenticateUser, async (req: Request, res: Response) => {
     try {
       const { sportType, search } = req.query;
       const authenticatedUser = (req as any).user as User;
@@ -2448,21 +2452,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !userGroupIds.includes(group.id) && !group.isPrivate
       );
       
-      // Add member count and admin info to each group
-      const groupsWithDetails = await Promise.all(discoverableGroups.map(async (group) => {
-        const members = await storage.getSportsGroupMembers(group.id);
-        const admin = await storage.getUser(group.adminId);
-        
-        return {
-          ...group,
-          memberCount: members.length,
-          admin: admin ? {
-            id: admin.id,
-            name: admin.name,
-            profileImage: admin.profileImage
-          } : null
-        };
-      }));
+      // Build response data synchronously to avoid Promise issues
+      const groupsWithDetails = [];
+      for (const group of discoverableGroups) {
+        try {
+          const members = await storage.getSportsGroupMembers(group.id);
+          const admin = await storage.getUser(group.adminId);
+          
+          groupsWithDetails.push({
+            ...group,
+            memberCount: members.length,
+            admin: admin ? {
+              id: admin.id,
+              name: admin.name,
+              profileImage: admin.profileImage
+            } : null
+          });
+        } catch (err) {
+          console.error(`Error processing group ${group.id}:`, err);
+          // Continue with other groups
+        }
+      }
       
       // Filter by sport type if provided
       let filteredGroups = groupsWithDetails;
@@ -2484,6 +2494,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error fetching discoverable sports groups:', error);
       return res.status(500).json({ message: "Error fetching discoverable sports groups" });
     }
+  });
+
+  // Keep the original endpoint for backward compatibility
+  app.get('/api/sports-groups/discoverable', authenticateUser, (req: Request, res: Response) => {
+    res.redirect('/api/discover-sports-groups' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''));
   });
 
   app.get('/api/sports-groups/:id', authenticateUser, async (req: Request, res: Response) => {

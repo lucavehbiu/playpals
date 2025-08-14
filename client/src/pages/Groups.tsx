@@ -100,7 +100,7 @@ export default function Groups() {
         return [];
       }
       console.log(`Fetching groups for user ID: ${user.id}`);
-      const response = await fetch(`/api/users/${user.id}/sports-groups`, {
+      const response = await fetch(`/api/user-sports-groups/${user.id}`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
@@ -132,7 +132,7 @@ export default function Groups() {
         params.append("search", searchQuery);
       }
       
-      const response = await fetch(`/api/sports-groups/discoverable?${params}`, {
+      const response = await fetch(`/api/discover-sports-groups?${params}`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
