@@ -39,6 +39,8 @@ export default function Groups() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [showGroupModal, setShowGroupModal] = useState(false);
   const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } = useGroupNotifications();
 
   // Show login prompt if user is not authenticated
@@ -533,9 +535,8 @@ export default function Groups() {
                   {userGroups.map((group: any) => (
                     <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
                       console.log(`Clicked on group: ${group.name} (ID: ${group.id})`);
-                      // Temporarily disable navigation due to authentication issues
-                      // setLocation(`/groups/${group.id}`);
-                      alert(`Group: ${group.name}\nDescription: ${group.description}\nSport: ${group.sportType}\nMembers: ${group.memberCount}\nCreated: ${new Date(group.createdAt).toLocaleDateString()}`);
+                      setSelectedGroup(group);
+                      setShowGroupModal(true);
                     }}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -625,6 +626,88 @@ export default function Groups() {
             </div>
           </div>
         )}
+        
+        {/* Group Details Modal */}
+        <Dialog open={showGroupModal} onOpenChange={setShowGroupModal}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                {selectedGroup?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Group Details and Information
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedGroup && (
+              <div className="space-y-6">
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {selectedGroup.sportType.charAt(0).toUpperCase() + selectedGroup.sportType.slice(1)}
+                    </Badge>
+                    {selectedGroup.isPrivate && (
+                      <Badge variant="outline">Private</Badge>
+                    )}
+                  </div>
+                  
+                  {selectedGroup.description && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-1">Description</h4>
+                      <p className="text-sm text-gray-600">{selectedGroup.description}</p>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-1">Members</h4>
+                      <p className="text-sm text-gray-600">{selectedGroup.memberCount} members</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-1">Created</h4>
+                      <p className="text-sm text-gray-600">{new Date(selectedGroup.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Admin */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Group Admin</h4>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        {selectedGroup.admin?.profileImage ? (
+                          <AvatarImage src={selectedGroup.admin.profileImage} alt={selectedGroup.admin.name} />
+                        ) : (
+                          <AvatarFallback className="text-xs">
+                            {selectedGroup.admin?.name?.charAt(0) || 'A'}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <span className="text-sm font-medium">{selectedGroup.admin?.name || 'Unknown'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Note about full functionality */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Full group functionality (messages, events, member management) is temporarily unavailable due to authentication updates. This modal shows your group's basic information.
+                  </p>
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowGroupModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
