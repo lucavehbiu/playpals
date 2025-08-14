@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, CheckIcon, XIcon, Eye, Users, UserPlus } from 'lucide-react';
+import { Bell, CheckIcon, XIcon, Eye, Users, UserPlus, Trophy } from 'lucide-react';
 import { Link } from 'wouter';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -86,7 +86,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     rsvps, 
     eventResponses,
     joinRequests, 
-    teamMemberNotifications, 
+    teamMemberNotifications,
+    tournamentInvitations,
     markNotificationViewed, 
     isLoading 
   } = useNotifications();
@@ -287,12 +288,48 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     }
   });
 
+  // Tournament invitation response mutation
+  const respondToTournamentInvitationMutation = useMutation({
+    mutationFn: async ({ invitationId, status }: { invitationId: number, status: string }) => {
+      const res = await apiRequest("PUT", `/api/tournament-invitations/${invitationId}`, { status });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to respond to tournament invitation");
+      }
+      return res.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/tournament-invitations`] });
+      toast({
+        title: "Success",
+        description: variables.status === 'accepted' ? "Tournament invitation accepted!" : "Tournament invitation declined",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Tournament invitation response error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to respond to tournament invitation",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Function to handle tournament invitation response
+  const handleTournamentInviteResponse = (invitationId: number, status: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    respondToTournamentInvitationMutation.mutate({ invitationId, status });
+  };
+
   // Get total notification count (only actionable notifications)
   const totalNotifications = (pendingInvitations?.length || 0) + 
                             (joinRequests?.length || 0) + 
                             (teamMemberNotifications?.length || 0) +
                             (groupNotifications?.length || 0) +
-                            (typedFriendRequests?.length || 0);
+                            (typedFriendRequests?.length || 0) +
+                            (tournamentInvitations?.length || 0);
 
   if (isLoading) {
     return (
@@ -609,6 +646,56 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                 );
               }
             })}
+            
+            {/* Tournament invitations */}
+            {tournamentInvitations && tournamentInvitations.length > 0 && (
+              <div className="border-b pt-2 pb-1 px-3 bg-gray-50">
+                <h4 className="text-xs font-medium text-gray-500">Tournament Invitations</h4>
+              </div>
+            )}
+            
+            {tournamentInvitations && tournamentInvitations.map((invitation) => (
+              <div key={`tournament-${invitation.id}`} className="p-3 hover:bg-gray-50 border-b">
+                <div className="flex items-start">
+                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
+                    <Trophy className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      <span className="text-primary">{invitation.inviterName}</span>
+                      {' '}invited you to tournament{' '}
+                      <span className="text-primary">{invitation.tournamentName}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1 mb-3">
+                      You've been invited to participate in this tournament
+                    </p>
+                    
+                    {/* Action buttons for tournament invitations */}
+                    <div className="flex mt-2 space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
+                        disabled={respondToTournamentInvitationMutation.isPending}
+                        onClick={(e) => handleTournamentInviteResponse(invitation.id, "declined", e)}
+                      >
+                        <XIcon className="h-3 w-3 mr-1" />
+                        Decline
+                      </Button>
+                      <Button 
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700 px-2 py-1 h-7 text-xs"
+                        disabled={respondToTournamentInvitationMutation.isPending}
+                        onClick={(e) => handleTournamentInviteResponse(invitation.id, "accepted", e)}
+                      >
+                        <CheckIcon className="h-3 w-3 mr-1" />
+                        Accept
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
             
           </div>
         ) : (

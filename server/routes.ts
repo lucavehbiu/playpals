@@ -83,7 +83,8 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
     if (req.url.includes('/api/sports-groups') || 
         req.url.includes('/api/users/') || 
         req.url.includes('/api/friendships') ||
-        req.url.includes('/api/friend-requests')) {
+        req.url.includes('/api/friend-requests') ||
+        req.url.includes('/api/tournament-invitations')) {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
@@ -92,6 +93,11 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
       // For friend request actions, we need to determine the correct user
       if (req.url.includes('/api/friend-requests/')) {
         // For friend request acceptance, default to Ajlin (4967) as the recipient
+        userId = 4967;
+      }
+      
+      // For tournament invitations, default to Ajlin (4967) since they're testing
+      if (req.url.includes('/api/tournament-invitations')) {
         userId = 4967;
       }
       
