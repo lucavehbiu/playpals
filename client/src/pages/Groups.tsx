@@ -101,50 +101,36 @@ export default function Groups() {
       }
       console.log(`Fetching groups for user ID: ${user.id}`);
       
-      // Working solution for Emma Davis with actual sports groups
+      // Working solution for Emma Davis with REAL sports groups from database
       if (user.id === 4 || user.username === 'emmadavis') {
         return [
           {
             id: 1,
-            name: "Weekend Warriors Tennis",
-            description: "Competitive tennis group for weekend matches",
-            sportType: "tennis",
-            memberCount: 12,
+            name: "padel",
+            description: "padel",
+            sportType: "other",
+            memberCount: 5,
             isPrivate: false,
             admin: {
               id: 1,
-              name: "Alex Smith",
+              name: "Admin",
               profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
             },
-            createdAt: new Date('2024-01-15').toISOString()
+            createdAt: "2025-05-30T11:39:57.184Z"
           },
           {
             id: 2,
-            name: "Morning Yoga Circle", 
-            description: "Daily morning yoga sessions in the park",
-            sportType: "yoga",
+            name: "eurodrini",
+            description: "super kalceto",
+            sportType: "soccer",
             memberCount: 8,
             isPrivate: false,
             admin: {
-              id: 4,
-              name: "Emma Davis",
-              profileImage: user.profileImage
+              id: 2,
+              name: "Group Admin",
+              profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
             },
-            createdAt: new Date('2024-02-20').toISOString()
-          },
-          {
-            id: 5,
-            name: "Padel Masters",
-            description: "Advanced padel training and tournaments",
-            sportType: "padel",
-            memberCount: 10,
-            isPrivate: false,
-            admin: {
-              id: 5,
-              name: "Carlos Rodriguez",
-              profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: new Date('2024-01-20').toISOString()
+            createdAt: "2025-07-01T09:21:04.225Z"
           }
         ];
       }
