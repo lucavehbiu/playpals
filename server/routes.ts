@@ -2390,42 +2390,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's sports groups (groups they are members of) - alternative endpoint using POST to bypass Vite routing
-  app.post('/api/my-sports-groups', authenticateUser, async (req: Request, res: Response) => {
+  // Unified sports groups endpoint - bypass Vite by using unique endpoint pattern with action parameter
+  app.get('/api/groups', authenticateUser, async (req: Request, res: Response) => {
+    const { action } = req.query;
     const authenticatedUser = (req as any).user as User;
     
-    try {
-      const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
-      
-      // Build response data synchronously to avoid Promise issues
-      const groupsWithDetails = [];
-      for (const group of userGroups) {
-        try {
-          const members = await storage.getSportsGroupMembers(group.id);
-          const admin = await storage.getUser(group.adminId);
-          
-          groupsWithDetails.push({
-            ...group,
-            memberCount: members.length,
-            admin: admin ? {
-              id: admin.id,
-              name: admin.name,
-              profileImage: admin.profileImage
-            } : null
-          });
-        } catch (err) {
-          console.error(`Error processing group ${group.id}:`, err);
-          // Continue with other groups
+    if (action === 'my') {
+      // Get user's sports groups (groups they are members of)
+      try {
+        const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
+        
+        // Build response data synchronously to avoid Promise issues
+        const groupsWithDetails = [];
+        for (const group of userGroups) {
+          try {
+            const members = await storage.getSportsGroupMembers(group.id);
+            const admin = await storage.getUser(group.adminId);
+            
+            groupsWithDetails.push({
+              ...group,
+              memberCount: members.length,
+              admin: admin ? {
+                id: admin.id,
+                name: admin.name,
+                profileImage: admin.profileImage
+              } : null
+            });
+          } catch (err) {
+            console.error(`Error processing group ${group.id}:`, err);
+            // Continue with other groups
+          }
+        }
+        
+        res.json(groupsWithDetails);
+        
+      } catch (error) {
+        console.error('Error fetching user sports groups:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error fetching user sports groups" });
         }
       }
-      
-      res.json(groupsWithDetails);
-      
-    } catch (error) {
-      console.error('Error fetching user sports groups:', error);
-      if (!res.headersSent) {
-        res.status(500).json({ message: "Error fetching user sports groups" });
+    } else if (action === 'browse') {
+      // Get discoverable sports groups (public groups for joining)
+      try {
+        const { sportType, search } = req.query;
+        
+        const allGroups = await storage.getAllSportsGroups();
+        const userGroups = await storage.getUserSportsGroups(authenticatedUser.id);
+        const userGroupIds = userGroups.map(g => g.id);
+        
+        // Filter out groups the user is already a member of and private groups
+        const discoverableGroups = allGroups.filter(group => 
+          !userGroupIds.includes(group.id) && !group.isPrivate
+        );
+        
+        // Build response data synchronously to avoid Promise issues
+        const groupsWithDetails = [];
+        for (const group of discoverableGroups) {
+          try {
+            const members = await storage.getSportsGroupMembers(group.id);
+            const admin = await storage.getUser(group.adminId);
+            
+            groupsWithDetails.push({
+              ...group,
+              memberCount: members.length,
+              admin: admin ? {
+                id: admin.id,
+                name: admin.name,
+                profileImage: admin.profileImage
+              } : null
+            });
+          } catch (err) {
+            console.error(`Error processing group ${group.id}:`, err);
+            // Continue with other groups
+          }
+        }
+        
+        // Filter by sport type if provided
+        let filteredGroups = groupsWithDetails;
+        if (sportType && sportType !== 'all') {
+          filteredGroups = groupsWithDetails.filter(group => group.sportType === sportType);
+        }
+        
+        // Filter by search query if provided
+        if (search) {
+          const searchLower = (search as string).toLowerCase();
+          filteredGroups = filteredGroups.filter(group => 
+            group.name.toLowerCase().includes(searchLower) ||
+            (group.description && group.description.toLowerCase().includes(searchLower))
+          );
+        }
+        
+        res.json(filteredGroups);
+      } catch (error) {
+        console.error('Error fetching discoverable sports groups:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error fetching discoverable sports groups" });
+        }
       }
+    } else {
+      res.status(404).json({ message: 'Invalid action parameter' });
     }
   });
 
@@ -2443,10 +2507,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect(307, `/api/user-sports-groups/${req.params.userId}`);
   });
 
-  // Get discoverable sports groups (public groups for joining) - using POST to bypass Vite routing
-  app.post('/api/browse-sports-groups', authenticateUser, async (req: Request, res: Response) => {
+  // Get discoverable sports groups (public groups for joining) - bypass Vite by using unique endpoint pattern
+  app.get('/api/groups', authenticateUser, async (req: Request, res: Response) => {
+    if (req.query.action !== 'browse') {
+      return res.status(404).json({ message: 'Not found' });
+    }
+    
     try {
-      const { sportType, search } = req.body;
+      const { sportType, search } = req.query;
       const authenticatedUser = (req as any).user as User;
       
       const allGroups = await storage.getAllSportsGroups();

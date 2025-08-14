@@ -37,6 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: getUserData) => {
       queryClient.setQueryData(["/api/user"], user);
+      // Invalidate all related queries to ensure fresh data is fetched
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/my-sports-groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/browse-sports-groups"] });
       toast({
         title: "Success!",
         description: `Welcome back, ${user.name}!`,
