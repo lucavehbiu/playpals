@@ -532,8 +532,10 @@ export default function Groups() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userGroups.map((group: any) => (
                     <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
-                      console.log(`Navigating to group: ${group.name} (ID: ${group.id})`);
-                      setLocation(`/groups/${group.id}`);
+                      console.log(`Clicked on group: ${group.name} (ID: ${group.id})`);
+                      // Temporarily disable navigation due to authentication issues
+                      // setLocation(`/groups/${group.id}`);
+                      alert(`Group: ${group.name}\nDescription: ${group.description}\nSport: ${group.sportType}\nMembers: ${group.memberCount}\nCreated: ${new Date(group.createdAt).toLocaleDateString()}`);
                     }}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
