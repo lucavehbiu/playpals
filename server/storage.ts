@@ -4690,9 +4690,36 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tournamentInvitations.tournamentId, tournamentId));
   }
 
-  async getUserTournamentInvitations(userId: number): Promise<TournamentInvitation[]> {
-    return await db.select().from(tournamentInvitations)
-      .where(eq(tournamentInvitations.inviteeId, userId));
+  async getUserTournamentInvitations(userId: number): Promise<any[]> {
+    const result = await db.select({
+      id: tournamentInvitations.id,
+      tournamentId: tournamentInvitations.tournamentId,
+      inviterId: tournamentInvitations.inviterId,
+      inviteeId: tournamentInvitations.inviteeId,
+      status: tournamentInvitations.status,
+      createdAt: tournamentInvitations.createdAt,
+      // Tournament details
+      tournamentName: tournaments.name,
+      tournamentDescription: tournaments.description,
+      sportType: tournaments.sportType,
+      tournamentType: tournaments.tournamentType,
+      maxParticipants: tournaments.maxParticipants,
+      location: tournaments.location,
+      startDate: tournaments.startDate,
+      endDate: tournaments.endDate,
+      entryFee: tournaments.entryFee,
+      prizePool: tournaments.prizePool,
+      // Inviter details
+      inviterName: users.name,
+      inviterUsername: users.username,
+      inviterProfileImage: users.profileImage
+    })
+    .from(tournamentInvitations)
+    .leftJoin(tournaments, eq(tournamentInvitations.tournamentId, tournaments.id))
+    .leftJoin(users, eq(tournamentInvitations.inviterId, users.id))
+    .where(eq(tournamentInvitations.inviteeId, userId));
+    
+    return result;
   }
 
   async createTournamentInvitation(invitation: InsertTournamentInvitation): Promise<TournamentInvitation> {

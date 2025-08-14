@@ -656,43 +656,83 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
             
             {tournamentInvitations && tournamentInvitations.map((invitation) => (
               <div key={`tournament-${invitation.id}`} className="p-3 hover:bg-gray-50 border-b">
-                <div className="flex items-start">
-                  <div className="h-10 w-10 mr-3 flex-shrink-0 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
-                    <Trophy className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">
-                      <span className="text-primary">{invitation.inviterName}</span>
-                      {' '}invited you to tournament{' '}
-                      <span className="text-primary">{invitation.tournamentName}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1 mb-3">
-                      You've been invited to participate in this tournament
-                    </p>
-                    
-                    {/* Action buttons for tournament invitations */}
-                    <div className="flex mt-2 space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
-                        disabled={respondToTournamentInvitationMutation.isPending}
-                        onClick={(e) => handleTournamentInviteResponse(invitation.id, "declined", e)}
-                      >
-                        <XIcon className="h-3 w-3 mr-1" />
-                        Decline
-                      </Button>
-                      <Button 
-                        size="sm"
-                        className="bg-purple-600 hover:bg-purple-700 px-2 py-1 h-7 text-xs"
-                        disabled={respondToTournamentInvitationMutation.isPending}
-                        onClick={(e) => handleTournamentInviteResponse(invitation.id, "accepted", e)}
-                      >
-                        <CheckIcon className="h-3 w-3 mr-1" />
-                        Accept
-                      </Button>
+                <Link 
+                  href={`/tournaments/${invitation.tournamentId}`} 
+                  onClick={onClose}
+                >
+                  <div className="flex items-start cursor-pointer">
+                    <div className="h-10 w-10 mr-3 flex-shrink-0 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
+                      <Trophy className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">
+                        <span className="text-primary">{invitation.inviterName}</span>
+                        {' '}invited you to{' '}
+                        <span className="text-primary font-semibold">{invitation.tournamentName}</span>
+                      </p>
+                      
+                      {/* Tournament details */}
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">{invitation.sportType}</span>
+                          {invitation.location && (
+                            <span> • {invitation.location}</span>
+                          )}
+                        </p>
+                        
+                        {invitation.startDate && (
+                          <p className="text-xs text-gray-600">
+                            Starts: {new Date(invitation.startDate).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
+                        
+                        {invitation.maxParticipants && (
+                          <p className="text-xs text-gray-600">
+                            Max participants: {invitation.maxParticipants}
+                          </p>
+                        )}
+                        
+                        {invitation.entryFee && invitation.entryFee > 0 && (
+                          <p className="text-xs text-gray-600">
+                            Entry fee: ${(invitation.entryFee / 100).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 mt-2 mb-3">
+                        Click to view tournament details
+                      </p>
                     </div>
                   </div>
+                </Link>
+                
+                {/* Action buttons for tournament invitations */}
+                <div className="flex mt-2 space-x-2 ml-13">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 border-red-200 hover:bg-red-50 px-2 py-1 h-7 text-xs"
+                    disabled={respondToTournamentInvitationMutation.isPending}
+                    onClick={(e) => handleTournamentInviteResponse(invitation.id, "declined", e)}
+                  >
+                    <XIcon className="h-3 w-3 mr-1" />
+                    Decline
+                  </Button>
+                  <Button 
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700 px-2 py-1 h-7 text-xs"
+                    disabled={respondToTournamentInvitationMutation.isPending}
+                    onClick={(e) => handleTournamentInviteResponse(invitation.id, "accepted", e)}
+                  >
+                    <CheckIcon className="h-3 w-3 mr-1" />
+                    Accept
+                  </Button>
                 </div>
               </div>
             ))}
