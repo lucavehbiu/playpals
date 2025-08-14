@@ -531,7 +531,10 @@ export default function Groups() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userGroups.map((group: any) => (
-                    <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/groups/${group.id}`)}>
+                    <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+                      console.log(`Navigating to group: ${group.name} (ID: ${group.id})`);
+                      setLocation(`/groups/${group.id}`);
+                    }}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
