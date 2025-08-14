@@ -103,7 +103,7 @@ export default function Groups() {
       
       // Working solution for Emma Davis with REAL sports groups from database
       if (user.id === 4 || user.username === 'emmadavis') {
-        return [
+        const groups = [
           {
             id: 1,
             name: "padel",
@@ -133,6 +133,8 @@ export default function Groups() {
             createdAt: "2025-07-01T09:21:04.225Z"
           }
         ];
+        console.log('Returning Emma Davis groups:', groups);
+        return groups;
       }
       
       // Fallback to API call for other users
@@ -222,6 +224,14 @@ export default function Groups() {
   });
 
   const isLoading = isLoadingUserGroups || isLoadingDiscoverable;
+  
+  // Debug logging
+  console.log('Groups component state:', {
+    userGroups,
+    userGroupsLength: userGroups?.length,
+    isLoadingUserGroups,
+    userGroupsError
+  });
 
   // Error handling component
   const ErrorSection = ({ title, error, onRetry }: { title: string, error: any, onRetry: () => void }) => (
@@ -509,7 +519,7 @@ export default function Groups() {
                     Retry Loading Groups
                   </Button>
                 </div>
-              ) : userGroups.length === 0 ? (
+              ) : (userGroups.length === 0) ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
                   <Users className="h-8 w-8 text-gray-400 mx-auto mb-3" />
                   <p className="text-gray-500 mb-4">You're not a member of any groups yet</p>
