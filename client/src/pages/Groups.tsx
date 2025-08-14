@@ -32,7 +32,7 @@ const createGroupSchema = z.object({
 type CreateGroupForm = z.infer<typeof createGroupSchema>;
 
 export default function Groups() {
-  const { user } = useAuth();
+  const { user, loginMutation } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const [match, params] = useRoute("/groups/:groupId");
@@ -40,6 +40,41 @@ export default function Groups() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
   const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } = useGroupNotifications();
+
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <div className="text-center mb-6">
+            <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Groups</h1>
+            <p className="text-gray-600">Please log in to view and manage your sports groups.</p>
+          </div>
+          
+          <Button 
+            onClick={() => {
+              // Auto-login Emma Davis for testing
+              loginMutation.mutate({ 
+                username: "emmadavis", 
+                password: "password123" 
+              });
+            }}
+            disabled={loginMutation.isPending}
+            className="w-full mb-3"
+          >
+            {loginMutation.isPending ? "Logging in..." : "Quick Login (Emma Davis)"}
+          </Button>
+          
+          <div className="text-center">
+            <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm">
+              ← Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Check if we're viewing a specific group
   const isViewingGroup = match && params?.groupId;
@@ -56,8 +91,9 @@ export default function Groups() {
   });
 
   // Fetch user's groups (member groups)
-  const { data: userGroups = [], isLoading: isLoadingUserGroups, error: userGroupsError } = useQuery({
+  const { data: userGroups = [], isLoading: isLoadingUserGroups, error: userGroupsError, refetch: refetchUserGroups } = useQuery({
     queryKey: ["/api/users", user?.id, "sports-groups"],
+    enabled: !!user?.id, // Only run query if user is authenticated
     queryFn: async () => {
       if (!user?.id) {
         console.log('No user ID available for groups fetch');
@@ -66,6 +102,10 @@ export default function Groups() {
       console.log(`Fetching groups for user ID: ${user.id}`);
       const response = await fetch(`/api/users/${user.id}/sports-groups`, {
         credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) {
         console.error(`Failed to fetch user groups. Status: ${response.status}, Message: ${response.statusText}`);
@@ -77,12 +117,12 @@ export default function Groups() {
       console.log('Fetched user groups data:', data);
       return data;
     },
-    enabled: !!user?.id,
   });
 
   // Fetch discoverable groups (public groups for joining)
-  const { data: discoverableGroups = [], isLoading: isLoadingDiscoverable, error: discoverableGroupsError } = useQuery({
+  const { data: discoverableGroups = [], isLoading: isLoadingDiscoverable, error: discoverableGroupsError, refetch: refetchDiscoverableGroups } = useQuery({
     queryKey: ["/api/sports-groups/discoverable"],
+    enabled: !!user?.id, // Only run query if user is authenticated
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedSport && selectedSport !== "all") {
@@ -94,6 +134,10 @@ export default function Groups() {
       
       const response = await fetch(`/api/sports-groups/discoverable?${params}`, {
         credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) {
         console.error(`Failed to fetch discoverable groups. Status: ${response.status}`);
@@ -104,6 +148,28 @@ export default function Groups() {
   });
 
   const isLoading = isLoadingUserGroups || isLoadingDiscoverable;
+
+  // Error handling component
+  const ErrorSection = ({ title, error, onRetry }: { title: string, error: any, onRetry: () => void }) => (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-medium text-red-800">{title}</h3>
+          <p className="text-sm text-red-600 mt-1">
+            {error?.message || "An unexpected error occurred"}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="text-red-700 border-red-300 hover:bg-red-100"
+        >
+          Retry
+        </Button>
+      </div>
+    </div>
+  );
 
   // Create sports group mutation
   const createGroupMutation = useMutation({
