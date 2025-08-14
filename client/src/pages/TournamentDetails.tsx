@@ -257,6 +257,17 @@ export default function TournamentDetails() {
                 participantCount: participants.length,
                 maxParticipants: tournament.maxParticipants
               });
+
+              // Additional debugging to understand the conditional flow
+              if (isParticipant && !isFull) {
+                console.log('Showing Invite Friends button');
+              } else if (isParticipant && isFull) {
+                console.log('Showing Tournament Full badge');
+              } else if (!isParticipant && isFull) {
+                console.log('Showing Tournament Full badge (not participant)');
+              } else {
+                console.log('Showing Join Tournament button - isParticipant:', isParticipant, 'isFull:', isFull);
+              }
               
               if (isParticipant && !isFull) {
                 return (
