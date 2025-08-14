@@ -2402,26 +2402,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userGroups = await storage.getUserSportsGroups(userId);
       
-      // Add member count and admin info to each group
-      const groupsWithDetails = await Promise.all(userGroups.map(async (group) => {
-        const members = await storage.getSportsGroupMembers(group.id);
-        const admin = await storage.getUser(group.adminId);
-        
-        return {
-          ...group,
-          memberCount: members.length,
-          admin: admin ? {
-            id: admin.id,
-            name: admin.name,
-            profileImage: admin.profileImage
-          } : null
-        };
-      }));
+      // Simplified response without problematic Promise.all
+      const groupsWithDetails = [];
+      for (const group of userGroups) {
+        try {
+          const members = await storage.getSportsGroupMembers(group.id);
+          const admin = await storage.getUser(group.adminId);
+          
+          groupsWithDetails.push({
+            ...group,
+            memberCount: members.length,
+            admin: admin ? {
+              id: admin.id,
+              name: admin.name,
+              profileImage: admin.profileImage
+            } : null
+          });
+        } catch (err) {
+          console.error(`Error processing group ${group.id}:`, err);
+          // Skip this group if there's an error
+        }
+      }
       
-      res.json(groupsWithDetails);
+      return res.json(groupsWithDetails);
     } catch (error) {
       console.error('Error fetching user sports groups:', error);
-      res.status(500).json({ message: "Error fetching user sports groups" });
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Error fetching user sports groups" });
+      }
     }
   });
 
@@ -2471,10 +2479,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      res.json(filteredGroups);
+      return res.json(filteredGroups);
     } catch (error) {
       console.error('Error fetching discoverable sports groups:', error);
-      res.status(500).json({ message: "Error fetching discoverable sports groups" });
+      return res.status(500).json({ message: "Error fetching discoverable sports groups" });
     }
   });
 
