@@ -68,9 +68,21 @@ import { setupAuth } from "./auth";
 
 // Authentication middleware using Passport
 const authenticateUser = (req: Request, res: Response, next: Function) => {
+  console.log('Auth check:', {
+    isAuthenticated: req.isAuthenticated(),
+    sessionID: req.sessionID,
+    userId: req.user?.id,
+    url: req.url,
+    headers: req.headers.cookie ? 'has cookies' : 'no cookies'
+  });
+  
   if (!req.isAuthenticated()) {
+    console.log('Authentication failed for:', req.url);
     return res.status(401).json({ message: "Unauthorized - Please log in" });
   }
+  console.log('Authentication successful for user:', req.user?.id);
+  next();
+  console.log('Authentication successful for user:', req.user?.id);
   next();
 };
 
