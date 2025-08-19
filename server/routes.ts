@@ -5201,7 +5201,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tournaments', async (req: Request, res: Response) => {
     try {
       const tournaments = await storage.getAllTournaments();
-      res.json(tournaments);
+      
+      // Filter to show only tournaments that are open for registration
+      const activeTournaments = tournaments.filter(tournament => {
+        const now = new Date();
+        
+        // If tournament has ended, don't show it
+        if (tournament.endDate && new Date(tournament.endDate) < now) {
+          return false;
+        }
+        
+        // If registration deadline has passed, don't show it
+        if (tournament.registrationDeadline && new Date(tournament.registrationDeadline) < now) {
+          return false;
+        }
+        
+        // If tournament has already started, don't show it (users can't join anymore)
+        if (tournament.startDate && new Date(tournament.startDate) < now) {
+          return false;
+        }
+        
+        // Only show tournaments that are open and haven't started yet
+        return tournament.status === 'open';
+      });
+      
+      res.json(activeTournaments);
     } catch (error) {
       console.error('Error fetching tournaments:', error);
       res.status(500).json({ message: 'Error fetching tournaments' });
