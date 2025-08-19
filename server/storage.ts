@@ -3859,6 +3859,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getActivePollsByTitle(title: string): Promise<SportsGroupPoll[]> {
+    try {
+      const now = new Date();
+      const activePolls = await db
+        .select()
+        .from(sportsGroupPolls)
+        .where(
+          and(
+            eq(sportsGroupPolls.title, title),
+            eq(sportsGroupPolls.isActive, true),
+            gte(sportsGroupPolls.endDate, now)
+          )
+        );
+      return activePolls;
+    } catch (error) {
+      console.error('Error fetching active polls by title:', error);
+      return [];
+    }
+  }
+
   async markPollSuggestionAsUsed(pollId: number, timeSlotId: number, eventId: number): Promise<boolean> {
     try {
       await db
@@ -4691,35 +4711,46 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTournamentInvitations(userId: number): Promise<any[]> {
-    const result = await db.select({
-      id: tournamentInvitations.id,
-      tournamentId: tournamentInvitations.tournamentId,
-      inviterId: tournamentInvitations.inviterId,
-      inviteeId: tournamentInvitations.inviteeId,
-      status: tournamentInvitations.status,
-      createdAt: tournamentInvitations.createdAt,
-      // Tournament details
-      tournamentName: tournaments.name,
-      tournamentDescription: tournaments.description,
-      sportType: tournaments.sportType,
-      tournamentType: tournaments.tournamentType,
-      maxParticipants: tournaments.maxParticipants,
-      location: tournaments.location,
-      startDate: tournaments.startDate,
-      endDate: tournaments.endDate,
-      entryFee: tournaments.entryFee,
-      prizePool: tournaments.prizePool,
-      // Inviter details
-      inviterName: users.name,
-      inviterUsername: users.username,
-      inviterProfileImage: users.profileImage
-    })
-    .from(tournamentInvitations)
-    .leftJoin(tournaments, eq(tournamentInvitations.tournamentId, tournaments.id))
-    .leftJoin(users, eq(tournamentInvitations.inviterId, users.id))
-    .where(eq(tournamentInvitations.inviteeId, userId));
+    // Get basic invitation data first
+    const invitations = await db.select().from(tournamentInvitations)
+      .where(eq(tournamentInvitations.inviteeId, userId));
+
+    // Enrich with tournament and user data
+    const enrichedInvitations = [];
+    for (const invitation of invitations) {
+      try {
+        // Get tournament details
+        const [tournament] = await db.select().from(tournaments)
+          .where(eq(tournaments.id, invitation.tournamentId));
+        
+        // Get inviter details
+        const [inviter] = await db.select().from(users)
+          .where(eq(users.id, invitation.inviterId));
+
+        enrichedInvitations.push({
+          ...invitation,
+          tournamentName: tournament?.name,
+          tournamentDescription: tournament?.description,
+          sportType: tournament?.sportType,
+          tournamentType: tournament?.tournamentType,
+          maxParticipants: tournament?.maxParticipants,
+          location: tournament?.location,
+          startDate: tournament?.startDate,
+          endDate: tournament?.endDate,
+          entryFee: tournament?.entryFee,
+          prizePool: tournament?.prizePool,
+          inviterName: inviter?.name,
+          inviterUsername: inviter?.username,
+          inviterProfileImage: inviter?.profileImage
+        });
+      } catch (error) {
+        console.error('Error enriching tournament invitation:', error);
+        // Include basic invitation even if enrichment fails
+        enrichedInvitations.push(invitation);
+      }
+    }
     
-    return result;
+    return enrichedInvitations;
   }
 
   async createTournamentInvitation(invitation: InsertTournamentInvitation): Promise<TournamentInvitation> {

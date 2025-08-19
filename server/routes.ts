@@ -888,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const rsvps = await storage.getRSVPsByUser(userId);
       
-      // Fetch events for each RSVP
+      // Fetch events for each RSVP and filter out expired poll-generated events
       const rsvpsWithEvents = await Promise.all(
         rsvps.map(async (rsvp) => {
           const event = await storage.getEvent(rsvp.eventId);
@@ -898,8 +898,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
+
+      // Filter out pending/maybe RSVPs for events that were generated from expired polls
+      const filteredRsvps = await Promise.all(
+        rsvpsWithEvents.map(async (rsvp) => {
+          // Only filter pending and maybe RSVPs (not approved ones)
+          if (rsvp.status !== 'pending' && rsvp.status !== 'maybe') {
+            return rsvp;
+          }
+
+          // Check if this event was generated from a poll
+          if (rsvp.event && rsvp.event.title && rsvp.event.title.includes('Poll -')) {
+            try {
+              // Extract poll title from event title (e.g., "Test Poll - Monday Event" -> "Test Poll")
+              const pollTitle = rsvp.event.title.split(' - ')[0];
+              
+              // Check if any polls that could have generated this event are still active
+              const activePolls = await storage.getActivePollsByTitle(pollTitle);
+              
+              // If no active polls exist for this event, filter it out
+              if (activePolls.length === 0) {
+                return null;
+              }
+            } catch (error) {
+              console.error('Error checking poll status for event:', rsvp.event.title, error);
+              // In case of error, keep the RSVP to be safe
+            }
+          }
+          
+          return rsvp;
+        })
+      );
+
+      // Remove null entries (filtered out RSVPs)
+      const validRsvps = filteredRsvps.filter(rsvp => rsvp !== null);
       
-      res.json(rsvpsWithEvents);
+      res.json(validRsvps);
     } catch (error) {
       console.error('Error fetching RSVPs:', error);
       res.status(500).json({ message: "Error fetching RSVPs" });
