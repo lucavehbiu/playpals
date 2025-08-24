@@ -67,6 +67,7 @@ const Teams = () => {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [showFilter, setShowFilter] = useState<string>("all"); // "my" or "all"
   
   // Form for creating a team
   const teamForm = useForm<TeamFormValues>({
@@ -104,6 +105,14 @@ const Teams = () => {
   const teams = useMemo(() => {
     let filteredTeams = allTeams;
     
+    // Filter by ownership (my teams vs all teams)
+    if (showFilter === "my" && user) {
+      filteredTeams = filteredTeams.filter((team: any) => {
+        const members = teamMembersMap[team.id] || [];
+        return team.creatorId === user.id || members.some((member: any) => member.userId === user.id);
+      });
+    }
+    
     // Filter by sport type
     if (selectedSport && selectedSport !== "all") {
       filteredTeams = filteredTeams.filter((team: any) => team.sportType === selectedSport);
@@ -119,7 +128,7 @@ const Teams = () => {
     }
     
     return filteredTeams;
-  }, [allTeams, selectedSport, teamSearchQuery]);
+  }, [allTeams, selectedSport, teamSearchQuery, showFilter, user, teamMembersMap]);
   
   // Mutation to create a team
   const createTeamMutation = useMutation({
@@ -275,6 +284,15 @@ const Teams = () => {
             onChange={(e) => setTeamSearchQuery(e.target.value)}
             className="flex-1"
           />
+          <Select value={showFilter} onValueChange={setShowFilter}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter teams" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Teams</SelectItem>
+              <SelectItem value="my">My Teams</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={selectedSport} onValueChange={setSelectedSport}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Filter by sport" />
