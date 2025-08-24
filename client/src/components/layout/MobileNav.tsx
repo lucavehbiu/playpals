@@ -90,21 +90,24 @@ const MobileNav = () => {
           <AnimatePresence>
             {isCreateMenuOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute -top-36 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border p-3 w-48"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
+                className="absolute -top-44 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1 w-52 z-50 backdrop-blur-sm"
               >
-                <div className="space-y-2">
+                <div className="space-y-1 p-2">
                   <button
                     onClick={() => {
                       setIsCreateMenuOpen(false);
                       setIsPostModalOpen(true);
                     }}
-                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
+                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-primary/5 hover:text-primary rounded-xl transition-all duration-200 group"
                   >
-                    <Edit3Icon className="h-4 w-4 mr-2 text-primary" /> 
-                    Create Post
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3 group-hover:bg-primary/20 transition-all duration-200">
+                      <Edit3Icon className="h-4 w-4 text-primary" /> 
+                    </div>
+                    <span>Post</span>
                   </button>
                   
                   <button
@@ -112,10 +115,12 @@ const MobileNav = () => {
                       setIsCreateMenuOpen(false);
                       setLocation("/events/create");
                     }}
-                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
+                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-blue-500/5 hover:text-blue-600 rounded-xl transition-all duration-200 group"
                   >
-                    <CalendarPlusIcon className="h-4 w-4 mr-2 text-primary" /> 
-                    Create Event
+                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center mr-3 group-hover:bg-blue-500/20 transition-all duration-200">
+                      <CalendarPlusIcon className="h-4 w-4 text-blue-600" /> 
+                    </div>
+                    <span>Event</span>
                   </button>
                   
                   <button
@@ -123,15 +128,17 @@ const MobileNav = () => {
                       setIsCreateMenuOpen(false);
                       setLocation("/tournaments");
                     }}
-                    className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
+                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-amber-500/5 hover:text-amber-600 rounded-xl transition-all duration-200 group"
                   >
-                    <AwardIcon className="h-4 w-4 mr-2 text-primary" /> 
-                    Create Tournament
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center mr-3 group-hover:bg-amber-500/20 transition-all duration-200">
+                      <AwardIcon className="h-4 w-4 text-amber-600" /> 
+                    </div>
+                    <span>Tournament</span>
                   </button>
                 </div>
                 
                 {/* Arrow at bottom */}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b"></div>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-100 shadow-sm"></div>
               </motion.div>
             )}
           </AnimatePresence>
