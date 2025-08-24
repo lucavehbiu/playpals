@@ -352,6 +352,7 @@ const CreateEvent = () => {
                 placeholder="e.g., Central Park Basketball Court"
                 value={formData.location}
                 onLocationSelect={(location) => {
+                  console.log('Location selected:', location);
                   updateFormData('location', location.address);
                   updateFormData('locationLatitude', location.lat);
                   updateFormData('locationLongitude', location.lng);
@@ -361,9 +362,9 @@ const CreateEvent = () => {
             </GoogleMapsWrapper>
             
             {/* Live preview map */}
-            {(formData.locationLatitude && formData.locationLongitude) && (
+            {(formData.locationLatitude !== 0 && formData.locationLongitude !== 0) && (
               <div className="mt-4">
-                <Label className="text-sm font-medium text-gray-600 mb-2 block">Location Preview</Label>
+                <Label className="text-sm font-medium text-gray-600 mb-2 block">📍 Location Preview</Label>
                 <GoogleMapsWrapper>
                   <EventMap 
                     latitude={formData.locationLatitude}
@@ -373,6 +374,18 @@ const CreateEvent = () => {
                     showMarker={true}
                   />
                 </GoogleMapsWrapper>
+              </div>
+            )}
+            
+            {/* Debug info */}
+            {formData.location && (
+              <div className="text-xs text-gray-500 mt-2">
+                📍 {formData.location}
+                {formData.locationLatitude !== 0 && formData.locationLongitude !== 0 && (
+                  <span className="ml-2 text-green-600">
+                    ({formData.locationLatitude.toFixed(4)}, {formData.locationLongitude.toFixed(4)})
+                  </span>
+                )}
               </div>
             )}
           </div>
