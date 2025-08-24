@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 // Define form schema for team creation
 const createTeamSchema = z.object({
@@ -47,8 +48,18 @@ type InviteMemberFormValues = z.infer<typeof inviteMemberSchema>;
 const Teams = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  
+  // Check if create parameter is in URL and open modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === 'true') {
+      setIsCreateTeamOpen(true);
+      // Clean up URL without the parameter
+      window.history.replaceState({}, '', '/teams');
+    }
+  }, [location]);
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -227,18 +238,12 @@ const Teams = () => {
   
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-start mb-6">
+      <div className="mb-6">
         <div>
           <h1 className="text-2xl font-bold">Teams</h1>
           <p className="text-gray-500">Discover and manage sports teams</p>
         </div>
         <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create Team
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Create a New Team</DialogTitle>

@@ -135,6 +135,32 @@ const MobileNav = () => {
                     </div>
                     <span>Tournament</span>
                   </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/teams?create=true");
+                    }}
+                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-green-500/5 hover:text-green-600 rounded-xl transition-all duration-200 group"
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center mr-3 group-hover:bg-green-500/20 transition-all duration-200">
+                      <UsersIcon className="h-4 w-4 text-green-600" /> 
+                    </div>
+                    <span>Team</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsCreateMenuOpen(false);
+                      setLocation("/groups?create=true");
+                    }}
+                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-purple-500/5 hover:text-purple-600 rounded-xl transition-all duration-200 group"
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center mr-3 group-hover:bg-purple-500/20 transition-all duration-200">
+                      <UsersIcon className="h-4 w-4 text-purple-600" /> 
+                    </div>
+                    <span>Group</span>
+                  </button>
                 </div>
                 
                 {/* Arrow at bottom */}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Users, MessageCircle, Calendar, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,16 @@ export default function Groups() {
   const [location, setLocation] = useLocation();
   const [match, params] = useRoute("/groups/:groupId");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // Check if create parameter is in URL and open modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === 'true') {
+      setIsCreateModalOpen(true);
+      // Clean up URL without the parameter
+      window.history.replaceState({}, '', '/groups');
+    }
+  }, [location]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
@@ -303,19 +313,13 @@ export default function Groups() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex flex-col space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="mb-6">
           <div>
             <h1 className="text-3xl font-bold">Sports Groups</h1>
             <p className="text-gray-600">Join groups of players who regularly play together</p>
           </div>
           
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create Group
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Create Sports Group</DialogTitle>
