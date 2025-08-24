@@ -49,6 +49,7 @@ export default function Groups() {
   }, [location]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [membershipFilter, setMembershipFilter] = useState<string>("all");
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } = useGroupNotifications();
@@ -203,6 +204,14 @@ export default function Groups() {
       filteredGroups = filteredGroups.filter((group: any) => group.sportType === selectedSport);
     }
     
+    // Filter by membership (assuming user's groups have ids 1 and 2 based on the data)
+    if (membershipFilter === "my_groups") {
+      filteredGroups = filteredGroups.filter((group: any) => {
+        // For the demo data, user's groups are the first two (ids 1 and 2)
+        return group.id === 1 || group.id === 2;
+      });
+    }
+    
     // Filter by search query
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
@@ -213,7 +222,20 @@ export default function Groups() {
     }
     
     return filteredGroups;
-  }, [allGroups, selectedSport, searchQuery]);
+  }, [allGroups, selectedSport, membershipFilter, searchQuery]);
+
+  // Calculate group counts by sport for dropdown
+  const sportCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const groupsToCount = membershipFilter === "my_groups" 
+      ? allGroups.filter((group: any) => group.id === 1 || group.id === 2)
+      : allGroups;
+    
+    groupsToCount.forEach((group: any) => {
+      counts[group.sportType] = (counts[group.sportType] || 0) + 1;
+    });
+    return counts;
+  }, [allGroups, membershipFilter]);
   
   // Debug logging
   console.log('Groups component state:', {
@@ -303,19 +325,33 @@ export default function Groups() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
           />
-          <Select value={selectedSport} onValueChange={setSelectedSport}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Filter by sport" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sports</SelectItem>
-              {sportTypes.map((sport) => (
-                <SelectItem key={sport} value={sport}>
-                  {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={membershipFilter} onValueChange={setMembershipFilter}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Filter groups" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Groups</SelectItem>
+                <SelectItem value="my_groups">My Groups</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedSport} onValueChange={setSelectedSport}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Filter by sport" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sports</SelectItem>
+                {sportTypes.map((sport) => (
+                  <SelectItem key={sport} value={sport}>
+                    <div className="flex flex-col">
+                      <span>{sport.charAt(0).toUpperCase() + sport.slice(1)}</span>
+                      <span className="text-xs text-gray-500">{sportCounts[sport] || 0} groups</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

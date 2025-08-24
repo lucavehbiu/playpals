@@ -67,6 +67,7 @@ const Teams = () => {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [membershipFilter, setMembershipFilter] = useState<string>("all");
   
   // Form for creating a team
   const teamForm = useForm<TeamFormValues>({
@@ -99,27 +100,6 @@ const Teams = () => {
     },
     enabled: !!user,
   });
-  
-  // Apply filters to teams
-  const teams = useMemo(() => {
-    let filteredTeams = allTeams;
-    
-    // Filter by sport type
-    if (selectedSport && selectedSport !== "all") {
-      filteredTeams = filteredTeams.filter((team: any) => team.sportType === selectedSport);
-    }
-    
-    // Filter by search query
-    if (teamSearchQuery) {
-      const searchLower = teamSearchQuery.toLowerCase();
-      filteredTeams = filteredTeams.filter((team: any) => 
-        team.name.toLowerCase().includes(searchLower) ||
-        (team.description && team.description.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    return filteredTeams;
-  }, [allTeams, selectedSport, teamSearchQuery]);
   
   // Mutation to create a team
   const createTeamMutation = useMutation({
@@ -169,6 +149,51 @@ const Teams = () => {
     },
     enabled: allTeams.length > 0,
   });
+  
+  // Apply filters to teams
+  const teams = useMemo(() => {
+    let filteredTeams = allTeams;
+    
+    // Filter by sport type
+    if (selectedSport && selectedSport !== "all") {
+      filteredTeams = filteredTeams.filter((team: any) => team.sportType === selectedSport);
+    }
+    
+    // Filter by membership
+    if (membershipFilter === "my_teams") {
+      filteredTeams = filteredTeams.filter((team: any) => {
+        const members = teamMembersMap[team.id] || [];
+        return members.some((member: any) => member.userId === user?.id);
+      });
+    }
+    
+    // Filter by search query
+    if (teamSearchQuery) {
+      const searchLower = teamSearchQuery.toLowerCase();
+      filteredTeams = filteredTeams.filter((team: any) => 
+        team.name.toLowerCase().includes(searchLower) ||
+        (team.description && team.description.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    return filteredTeams;
+  }, [allTeams, selectedSport, membershipFilter, teamSearchQuery, teamMembersMap, user?.id]);
+
+  // Calculate team counts by sport for dropdown
+  const sportCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const teamsToCount = membershipFilter === "my_teams" 
+      ? allTeams.filter((team: any) => {
+          const members = teamMembersMap[team.id] || [];
+          return members.some((member: any) => member.userId === user?.id);
+        })
+      : allTeams;
+    
+    teamsToCount.forEach((team: any) => {
+      counts[team.sportType] = (counts[team.sportType] || 0) + 1;
+    });
+    return counts;
+  }, [allTeams, membershipFilter, teamMembersMap, user?.id]);
   
   // Search for users
   const searchUsers = async (query: string) => {
@@ -275,19 +300,33 @@ const Teams = () => {
             onChange={(e) => setTeamSearchQuery(e.target.value)}
             className="flex-1"
           />
-          <Select value={selectedSport} onValueChange={setSelectedSport}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Filter by sport" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sports</SelectItem>
-              {sportTypes.map((sport) => (
-                <SelectItem key={sport} value={sport}>
-                  {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={membershipFilter} onValueChange={setMembershipFilter}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Filter teams" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teams</SelectItem>
+                <SelectItem value="my_teams">My Teams</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedSport} onValueChange={setSelectedSport}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Filter by sport" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sports</SelectItem>
+                {sportTypes.map((sport) => (
+                  <SelectItem key={sport} value={sport}>
+                    <div className="flex flex-col">
+                      <span>{sport.charAt(0).toUpperCase() + sport.slice(1)}</span>
+                      <span className="text-xs text-gray-500">{sportCounts[sport] || 0} teams</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
           <DialogContent className="sm:max-w-[425px]">
