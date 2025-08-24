@@ -333,16 +333,16 @@ export default function AuthPage() {
                         </Button>
                         
                         <div className="mt-6">
-                          <div className="relative flex items-center py-3">
-                            <div className="flex-grow border-t border-gray-200"></div>
-                            <span className="flex-shrink mx-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Or continue with</span>
-                            <div className="flex-grow border-t border-gray-200"></div>
+                          <div className="relative flex items-center py-4">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="flex-shrink mx-4 text-sm font-medium text-gray-600 bg-white px-2">or</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
                           </div>
                           
                           <div className="mt-4">
                             <Button 
                               variant="outline" 
-                              className="w-full h-12 bg-white hover:bg-gray-50/80 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 flex items-center justify-center gap-3 text-gray-700 hover:text-gray-900 font-medium shadow-sm hover:shadow-md" 
+                              className="w-full h-12 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 transition-colors duration-200 flex items-center justify-center gap-3 text-gray-800 font-medium rounded-lg shadow-sm" 
                               onClick={() => window.location.href = '/api/auth/google'}
                             >
                               <FcGoogle className="h-5 w-5" />
@@ -505,16 +505,16 @@ export default function AuthPage() {
                         </Button>
                         
                         <div className="mt-6">
-                          <div className="relative flex items-center py-3">
-                            <div className="flex-grow border-t border-gray-200"></div>
-                            <span className="flex-shrink mx-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Or sign up with</span>
-                            <div className="flex-grow border-t border-gray-200"></div>
+                          <div className="relative flex items-center py-4">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="flex-shrink mx-4 text-sm font-medium text-gray-600 bg-white px-2">or</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
                           </div>
                           
                           <div className="mt-4">
                             <Button 
                               variant="outline" 
-                              className="w-full h-12 bg-white hover:bg-gray-50/80 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 flex items-center justify-center gap-3 text-gray-700 hover:text-gray-900 font-medium shadow-sm hover:shadow-md" 
+                              className="w-full h-12 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 transition-colors duration-200 flex items-center justify-center gap-3 text-gray-800 font-medium rounded-lg shadow-sm" 
                               onClick={() => window.location.href = '/api/auth/google'}
                             >
                               <FcGoogle className="h-5 w-5" />
