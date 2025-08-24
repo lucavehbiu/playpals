@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import InviteFriendsModal from "@/components/event/InviteFriendsModal";
+import { GoogleMapsWrapper } from "@/components/maps/GoogleMapsWrapper";
+import { LocationSearch } from "@/components/maps/LocationSearch";
+import EventMap from "@/components/maps/EventMap";
 
 const STEPS = [
   { id: 'title', label: 'Event Title', icon: '📝' },
@@ -48,6 +51,8 @@ const CreateEvent = () => {
     title: urlParams.get('title') || "",
     sportType: "basketball",
     location: "",
+    locationLatitude: 0,
+    locationLongitude: 0,
     date: urlParams.get('date') || "",
     time: urlParams.get('time') || "",
     duration: "60",
@@ -339,19 +344,37 @@ const CreateEvent = () => {
         
       case 'location':
         return (
-          <div className="space-y-4">
-            <Label htmlFor="location" className="text-lg font-medium">Where will this take place?</Label>
-            <div className="relative">
-              <Input 
-                id="location"
-                value={formData.location}
-                onChange={(e) => updateFormData('location', e.target.value)}
+          <div className="space-y-6">
+            <Label className="text-lg font-medium">Where will this take place?</Label>
+            
+            <GoogleMapsWrapper>
+              <LocationSearch
                 placeholder="e.g., Central Park Basketball Court"
-                className="text-lg p-4 h-14 pl-12"
-                autoFocus
+                value={formData.location}
+                onLocationSelect={(location) => {
+                  updateFormData('location', location.address);
+                  updateFormData('locationLatitude', location.lat);
+                  updateFormData('locationLongitude', location.lng);
+                }}
+                className="mb-4"
               />
-              <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
+            </GoogleMapsWrapper>
+            
+            {/* Live preview map */}
+            {(formData.locationLatitude && formData.locationLongitude) && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium text-gray-600 mb-2 block">Location Preview</Label>
+                <GoogleMapsWrapper>
+                  <EventMap 
+                    latitude={formData.locationLatitude}
+                    longitude={formData.locationLongitude}
+                    address={formData.location}
+                    height="200px"
+                    showMarker={true}
+                  />
+                </GoogleMapsWrapper>
+              </div>
+            )}
           </div>
         );
         

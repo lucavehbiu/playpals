@@ -41,18 +41,25 @@ const EventMap: React.FC<EventMapProps> = ({
 
     setMapInstance(map);
 
+    // Clean up previous marker
+    if (markerInstance) {
+      markerInstance.setMap(null);
+      setMarkerInstance(null);
+    }
+
     if (showMarker && latitude && longitude) {
       const marker = new google.maps.Marker({
         position: { lat: latitude, lng: longitude },
         map: map,
         title: address || 'Event Location',
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#3b82f6',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#3B82F6"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(24, 24),
+          anchor: new google.maps.Point(12, 24),
         },
       });
 
@@ -61,7 +68,12 @@ const EventMap: React.FC<EventMapProps> = ({
       // Add info window if address is available
       if (address) {
         const infoWindow = new google.maps.InfoWindow({
-          content: `<div class="p-2"><strong>Event Location</strong><br/>${address}</div>`,
+          content: `
+            <div style="padding: 8px; min-width: 200px;">
+              <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">📍 Event Location</div>
+              <div style="color: #6b7280; font-size: 14px;">${address}</div>
+            </div>
+          `,
         });
 
         marker.addListener('click', () => {

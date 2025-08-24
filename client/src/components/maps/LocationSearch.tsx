@@ -30,40 +30,59 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [showFallback, setShowFallback] = useState(false);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  // Modern approach with error handling
-  const initializeModernSearch = useCallback(() => {
-    if (!window.google?.maps?.places) {
+  // Initialize Google Places Autocomplete
+  const initializeAutocomplete = useCallback(() => {
+    if (!inputRef.current || !window.google?.maps?.places) {
       setShowFallback(true);
       return;
     }
 
     try {
-      // Check if the modern PlaceAutocompleteElement is available
-      if (window.google.maps.places.PlaceAutocompleteElement) {
-        // Use the new modern element when available
-        console.log('Using modern PlaceAutocompleteElement');
-        setError('');
-      } else {
-        // Fallback to manual geocoding if needed
-        console.log('Using fallback geocoding approach');
-        setError('');
-      }
+      // Create the autocomplete instance
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          fields: ['place_id', 'formatted_address', 'geometry', 'name'],
+          types: ['establishment', 'geocode'],
+        }
+      );
+
+      // Listen for place selection
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place && place.geometry && place.geometry.location) {
+          const location: LocationResult = {
+            placeId: place.place_id || '',
+            address: place.formatted_address || '',
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+            name: place.name,
+          };
+          onLocationSelect(location);
+          setSearchValue(place.formatted_address || '');
+          setError('');
+        }
+      });
+
+      console.log('Google Places Autocomplete initialized successfully');
+      setError('');
     } catch (error) {
-      console.error('Error with Google Maps setup:', error);
+      console.error('Error initializing Google Places Autocomplete:', error);
       setError('Maps service temporarily unavailable');
       setShowFallback(true);
     }
-  }, []);
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (window.google?.maps?.places) {
-      initializeModernSearch();
+      initializeAutocomplete();
     } else {
       // Wait for Google Maps to load
       const checkGoogleMaps = setInterval(() => {
         if (window.google?.maps?.places) {
-          initializeModernSearch();
+          initializeAutocomplete();
           clearInterval(checkGoogleMaps);
         }
       }, 100);
@@ -79,7 +98,13 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
         clearTimeout(timeout);
       };
     }
-  }, [initializeModernSearch]);
+
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [initializeAutocomplete]);
 
   // Enhanced search function with better error handling
   const handleManualSearch = async () => {
