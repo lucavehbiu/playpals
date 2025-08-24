@@ -94,7 +94,7 @@ const MobileNav = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.9 }}
                 transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-                className="absolute -top-44 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1 w-52 z-50 backdrop-blur-sm"
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1 w-52 z-50 backdrop-blur-sm"
               >
                 <div className="space-y-1 p-2">
                   <button
