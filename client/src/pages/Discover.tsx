@@ -12,17 +12,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { LocationFilter } from "@/components/filters/LocationFilter";
+import { useLocationFilter } from "@/hooks/use-location-filter";
 
 const Discover = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [selectedSport, setSelectedSport] = useState<string>("all");
-  const [locationFilter, setLocationFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   const [contentType, setContentType] = useState<string>("all"); // "all", "events", "tournaments"
-  const [locationRange, setLocationRange] = useState<number>(10); // km range
+  
+  // Use the new location filter hook
+  const {
+    locationFilter,
+    handleLocationFilterChange,
+    clearLocationFilter,
+    filterByLocation,
+    getLocationFilterText,
+    isLocationFilterActive,
+    options: locationOptions,
+  } = useLocationFilter({ defaultRadius: 10, maxRadius: 50, minRadius: 1 });
   
   // Get all discoverable events for this user
   const { data: events, isLoading: eventsLoading, error: eventsError } = useQuery<Event[]>({
@@ -88,18 +99,13 @@ const Discover = () => {
     }
   };
   
-  // Apply all filters to events and tournaments
-  const filteredEvents = events?.filter(event => {
+  // Apply basic filters to events and tournaments first
+  const basicFilteredEvents = events?.filter(event => {
     // Filter by content type
     if (contentType === "tournaments") return false; // Skip events if showing tournaments only
     
     // Filter by sport type
     if (selectedSport !== "all" && event.sportType !== selectedSport) {
-      return false;
-    }
-    
-    // Filter by location (case-insensitive partial match)
-    if (locationFilter && event.location && !event.location.toLowerCase().includes(locationFilter.toLowerCase())) {
       return false;
     }
     
@@ -144,17 +150,12 @@ const Discover = () => {
     return true;
   });
 
-  const filteredTournaments = tournaments?.filter(tournament => {
+  const basicFilteredTournaments = tournaments?.filter(tournament => {
     // Filter by content type
     if (contentType === "events") return false; // Skip tournaments if showing events only
     
     // Filter by sport type
     if (selectedSport !== "all" && tournament.sportType !== selectedSport) {
-      return false;
-    }
-    
-    // Filter by location (case-insensitive partial match)
-    if (locationFilter && tournament.location && !tournament.location.toLowerCase().includes(locationFilter.toLowerCase())) {
       return false;
     }
     
@@ -192,6 +193,10 @@ const Discover = () => {
     
     return true;
   });
+
+  // Apply location filtering using the new location filter hook
+  const filteredEvents = filterByLocation(basicFilteredEvents || []);
+  const filteredTournaments = filterByLocation(basicFilteredTournaments || []);
 
   const totalResults = (filteredEvents?.length || 0) + (filteredTournaments?.length || 0);
   
@@ -264,12 +269,12 @@ const Discover = () => {
           </h2>
           
           {/* Reset Button */}
-          {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
+          {(selectedSport !== "all" || isLocationFilterActive || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
             <motion.button
               className="flex items-center text-xs font-medium text-gray-500 hover:text-primary transition-colors py-1 px-2 rounded-full bg-gray-100 dark:bg-gray-700 dark:text-gray-300"
               onClick={() => {
                 setSelectedSport("all");
-                setLocationFilter("");
+                clearLocationFilter();
                 setDateFilter("");
                 setShowFreeOnly(false);
                 setShowPublicOnly(true);
@@ -346,55 +351,16 @@ const Discover = () => {
             </div>
           </div>
           
-          {/* Location Filter with Range */}
+          {/* Location Filter with Google Maps Autocomplete and Radius */}
           <div className="relative">
-            <div className="flex items-center mb-1.5">
-              <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-2">
-                <Map className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-              </div>
-              <label htmlFor="location-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Location
-              </label>
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <input
-                  type="text"
-                  id="location-filter"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                  placeholder="City, venue, area..."
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Search className="h-4 w-4" />
-                </div>
-                {locationFilter && (
-                  <button 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setLocationFilter("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              
-              {locationFilter && (
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <MapPin className="h-3 w-3" />
-                  <span>Within {locationRange} km</span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={locationRange}
-                    onChange={(e) => setLocationRange(parseInt(e.target.value))}
-                    className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="font-medium">{locationRange}km</span>
-                </div>
-              )}
-            </div>
+            <LocationFilter
+              value={locationFilter}
+              onChange={handleLocationFilterChange}
+              placeholder="Search city, venue, area..."
+              showRadiusSlider={true}
+              maxRadius={locationOptions.maxRadius}
+              minRadius={locationOptions.minRadius}
+            />
           </div>
           
           {/* Date Filter */}
