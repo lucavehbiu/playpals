@@ -31,7 +31,6 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { BsApple } from "react-icons/bs";
 import playPalsLogo from "@/assets/playpals-logo.jpg";
 
 // Login schema
@@ -333,21 +332,21 @@ export default function AuthPage() {
                           />
                         </Button>
                         
-                        <div className="mt-4">
-                          <div className="relative flex items-center py-2">
-                            <div className="flex-grow border-t border-gray-300"></div>
-                            <span className="flex-shrink mx-3 text-xs text-gray-500">OR CONTINUE WITH</span>
-                            <div className="flex-grow border-t border-gray-300"></div>
+                        <div className="mt-6">
+                          <div className="relative flex items-center py-3">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink mx-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Or continue with</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => window.location.href = '/api/auth/google'}>
-                              <FcGoogle className="h-5 w-5 mr-2" />
-                              <span>Google</span>
-                            </Button>
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Apple login coming soon!")}>
-                              <BsApple className="h-5 w-5 mr-2" />
-                              <span>Apple</span>
+                          <div className="mt-4">
+                            <Button 
+                              variant="outline" 
+                              className="w-full h-12 bg-white hover:bg-gray-50/80 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 flex items-center justify-center gap-3 text-gray-700 hover:text-gray-900 font-medium shadow-sm hover:shadow-md" 
+                              onClick={() => window.location.href = '/api/auth/google'}
+                            >
+                              <FcGoogle className="h-5 w-5" />
+                              <span>Continue with Google</span>
                             </Button>
                           </div>
                         </div>
@@ -505,21 +504,21 @@ export default function AuthPage() {
                           />
                         </Button>
                         
-                        <div className="mt-4">
-                          <div className="relative flex items-center py-2">
-                            <div className="flex-grow border-t border-gray-300"></div>
-                            <span className="flex-shrink mx-3 text-xs text-gray-500">OR SIGN UP WITH</span>
-                            <div className="flex-grow border-t border-gray-300"></div>
+                        <div className="mt-6">
+                          <div className="relative flex items-center py-3">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink mx-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Or sign up with</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => window.location.href = '/api/auth/google'}>
-                              <FcGoogle className="h-5 w-5 mr-2" />
-                              <span>Google</span>
-                            </Button>
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Apple signup coming soon!")}>
-                              <BsApple className="h-5 w-5 mr-2" />
-                              <span>Apple</span>
+                          <div className="mt-4">
+                            <Button 
+                              variant="outline" 
+                              className="w-full h-12 bg-white hover:bg-gray-50/80 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 flex items-center justify-center gap-3 text-gray-700 hover:text-gray-900 font-medium shadow-sm hover:shadow-md" 
+                              onClick={() => window.location.href = '/api/auth/google'}
+                            >
+                              <FcGoogle className="h-5 w-5" />
+                              <span>Continue with Google</span>
                             </Button>
                           </div>
                         </div>
