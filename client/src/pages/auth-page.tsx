@@ -341,7 +341,7 @@ export default function AuthPage() {
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Google login coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => window.location.href = '/api/auth/google'}>
                               <FcGoogle className="h-5 w-5 mr-2" />
                               <span>Google</span>
                             </Button>
@@ -513,7 +513,7 @@ export default function AuthPage() {
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => alert("Google signup coming soon!")}>
+                            <Button variant="outline" className="bg-white h-11 hover:bg-gray-50 border border-gray-300 flex items-center justify-center" onClick={() => window.location.href = '/api/auth/google'}>
                               <FcGoogle className="h-5 w-5 mr-2" />
                               <span>Google</span>
                             </Button>

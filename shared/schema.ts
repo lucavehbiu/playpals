@@ -69,7 +69,9 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  googleId: text("google_id").unique(),
   profileImage: text("profile_image"),
+  profileImageUrl: text("profile_image_url"), // For Google profile images
   coverImage: text("cover_image"),
   bio: text("bio"),
   headline: text("headline"),
