@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Event } from "@/lib/types";
 import EventTabs from "@/components/event/EventTabs";
-import CreateEventButton from "@/components/event/CreateEventButton";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -36,14 +35,11 @@ const UpcomingEvents = ({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center">
-          <CalendarRange className="h-5 w-5 mr-2 text-primary" />
-          Upcoming Events
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold flex items-center text-gray-800">
+          <CalendarRange className="h-4 w-4 mr-2 text-primary" />
+          {upcomingEvents.length > 0 ? `${upcomingEvents.length} event${upcomingEvents.length === 1 ? '' : 's'} scheduled` : 'Your schedule is clear'}
         </h1>
-        <CreateEventButton 
-          onEventCreated={onEventCreated} 
-        />
       </div>
       
       {isLoading ? (
@@ -87,11 +83,7 @@ const UpcomingEvents = ({
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
                 You don't have any upcoming events scheduled. Create one or explore events to join!
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <CreateEventButton 
-                  onEventCreated={onEventCreated} 
-                  centered={true}
-                />
+              <div className="flex justify-center">
                 <Button 
                   variant="outline" 
                   onClick={goToDiscover}
