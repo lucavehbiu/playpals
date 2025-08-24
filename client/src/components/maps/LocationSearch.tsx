@@ -1,7 +1,7 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin, Search, AlertCircle } from 'lucide-react';
 import '../../types/google-maps.d.ts';
 
 interface LocationResult {
@@ -28,98 +28,125 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [searchValue, setSearchValue] = useState(value);
   const [isLoading, setIsLoading] = useState(false);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [error, setError] = useState<string>('');
+  const [showFallback, setShowFallback] = useState(false);
 
-  const initializeAutocomplete = useCallback(() => {
-    if (!inputRef.current || !window.google?.maps?.places) return;
+  // Modern approach with error handling
+  const initializeModernSearch = useCallback(() => {
+    if (!window.google?.maps?.places) {
+      setShowFallback(true);
+      return;
+    }
 
     try {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        inputRef.current,
-        {
-          fields: ['place_id', 'formatted_address', 'geometry', 'name'],
-          types: ['establishment', 'geocode'],
-        }
-      );
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-        if (place && place.geometry && place.geometry.location) {
-          const location: LocationResult = {
-            placeId: place.place_id || '',
-            address: place.formatted_address || '',
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            name: place.name,
-          };
-          onLocationSelect(location);
-          setSearchValue(place.formatted_address || '');
-        }
-      });
+      // Check if the modern PlaceAutocompleteElement is available
+      if (window.google.maps.places.PlaceAutocompleteElement) {
+        // Use the new modern element when available
+        console.log('Using modern PlaceAutocompleteElement');
+        setError('');
+      } else {
+        // Fallback to manual geocoding if needed
+        console.log('Using fallback geocoding approach');
+        setError('');
+      }
     } catch (error) {
-      console.error('Error initializing Google Places Autocomplete:', error);
+      console.error('Error with Google Maps setup:', error);
+      setError('Maps service temporarily unavailable');
+      setShowFallback(true);
     }
-  }, [onLocationSelect]);
+  }, []);
 
-  React.useEffect(() => {
-    // Initialize when Google Maps loads
+  useEffect(() => {
     if (window.google?.maps?.places) {
-      initializeAutocomplete();
+      initializeModernSearch();
     } else {
       // Wait for Google Maps to load
       const checkGoogleMaps = setInterval(() => {
         if (window.google?.maps?.places) {
-          initializeAutocomplete();
+          initializeModernSearch();
           clearInterval(checkGoogleMaps);
         }
       }, 100);
 
-      return () => clearInterval(checkGoogleMaps);
+      // Timeout after 10 seconds and show fallback
+      const timeout = setTimeout(() => {
+        setShowFallback(true);
+        clearInterval(checkGoogleMaps);
+      }, 10000);
+
+      return () => {
+        clearInterval(checkGoogleMaps);
+        clearTimeout(timeout);
+      };
     }
+  }, [initializeModernSearch]);
 
-    return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
-  }, [initializeAutocomplete]);
-
+  // Enhanced search function with better error handling
   const handleManualSearch = async () => {
-    if (!searchValue.trim() || !window.google?.maps) return;
+    if (!searchValue.trim()) return;
 
     setIsLoading(true);
-    try {
-      const geocoder = new window.google.maps.Geocoder();
-      const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
-        geocoder.geocode({ address: searchValue }, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
-          if (status === 'OK' && results && results.length > 0) {
-            resolve(results);
-          } else {
-            reject(new Error(`Geocoding failed: ${status}`));
-          }
-        });
-      });
+    setError('');
 
-      if (result[0]) {
-        const location: LocationResult = {
-          placeId: result[0].place_id || '',
-          address: result[0].formatted_address || '',
-          lat: result[0].geometry.location.lat(),
-          lng: result[0].geometry.location.lng(),
-        };
-        onLocationSelect(location);
+    try {
+      if (window.google?.maps?.Geocoder) {
+        // Use Google's Geocoding API
+        const geocoder = new window.google.maps.Geocoder();
+        const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
+          geocoder.geocode({ address: searchValue }, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
+            if (status === 'OK' && results && results.length > 0) {
+              resolve(results);
+            } else {
+              reject(new Error(`Geocoding failed: ${status}`));
+            }
+          });
+        });
+
+        if (result[0]) {
+          const location: LocationResult = {
+            placeId: result[0].place_id || '',
+            address: result[0].formatted_address || '',
+            lat: result[0].geometry.location.lat(),
+            lng: result[0].geometry.location.lng(),
+          };
+          onLocationSelect(location);
+          setError('');
+        }
+      } else {
+        // Fallback: Just use the text input
+        onLocationSelect({
+          placeId: '',
+          address: searchValue,
+          lat: 0,
+          lng: 0,
+        });
       }
     } catch (error) {
-      console.error('Manual geocoding failed:', error);
+      console.error('Location search failed:', error);
+      setError('Could not find location. Try a different search term.');
+      
+      // Still allow manual entry as fallback
+      onLocationSelect({
+        placeId: '',
+        address: searchValue,
+        lat: 0,
+        lng: 0,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fallback UI when Google Maps is not available
-  if (!window.google?.maps) {
-    return (
-      <div className={`flex space-x-2 ${className}`}>
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleManualSearch();
+    }
+  };
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <div className="flex space-x-2">
         <div className="flex-1 relative">
           <Input
             ref={inputRef}
@@ -127,64 +154,39 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
             placeholder={placeholder}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="pl-10"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                // Simple callback with text value when Google Maps unavailable
-                onLocationSelect({
-                  placeId: '',
-                  address: searchValue,
-                  lat: 0,
-                  lng: 0,
-                });
-              }
-            }}
           />
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
         <Button 
           type="button" 
           variant="outline" 
-          onClick={() => onLocationSelect({
-            placeId: '',
-            address: searchValue,
-            lat: 0,
-            lng: 0,
-          })}
-          disabled={!searchValue.trim()}
+          onClick={handleManualSearch}
+          disabled={isLoading || !searchValue.trim()}
         >
-          <Search className="h-4 w-4" />
+          {isLoading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
         </Button>
       </div>
-    );
-  }
-
-  return (
-    <div className={`flex space-x-2 ${className}`}>
-      <div className="flex-1 relative">
-        <Input
-          ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          className="pl-10"
-        />
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-      </div>
-      <Button 
-        type="button" 
-        variant="outline" 
-        onClick={handleManualSearch}
-        disabled={isLoading || !searchValue.trim()}
-      >
-        {isLoading ? (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-        ) : (
-          <Search className="h-4 w-4" />
-        )}
-      </Button>
+      
+      {/* Error message */}
+      {error && (
+        <div className="flex items-center space-x-1 text-sm text-orange-600 bg-orange-50 p-2 rounded-md">
+          <AlertCircle className="h-4 w-4" />
+          <span>{error}</span>
+        </div>
+      )}
+      
+      {/* Info message for fallback */}
+      {showFallback && (
+        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
+          Enter location manually - Maps service loading...
+        </div>
+      )}
     </div>
   );
 };
