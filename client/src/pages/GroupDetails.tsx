@@ -17,6 +17,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { PollsTab } from "@/components/groups/PollsTab";
 import { ScoreboardTab } from "@/components/groups/ScoreboardTab";
+import CreateEventModal from "@/components/event/CreateEventModal";
 import type { SportsGroup, SportsGroupMember, User } from "@/lib/types";
 
 interface GroupMessage {
@@ -42,6 +43,7 @@ export default function GroupDetails() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearchQuery, setInviteSearchQuery] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   const groupId = parseInt(id || "0");
 
@@ -604,9 +606,7 @@ export default function GroupDetails() {
                   Group Events
                 </div>
                 <Button 
-                  onClick={() => {
-                    window.location.href = `/events/create?groupId=${groupId}`;
-                  }}
+                  onClick={() => setIsEventModalOpen(true)}
                   size="sm"
                 >
                   Create Event
@@ -767,6 +767,13 @@ export default function GroupDetails() {
           </Card>
         )}
       </div>
+      
+      {/* Create Event Modal */}
+      <CreateEventModal 
+        isOpen={isEventModalOpen} 
+        onClose={() => setIsEventModalOpen(false)} 
+        onEventCreated={() => setIsEventModalOpen(false)} 
+      />
     </div>
   );
 }

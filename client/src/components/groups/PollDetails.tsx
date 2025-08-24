@@ -237,6 +237,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     });
 
     // Navigate to create event page with pre-filled data
+    // TODO: Open CreateEventModal with params instead of direct navigation
+    console.log('Create event from poll suggestion - params:', params.toString());
     window.location.href = `/events/create?${params.toString()}`;
   };
 

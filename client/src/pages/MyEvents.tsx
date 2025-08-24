@@ -260,8 +260,8 @@ const MyEvents = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  // Default to the past tab to show off the new features
-  const [activeTab, setActiveTab] = useState("past");
+  // Default to the upcoming tab as the primary view  
+  const [activeTab, setActiveTab] = useState("upcoming");
   
   // Get events created by the user
   const { data: myEvents, isLoading, error, refetch } = useQuery<Event[]>({

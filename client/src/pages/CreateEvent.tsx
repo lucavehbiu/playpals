@@ -352,7 +352,6 @@ const CreateEvent = () => {
                 placeholder="e.g., Central Park Basketball Court"
                 value={formData.location}
                 onLocationSelect={(location) => {
-                  console.log('Location selected:', location);
                   updateFormData('location', location.address);
                   updateFormData('locationLatitude', location.lat);
                   updateFormData('locationLongitude', location.lng);
@@ -377,17 +376,6 @@ const CreateEvent = () => {
               </div>
             )}
             
-            {/* Debug info */}
-            {formData.location && (
-              <div className="text-xs text-gray-500 mt-2">
-                📍 {formData.location}
-                {formData.locationLatitude !== 0 && formData.locationLongitude !== 0 && (
-                  <span className="ml-2 text-green-600">
-                    ({formData.locationLatitude.toFixed(4)}, {formData.locationLongitude.toFixed(4)})
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         );
         
