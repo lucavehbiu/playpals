@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { PlusIcon } from "lucide-react";
-import CreateEventModal from "./CreateEventModal";
+import { useLocation } from "wouter";
 
 interface CreateEventButtonProps {
   onEventCreated?: () => void;
@@ -13,14 +12,10 @@ const CreateEventButton = ({
   centered = false,
   fullWidth = false 
 }: CreateEventButtonProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-  
-  const handleEventCreated = () => {
-    closeModal();
-    if (onEventCreated) onEventCreated();
+  const handleClick = () => {
+    setLocation("/events/create");
   };
 
   // Build the button classes based on props
@@ -31,22 +26,14 @@ const CreateEventButton = ({
   ].filter(Boolean).join(" ");
   
   return (
-    <>
-      <button
-        type="button"
-        onClick={openModal}
-        className={buttonClasses}
-      >
-        <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-        Create Event
-      </button>
-
-      <CreateEventModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        onEventCreated={handleEventCreated} 
-      />
-    </>
+    <button
+      type="button"
+      onClick={handleClick}
+      className={buttonClasses}
+    >
+      <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+      Create Event
+    </button>
   );
 };
 

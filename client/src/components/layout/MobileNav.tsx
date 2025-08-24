@@ -24,7 +24,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import CreateEventModal from "@/components/event/CreateEventModal";
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
@@ -33,7 +32,6 @@ const MobileNav = () => {
   const { getTotalNotificationCount } = useGroupNotifications();
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
   
   // Close menu when clicking outside
@@ -112,7 +110,7 @@ const MobileNav = () => {
                   <button
                     onClick={() => {
                       setIsCreateMenuOpen(false);
-                      setIsEventModalOpen(true);
+                      setLocation("/events/create");
                     }}
                     className="w-full flex items-center text-gray-700 font-medium text-sm p-2 hover:bg-gray-50 rounded-lg"
                   >
@@ -201,7 +199,7 @@ const MobileNav = () => {
                   className="rounded-full border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/30"
                   onClick={() => {
                     setIsPostModalOpen(false);
-                    setIsEventModalOpen(true);
+                    setLocation("/events/create");
                   }}
                 >
                   <CalendarIcon className="w-4 h-4 mr-1" />
@@ -218,13 +216,6 @@ const MobileNav = () => {
           </div>
         </DialogContent>
       </Dialog>
-      
-      {/* Create Event Modal */}
-      <CreateEventModal 
-        isOpen={isEventModalOpen} 
-        onClose={() => setIsEventModalOpen(false)} 
-        onEventCreated={() => setIsEventModalOpen(false)} 
-      />
     </>
   );
 };
