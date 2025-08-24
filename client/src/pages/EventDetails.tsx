@@ -10,7 +10,7 @@ import { MakePublicModal } from "@/components/event/MakePublicModal";
 import { SubmitScoreModal } from "@/components/groups/SubmitScoreModal";
 import { EditScoreModal } from "@/components/groups/EditScoreModal";
 import EventMap from "@/components/maps/EventMap";
-import GoogleMapsWrapper from "@/components/maps/GoogleMapsWrapper";
+import { GoogleMapsWrapper } from "@/components/maps/GoogleMapsWrapper";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -182,7 +182,7 @@ const EventDetails = () => {
       console.log("Event image:", eventData.eventImage);
       
       // Automatically fetch group info for this event
-      fetchGroupInfo(eventData);
+      fetchGroupInfo();
     }
   }, [eventData]);
   
@@ -811,7 +811,39 @@ const EventDetails = () => {
           </div>
         )}
         
-
+        {/* Location Map Section */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <MapPinIcon className="h-5 w-5 text-primary mr-2" />
+            Event Location
+          </h3>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <GoogleMapsWrapper>
+              <EventMap
+                latitude={eventData.locationCoordinates?.lat}
+                longitude={eventData.locationCoordinates?.lng}
+                address={eventData.location}
+                showMarker={true}
+                height="300px"
+              />
+            </GoogleMapsWrapper>
+            
+            {/* Location Details */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50">
+              <div className="flex items-start space-x-3">
+                <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-gray-900">{eventData.location}</p>
+                  {eventData.locationCoordinates?.lat && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Coordinates: {eventData.locationCoordinates.lat}, {eventData.locationCoordinates.lng}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         
         {/* Invite Friends Modal */}
@@ -891,7 +923,7 @@ const EventDetails = () => {
               <Separator />
               
               {/* Location Section with Google Maps */}
-              {eventData.locationLatitude && eventData.locationLongitude && (
+              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && (
                 <div>
                   <h3 className="text-xl font-semibold mb-3">Location</h3>
                   <div className="bg-gray-50 p-4 rounded-xl">
@@ -905,10 +937,11 @@ const EventDetails = () => {
                     <div className="rounded-lg overflow-hidden">
                       <GoogleMapsWrapper>
                         <EventMap
-                          latitude={parseFloat(eventData.locationLatitude)}
-                          longitude={parseFloat(eventData.locationLongitude)}
-                          title={eventData.title}
+                          latitude={eventData.locationCoordinates.lat}
+                          longitude={eventData.locationCoordinates.lng}
                           address={eventData.location}
+                          showMarker={true}
+                          height="300px"
                         />
                       </GoogleMapsWrapper>
                     </div>
@@ -916,7 +949,7 @@ const EventDetails = () => {
                 </div>
               )}
               
-              {eventData.locationLatitude && eventData.locationLongitude && <Separator />}
+              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && <Separator />}
               
               <div>
                 <h3 className="text-xl font-semibold mb-3">Organizer</h3>
