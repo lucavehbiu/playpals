@@ -320,7 +320,9 @@ const Teams = () => {
                   <SelectItem key={sport} value={sport}>
                     <div className="flex flex-col">
                       <span>{sport.charAt(0).toUpperCase() + sport.slice(1)}</span>
-                      <span className="text-xs text-gray-500">{sportCounts[sport] || 0} teams</span>
+                      {(sportCounts[sport] || 0) > 0 && (
+                        <span className="text-xs text-gray-500">{sportCounts[sport]} teams</span>
+                      )}
                     </div>
                   </SelectItem>
                 ))}
