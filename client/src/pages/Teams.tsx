@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { teamMemberRoles, sportTypes, InsertTeam, InsertTeamMember } from "@shared/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -62,9 +62,11 @@ const Teams = () => {
   }, [location]);
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [userSearchQuery, setUserSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [teamSearchQuery, setTeamSearchQuery] = useState("");
+  const [selectedSport, setSelectedSport] = useState<string>("all");
   
   // Form for creating a team
   const teamForm = useForm<TeamFormValues>({
@@ -87,7 +89,7 @@ const Teams = () => {
   });
   
   // Query to fetch teams - both user's teams and all public teams
-  const { data: teams = [], isLoading: isTeamsLoading, error: teamsError } = useQuery({
+  const { data: allTeams = [], isLoading: isTeamsLoading, error: teamsError } = useQuery({
     queryKey: ['/api/teams'],
     queryFn: async () => {
       if (!user) return [];
@@ -97,6 +99,27 @@ const Teams = () => {
     },
     enabled: !!user,
   });
+  
+  // Apply filters to teams
+  const teams = useMemo(() => {
+    let filteredTeams = allTeams;
+    
+    // Filter by sport type
+    if (selectedSport && selectedSport !== "all") {
+      filteredTeams = filteredTeams.filter((team: any) => team.sportType === selectedSport);
+    }
+    
+    // Filter by search query
+    if (teamSearchQuery) {
+      const searchLower = teamSearchQuery.toLowerCase();
+      filteredTeams = filteredTeams.filter((team: any) => 
+        team.name.toLowerCase().includes(searchLower) ||
+        (team.description && team.description.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    return filteredTeams;
+  }, [allTeams, selectedSport, teamSearchQuery]);
   
   // Mutation to create a team
   const createTeamMutation = useMutation({
@@ -126,11 +149,11 @@ const Teams = () => {
   const { data: teamMembersMap = {} } = useQuery({
     queryKey: ['/api/teams/members'],
     queryFn: async () => {
-      if (!teams.length) return {};
+      if (!allTeams.length) return {};
       
       const membersMap: Record<number, any[]> = {};
       
-      for (const team of teams) {
+      for (const team of allTeams) {
         try {
           const result = await fetch(`/api/teams/${team.id}/members`);
           if (result.ok) {
@@ -144,7 +167,7 @@ const Teams = () => {
       
       return membersMap;
     },
-    enabled: teams.length > 0,
+    enabled: allTeams.length > 0,
   });
   
   // Search for users
@@ -239,9 +262,32 @@ const Teams = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <div>
+        <div className="mb-4">
           <h1 className="text-2xl font-bold">Teams</h1>
           <p className="text-gray-500">Discover and manage sports teams</p>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <Input
+            placeholder="Search teams..."
+            value={teamSearchQuery}
+            onChange={(e) => setTeamSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+          <Select value={selectedSport} onValueChange={setSelectedSport}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter by sport" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sports</SelectItem>
+              {sportTypes.map((sport) => (
+                <SelectItem key={sport} value={sport}>
+                  {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
           <DialogContent className="sm:max-w-[425px]">
@@ -425,7 +471,7 @@ const Teams = () => {
                         setSelectedTeam(team.id);
                         // Reset form and search results
                         memberForm.reset();
-                        setSearchQuery('');
+                        setUserSearchQuery('');
                         setSearchResults([]);
                         setSelectedUser(null);
                       } else {
@@ -455,13 +501,13 @@ const Teams = () => {
                                 <Input 
                                   id="searchUser" 
                                   placeholder="Enter username" 
-                                  value={searchQuery}
-                                  onChange={(e) => setSearchQuery(e.target.value)}
+                                  value={userSearchQuery}
+                                  onChange={(e) => setUserSearchQuery(e.target.value)}
                                 />
                                 <Button 
                                   type="button" 
                                   variant="secondary" 
-                                  onClick={() => searchUsers(searchQuery)}
+                                  onClick={() => searchUsers(userSearchQuery)}
                                 >
                                   Search
                                 </Button>
@@ -494,7 +540,7 @@ const Teams = () => {
                                 </div>
                               )}
                               
-                              {searchQuery.length > 0 && searchResults.length === 0 && (
+                              {userSearchQuery.length > 0 && searchResults.length === 0 && (
                                 <div className="text-sm text-gray-500">
                                   No users found. Try a different search term.
                                 </div>
