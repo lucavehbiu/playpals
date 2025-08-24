@@ -5,8 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { sportTypes, type Tournament } from "@shared/schema";
 import { format, parseISO, isAfter, isSameDay } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Map, Calendar, Filter, X, Search, Trophy, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sparkles, Map, Calendar, Filter, X, Search, Trophy, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,6 @@ const Discover = () => {
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   const [contentType, setContentType] = useState<string>("all"); // "all", "events", "tournaments"
   const [locationRange, setLocationRange] = useState<number>(10); // km range
-  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(false); // Mobile filter collapse state
   
   // Get all discoverable events for this user
   const { data: events, isLoading: eventsLoading, error: eventsError } = useQuery<Event[]>({
@@ -259,27 +258,10 @@ const Discover = () => {
         
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-              <Filter className="w-5 h-5 mr-2 text-primary" />
-              Find Your Perfect Match
-            </h2>
-            
-            {/* Mobile Toggle Button */}
-            <motion.button
-              className="md:hidden ml-3 flex items-center text-sm font-medium text-gray-600 hover:text-primary transition-colors py-1 px-2 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
-              onClick={() => setFiltersExpanded(!filtersExpanded)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="mr-1">Filters</span>
-              {filtersExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </motion.button>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+            <Filter className="w-5 h-5 mr-2 text-primary" />
+            Find Your Perfect Match
+          </h2>
           
           {/* Reset Button */}
           {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
@@ -302,432 +284,106 @@ const Discover = () => {
           )}
         </div>
         
-        {/* Desktop Filters - Always Visible */}
-        <div className="hidden md:block">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Content Type Filter */}
-            <div className="relative">
-              <div className="flex items-center mb-1.5">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                  <Filter className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <label htmlFor="type-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Content Type
-                </label>
+        {/* Filters Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Content Type Filter */}
+          <div className="relative">
+            <div className="flex items-center mb-1.5">
+              <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
+                <Filter className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="relative">
-                <select
-                  id="type-filter"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                  value={contentType}
-                  onChange={(e) => setContentType(e.target.value)}
-                >
-                  <option value="all">All</option>
-                  <option value="events">Events Only</option>
-                  <option value="tournaments">Tournaments Only</option>
-                </select>
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Filter className="h-4 w-4" />
-                </div>
+              <label htmlFor="type-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Content Type
+              </label>
+            </div>
+            <div className="relative">
+              <select
+                id="type-filter"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="events">Events Only</option>
+                <option value="tournaments">Tournaments Only</option>
+              </select>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <Filter className="h-4 w-4" />
               </div>
             </div>
-            
-            {/* Sport Filter */}
-            <div className="relative">
-              <div className="flex items-center mb-1.5">
-                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                </div>
-                <label htmlFor="sport-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Sport/Activity
-                </label>
+          </div>
+          {/* Sport Filter */}
+          <div className="relative">
+            <div className="flex items-center mb-1.5">
+              <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
               </div>
-              <div className="relative">
-                <select
-                  id="sport-filter"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                  value={selectedSport}
-                  onChange={(e) => setSelectedSport(e.target.value)}
-                >
-                  <option value="all">All Sports</option>
-                  {sportTypes.map(sport => (
-                    <option key={sport} value={sport}>
-                      {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </div>
+              <label htmlFor="sport-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Sport/Activity
+              </label>
+            </div>
+            <div className="relative">
+              <select
+                id="sport-filter"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                value={selectedSport}
+                onChange={(e) => setSelectedSport(e.target.value)}
+              >
+                <option value="all">All Sports</option>
+                {sportTypes.map(sport => (
+                  <option key={sport} value={sport}>
+                    {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
-            
-            {/* Location Filter */}
-            <div className="relative">
-              <div className="flex items-center mb-1.5">
-                <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-2">
-                  <Map className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                </div>
-                <label htmlFor="location-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Location
-                </label>
+          </div>
+          
+          {/* Location Filter with Range */}
+          <div className="relative">
+            <div className="flex items-center mb-1.5">
+              <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-2">
+                <Map className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
               </div>
-              <div className="space-y-2">
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="location-filter"
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                    placeholder="City, venue, area..."
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                  />
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <Search className="h-4 w-4" />
-                  </div>
-                  {locationFilter && (
-                    <button 
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      onClick={() => setLocationFilter("")}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                
-                {locationFilter && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <MapPin className="h-3 w-3" />
-                    <span>Within {locationRange} km</span>
-                    <input
-                      type="range"
-                      min="1"
-                      max="50"
-                      value={locationRange}
-                      onChange={(e) => setLocationRange(parseInt(e.target.value))}
-                      className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <span className="font-medium">{locationRange}km</span>
-                  </div>
-                )}
-              </div>
+              <label htmlFor="location-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Location
+              </label>
             </div>
-            
-            {/* Date Filter */}
-            <div className="relative">
-              <div className="flex items-center mb-1.5">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                  <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <label htmlFor="date-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Date (From)
-                </label>
-              </div>
+            <div className="space-y-2">
               <div className="relative">
                 <input
-                  type="date"
-                  id="date-filter"
+                  type="text"
+                  id="location-filter"
                   className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
+                  placeholder="City, venue, area..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                 />
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Calendar className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </div>
-                {dateFilter && (
+                {locationFilter && (
                   <button 
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setDateFilter("")}
+                    onClick={() => setLocationFilter("")}
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
-            </div>
-          </div>
-          
-          {/* Desktop Checkbox Filters */}
-          <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Preferences:</span>
-            
-            {/* Free Only */}
-            <motion.div 
-              className="flex items-center"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="relative h-5 w-5">
-                <input
-                  id="free-only"
-                  type="checkbox"
-                  className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                  checked={showFreeOnly}
-                  onChange={(e) => setShowFreeOnly(e.target.checked)}
-                />
-                <div className={`pointer-events-none h-5 w-5 rounded border ${showFreeOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
-                {showFreeOnly && (
-                  <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <label htmlFor="free-only" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-                Free events only
-              </label>
-            </motion.div>
-            
-            {/* Public Only */}
-            <motion.div 
-              className="flex items-center"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="relative h-5 w-5">
-                <input
-                  id="public-only"
-                  type="checkbox"
-                  className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                  checked={showPublicOnly}
-                  onChange={(e) => setShowPublicOnly(e.target.checked)}
-                />
-                <div className={`pointer-events-none h-5 w-5 rounded border ${showPublicOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
-                {showPublicOnly && (
-                  <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <label htmlFor="public-only" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-                Public events only
-              </label>
-            </motion.div>
-          </div>
-        </div>
-        
-        {/* Mobile Filters - Collapsible */}
-        <div className="md:hidden">
-          <AnimatePresence>
-            {filtersExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-1 gap-4 mt-4">
-                  {/* Content Type Filter - Mobile */}
-                  <div className="relative">
-                    <div className="flex items-center mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                        <Filter className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <label htmlFor="type-filter-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Content Type
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <select
-                        id="type-filter-mobile"
-                        className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                        value={contentType}
-                        onChange={(e) => setContentType(e.target.value)}
-                      >
-                        <option value="all">All</option>
-                        <option value="events">Events Only</option>
-                        <option value="tournaments">Tournaments Only</option>
-                      </select>
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                        <Filter className="h-4 w-4" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Sport Filter - Mobile */}
-                  <div className="relative">
-                    <div className="flex items-center mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                      </div>
-                      <label htmlFor="sport-filter-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Sport/Activity
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <select
-                        id="sport-filter-mobile"
-                        className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                        value={selectedSport}
-                        onChange={(e) => setSelectedSport(e.target.value)}
-                      >
-                        <option value="all">All Sports</option>
-                        {sportTypes.map(sport => (
-                          <option key={sport} value={sport}>
-                            {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Location Filter - Mobile */}
-                  <div className="relative">
-                    <div className="flex items-center mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-2">
-                        <Map className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <label htmlFor="location-filter-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Location
-                      </label>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="location-filter-mobile"
-                          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                          placeholder="City, venue, area..."
-                          value={locationFilter}
-                          onChange={(e) => setLocationFilter(e.target.value)}
-                        />
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                          <Search className="h-4 w-4" />
-                        </div>
-                        {locationFilter && (
-                          <button 
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            onClick={() => setLocationFilter("")}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                      
-                      {locationFilter && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <MapPin className="h-3 w-3" />
-                          <span>Within {locationRange} km</span>
-                          <input
-                            type="range"
-                            min="1"
-                            max="50"
-                            value={locationRange}
-                            onChange={(e) => setLocationRange(parseInt(e.target.value))}
-                            className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                          />
-                          <span className="font-medium">{locationRange}km</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Date Filter - Mobile */}
-                  <div className="relative">
-                    <div className="flex items-center mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                        <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <label htmlFor="date-filter-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Date (From)
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        id="date-filter-mobile"
-                        className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                        value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
-                      />
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                        <Calendar className="h-4 w-4" />
-                      </div>
-                      {dateFilter && (
-                        <button 
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          onClick={() => setDateFilter("")}
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Mobile Checkbox Filters */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Preferences:</span>
-                  
-                  {/* Free Only - Mobile */}
-                  <motion.div 
-                    className="flex items-center"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="relative h-5 w-5">
-                      <input
-                        id="free-only-mobile"
-                        type="checkbox"
-                        className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                        checked={showFreeOnly}
-                        onChange={(e) => setShowFreeOnly(e.target.checked)}
-                      />
-                      <div className={`pointer-events-none h-5 w-5 rounded border ${showFreeOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
-                      {showFreeOnly && (
-                        <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <label htmlFor="free-only-mobile" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Free events only
-                    </label>
-                  </motion.div>
-                  
-                  {/* Public Only - Mobile */}
-                  <motion.div 
-                    className="flex items-center"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="relative h-5 w-5">
-                      <input
-                        id="public-only-mobile"
-                        type="checkbox"
-                        className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                        checked={showPublicOnly}
-                        onChange={(e) => setShowPublicOnly(e.target.checked)}
-                      />
-                      <div className={`pointer-events-none h-5 w-5 rounded border ${showPublicOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
-                      {showPublicOnly && (
-                        <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <label htmlFor="public-only-mobile" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Public events only
-                    </label>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-      
-      {isLoading ? (
+              
+              {locationFilter && (
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <MapPin className="h-3 w-3" />
+                  <span>Within {locationRange} km</span>
+                  <input
                     type="range"
                     min="1"
                     max="50"
@@ -774,10 +430,8 @@ const Discover = () => {
           </div>
         </div>
         
-              </div>
-              
-              {/* Checkbox Filters */}
-              <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+        {/* Checkbox Filters */}
+        <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Preferences:</span>
           
           {/* Free Only */}
@@ -831,10 +485,7 @@ const Discover = () => {
               Public events only
             </label>
           </motion.div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </div>
       </motion.div>
       
       {isLoading ? (

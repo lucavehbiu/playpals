@@ -373,8 +373,8 @@ const Header = () => {
                 </Link>
               </div>
               <div className="w-[85px]">
-                <Link href="/discover">
-                  <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location === '/discover' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
+                <Link href="/myevents">
+                  <div className={`px-6 py-2 rounded-md text-center cursor-pointer ${location.startsWith('/myevents') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}>
                     <Calendar className="h-6 w-6 mx-auto" />
                     <span className="text-xs font-medium mt-1 block">Events</span>
                   </div>

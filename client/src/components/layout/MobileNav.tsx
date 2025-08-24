@@ -64,10 +64,10 @@ const MobileNav = () => {
         />
         
         <NavItem 
-          href="/discover" 
+          href="/myevents" 
           icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
           label="Events" 
-          isActive={location === '/discover'} 
+          isActive={location.startsWith('/myevents')} 
         />
         
         {/* Create Button */}
