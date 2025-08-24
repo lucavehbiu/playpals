@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Check, User, Phone, Trophy, Star } from "lucide-react";
+import { Check, User, Phone, Trophy, Star, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import { ProfileBasicInfo } from "@/components/profile/ProfileBasicInfo";
 import { PhoneVerification } from "@/components/profile/PhoneVerification";
 import { SportSkillLevels } from "@/components/profile/SportSkillLevels";
 import { ProfessionalTeamHistory } from "@/components/profile/ProfessionalTeamHistory";
+import { calculateProfileCompletion } from "@/lib/profile-completion";
 
 interface ProfileSection {
   id: string;
@@ -31,9 +33,30 @@ export default function ProfileCompletion() {
   };
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [completionLevel, setCompletionLevel] = useState(0);
-  const [sportSkillsCompleted, setSportSkillsCompleted] = useState(false);
-  const [teamHistoryCompleted, setTeamHistoryCompleted] = useState(false);
+
+  // Fetch data needed for profile completion calculation
+  const { data: sportSkillLevels = [] } = useQuery({
+    queryKey: [`/api/users/${user?.id}/sport-skill-levels`],
+    enabled: !!user
+  });
+
+  const { data: professionalTeamHistory = [] } = useQuery({
+    queryKey: [`/api/users/${user?.id}/professional-team-history`],
+    enabled: !!user
+  });
+
+  const { data: onboardingPreferences = null } = useQuery({
+    queryKey: [`/api/onboarding-preferences/${user?.id}`],
+    enabled: !!user
+  });
+
+  // Use unified profile completion calculation
+  const profileCompletion = calculateProfileCompletion({
+    user,
+    sportSkillLevels,
+    professionalTeamHistory,
+    onboardingPreferences
+  });
 
   // Check for URL hash to auto-open specific section
   useEffect(() => {
@@ -50,65 +73,14 @@ export default function ProfileCompletion() {
     }
   }, []);
 
-  // Calculate profile completion based on user data
+  // Update backend profile completion level when it changes
   useEffect(() => {
-    if (!user) return;
-    checkCompletionStatus();
-  }, [user]);
-
-  const checkCompletionStatus = async () => {
-    if (!user) return;
-
-    try {
-      // Check sport skill levels
-      const sportSkillsResponse = await fetch(`/api/users/${user.id}/sport-skill-levels`, {
-        credentials: 'include'
-      });
-      const sportSkillsData = sportSkillsResponse.ok ? await sportSkillsResponse.json() : [];
-
-      setSportSkillsCompleted(sportSkillsData.length > 0);
-
-      // Check professional team history
-      const teamHistoryResponse = await fetch(`/api/users/${user.id}/professional-team-history`, {
-        credentials: 'include'
-      });
-      const teamHistoryData = teamHistoryResponse.ok ? await teamHistoryResponse.json() : [];
-      setTeamHistoryCompleted(teamHistoryData.length > 0 || user.hasNoProfessionalExperience);
-
-      // Calculate completion
-      let completedSections = 0;
-      const totalSections = 4;
-
-      // Basic info - More relaxed requirements  
-      let basicInfoComplete = false;
-      if (user.name && user.name.trim() !== '') {
-        // If user has name and either bio or location, consider basic info complete
-        if ((user.bio && user.bio.trim() !== '') || (user.location && user.location.trim() !== '')) {
-          basicInfoComplete = true;
-        }
-      }
-      if (basicInfoComplete) completedSections++;
-      
-      // Phone verification - Check if phone number exists and is verified
-      if (user.isPhoneVerified || (user.phoneNumber && user.phoneNumber.trim() !== '')) completedSections++;
-
-      // Sport skill levels
-      if (sportSkillsData.length > 0) completedSections++;
-      
-      // Professional team history - completed if has entries OR user marked "no professional experience"
-      if (teamHistoryData.length > 0 || user.hasNoProfessionalExperience) completedSections++;
-
-      const percentage = Math.round((completedSections / totalSections) * 100);
-      setCompletionLevel(percentage);
-
-      // Update backend if changed
-      if (user.profileCompletionLevel !== percentage) {
-        updateProfileCompletion(percentage);
-      }
-    } catch (error) {
-      console.error('Error checking completion status:', error);
+    if (!user || !profileCompletion) return;
+    
+    if (user.profileCompletionLevel !== profileCompletion.completionPercentage) {
+      updateProfileCompletion(profileCompletion.completionPercentage);
     }
-  };
+  }, [user, profileCompletion]);
 
   const updateProfileCompletion = async (level: number) => {
     if (!user) return;
@@ -127,7 +99,7 @@ export default function ProfileCompletion() {
       title: 'Complete Basic Info',
       description: 'Add your name, bio, and location to help others find you',
       icon: User,
-      completed: !!(user?.name && ((user?.bio && user?.bio.trim() !== '') || (user?.location && user?.location.trim() !== ''))),
+      completed: profileCompletion.completedSections.includes('basic-info'),
       component: ProfileBasicInfo
     },
     {
@@ -135,7 +107,7 @@ export default function ProfileCompletion() {
       title: 'Verify Phone Number',
       description: 'Add and verify your phone number for enhanced security',
       icon: Phone,
-      completed: !!(user?.isPhoneVerified || (user?.phoneNumber && user?.phoneNumber.trim() !== '')),
+      completed: profileCompletion.completedSections.includes('phone-verification'),
       component: PhoneVerification
     },
     {
@@ -143,7 +115,7 @@ export default function ProfileCompletion() {
       title: 'Add Sport Skill Levels',
       description: 'Share your experience level in different sports',
       icon: Star,
-      completed: sportSkillsCompleted,
+      completed: profileCompletion.completedSections.includes('sport-skills'),
       component: SportSkillLevels
     },
     {
@@ -151,8 +123,23 @@ export default function ProfileCompletion() {
       title: 'Professional Team History',
       description: 'Add your professional, college, or youth team experience',
       icon: Trophy,
-      completed: teamHistoryCompleted || !!(user?.hasNoProfessionalExperience),
+      completed: profileCompletion.completedSections.includes('team-history'),
       component: ProfessionalTeamHistory
+    },
+    {
+      id: 'onboarding-preferences',
+      title: 'Sports Preferences',
+      description: 'Complete your sports onboarding to help us match you better',
+      icon: Settings,
+      completed: profileCompletion.completedSections.includes('onboarding-preferences'),
+      component: () => (
+        <div className="p-4 text-center">
+          <p className="mb-4">Complete your sports preferences and onboarding questions.</p>
+          <Link to="/sports-preferences">
+            <Button>Complete Sports Preferences</Button>
+          </Link>
+        </div>
+      )
     }
   ];
 
@@ -175,13 +162,13 @@ export default function ProfileCompletion() {
         <div className="bg-white rounded-lg p-6 border">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Profile Strength</h2>
-            <Badge variant={completionLevel >= 80 ? "default" : completionLevel >= 50 ? "secondary" : "outline"}>
-              {completionLevel >= 80 ? "Strong" : completionLevel >= 50 ? "Good" : "Getting Started"}
+            <Badge variant={profileCompletion.completionPercentage >= 80 ? "default" : profileCompletion.completionPercentage >= 50 ? "secondary" : "outline"}>
+              {profileCompletion.completionPercentage >= 80 ? "Strong" : profileCompletion.completionPercentage >= 50 ? "Good" : "Getting Started"}
             </Badge>
           </div>
           
-          <Progress value={completionLevel} className="mb-2" />
-          <p className="text-sm text-gray-600">{completionLevel}% complete</p>
+          <Progress value={profileCompletion.completionPercentage} className="mb-2" />
+          <p className="text-sm text-gray-600">{profileCompletion.completionPercentage}% complete</p>
         </div>
       </div>
 
