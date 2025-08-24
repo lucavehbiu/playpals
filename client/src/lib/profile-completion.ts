@@ -12,17 +12,18 @@ export interface ProfileCompletionData {
   user: getUserData | null;
   sportSkillLevels: any[];
   professionalTeamHistory: any[];
+  onboardingPreferences: any | null;
 }
 
 export function calculateProfileCompletion(data: ProfileCompletionData): ProfileCompletionStatus {
-  const { user, sportSkillLevels, professionalTeamHistory } = data;
+  const { user, sportSkillLevels, professionalTeamHistory, onboardingPreferences } = data;
   
   if (!user) {
     return {
       completionPercentage: 0,
       isComplete: false,
       completedSections: [],
-      missingSections: ['basic-info', 'phone-verification', 'sport-skills', 'team-history'],
+      missingSections: ['basic-info', 'phone-verification', 'sport-skills', 'team-history', 'onboarding-preferences'],
       showRibbon: false
     };
   }
@@ -43,11 +44,12 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
     professionalTeamHistory: professionalTeamHistory?.length || 0,
     sportSkillLevelsData: sportSkillLevels,
     professionalTeamHistoryData: professionalTeamHistory,
+    onboardingCompleted: onboardingPreferences?.onboardingCompleted || false,
     completedSections: [],
     missingSections: []
   });
 
-  console.log('Expected completion: Basic Info (✓), Sport Skills (' + (sportSkillLevels?.length > 0 ? '✓' : '❌') + '), Team History (' + (user.hasNoProfessionalExperience ? '✓' : '❌') + '), Phone (' + (user.isPhoneVerified ? '✓' : '❌') + ')');
+  console.log('Expected completion: Basic Info (✓), Sport Skills (' + (sportSkillLevels?.length > 0 ? '✓' : '❌') + '), Team History (' + (user.hasNoProfessionalExperience ? '✓' : '❌') + '), Phone (' + (user.isPhoneVerified ? '✓' : '❌') + '), Onboarding (' + (onboardingPreferences?.onboardingCompleted ? '✓' : '❌') + ')');
 
   // Check basic info - user has at least name and bio
   let basicInfoScore = 0;
@@ -83,7 +85,14 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
     missingSections.push('team-history');
   }
 
-  const completionPercentage = Math.round((completedSections.length / 4) * 100);
+  // Check onboarding preferences - user needs to have completed onboarding
+  if (onboardingPreferences && onboardingPreferences.onboardingCompleted) {
+    completedSections.push('onboarding-preferences');
+  } else {
+    missingSections.push('onboarding-preferences');
+  }
+
+  const completionPercentage = Math.round((completedSections.length / 5) * 100);
   const isComplete = completionPercentage === 100;
   const showRibbon = completionPercentage < 100 && completionPercentage > 0;
 

@@ -58,11 +58,17 @@ const Profile = () => {
     enabled: !!authUser
   });
 
+  const { data: onboardingPreferences = null } = useQuery({
+    queryKey: [`/api/onboarding-preferences/${authUser?.id}`],
+    enabled: !!authUser
+  });
+
   // Calculate profile completion after user data is loaded
   const profileCompletion = calculateProfileCompletion({
     user: authUser,
     sportSkillLevels,
-    professionalTeamHistory
+    professionalTeamHistory,
+    onboardingPreferences
   });
   
   // Get events created by the user
@@ -135,7 +141,7 @@ const Profile = () => {
   });
 
   // Get user's onboarding preferences to show all selected sports
-  const { data: onboardingPreferences } = useQuery({
+  const { data: userOnboardingPrefs } = useQuery({
     queryKey: [`/api/onboarding-preferences/${userId}`],
     enabled: !!userId,
   });

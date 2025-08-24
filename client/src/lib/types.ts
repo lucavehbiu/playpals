@@ -22,6 +22,10 @@ export interface getUserData {
   headline: string | null;
   location: string | null;
   cover_image: string | null;
+  phoneNumber: string | null;
+  isPhoneVerified: boolean;
+  hasNoProfessionalExperience: boolean;
+  profileCompletionLevel: number;
 }
 
 export interface PlayerRating {

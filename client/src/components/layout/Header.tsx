@@ -37,12 +37,18 @@ const Header = () => {
     enabled: !!user
   });
 
+  const { data: onboardingPreferences = null, isLoading: onboardingLoading } = useQuery({
+    queryKey: [`/api/onboarding-preferences/${user?.id}`],
+    enabled: !!user
+  });
+
   // Only calculate completion when data is loaded or when no user
-  const profileCompletion = (!user || (!skillsLoading && !historyLoading)) ? 
+  const profileCompletion = (!user || (!skillsLoading && !historyLoading && !onboardingLoading)) ? 
     calculateProfileCompletion({
       user,
       sportSkillLevels,
-      professionalTeamHistory
+      professionalTeamHistory,
+      onboardingPreferences
     }) : {
       completionPercentage: 0,
       isComplete: false,
