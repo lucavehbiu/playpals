@@ -518,7 +518,7 @@ const EventDetails = () => {
         </div>
         
         {/* Key Info Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <CalendarIcon className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Date & Time</p>
@@ -527,12 +527,6 @@ const EventDetails = () => {
           </div>
           
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-            <MapPinIcon className="h-6 w-6 text-primary mb-2" />
-            <p className="text-xs text-gray-500">Location</p>
-            <p className="font-medium text-xs break-words">{eventData.location}</p>
-          </div>
-          
-          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center col-span-2 md:col-span-1">
             <Users className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Participants</p>
             <p className="font-medium text-sm md:text-base">
