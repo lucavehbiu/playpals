@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useState, useEffect } from "react";
-import type { Event } from "@shared/schema";
+import { Event } from "@/lib/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -60,10 +60,6 @@ const EventDetails = () => {
   
   // State for edit score modal
   const [showEditScore, setShowEditScore] = useState(false);
-  
-  // State for image loading
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
   
   // Function to fetch group information for the event
   const fetchGroupInfo = async () => {
@@ -309,27 +305,30 @@ const EventDetails = () => {
     }
   };
   
-  const formatEventTime = (date: Date | string) => {
-    if (!date) return "";
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return format(dateObj, "h:mm a");
+  const formatEventTime = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return format(date, "h:mm a");
   };
   
-  const formatEventDate = (date: Date | string) => {
-    if (!date) return "";
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return format(dateObj, "EEE, MMM d, yyyy");
+  const formatEventDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return format(date, "EEE, MMM d, yyyy");
   };
 
   // Helper function to check if event is completed (past date AND full capacity)
-  const isEventCompleted = (eventDate: Date | string | undefined) => {
+  const isEventCompleted = (eventDate: string | undefined) => {
     if (!eventDate) return false;
-    const dateObj = typeof eventDate === 'string' ? new Date(eventDate) : eventDate;
-    const isPastDate = dateObj < new Date();
+    const isPastDate = new Date(eventDate) < new Date();
     const isFullCapacity = actualParticipantCount >= (eventData?.maxParticipants || 0);
     return isPastDate && isFullCapacity;
   };
   
+  // State for image loading
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   // Create sport-specific image URL
   const getEventImageUrl = (sportType: string | undefined) => {
     return `https://source.unsplash.com/featured/1200x600/?${sportType?.toLowerCase() || 'sport'}`;
@@ -444,9 +443,81 @@ const EventDetails = () => {
       
       {/* Content Container (with padding for fixed header) */}
       <div className="pt-16 mt-2">
+        {/* Hero Section */}
+        <div className="relative rounded-xl overflow-hidden aspect-[1.618/1] md:aspect-[2.618/1] mb-4 bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
+          {/* Image loading state */}
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          )}
+          
+          {/* Error state */}
+          {imageError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className={`rounded-xl h-16 w-16 flex items-center justify-center mb-4 ${getSportBadgeColor(eventData.sportType)}`}>
+                <ImageIcon className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-white font-medium">{eventData.sportType?.charAt(0).toUpperCase() + eventData.sportType?.slice(1) || 'Sport'}</h3>
+            </div>
+          )}
+          
+          {/* Actual image with overlay */}
+          <img 
+            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
+            alt={eventData.title || 'Event'} 
+            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              console.error("Failed to load image for event:", eventData.title);
+            }}
+          />
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          
+          {/* Content overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+            {/* Event badges */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {eventData.sportType && (
+                <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} backdrop-blur-sm backdrop-saturate-150 border border-white/20 text-white px-3 py-1`}>
+                  {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
+                </Badge>
+              )}
+              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
+                {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+                {eventData.isPublic ? "Public" : "Private"}
+              </Badge>
+              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
+                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+              </Badge>
+            </div>
+            
+            {/* Event title */}
+            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{eventData.title || "Event Title"}</h1>
+            
+            {/* Creator info */}
+            <div className="flex items-center">
+              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                {eventData.creator?.profileImage ? (
+                  <AvatarImage src={eventData.creator.profileImage} />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
+                )}
+              </Avatar>
+              <div className="ml-2.5">
+                <p className="text-white font-medium text-sm leading-tight">
+                  {eventData.creator?.name || eventData.creator?.username || "Unknown"}
+                </p>
+                <p className="text-white/70 text-xs">Organizer</p>
+              </div>
+            </div>
+          </div>
+        </div>
         
-        
-        {/* Key Info Cards */
+        {/* Key Info Cards */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <CalendarIcon className="h-6 w-6 text-primary mb-2" />
@@ -465,14 +536,38 @@ const EventDetails = () => {
               <div 
                 className="bg-primary h-1.5 rounded-full" 
                 style={{ 
-                  width: `${Math.min(100, (actualParticipantCount / eventData.maxParticipants) * 100)}%` 
+                  width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` 
                 }}
               ></div>
             </div>
           </div>
         </div>
         
-        {/* Join/Decline Buttons temporarily commented out to resolve parsing issue
+        {/* Join/Decline Buttons for Group Events - No RSVP yet */}
+        {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
+          <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+            <div className="flex gap-3">
+              <Button 
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700" 
+                onClick={handleJoin}
+                disabled={joinEventMutation.isPending}
+              >
+                <Users className="mr-2.5 h-5 w-5" />
+                {joinEventMutation.isPending ? "Joining..." : "Join Event"}
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] border-red-200 text-red-600 hover:bg-red-50" 
+                onClick={() => toast({ title: "Declined", description: "You declined to join this event." })}
+              >
+                <X className="mr-2.5 h-5 w-5" />
+                Decline
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Join/Decline Buttons for Group Events - Pending RSVP */}
         {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData?.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
@@ -517,7 +612,6 @@ const EventDetails = () => {
             </div>
           </div>
         )}
-        */}
         
         {/* RSVP Status - Already Joined */}
         {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
@@ -720,8 +814,8 @@ const EventDetails = () => {
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <GoogleMapsWrapper>
               <EventMap
-                latitude={(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat}
-                longitude={(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng}
+                latitude={eventData.locationCoordinates?.lat}
+                longitude={eventData.locationCoordinates?.lng}
                 address={eventData.location}
                 showMarker={true}
                 height="300px"
@@ -734,9 +828,9 @@ const EventDetails = () => {
                 <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-gray-900">{eventData.location}</p>
-                  {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (
+                  {eventData.locationCoordinates?.lat && (
                     <p className="text-sm text-gray-600 mt-1">
-                      Coordinates: {(eventData.locationCoordinates as { lat: number; lng: number }).lat}, {(eventData.locationCoordinates as { lat: number; lng: number }).lng}
+                      Coordinates: {eventData.locationCoordinates.lat}, {eventData.locationCoordinates.lng}
                     </p>
                   )}
                 </div>
@@ -823,7 +917,7 @@ const EventDetails = () => {
               <Separator />
               
               {/* Location Section with Google Maps */}
-              {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng && (
+              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && (
                 <div>
                   <h3 className="text-xl font-semibold mb-3">Location</h3>
                   <div className="bg-gray-50 p-4 rounded-xl">
@@ -837,8 +931,8 @@ const EventDetails = () => {
                     <div className="rounded-lg overflow-hidden">
                       <GoogleMapsWrapper>
                         <EventMap
-                          latitude={(eventData.locationCoordinates as { lat: number; lng: number }).lat}
-                          longitude={(eventData.locationCoordinates as { lat: number; lng: number }).lng}
+                          latitude={eventData.locationCoordinates.lat}
+                          longitude={eventData.locationCoordinates.lng}
                           address={eventData.location}
                           showMarker={true}
                           height="300px"
@@ -849,7 +943,7 @@ const EventDetails = () => {
                 </div>
               )}
               
-              {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng && <Separator />}
+              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && <Separator />}
               
               <div>
                 <h3 className="text-xl font-semibold mb-3">Organizer</h3>
