@@ -408,45 +408,45 @@ const EventDetails = () => {
   
   return (
     <div className="max-w-4xl mx-auto px-4 pb-16">
-      {/* Sticky Header with Back Button & Actions */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm px-4 py-3 flex items-center justify-between">
-        <button 
-          onClick={handleBack}
-          className="flex items-center text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-1.5" /> 
-          Back
-        </button>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={handleShare}
-            className="h-9 w-9 rounded-full"
+      {/* Content Container */}
+      <div className="pt-4 mt-2">
+        {/* Header with Back Button, Badges, and Actions */}
+        <div className="flex items-center justify-between mb-4">
+          <button 
+            onClick={handleBack}
+            className="flex items-center text-sm font-medium text-gray-700 hover:text-primary transition-colors"
           >
-            <Share2 className="h-5 w-5 text-gray-700" />
-          </Button>
+            <ArrowLeft className="h-5 w-5 mr-1.5" /> 
+            Back
+          </button>
           
-          {isCreator && (
+          <div className="flex gap-2">
             <Button 
-              variant="ghost"
+              variant="ghost" 
               size="icon"
-              onClick={() => setLocation(`/events/manage/${eventData.id}`)}
+              onClick={handleShare}
               className="h-9 w-9 rounded-full"
             >
-              <Settings className="h-5 w-5 text-gray-700" />
+              <Share2 className="h-5 w-5 text-gray-700" />
             </Button>
-          )}
+            
+            {isCreator && (
+              <Button 
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/events/manage/${eventData.id}`)}
+                className="h-9 w-9 rounded-full"
+              >
+                <Settings className="h-5 w-5 text-gray-700" />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-      
-      {/* Content Container (with padding for fixed header) */}
-      <div className="pt-16 mt-2">
+
         {/* Event badges as headers */}
         <div className="flex flex-wrap gap-2 mb-4">
           {eventData.sportType && (
-            <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-3 py-1`}>
+            <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-3 py-1 font-semibold shadow-md`}>
               {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
             </Badge>
           )}
@@ -496,8 +496,8 @@ const EventDetails = () => {
           {/* Content overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
             {/* Event title with opaque background */}
-            <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-3 mb-4 inline-block">
-              <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight tracking-tight">{eventData.title || "Event Title"}</h1>
+            <div className="bg-gray-100/90 backdrop-blur-sm rounded-lg px-4 py-3 mb-4 inline-block">
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight tracking-tight">{eventData.title || "Event Title"}</h1>
             </div>
             
             {/* Creator info */}
