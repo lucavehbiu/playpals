@@ -514,7 +514,12 @@ const EventDetails = () => {
             {eventData.isPublic ? "Public" : "Private"}
           </Badge>
           <Badge className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1" variant="outline">
-            {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+            {eventData.isFree ? "Free" : (
+              <>
+                <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+                {((eventData.cost || 0) / 100).toFixed(2)}
+              </>
+            )}
           </Badge>
         </div>
         
@@ -544,7 +549,7 @@ const EventDetails = () => {
           </div>
         </div>
         
-        {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
+        {(!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date)) ? (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -565,10 +570,10 @@ const EventDetails = () => {
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Join/Decline Buttons for Group Events - Pending RSVP */}
-        {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData?.date) && (
+        {(!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData?.date)) ? (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
               <Button 
@@ -611,10 +616,10 @@ const EventDetails = () => {
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
         
         {/* RSVP Status - Already Joined */}
-        {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
+        {(!isCreator && hasRSVPd && rsvpStatus === "approved") ? (
           <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -637,10 +642,10 @@ const EventDetails = () => {
               )}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* RSVP Status - Declined */}
-        {!isCreator && hasRSVPd && (rsvpStatus === "declined" || rsvpStatus === "denied") && (
+        {(!isCreator && hasRSVPd && (rsvpStatus === "declined" || rsvpStatus === "denied")) ? (
           <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -684,7 +689,7 @@ const EventDetails = () => {
               )}
             </div>
           </div>
-        )}
+        ) : null}
         
         {/* Organizer Actions */}
         {isCreator && (
@@ -712,7 +717,7 @@ const EventDetails = () => {
         )}
         
         {/* Submit Score Section for Completed Events */}
-        {eventData && isEventCompleted(eventData.date) && hasRSVPd && rsvpStatus === "approved" && groupInfo?.group && (
+        {(eventData && isEventCompleted(eventData.date) && hasRSVPd && rsvpStatus === "approved" && groupInfo?.group) ? (
           <div className="mb-6">
             {matchResult ? (
               // Show match result if it exists
@@ -803,7 +808,7 @@ const EventDetails = () => {
               </div>
             )}
           </div>
-        )}
+        ) : null}
         
         {/* Location Map Section */}
         <div className="mb-6">
