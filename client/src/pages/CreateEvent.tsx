@@ -251,6 +251,9 @@ const CreateEvent = () => {
         description: formData.description,
         sportType: formData.sportType,
         location: formData.location,
+        locationCoordinates: formData.locationLatitude && formData.locationLongitude 
+          ? { lat: formData.locationLatitude, lng: formData.locationLongitude }
+          : null,
         date: formData.date,
         time: formData.time,
         duration: formData.duration,
@@ -277,6 +280,9 @@ const CreateEvent = () => {
       description: formData.description,
       sportType: formData.sportType,
       location: formData.location,
+      locationCoordinates: formData.locationLatitude && formData.locationLongitude 
+        ? { lat: formData.locationLatitude, lng: formData.locationLongitude }
+        : null,
       date: startDateTime.toISOString(),
       maxParticipants: parseInt(formData.maxParticipants) || 10,
       creatorId: user.id,
