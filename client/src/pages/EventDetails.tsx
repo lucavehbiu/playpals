@@ -523,7 +523,7 @@ const EventDetails = () => {
             <CalendarIcon className="h-6 w-6 text-primary mb-2" />
             <p className="text-xs text-gray-500">Date & Time</p>
             <p className="font-medium text-sm md:text-base">{formatEventDate(eventData.date)}</p>
-            <p className="text-sm text-gray-600">{formatEventTime(eventData.date)}</p>
+            <p className="text-xs text-gray-600">{formatEventTime(eventData.date)}</p>
           </div>
           
           <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
