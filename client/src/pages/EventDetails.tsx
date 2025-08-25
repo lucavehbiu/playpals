@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useState, useEffect } from "react";
-import { Event } from "@/lib/types";
+import type { Event } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -305,22 +305,23 @@ const EventDetails = () => {
     }
   };
   
-  const formatEventTime = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return format(date, "h:mm a");
+  const formatEventTime = (date: Date | string) => {
+    if (!date) return "";
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, "h:mm a");
   };
   
-  const formatEventDate = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return format(date, "EEE, MMM d, yyyy");
+  const formatEventDate = (date: Date | string) => {
+    if (!date) return "";
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, "EEE, MMM d, yyyy");
   };
 
   // Helper function to check if event is completed (past date AND full capacity)
-  const isEventCompleted = (eventDate: string | undefined) => {
+  const isEventCompleted = (eventDate: Date | string | undefined) => {
     if (!eventDate) return false;
-    const isPastDate = new Date(eventDate) < new Date();
+    const dateObj = typeof eventDate === 'string' ? new Date(eventDate) : eventDate;
+    const isPastDate = dateObj < new Date();
     const isFullCapacity = actualParticipantCount >= (eventData?.maxParticipants || 0);
     return isPastDate && isFullCapacity;
   };
@@ -543,7 +544,6 @@ const EventDetails = () => {
           </div>
         </div>
         
-        {/* Join/Decline Buttons for Group Events - No RSVP yet */}
         {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
@@ -814,8 +814,8 @@ const EventDetails = () => {
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <GoogleMapsWrapper>
               <EventMap
-                latitude={eventData.locationCoordinates?.lat}
-                longitude={eventData.locationCoordinates?.lng}
+                latitude={(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat}
+                longitude={(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng}
                 address={eventData.location}
                 showMarker={true}
                 height="300px"
@@ -828,9 +828,9 @@ const EventDetails = () => {
                 <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-gray-900">{eventData.location}</p>
-                  {eventData.locationCoordinates?.lat && (
+                  {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (
                     <p className="text-sm text-gray-600 mt-1">
-                      Coordinates: {eventData.locationCoordinates.lat}, {eventData.locationCoordinates.lng}
+                      Coordinates: {(eventData.locationCoordinates as { lat: number; lng: number }).lat}, {(eventData.locationCoordinates as { lat: number; lng: number }).lng}
                     </p>
                   )}
                 </div>
@@ -917,7 +917,7 @@ const EventDetails = () => {
               <Separator />
               
               {/* Location Section with Google Maps */}
-              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && (
+              {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng && (
                 <div>
                   <h3 className="text-xl font-semibold mb-3">Location</h3>
                   <div className="bg-gray-50 p-4 rounded-xl">
@@ -931,8 +931,8 @@ const EventDetails = () => {
                     <div className="rounded-lg overflow-hidden">
                       <GoogleMapsWrapper>
                         <EventMap
-                          latitude={eventData.locationCoordinates.lat}
-                          longitude={eventData.locationCoordinates.lng}
+                          latitude={(eventData.locationCoordinates as { lat: number; lng: number }).lat}
+                          longitude={(eventData.locationCoordinates as { lat: number; lng: number }).lng}
                           address={eventData.location}
                           showMarker={true}
                           height="300px"
@@ -943,7 +943,7 @@ const EventDetails = () => {
                 </div>
               )}
               
-              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && <Separator />}
+              {(eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lat && (eventData.locationCoordinates as { lat: number; lng: number } | undefined)?.lng && <Separator />}
               
               <div>
                 <h3 className="text-xl font-semibold mb-3">Organizer</h3>
