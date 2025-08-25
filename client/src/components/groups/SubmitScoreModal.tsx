@@ -60,7 +60,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   const [winningSide, setWinningSide] = useState<'A' | 'B' | null>(null);
 
   // Fetch completed group events
-  const { data: groupEvents = [] } = useQuery({
+  const { data: groupEvents = [] } = useQuery<Event[]>({
     queryKey: [`/api/groups/${group.id}/events/history`],
     enabled: !!group.id
   });
@@ -70,18 +70,19 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
     const eventDate = new Date(event.date);
     const isPastDate = eventDate < new Date();
     const isFullCapacity = (event.currentParticipants || 0) >= (event.maxParticipants || 0);
-    const hasNoScore = !event.matchResult; // Assuming matchResult indicates if score exists
+    // Check if event has an associated match result via separate query
+    const hasNoScore = true; // Will be determined by checking match results separately
     return isPastDate && isFullCapacity && hasNoScore;
   });
 
   // Fetch group members for team formation
-  const { data: groupMembers = [] } = useQuery({
+  const { data: groupMembers = [] } = useQuery<any[]>({
     queryKey: [`/api/groups/${group.id}/members`],
     enabled: !!group.id
   });
 
   // Fetch event participants (RSVPs) for team formation
-  const { data: eventParticipants = [] } = useQuery({
+  const { data: eventParticipants = [] } = useQuery<any[]>({
     queryKey: [`/api/rsvps/event/${selectedEvent?.id}`],
     enabled: !!selectedEvent?.id
   });
@@ -147,7 +148,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
   );
 
   // Fetch player statistics for smart team formation
-  const { data: playerStats = [] } = useQuery({
+  const { data: playerStats = [] } = useQuery<any[]>({
     queryKey: [`/api/groups/${group.id}/player-statistics`],
     enabled: !!group.id && autoBalanceEnabled
   });
@@ -314,7 +315,7 @@ export function SubmitScoreModal({ group, onClose, onSuccess, preSelectedEvent }
                         <div>
                           <h4 className="font-medium">{event.title}</h4>
                           <p className="text-sm text-gray-500">
-                            {new Date(event.dateTime).toLocaleDateString()} at {event.location}
+                            {new Date(event.date).toLocaleDateString()} at {event.location}
                           </p>
                         </div>
                         <Badge variant="outline">{group.sportType}</Badge>

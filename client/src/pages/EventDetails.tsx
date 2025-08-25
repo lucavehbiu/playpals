@@ -61,6 +61,10 @@ const EventDetails = () => {
   // State for edit score modal
   const [showEditScore, setShowEditScore] = useState(false);
   
+  // State for image loading
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
   // Function to fetch group information for the event
   const fetchGroupInfo = async () => {
     if (!eventData) return;
@@ -326,10 +330,6 @@ const EventDetails = () => {
     return isPastDate && isFullCapacity;
   };
   
-  // State for image loading
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
   // Create sport-specific image URL
   const getEventImageUrl = (sportType: string | undefined) => {
     return `https://source.unsplash.com/featured/1200x600/?${sportType?.toLowerCase() || 'sport'}`;
