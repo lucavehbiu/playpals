@@ -443,6 +443,22 @@ const EventDetails = () => {
       
       {/* Content Container (with padding for fixed header) */}
       <div className="pt-16 mt-2">
+        {/* Event badges as headers */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {eventData.sportType && (
+            <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-3 py-1`}>
+              {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
+            </Badge>
+          )}
+          <Badge className="bg-gray-600 text-white hover:bg-gray-700 px-3 py-1" variant="outline">
+            {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+            {eventData.isPublic ? "Public" : "Private"}
+          </Badge>
+          <Badge className="bg-green-600 text-white hover:bg-green-700 px-3 py-1" variant="outline">
+            {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+          </Badge>
+        </div>
+
         {/* Hero Section */}
         <div className="relative rounded-xl overflow-hidden aspect-[1.618/1] md:aspect-[2.618/1] mb-4 bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
           {/* Image loading state */}
@@ -479,24 +495,10 @@ const EventDetails = () => {
           
           {/* Content overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-            {/* Event badges */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {eventData.sportType && (
-                <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} backdrop-blur-sm backdrop-saturate-150 border border-white/20 text-white px-3 py-1`}>
-                  {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
-                </Badge>
-              )}
-              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
-                {eventData.isPublic ? "Public" : "Private"}
-              </Badge>
-              <Badge className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm backdrop-saturate-150 border border-white/20 px-3 py-1" variant="outline">
-                {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
-              </Badge>
+            {/* Event title with opaque background */}
+            <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-3 mb-4 inline-block">
+              <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight tracking-tight">{eventData.title || "Event Title"}</h1>
             </div>
-            
-            {/* Event title */}
-            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{eventData.title || "Event Title"}</h1>
             
             {/* Creator info */}
             <div className="flex items-center">
