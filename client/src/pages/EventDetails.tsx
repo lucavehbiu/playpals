@@ -314,7 +314,7 @@ const EventDetails = () => {
   const formatEventDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return format(date, "EEEE, MMMM d, yyyy");
+    return format(date, "EEEE, MMM d, yyyy");
   };
 
   // Helper function to check if event is completed (past date AND full capacity)
