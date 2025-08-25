@@ -433,7 +433,7 @@ const EventDetails = () => {
             <Button 
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/events/manage/1")}
+              onClick={() => setLocation(`/events/manage/${eventData.id}`)}
               className="h-9 w-9 rounded-full"
             >
               <Settings className="h-5 w-5 text-gray-700" />
@@ -444,86 +444,7 @@ const EventDetails = () => {
       
       {/* Content Container (with padding for fixed header) */}
       <div className="pt-16 mt-2">
-        {/* Hero Section - temporarily commented out to isolate syntax error
-        <div className="relative rounded-xl overflow-hidden aspect-[1.618/1] md:aspect-[2.618/1] mb-4 bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
-          Image loading state 
-          {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-            </div>
-          )}
-          
-          Error state 
-          {imageError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="rounded-xl h-16 w-16 flex items-center justify-center mb-4 bg-blue-500">
-                <ImageIcon className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-white font-medium">Sport</h3>
-            </div>
-          )}
-          
-          Actual image with overlay 
-          <img 
-            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
-            alt={eventData.title || 'Event'} 
-            className="w-full h-full object-cover transition-opacity duration-500 opacity-100"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => {
-              setImageError(true);
-              console.error("Failed to load image for event:", eventData.title);
-            }}
-          />
-          
-          Gradient overlay 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-          
-          Content overlay 
-          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-            Event title 
-            <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">{eventData.title || "Event Title"}</h1>
-            
-            Creator info 
-            <div className="flex items-center">
-              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                {eventData.creator?.profileImage ? (
-                  <AvatarImage src={eventData.creator.profileImage} />
-                ) : (
-                  <AvatarFallback className="bg-primary text-white">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
-                )}
-              </Avatar>
-              <div className="ml-2.5">
-                <p className="text-white font-medium text-sm leading-tight">
-                  {eventData.creator?.name || eventData.creator?.username || "Unknown"}
-                </p>
-                <p className="text-white/70 text-xs">Organizer</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        */}
         
-        {/* Event badges - temporarily commented out
-        <div className="flex flex-wrap gap-2 mb-6">
-          {eventData.sportType && (
-            <Badge className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1">
-              {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
-            </Badge>
-          )}
-          <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1" variant="outline">
-            {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
-            {eventData.isPublic ? "Public" : "Private"}
-          </Badge>
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1" variant="outline">
-            {eventData.isFree ? "Free" : (
-              <>
-                <DollarSign className="h-3.5 w-3.5 mr-1.5" />
-                $20.00
-              </>
-            )}
-          </Badge>
-        </div>
-        */}
         
         {/* Key Info Cards */
         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -544,17 +465,14 @@ const EventDetails = () => {
               <div 
                 className="bg-primary h-1.5 rounded-full" 
                 style={{ 
-                  width: "50%" 
+                  width: `${Math.min(100, (actualParticipantCount / eventData.maxParticipants) * 100)}%` 
                 }}
               ></div>
             </div>
           </div>
         </div>
         
-        <>
-          <div>Test content</div>
-
-        {/* Join/Decline Buttons for Group Events - Pending RSVP */}
+        {/* Join/Decline Buttons temporarily commented out to resolve parsing issue
         {!isCreator && hasRSVPd && rsvpStatus === "pending" && !isEventCompleted(eventData?.date) && (
           <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="flex gap-3">
@@ -599,6 +517,7 @@ const EventDetails = () => {
             </div>
           </div>
         )}
+        */}
         
         {/* RSVP Status - Already Joined */}
         {!isCreator && hasRSVPd && rsvpStatus === "approved" && (
@@ -876,7 +795,6 @@ const EventDetails = () => {
             matchResult={matchResult}
           />
         )}
-        </>
         
         {/* Tabs with Details */}
         <Tabs defaultValue="details" className="mb-8">
