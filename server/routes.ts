@@ -805,9 +805,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already RSVP'd - for self-RSVP or for invited user
       const existingRSVP = await storage.getRSVP(rsvpData.eventId, rsvpData.userId);
       
-      // Check if event is full (only if status is "approved")
-      if (rsvpData.status === "approved" && event.currentParticipants >= event.maxParticipants) {
-        return res.status(400).json({ message: "Event is full" });
+      // Check if event is full (only if status is "approved") - calculate real participant count
+      if (rsvpData.status === "approved") {
+        const eventRSVPs = await storage.getEventRSVPs(rsvpData.eventId);
+        const approvedParticipants = eventRSVPs.filter(rsvp => rsvp.status === 'approved').length;
+        
+        if (approvedParticipants >= event.maxParticipants) {
+          return res.status(400).json({ message: "Event is full" });
+        }
       }
       
       let newRSVP;
