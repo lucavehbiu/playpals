@@ -103,97 +103,46 @@ export default function Groups() {
     },
   });
 
-  // Query to fetch groups - both user's groups and all public groups
-  const { data: allGroups = [], isLoading: isGroupsLoading, error: groupsError } = useQuery({
-    queryKey: ['/api/groups'],
+  // Query to fetch user's groups
+  const { data: userGroups = [], isLoading: isUserGroupsLoading, error: userGroupsError } = useQuery({
+    queryKey: ['/api/users', user?.id, 'sports-groups'],
     queryFn: async () => {
       if (!user) return [];
-      
-      // Working solution for Emma Davis with all groups combined
-      if (user.id === 4 || user.username === 'emmadavis') {
-        const allGroups = [
-          // User's groups
-          {
-            id: 1,
-            name: "padel",
-            description: "padel",
-            sportType: "other",
-            memberCount: 5,
-            isPrivate: false,
-            admin: {
-              id: 1,
-              name: "Admin",
-              profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: "2025-05-30T11:39:57.184Z"
-          },
-          {
-            id: 2,
-            name: "eurodrini",
-            description: "super kalceto",
-            sportType: "soccer",
-            memberCount: 8,
-            isPrivate: false,
-            admin: {
-              id: 2,
-              name: "Group Admin",
-              profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: "2025-07-01T09:21:04.225Z"
-          },
-          // Discoverable groups
-          {
-            id: 3,
-            name: "Downtown Basketball League",
-            description: "Competitive basketball games every Tuesday and Thursday",
-            sportType: "basketball", 
-            memberCount: 15,
-            isPrivate: false,
-            admin: {
-              id: 2,
-              name: "Mike Johnson",
-              profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: new Date('2024-03-10').toISOString()
-          },
-          {
-            id: 4,
-            name: "City Running Club",
-            description: "Weekly group runs through the city parks",
-            sportType: "running",
-            memberCount: 22,
-            isPrivate: false,
-            admin: {
-              id: 3,
-              name: "Sarah Wilson", 
-              profileImage: "https://images.unsplash.com/photo-1494790108755-2616b0e15a4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: new Date('2024-02-28').toISOString()
-          },
-          {
-            id: 5,
-            name: "Padel Masters",
-            description: "Advanced padel training and tournaments",
-            sportType: "padel",
-            memberCount: 10,
-            isPrivate: false,
-            admin: {
-              id: 5,
-              name: "Carlos Rodriguez",
-              profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80"
-            },
-            createdAt: new Date('2024-01-20').toISOString()
-          }
-        ];
-        
-        return allGroups;
+      const response = await fetch(`/api/users/${user.id}/sports-groups`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user groups');
       }
-      
-      // Fallback for other users
-      return [];
+      return response.json();
     },
     enabled: !!user,
   });
+
+  // Query to fetch discoverable groups
+  const { data: discoverableGroups = [], isLoading: isDiscoverableGroupsLoading, error: discoverableGroupsError } = useQuery({
+    queryKey: ['/api/groups', 'browse'],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await fetch('/api/groups?action=browse');
+      if (!response.ok) {
+        throw new Error('Failed to fetch discoverable groups');
+      }
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
+  // Combine both types of groups
+  const allGroups = useMemo(() => {
+    const combined = [...userGroups, ...discoverableGroups];
+    // Remove duplicates by id
+    const unique = combined.filter((group, index, self) => 
+      index === self.findIndex(g => g.id === group.id)
+    );
+    return unique;
+  }, [userGroups, discoverableGroups]);
+
+  const isGroupsLoading = isUserGroupsLoading || isDiscoverableGroupsLoading;
+  const groupsError = userGroupsError || discoverableGroupsError;
   
   // Apply filters to groups
   const groups = useMemo(() => {
@@ -204,11 +153,11 @@ export default function Groups() {
       filteredGroups = filteredGroups.filter((group: any) => group.sportType === selectedSport);
     }
     
-    // Filter by membership (assuming user's groups have ids 1 and 2 based on the data)
+    // Filter by membership - check if group is in user's groups
     if (membershipFilter === "my_groups") {
+      const userGroupIds = userGroups.map(group => group.id);
       filteredGroups = filteredGroups.filter((group: any) => {
-        // For the demo data, user's groups are the first two (ids 1 and 2)
-        return group.id === 1 || group.id === 2;
+        return userGroupIds.includes(group.id);
       });
     }
     
@@ -222,20 +171,20 @@ export default function Groups() {
     }
     
     return filteredGroups;
-  }, [allGroups, selectedSport, membershipFilter, searchQuery]);
+  }, [allGroups, userGroups, selectedSport, membershipFilter, searchQuery]);
 
   // Calculate group counts by sport for dropdown
   const sportCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     const groupsToCount = membershipFilter === "my_groups" 
-      ? allGroups.filter((group: any) => group.id === 1 || group.id === 2)
+      ? userGroups
       : allGroups;
     
     groupsToCount.forEach((group: any) => {
       counts[group.sportType] = (counts[group.sportType] || 0) + 1;
     });
     return counts;
-  }, [allGroups, membershipFilter]);
+  }, [allGroups, userGroups, membershipFilter]);
   
   // Debug logging
   console.log('Groups component state:', {
