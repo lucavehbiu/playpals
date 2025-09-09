@@ -129,7 +129,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
         return [];
       }
       const data = await response.json();
-      console.log('User responses received for poll', poll.id, 'user ID:', user?.id, ':', data);
+      console.log('User responses received for poll', poll.id, 'authenticated user ID:', user?.id, ':', data);
       console.log('User responses array length:', data?.length);
       return data;
     },

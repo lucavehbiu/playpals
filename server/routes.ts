@@ -3836,7 +3836,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const responses = await storage.getSportsGroupPollUserResponses(pollId, authenticatedUser.id);
-      console.log(`Found ${responses.length} responses for user ${authenticatedUser.id}:`, responses);
+      console.log(`Found ${responses.length} responses for user ${authenticatedUser.id} (${authenticatedUser.name}):`, responses);
+      
+      // Debug: Check if there are any responses for this poll at all
+      const allResponses = await storage.getSportsGroupPollResponses(pollId);
+      console.log(`Total responses for poll ${pollId}:`, allResponses.length);
+      if (allResponses.length > 0) {
+        console.log('All poll responses:', allResponses.map(r => ({ id: r.id, userId: r.userId, timeSlotId: r.timeSlotId, isAvailable: r.isAvailable })));
+      }
+      
       res.json(responses);
     } catch (error) {
       console.error('Error fetching user poll responses:', error);

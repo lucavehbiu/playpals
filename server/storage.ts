@@ -4242,73 +4242,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getSportsGroupPollTimeSlots(pollId: number): Promise<SportsGroupPollTimeSlot[]> {
-    try {
-      const slots = await db
-        .select()
-        .from(sportsGroupPollTimeSlots)
-        .where(eq(sportsGroupPollTimeSlots.pollId, pollId))
-        .orderBy(asc(sportsGroupPollTimeSlots.dayOfWeek), asc(sportsGroupPollTimeSlots.startTime));
-      return slots;
-    } catch (error) {
-      console.error('Error fetching poll time slots:', error);
-      return [];
-    }
-  }
-
-  async getSportsGroupPollResponses(pollId: number): Promise<SportsGroupPollResponse[]> {
-    try {
-      const responses = await db
-        .select()
-        .from(sportsGroupPollResponses)
-        .where(eq(sportsGroupPollResponses.pollId, pollId));
-      return responses;
-    } catch (error) {
-      console.error('Error fetching poll responses:', error);
-      return [];
-    }
-  }
-
-  async getSportsGroupPollUserResponses(pollId: number, userId: number): Promise<SportsGroupPollResponse[]> {
-    try {
-      const responses = await db
-        .select()
-        .from(sportsGroupPollResponses)
-        .where(and(
-          eq(sportsGroupPollResponses.pollId, pollId),
-          eq(sportsGroupPollResponses.userId, userId)
-        ));
-      return responses;
-    } catch (error) {
-      console.error('Error fetching user poll responses:', error);
-      return [];
-    }
-  }
-
-  async createSportsGroupPollResponse(response: InsertSportsGroupPollResponse): Promise<SportsGroupPollResponse> {
-    try {
-      const [result] = await db
-        .insert(sportsGroupPollResponses)
-        .values(response)
-        .returning();
-      return result;
-    } catch (error) {
-      console.error('Error creating poll response:', error);
-      throw error;
-    }
-  }
-
-  async deleteSportsGroupPollResponse(id: number): Promise<boolean> {
-    try {
-      await db
-        .delete(sportsGroupPollResponses)
-        .where(eq(sportsGroupPollResponses.id, id));
-      return true;
-    } catch (error) {
-      console.error('Error deleting poll response:', error);
-      return false;
-    }
-  }
+  // Removed duplicate methods - keeping only the first implementations
 
   async markPollSuggestionAsUsed(pollId: number, suggestionId: number, eventId: number): Promise<boolean> {
     try {
