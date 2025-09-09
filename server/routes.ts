@@ -3740,6 +3740,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a poll
+  app.delete('/api/sports-groups/:groupId/polls/:pollId', async (req: Request, res: Response) => {
+    try {
+      // Authentication check with bypass
+      const authResult = await checkAuthWithBypass(req, res);
+      if (!authResult.success) return;
+      const authenticatedUser = authResult.user!;
+      
+      const pollId = parseInt(req.params.pollId);
+      const groupId = parseInt(req.params.groupId);
+      
+      // Check if user is a member of this group
+      const membership = await storage.getSportsGroupMember(groupId, authenticatedUser.id);
+      if (!membership) {
+        return res.status(403).json({ message: 'You must be a group member to delete polls' });
+      }
+      
+      // Get the poll to check ownership
+      const poll = await storage.getSportsGroupPoll(pollId);
+      if (!poll) {
+        return res.status(404).json({ message: 'Poll not found' });
+      }
+      
+      // Check if user is poll creator or group admin
+      const isCreator = poll.createdBy === authenticatedUser.id;
+      const isAdmin = membership.role === 'admin';
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ message: 'Only the poll creator or group admin can delete this poll' });
+      }
+      
+      // Delete the poll (cascading deletes will handle related data)
+      const success = await storage.deleteSportsGroupPoll(pollId);
+      
+      if (success) {
+        res.json({ message: 'Poll deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Error deleting poll' });
+      }
+    } catch (error) {
+      console.error('Error deleting poll:', error);
+      res.status(500).json({ message: 'Error deleting poll' });
+    }
+  });
+
   // Submit poll responses
   app.post('/api/sports-groups/:groupId/polls/:pollId/responses', authenticateUser, async (req: Request, res: Response) => {
     try {
