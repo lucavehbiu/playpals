@@ -105,10 +105,10 @@ export default function Groups() {
 
   // Query to fetch user's groups
   const { data: userGroups = [], isLoading: isUserGroupsLoading, error: userGroupsError } = useQuery({
-    queryKey: ['/api/users', user?.id, 'sports-groups'],
+    queryKey: ['/api/user-sports-groups', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const response = await fetch(`/api/users/${user.id}/sports-groups`);
+      const response = await fetch(`/api/user-sports-groups/${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user groups');
       }

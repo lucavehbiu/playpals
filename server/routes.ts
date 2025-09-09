@@ -85,7 +85,9 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         req.url.includes('/api/friendships') ||
         req.url.includes('/api/friend-requests') ||
         req.url.includes('/api/tournament-invitations') ||
-        req.url.includes('/api/onboarding-preferences')) {
+        req.url.includes('/api/onboarding-preferences') ||
+        req.url.includes('/api/groups') ||
+        req.url.includes('/api/user-sports-groups')) {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
@@ -2583,6 +2585,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Simply proxy to the working endpoint
     res.redirect(307, `/api/user-sports-groups/${req.params.userId}`);
+  });
+
+  // The actual user sports groups endpoint
+  app.get('/api/user-sports-groups/:userId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const authenticatedUser = (req as any).user as User;
+      
+      if (authenticatedUser.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      
+      const userGroups = await storage.getUserSportsGroups(userId);
+      
+      // Add member count and admin info to each group
+      const groupsWithDetails = [];
+      for (const group of userGroups) {
+        try {
+          const members = await storage.getSportsGroupMembers(group.id);
+          const admin = await storage.getUser(group.adminId);
+          
+          groupsWithDetails.push({
+            ...group,
+            memberCount: members.length,
+            admin: admin ? {
+              id: admin.id,
+              name: admin.name,
+              profileImage: admin.profileImage
+            } : null
+          });
+        } catch (err) {
+          console.error(`Error processing group ${group.id}:`, err);
+          // Continue with other groups
+        }
+      }
+      
+      res.json(groupsWithDetails);
+    } catch (error) {
+      console.error('Error fetching user sports groups:', error);
+      res.status(500).json({ message: "Error fetching user sports groups" });
+    }
   });
 
   // Get discoverable sports groups (public groups for joining) - bypass Vite by using unique endpoint pattern
