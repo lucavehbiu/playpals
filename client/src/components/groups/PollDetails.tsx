@@ -119,7 +119,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
   // Fetch user's existing responses
   const { data: userResponses } = useQuery({
-    queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses'],
+    queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses', user?.id],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`, {
         credentials: 'include'
