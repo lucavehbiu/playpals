@@ -3809,11 +3809,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create time slots and responses from user's custom availability
       const newResponses = [];
       if (availability) {
-        const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        // Convert display day index (Monday=0) to database day index (Sunday=0)
+        const convertDisplayDayToDbDay = (displayDay: number): number => {
+          // Display:  Monday=0, Tuesday=1, Wednesday=2, ..., Sunday=6
+          // Database: Sunday=0, Monday=1, Tuesday=2, ..., Saturday=6
+          return displayDay === 6 ? 0 : displayDay + 1;
+        };
         
         for (const [dayName, slots] of Object.entries(availability)) {
-          const dayIndex = DAYS_OF_WEEK.indexOf(dayName);
-          if (dayIndex === -1) continue;
+          const displayDayIndex = DAYS_OF_WEEK.indexOf(dayName);
+          if (displayDayIndex === -1) continue;
+          
+          const dbDayIndex = convertDisplayDayToDbDay(displayDayIndex);
           
           for (const slot of (slots as any[])) {
             if (slot.available) {
@@ -3821,7 +3830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               let timeSlot;
               const existingSlots = await storage.getSportsGroupPollTimeSlots(pollId);
               const matchingSlot = existingSlots.find(s => 
-                s.dayOfWeek === dayIndex && 
+                s.dayOfWeek === dbDayIndex && 
                 s.startTime === slot.startTime && 
                 s.endTime === slot.endTime
               );
@@ -3831,7 +3840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               } else {
                 timeSlot = await storage.createSportsGroupPollTimeSlot({
                   pollId,
-                  dayOfWeek: dayIndex,
+                  dayOfWeek: dbDayIndex,
                   startTime: slot.startTime,
                   endTime: slot.endTime
                 });

@@ -58,20 +58,37 @@ interface UserResponse {
   isAvailable: boolean;
 }
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+// Convert database day index (Sunday=0) to display day index (Monday=0)
+const convertDbDayToDisplayDay = (dbDay: number): number => {
+  // Database: Sunday=0, Monday=1, Tuesday=2, ..., Saturday=6
+  // Display:  Monday=0, Tuesday=1, Wednesday=2, ..., Sunday=6
+  return dbDay === 0 ? 6 : dbDay - 1;
+};
+
+// Convert display day index (Monday=0) to database day index (Sunday=0)
+const convertDisplayDayToDbDay = (displayDay: number): number => {
+  // Display:  Monday=0, Tuesday=1, Wednesday=2, ..., Sunday=6
+  // Database: Sunday=0, Monday=1, Tuesday=2, ..., Saturday=6
+  return displayDay === 6 ? 0 : displayDay + 1;
+};
 
 // Helper function to get dates for the poll's selected week
 const getPollWeekDates = (pollEndDate: string) => {
   // The poll stores the END date of the selected week
   const weekEnd = new Date(pollEndDate);
   
-  // Calculate the start of that week (6 days before the end)
-  const weekStart = new Date(weekEnd);
-  weekStart.setDate(weekEnd.getDate() - 6);
+  // Find the Monday of the week containing the end date
+  const endDayOfWeek = weekEnd.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const daysFromMonday = endDayOfWeek === 0 ? 6 : endDayOfWeek - 1; // Convert Sunday=0 to be 6 days from Monday
+  
+  const mondayOfWeek = new Date(weekEnd);
+  mondayOfWeek.setDate(weekEnd.getDate() - daysFromMonday);
   
   return DAYS_OF_WEEK.map((dayName, dayIndex) => {
-    const targetDate = new Date(weekStart);
-    targetDate.setDate(weekStart.getDate() + dayIndex);
+    const targetDate = new Date(mondayOfWeek);
+    targetDate.setDate(mondayOfWeek.getDate() + dayIndex);
     
     return {
       dayName,
@@ -166,7 +183,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       userResponses.forEach((response: any) => {
         const timeSlot = timeSlots.find((slot: any) => slot.id === response.timeSlotId);
         if (timeSlot) {
-          const dayName = DAYS_OF_WEEK[timeSlot.dayOfWeek];
+          const dayName = DAYS_OF_WEEK[convertDbDayToDisplayDay(timeSlot.dayOfWeek)];
           if (!newAvailability[dayName]) {
             newAvailability[dayName] = [];
           }
@@ -301,7 +318,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
     // Create URL with pre-filled event data
     const eventData = {
-      title: `${poll.title} - ${DAYS_OF_WEEK[timeSlot.dayOfWeek]} Event`,
+      title: `${poll.title} - ${DAYS_OF_WEEK[convertDbDayToDisplayDay(timeSlot.dayOfWeek)]} Event`,
       description: `Event created from group poll: ${poll.title}`,
       date: suggestedDate,
       time: startTime,
