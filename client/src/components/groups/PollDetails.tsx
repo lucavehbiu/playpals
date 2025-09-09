@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Clock, Users, CheckCircle, Plus, X } from 'lucide-react';
+import { Calendar, Clock, Users, CheckCircle, Plus, X, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -222,6 +223,44 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
   });
 
+  // Delete poll mutation
+  const deletePollMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete poll');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Poll deleted",
+        description: "The poll has been deleted successfully.",
+      });
+      // Navigate back or refresh the parent component
+      queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
+      // You might want to navigate away from the poll details here
+      window.history.back();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error deleting poll",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeletePoll = () => {
+    deletePollMutation.mutate();
+  };
+
   // Helper functions for custom availability
   const addTimeSlot = (dayName: string) => {
     setUserAvailability(prev => ({
@@ -316,9 +355,43 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 <p className="text-gray-600 mt-1">{poll.description}</p>
               )}
             </div>
-            <Badge variant={pollIsActive ? "default" : "secondary"}>
-              {pollIsActive ? "Active" : "Expired"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={pollIsActive ? "default" : "secondary"}>
+                {pollIsActive ? "Active" : "Expired"}
+              </Badge>
+              {user && user.id === poll.createdBy && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      disabled={deletePollMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Poll</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this poll? This action cannot be undone and will remove all responses from group members.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeletePoll}
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={deletePollMutation.isPending}
+                      >
+                        {deletePollMutation.isPending ? "Deleting..." : "Delete Poll"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
