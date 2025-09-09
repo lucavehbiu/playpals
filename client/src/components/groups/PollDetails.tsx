@@ -59,16 +59,18 @@ interface UserResponse {
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-// Helper function to get next occurrence of each day of the week
-const getNextWeekDates = () => {
-  const today = new Date();
-  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+// Helper function to get dates for the poll's selected week
+const getPollWeekDates = (pollEndDate: string) => {
+  // The poll stores the END date of the selected week
+  const weekEnd = new Date(pollEndDate);
+  
+  // Calculate the start of that week (6 days before the end)
+  const weekStart = new Date(weekEnd);
+  weekStart.setDate(weekEnd.getDate() - 6);
   
   return DAYS_OF_WEEK.map((dayName, dayIndex) => {
-    const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
-    const targetDate = new Date(today);
-    // Fix: Show today if it's the target day, otherwise show next occurrence
-    targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 0 : daysUntilTarget));
+    const targetDate = new Date(weekStart);
+    targetDate.setDate(weekStart.getDate() + dayIndex);
     
     return {
       dayName,
@@ -84,8 +86,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { toast } = useToast();
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
   
-  // Get the next week's dates
-  const weekDates = getNextWeekDates();
+  // Get the poll's selected week dates
+  const weekDates = getPollWeekDates(poll.endDate);
   
   // Check if poll has expired
   const isExpired = new Date() > new Date(poll.endDate);
