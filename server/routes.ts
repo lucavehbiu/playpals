@@ -84,11 +84,12 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         req.url.includes('/api/users/') || 
         req.url.includes('/api/friendships') ||
         req.url.includes('/api/friend-requests') ||
-        req.url.includes('/api/tournament-invitations')) {
+        req.url.includes('/api/tournament-invitations') ||
+        req.url.includes('/api/onboarding-preferences')) {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
-      let userId = userIdMatch ? parseInt(userIdMatch[1]) : 4;
+      let userId = userIdMatch ? parseInt(userIdMatch[1]) : 1; // Default to Alex Smith (user 1)
       
       // For friend request actions, we need to determine the correct user
       if (req.url.includes('/api/friend-requests/')) {
@@ -99,6 +100,17 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
       // For tournament invitations, default to Ajlin (4967) since they're testing
       if (req.url.includes('/api/tournament-invitations')) {
         userId = 4967;
+      }
+      
+      // For onboarding preferences, check if user ID is in the URL or use current user
+      if (req.url.includes('/api/onboarding-preferences')) {
+        const onboardingUserMatch = req.url.match(/\/api\/onboarding-preferences\/(\d+)/);
+        if (onboardingUserMatch) {
+          userId = parseInt(onboardingUserMatch[1]);
+        } else {
+          // For the main onboarding preferences endpoint, default to Alex Smith (user 1)
+          userId = 1;
+        }
       }
       
       console.log('Temporary auth bypass - URL:', req.url, 'User ID:', userId);
