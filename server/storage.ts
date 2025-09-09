@@ -5372,7 +5372,7 @@ Promise.all(testUsers.map(async (userData) => {
       isPublic: true,
       isFree: false,
       cost: 20,
-      creatorId: validUsers[5].id,
+      creatorId: validUsers[3].id, // Use existing user instead of non-existent index
       eventImage: null
     },
     
