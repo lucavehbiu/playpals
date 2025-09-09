@@ -460,42 +460,44 @@ export default function Groups() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map((group: any) => (
-            <Card key={group.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{group.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">
-                      Created on {new Date(group.createdAt).toLocaleDateString()}
-                    </CardDescription>
-                  </div>
-                  <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                    {group.sportType}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <p className="text-sm text-gray-600 mb-4">{group.description}</p>
-                
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>{group.memberCount} members</span>
-                </div>
-                
-                <div className="mt-3">
-                  <h4 className="text-sm font-medium mb-2">Group Admin</h4>
-                  <div className="flex -space-x-2">
-                    <div 
-                      className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white"
-                      title={`${group.admin?.name || 'Admin'} (admin)`}
-                    >
-                      <span className="text-xs font-medium text-gray-600">
-                        {group.admin?.name?.charAt(0) || 'A'}
-                      </span>
+            <Link key={group.id} href={`/groups/${group.id}`}>
+              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{group.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        Created on {new Date(group.createdAt).toLocaleDateString()}
+                      </CardDescription>
+                    </div>
+                    <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+                      {group.sportType}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pb-3">
+                  <p className="text-sm text-gray-600 mb-4">{group.description}</p>
+                  
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>{group.memberCount} members</span>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <h4 className="text-sm font-medium mb-2">Group Admin</h4>
+                    <div className="flex -space-x-2">
+                      <div 
+                        className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white"
+                        title={`${group.admin?.name || 'Admin'} (admin)`}
+                      >
+                        <span className="text-xs font-medium text-gray-600">
+                          {group.admin?.name?.charAt(0) || 'A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
