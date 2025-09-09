@@ -67,7 +67,8 @@ const getNextWeekDates = () => {
   return DAYS_OF_WEEK.map((dayName, dayIndex) => {
     const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
     const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget));
+    // Fix: Show today if it's the target day, otherwise show next occurrence
+    targetDate.setDate(today.getDate() + (daysUntilTarget === 0 ? 0 : daysUntilTarget));
     
     return {
       dayName,
@@ -133,15 +134,55 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     enabled: !!user,
   });
 
+  // Fetch time slots to map responses back to availability format
+  const { data: timeSlots } = useQuery({
+    queryKey: ['sports-groups', groupId, 'polls', poll.id, 'time-slots'],
+    queryFn: async () => {
+      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/time-slots`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.log('Failed to fetch time slots:', response.status);
+        return [];
+      }
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
   // Load existing user responses into availability form when data changes
   useEffect(() => {
-    if (userResponses && userResponses.length > 0 && showAvailabilityForm) {
+    if (userResponses && userResponses.length > 0 && timeSlots && timeSlots.length > 0 && showAvailabilityForm) {
       console.log('Loading existing responses into form:', userResponses);
-      // TODO: Convert userResponses back to userAvailability format
-      // This is complex because we need to map timeSlotIds back to day/time ranges
-      // For now, we'll need the timeSlots data to reconstruct the availability
+      console.log('Available time slots:', timeSlots);
+      
+      // Convert userResponses back to userAvailability format
+      const newAvailability: { [day: string]: { startTime: string; endTime: string; available: boolean }[] } = {};
+      
+      // Group responses by day
+      userResponses.forEach((response: any) => {
+        const timeSlot = timeSlots.find((slot: any) => slot.id === response.timeSlotId);
+        if (timeSlot) {
+          const dayName = DAYS_OF_WEEK[timeSlot.dayOfWeek];
+          if (!newAvailability[dayName]) {
+            newAvailability[dayName] = [];
+          }
+          
+          newAvailability[dayName].push({
+            startTime: timeSlot.startTime,
+            endTime: timeSlot.endTime,
+            available: response.isAvailable
+          });
+        }
+      });
+      
+      console.log('Converted availability for form:', newAvailability);
+      setUserAvailability(newAvailability);
+    } else if (showAvailabilityForm && (!userResponses || userResponses.length === 0)) {
+      // Clear form if no existing responses
+      setUserAvailability({});
     }
-  }, [userResponses, showAvailabilityForm]);
+  }, [userResponses, timeSlots, showAvailabilityForm]);
 
   // Submit responses mutation
   const submitResponsesMutation = useMutation({
