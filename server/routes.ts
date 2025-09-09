@@ -3829,7 +3829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pollId = parseInt(req.params.pollId);
       const groupId = parseInt(req.params.groupId);
       
-      console.log(`Fetching user responses for poll ${pollId}, user ${authenticatedUser.id} (${authenticatedUser.name})`);
+      console.log(`🔍 API CALLED: Fetching user responses for poll ${pollId}, user ${authenticatedUser.id} (${authenticatedUser.name}) - TIME: ${new Date().toISOString()}`);
       
       // Check if user is a member of this group
       const members = await storage.getSportsGroupMembers(groupId);
