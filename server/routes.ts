@@ -3819,11 +3819,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get poll responses for a user
-  app.get('/api/sports-groups/:groupId/polls/:pollId/user-responses', authenticateUser, async (req: Request, res: Response) => {
+  app.get('/api/sports-groups/:groupId/polls/:pollId/user-responses', async (req: Request, res: Response) => {
     try {
+      // Authentication check with bypass
+      const authResult = await checkAuthWithBypass(req, res);
+      if (!authResult.success) return;
+      const authenticatedUser = authResult.user!;
+      
       const pollId = parseInt(req.params.pollId);
       const groupId = parseInt(req.params.groupId);
-      const authenticatedUser = (req as any).user as User;
       
       console.log(`Fetching user responses for poll ${pollId}, user ${authenticatedUser.id} (${authenticatedUser.name})`);
       
