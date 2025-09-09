@@ -91,7 +91,10 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
-      let userId = userIdMatch ? parseInt(userIdMatch[1]) : 1; // Default to Alex Smith (user 1)
+      const userSportsGroupsMatch = req.url.match(/\/api\/user-sports-groups\/(\d+)/);
+      let userId = userIdMatch ? parseInt(userIdMatch[1]) : 
+                   userSportsGroupsMatch ? parseInt(userSportsGroupsMatch[1]) : 
+                   1; // Default to Alex Smith (user 1)
       
       // For friend request actions, we need to determine the correct user
       if (req.url.includes('/api/friend-requests/')) {
