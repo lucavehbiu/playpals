@@ -17,6 +17,7 @@ export const sportTypes = [
   "baseball",
   "hiking",
   "golf",
+  "padel",
   "other",
 ] as const;
 
