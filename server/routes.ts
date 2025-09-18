@@ -87,7 +87,8 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         req.url.includes('/api/tournament-invitations') ||
         req.url.includes('/api/onboarding-preferences') ||
         req.url.includes('/api/groups') ||
-        req.url.includes('/api/user-sports-groups')) {
+        req.url.includes('/api/user-sports-groups') ||
+        req.url.includes('/api/events')) {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
