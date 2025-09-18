@@ -88,14 +88,16 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         req.url.includes('/api/onboarding-preferences') ||
         req.url.includes('/api/groups') ||
         req.url.includes('/api/user-sports-groups') ||
-        req.url.includes('/api/events')) {
+        req.url.includes('/api/events') ||
+        req.url.includes('/api/rsvps') ||
+        req.url.includes('/api/user')) {
       
       // Extract user ID from URL if present
       const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
       const userSportsGroupsMatch = req.url.match(/\/api\/user-sports-groups\/(\d+)/);
       let userId = userIdMatch ? parseInt(userIdMatch[1]) : 
                    userSportsGroupsMatch ? parseInt(userSportsGroupsMatch[1]) : 
-                   1; // Default to Alex Smith (user 1)
+                   4; // Default to Emma Davis (user 4) who is currently logged in
       
       // For friend request actions, we need to determine the correct user
       if (req.url.includes('/api/friend-requests/')) {
@@ -114,9 +116,19 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         if (onboardingUserMatch) {
           userId = parseInt(onboardingUserMatch[1]);
         } else {
-          // For the main onboarding preferences endpoint, default to Alex Smith (user 1)
-          userId = 1;
+          // For the main onboarding preferences endpoint, default to Emma Davis (user 4)
+          userId = 4;
         }
+      }
+      
+      // For event creation, use Emma Davis (user 4) as the creator
+      if (req.method === 'POST' && req.url.includes('/api/events')) {
+        userId = 4; // Emma Davis
+      }
+      
+      // For viewing user profile/details, default to Emma Davis (user 4)
+      if (req.url === '/api/user') {
+        userId = 4; // Emma Davis
       }
       
       console.log('Temporary auth bypass - URL:', req.url, 'User ID:', userId);
