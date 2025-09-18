@@ -459,22 +459,34 @@ export default function Groups() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {groups.map((group: any) => (
-            <Link key={group.id} href={`/groups/${group.id}`}>
-              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle>{group.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        Created on {new Date(group.createdAt).toLocaleDateString()}
-                      </CardDescription>
+          {groups.map((group: any) => {
+            const notificationCount = getNotificationCount(group.id);
+            
+            return (
+              <Link key={group.id} href={`/groups/${group.id}`}>
+                <Card className="relative overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                  {/* Activity indicator ribbon */}
+                  {notificationCount > 0 && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge variant="destructive" className="text-xs font-semibold px-2 py-1 bg-red-500 hover:bg-red-600">
+                        {notificationCount} new activit{notificationCount === 1 ? 'y' : 'ies'}
+                      </Badge>
                     </div>
-                    <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                      {group.sportType}
+                  )}
+                  
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle>{group.name}</CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          Created on {new Date(group.createdAt).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+                        {group.sportType}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
                 <CardContent className="pb-3">
                   <p className="text-sm text-gray-600 mb-4">{group.description}</p>
                   
@@ -498,7 +510,8 @@ export default function Groups() {
                 </CardContent>
               </Card>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
