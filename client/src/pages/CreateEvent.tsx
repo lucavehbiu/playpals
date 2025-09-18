@@ -16,6 +16,7 @@ import InviteFriendsModal from "@/components/event/InviteFriendsModal";
 import { GoogleMapsWrapper } from "@/components/maps/GoogleMapsWrapper";
 import { LocationSearch } from "@/components/maps/LocationSearch";
 import EventMap from "@/components/maps/EventMap";
+import { sportTypes } from "@shared/schema";
 
 const STEPS = [
   { id: 'title', label: 'Event Title', icon: '📝' },
@@ -333,16 +334,31 @@ const CreateEvent = () => {
                 <SelectValue placeholder="Select a sport" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="basketball">🏀 Basketball</SelectItem>
-                <SelectItem value="soccer">⚽ Soccer</SelectItem>
-                <SelectItem value="tennis">🎾 Tennis</SelectItem>
-                <SelectItem value="volleyball">🏐 Volleyball</SelectItem>
-                <SelectItem value="badminton">🏸 Badminton</SelectItem>
-                <SelectItem value="running">🏃 Running</SelectItem>
-                <SelectItem value="cycling">🚴 Cycling</SelectItem>
-                <SelectItem value="hiking">🥾 Hiking</SelectItem>
-                <SelectItem value="yoga">🧘 Yoga</SelectItem>
-                <SelectItem value="other">🎯 Other</SelectItem>
+                {sportTypes.map(sport => {
+                  const sportEmojis: { [key: string]: string } = {
+                    basketball: '🏀',
+                    soccer: '⚽',
+                    tennis: '🎾', 
+                    volleyball: '🏐',
+                    cycling: '🚴',
+                    yoga: '🧘',
+                    running: '🏃',
+                    swimming: '🏊',
+                    football: '🏈',
+                    baseball: '⚾',
+                    hiking: '🥾',
+                    golf: '⛳',
+                    padel: '🎾',
+                    other: '🎯'
+                  };
+                  const emoji = sportEmojis[sport] || '🎯';
+                  const label = sport.charAt(0).toUpperCase() + sport.slice(1);
+                  return (
+                    <SelectItem key={sport} value={sport}>
+                      {emoji} {label}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
