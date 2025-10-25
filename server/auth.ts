@@ -72,14 +72,15 @@ export function setupAuth(app: Express) {
   );
 
   // Google OAuth Strategy
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: "https://play-pals-adengripshi.replit.app/api/auth/google/callback",
-      },
-      async (accessToken, refreshToken, profile, done) => {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "https://play-pals-adengripshi.replit.app/api/auth/google/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
         try {
           // Check if user already exists by email
           let user = await storage.getUserByEmail(profile.emails?.[0]?.value || "");
@@ -109,6 +110,9 @@ export function setupAuth(app: Express) {
       }
     )
   );
+  } else {
+    console.warn("Google OAuth is disabled because GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing.");
+  }
 
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {

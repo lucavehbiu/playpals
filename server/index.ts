@@ -47,8 +47,9 @@ app.use((req, res, next) => {
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Heroku dynamically assigns a port, so we must use the PORT environment variable.
+  // Default to 5000 for local development if PORT is not set.
+  const port = process.env.PORT || 5000;
   server.listen({
     port,
     host: "0.0.0.0",
