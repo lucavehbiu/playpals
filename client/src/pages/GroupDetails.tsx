@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown, Send, Trophy } from "lucide-react";
+import { Users, MessageSquare, Calendar, Settings, Clock, UserPlus, MapPin, ThumbsUp, ThumbsDown, Send, Trophy, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -18,6 +18,7 @@ import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { PollsTab } from "@/components/groups/PollsTab";
 import { ScoreboardTab } from "@/components/groups/ScoreboardTab";
 import type { SportsGroup, SportsGroupMember, User } from "@/lib/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface GroupMessage {
   id: number;
@@ -42,6 +43,7 @@ export default function GroupDetails() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearchQuery, setInviteSearchQuery] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
 
   const groupId = parseInt(id || "0");
 
@@ -218,28 +220,47 @@ export default function GroupDetails() {
   const memberCount = members.length;
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Compact Group Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h1 className="text-2xl font-bold">{group.name}</h1>
-            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-              <Badge variant="secondary">{group.sportType}</Badge>
-              <div className="flex items-center gap-1">
-                <button 
-                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+    <div className="relative min-h-screen">
+      {/* Glassmorphism Sticky Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm"
+      >
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 truncate">
+                {group.name}
+              </h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium text-xs whitespace-nowrap">
+                  {group.sportType}
+                </span>
+                {group.isPrivate && (
+                  <Badge variant="outline" className="text-xs whitespace-nowrap">Private</Badge>
+                )}
+                <button
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap"
                   onClick={() => setShowMembers(!showMembers)}
                 >
                   <Users className="h-4 w-4" />
-                  <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
+                  <span className="font-medium">{memberCount}</span>
+                  <span className="text-gray-500">members</span>
                 </button>
-                <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
-                  <DialogTrigger asChild>
-                    <button className="ml-1 p-1 rounded-full hover:bg-gray-100 transition-colors" title="Invite Friends">
-                      <UserPlus className="h-3 w-3 text-gray-500 hover:text-blue-600" />
-                    </button>
-                  </DialogTrigger>
+              </div>
+            </div>
+
+            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md whitespace-nowrap flex-shrink-0"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite
+                </Button>
+              </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
                       <DialogTitle>Invite Friends to {group?.name}</DialogTitle>
@@ -303,140 +324,193 @@ export default function GroupDetails() {
                         </Button>
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              {group.isPrivate && <Badge variant="outline">Private</Badge>}
-            </div>
+              </DialogContent>
+            </Dialog>
           </div>
-
         </div>
-        
-      </div>
+      </motion.div>
 
-      {/* Members Dropdown - Moved after header */}
-      {showMembers && (
-        <Card className="mb-6 p-4">
-          <h3 className="font-medium mb-3">Group Members</h3>
-          <div className="grid gap-3">
-            {members.map((member) => (
-              <div key={member.id} className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {member.user?.name?.charAt(0) || member.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium text-sm">
-                    {member.user?.name || member.user?.username || 'Unknown User'}
-                  </p>
-                  <p className="text-xs text-gray-500 capitalize">{member.role}</p>
+      {/* Page Content Container */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Members Sidebar - Slide-out */}
+        <AnimatePresence>
+          {showMembers && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowMembers(false)}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+              />
+
+              {/* Sidebar */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 left-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 overflow-y-auto"
+              >
+                {/* Sidebar Header */}
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">Members ({memberCount})</h2>
+                  <button
+                    onClick={() => setShowMembers(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
 
-      {/* Navigation Tabs */}
-      <div className="mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-gray-50 rounded-lg">
-          <Button 
-            variant={activeTab === 'feed' ? 'default' : 'outline'}
-            size="sm" 
-            className="flex items-center justify-center gap-2 relative"
+                {/* Members List */}
+                <div className="p-6 space-y-3">
+                  {members.map((member) => (
+                    <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-semibold">
+                          {member.user?.name?.charAt(0) || member.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-gray-900">
+                          {member.user?.name || member.user?.username || 'Unknown User'}
+                        </p>
+                        <p className="text-xs text-gray-500">@{member.user?.username || 'unknown'}</p>
+                      </div>
+                      {member.role === 'admin' && (
+                        <Badge variant="default" className="text-xs">Admin</Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+      {/* Modern Pill-Style Tab Navigation */}
+      <div className="mb-6 border-b border-gray-200">
+        <div className="flex gap-1 overflow-x-auto pb-px scrollbar-hide">
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => handleTabChange('feed')}
+            className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'feed'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg'
+            }`}
           >
             <MessageSquare className="h-4 w-4" />
             <span>Feed</span>
             {getNotificationCount(groupId, 'message') > 0 && (
-              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+              <span className="h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
                 {getNotificationCount(groupId, 'message')}
-              </Badge>
+              </span>
             )}
-          </Button>
-          <Button 
-            variant={activeTab === 'events' ? 'default' : 'outline'}
-            size="sm" 
-            className="flex items-center justify-center gap-2 relative"
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => handleTabChange('events')}
+            className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'events'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg'
+            }`}
           >
             <Calendar className="h-4 w-4" />
             <span>Events</span>
             {getNotificationCount(groupId, 'event') > 0 && (
-              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+              <span className="h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
                 {getNotificationCount(groupId, 'event')}
-              </Badge>
+              </span>
             )}
-          </Button>
-          <Button 
-            variant={activeTab === 'polls' ? 'default' : 'outline'}
-            size="sm" 
-            className="flex items-center justify-center gap-2 relative"
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => handleTabChange('polls')}
+            className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'polls'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg'
+            }`}
           >
             <Clock className="h-4 w-4" />
             <span>Polls</span>
             {getNotificationCount(groupId, 'poll') > 0 && (
-              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+              <span className="h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
                 {getNotificationCount(groupId, 'poll')}
-              </Badge>
+              </span>
             )}
-          </Button>
-          <Button 
-            variant={activeTab === 'scoreboard' ? 'default' : 'outline'}
-            size="sm" 
-            className="flex items-center justify-center gap-2"
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => handleTabChange('scoreboard')}
+            className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'scoreboard'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg'
+            }`}
           >
             <Trophy className="h-4 w-4" />
             <span>Scoreboard</span>
-          </Button>
+          </motion.button>
+
           {isAdmin && (
-            <Button 
-              variant={activeTab === 'settings' ? 'default' : 'outline'}
-              size="sm" 
-              className="flex items-center justify-center gap-2"
+            <motion.button
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleTabChange('settings')}
+              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${
+                activeTab === 'settings'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg'
+              }`}
             >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
-            </Button>
+            </motion.button>
           )}
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="space-y-6">
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
         {/* Feed Tab */}
         {activeTab === 'feed' && (
           <>
-            {/* Post Message */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Group Feed
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <Textarea
-                    placeholder="Share something with the group..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className="min-h-20"
-                  />
-                  <Button 
-                    onClick={handlePostMessage}
-                    disabled={!newMessage.trim() || postMessageMutation.isPending}
-                    className="w-full"
-                  >
-                    {postMessageMutation.isPending ? "Posting..." : "Post Message"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Post Message - Clean, no card wrapper */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <Textarea
+                placeholder="Share something with the group..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="min-h-20 mb-3 border-gray-200 focus:border-primary"
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={handlePostMessage}
+                  disabled={!newMessage.trim() || postMessageMutation.isPending}
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+                >
+                  {postMessageMutation.isPending ? "Posting..." : "Post"}
+                </Button>
+              </div>
+            </div>
 
             {/* Messages Feed */}
             <div className="space-y-4">
@@ -474,56 +548,62 @@ export default function GroupDetails() {
                   const renderMessage = (message: any, isReply = false) => {
                     const isUnread = unreadMessageIds.includes(message.id);
                     return (
-                      <Card key={message.id} className={`${isUnread ? 'border-blue-500 border-2 bg-blue-50' : ''} ${isReply ? 'ml-8 mt-2' : ''}`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>
-                                {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm">
-                                  {message.user?.name || message.user?.username || 'Unknown User'}
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`bg-white border rounded-lg p-4 transition-all hover:shadow-sm ${
+                          isUnread ? 'border-primary border-l-4 bg-blue-50/30' : 'border-gray-200'
+                        } ${isReply ? 'ml-12 mt-2' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-semibold">
+                              {message.user?.name?.charAt(0) || message.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-semibold text-sm text-gray-900">
+                                {message.user?.name || message.user?.username || 'Unknown User'}
+                              </span>
+                              {isUnread && (
+                                <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                                  NEW
                                 </span>
-                                {isUnread && (
-                                  <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                                    NEW
-                                  </span>
-                                )}
-                                <span className="text-xs text-gray-500">
-                                  {new Date(message.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="text-gray-700 mb-3">{message.content}</p>
-                              
-                              {/* Message interaction buttons */}
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <button 
-                                  className="flex items-center gap-1 hover:text-green-600 transition-colors"
-                                  onClick={() => {/* TODO: Implement like functionality */}}
-                                >
-                                  <ThumbsUp className="h-4 w-4" />
-                                  <span>Like</span>
-                                </button>
-                                <button 
-                                  className="flex items-center gap-1 hover:text-red-600 transition-colors"
-                                  onClick={() => {/* TODO: Implement dislike functionality */}}
-                                >
-                                  <ThumbsDown className="h-4 w-4" />
-                                  <span>Dislike</span>
-                                </button>
-                                <button 
-                                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                                  onClick={() => setReplyingTo(message.id)}
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                  <span>Reply</span>
-                                </button>
-                              </div>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {new Date(message.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm mb-3 leading-relaxed">{message.content}</p>
+
+                            {/* Message interaction buttons - Inline and compact */}
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <button
+                                className="flex items-center gap-1.5 hover:text-primary transition-colors p-1 rounded hover:bg-gray-50"
+                                onClick={() => {/* TODO: Implement like functionality */}}
+                              >
+                                <ThumbsUp className="h-3.5 w-3.5" />
+                                <span>Like</span>
+                              </button>
+                              <button
+                                className="flex items-center gap-1.5 hover:text-red-500 transition-colors p-1 rounded hover:bg-gray-50"
+                                onClick={() => {/* TODO: Implement dislike functionality */}}
+                              >
+                                <ThumbsDown className="h-3.5 w-3.5" />
+                                <span>Dislike</span>
+                              </button>
+                              <button
+                                className="flex items-center gap-1.5 hover:text-primary transition-colors p-1 rounded hover:bg-gray-50"
+                                onClick={() => setReplyingTo(message.id)}
+                              >
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                <span>Reply</span>
+                              </button>
                             </div>
                           </div>
+                        </div>
                           
                           {/* Reply interface */}
                           {replyingTo === message.id && (
@@ -566,20 +646,53 @@ export default function GroupDetails() {
                               </div>
                             </div>
                           )}
-                        </CardContent>
-                      </Card>
+                      </motion.div>
                     );
                   };
 
-                  return topLevelMessages.map((message) => (
-                    <div key={message.id}>
-                      {renderMessage(message)}
-                      {/* Render replies */}
-                      {repliesByParent[message.id]?.map((reply) => (
-                        renderMessage(reply, true)
-                      ))}
-                    </div>
-                  ));
+                  const toggleReplies = (messageId: number) => {
+                    setExpandedReplies(prev => {
+                      const newSet = new Set(prev);
+                      if (newSet.has(messageId)) {
+                        newSet.delete(messageId);
+                      } else {
+                        newSet.add(messageId);
+                      }
+                      return newSet;
+                    });
+                  };
+
+                  return topLevelMessages.map((message) => {
+                    const replies = repliesByParent[message.id] || [];
+                    const hasReplies = replies.length > 0;
+                    const isExpanded = expandedReplies.has(message.id);
+
+                    return (
+                      <div key={message.id}>
+                        {renderMessage(message)}
+
+                        {/* Show/Hide Replies Button */}
+                        {hasReplies && (
+                          <button
+                            onClick={() => toggleReplies(message.id)}
+                            className="ml-16 mt-2 flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            <span>
+                              {isExpanded ? 'Hide' : 'Show'} {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+                            </span>
+                          </button>
+                        )}
+
+                        {/* Render replies if expanded */}
+                        {hasReplies && isExpanded && (
+                          <div className="mt-2">
+                            {replies.map((reply) => renderMessage(reply, true))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
                 })()
               ) : (
                 <Card>
@@ -766,6 +879,7 @@ export default function GroupDetails() {
             </CardContent>
           </Card>
         )}
+      </motion.div>
       </div>
     </div>
   );

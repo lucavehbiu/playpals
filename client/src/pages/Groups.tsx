@@ -262,80 +262,70 @@ export default function Groups() {
   }
 
   return (
-    <div className="container mx-auto p-4 relative">
+    <div className="relative">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
 
       <motion.div
         className="mb-6 relative z-10"
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary via-brand-cyan to-secondary rounded-xl p-6 md:p-8 mb-6 shadow-md relative overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0 bg-pattern opacity-10"></div>
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-brand-cyan/10 to-primary/10"
-            animate={{
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          ></motion.div>
-
-          <div className="relative z-10">
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center mb-2">
-              <Sparkles className="w-6 h-6 md:w-7 md:h-7 mr-2 text-yellow-200 animate-pulse" />
+        {/* Clean Header - Title and Button */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
               Sports Groups
             </h1>
-            <p className="text-blue-50 text-sm md:text-base max-w-2xl leading-relaxed">
-              Join communities of sports enthusiasts and organize regular games together
-            </p>
+            <p className="text-sm text-gray-600">Join communities and organize games together</p>
           </div>
+
+          {/* Create Group Button */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create
+            </Button>
+          </motion.div>
         </div>
-        
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
+
+        {/* Compact Filters - Single Row */}
+        <div className="flex gap-2 items-center">
           <Input
             placeholder="Search groups..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1"
+            className="flex-1 border border-gray-200 focus:border-primary rounded-lg bg-white text-sm h-9"
           />
-          <div className="flex gap-2">
-            <Select value={membershipFilter} onValueChange={setMembershipFilter}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Filter groups" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Groups</SelectItem>
-                <SelectItem value="my_groups">My Groups</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedSport} onValueChange={setSelectedSport}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Filter by sport" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sports</SelectItem>
-                {sportTypes.map((sport) => (
-                  <SelectItem key={sport} value={sport}>
-                    <div className="flex flex-col">
-                      <span>{sport.charAt(0).toUpperCase() + sport.slice(1)}</span>
-                      {(sportCounts[sport] || 0) > 0 && (
-                        <span className="text-xs text-gray-500">{sportCounts[sport]} groups</span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={membershipFilter} onValueChange={setMembershipFilter}>
+            <SelectTrigger className="w-auto rounded-lg border border-gray-200 bg-white text-sm h-9 min-w-[120px]">
+              <SelectValue placeholder="All Groups" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Groups</SelectItem>
+              <SelectItem value="my_groups">My Groups</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={selectedSport} onValueChange={setSelectedSport}>
+            <SelectTrigger className="w-auto rounded-lg border border-gray-200 bg-white text-sm h-9 min-w-[120px]">
+              <SelectValue placeholder="All Sports" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sports</SelectItem>
+              {sportTypes.map((sport) => (
+                <SelectItem key={sport} value={sport}>
+                  {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -494,70 +484,64 @@ export default function Groups() {
       ) : groups.length === 0 ? (
         <NoGroupsEmptyState isOwn={membershipFilter === "my_groups"} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {groups.map((group: any) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {groups.map((group: any, index: number) => {
             const notificationCount = getNotificationCount(group.id);
-            
+
             return (
               <Link key={group.id} href={`/groups/${group.id}`}>
                 <motion.div
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1)
+                  }}
+                  whileHover={{ y: -2 }}
+                  className="h-full"
                 >
-                  <Card className="relative overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 group">
-                    {/* Hover gradient effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    {/* Activity indicator ribbon */}
+                  <Card className="relative overflow-hidden cursor-pointer border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full bg-white">
+                    {/* Activity indicator badge */}
                     {notificationCount > 0 && (
-                      <motion.div
-                        className="absolute top-2 right-2 z-10"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200 }}
-                      >
-                        <Badge variant="destructive" className="text-xs font-semibold px-2 py-1 bg-red-500 hover:bg-red-600 shadow-lg">
-                          {notificationCount} new activit{notificationCount === 1 ? 'y' : 'ies'}
+                      <div className="absolute top-3 right-3 z-10">
+                        <Badge className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 shadow-md">
+                          {notificationCount} new
                         </Badge>
-                      </motion.div>
+                      </div>
                     )}
 
-                    <CardHeader className="pb-2 relative z-10">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors duration-200">{group.name}</CardTitle>
-                          <CardDescription className="text-xs mt-1">
-                            Created on {new Date(group.createdAt).toLocaleDateString()}
-                          </CardDescription>
-                        </div>
-                        <Badge className="bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-200 px-2 py-1 text-xs font-medium">
-                          {group.sportType}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-3 relative z-10">
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{group.description}</p>
-
-                      <div className="flex justify-between text-sm text-gray-500 mb-3">
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-1 text-primary" />
-                          <span className="font-medium">{group.memberCount} members</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <h4 className="text-xs font-medium text-gray-500 mb-2">Group Admin</h4>
-                        <div className="flex items-center">
-                          <div
-                            className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border-2 border-white shadow-sm"
-                            title={`${group.admin?.name || 'Admin'} (admin)`}
-                          >
-                            <span className="text-xs font-semibold text-primary">
-                              {group.admin?.name?.charAt(0) || 'A'}
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
+                            {group.name}
+                          </CardTitle>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
+                              {group.sportType}
                             </span>
                           </div>
-                          <span className="ml-2 text-sm text-gray-700 font-medium">{group.admin?.name || 'Admin'}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-3">
+                      <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]">
+                        {group.description || 'No description'}
+                      </p>
+
+                      {/* Stats Row */}
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <div className="flex items-center gap-1.5 text-sm text-gray-700">
+                          <Users className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium">{group.memberCount}</span>
+                          <span className="text-gray-500">members</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-bold">
+                            {group.admin?.name?.charAt(0).toUpperCase() || 'A'}
+                          </div>
+                          <span className="text-xs text-gray-500">Admin</span>
                         </div>
                       </div>
                     </CardContent>

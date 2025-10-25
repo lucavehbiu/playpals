@@ -127,12 +127,12 @@ export function PollsTab({ groupId }: PollsTabProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold">Group Polls</h2>
-          <p className="text-gray-600 text-sm">Coordinate event scheduling through availability polling</p>
+          <h2 className="text-xl font-bold text-gray-900">Group Polls</h2>
+          <p className="text-gray-600 text-sm mt-0.5">Coordinate event scheduling through availability polling</p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md"
         >
           <Plus className="h-4 w-4" />
           Create Poll
@@ -153,70 +153,73 @@ export function PollsTab({ groupId }: PollsTabProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {polls.map((poll) => (
-            <Card 
-              key={poll.id} 
-              className="hover:shadow-lg hover:border-blue-300 transition-all duration-200 cursor-pointer border-2 border-transparent"
+            <div
+              key={poll.id}
               onClick={() => {
                 console.log('Poll clicked:', poll);
                 setSelectedPoll(poll);
               }}
+              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer"
             >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold">{poll.title}</h3>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={poll.isActive ? "default" : "secondary"}>
-                          {poll.isActive ? "Active" : "Closed"}
-                        </Badge>
-                        {poll.canCreateEvent && (
-                          <Badge variant="destructive" className="bg-green-600 hover:bg-green-700">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Ready to Create Event
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    {poll.description && (
-                      <p className="text-gray-600 mt-1">{poll.description}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <h3 className="text-lg font-bold text-gray-900 truncate">{poll.title}</h3>
+                    <Badge
+                      variant={poll.isActive ? "default" : "secondary"}
+                      className={poll.isActive ? "bg-blue-500" : ""}
+                    >
+                      {poll.isActive ? "Active" : "Closed"}
+                    </Badge>
+                    {poll.canCreateEvent && (
+                      <Badge className="bg-green-600 hover:bg-green-700">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Ready to Create Event
+                      </Badge>
                     )}
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        Min {poll.minMembers} members
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {poll.duration} minutes
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
-                      </div>
+                  </div>
+
+                  {poll.description && (
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-1">{poll.description}</p>
+                  )}
+
+                  <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>Min {poll.minMembers} members</span>
                     </div>
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-500">
-                        {poll.responseCount} responses • Created by {poll.creator.name}
-                      </p>
-                      <Button 
-                        className="mt-2" 
-                        size="sm" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Button clicked for poll:', poll);
-                          setSelectedPoll(poll);
-                        }}
-                      >
-                        View Details
-                      </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{poll.duration} minutes</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}</span>
                     </div>
                   </div>
+
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      <span className="font-semibold text-gray-700">{poll.responseCount}</span> responses • Created by <span className="font-medium">{poll.creator.name}</span>
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Button clicked for poll:', poll);
+                        setSelectedPoll(poll);
+                      }}
+                      className="text-xs h-8"
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
