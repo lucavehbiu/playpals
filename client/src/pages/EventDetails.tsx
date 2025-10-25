@@ -11,6 +11,7 @@ import { SubmitScoreModal } from "@/components/groups/SubmitScoreModal";
 import { EditScoreModal } from "@/components/groups/EditScoreModal";
 import EventMap from "@/components/maps/EventMap";
 import { GoogleMapsWrapper } from "@/components/maps/GoogleMapsWrapper";
+import { motion } from "framer-motion";
 import { 
   CalendarIcon, 
   MapPinIcon, 
@@ -409,164 +410,228 @@ const EventDetails = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 pb-16">
       {/* Content Container */}
-      <div className="pt-4 mt-2">
-        {/* Header with Back Button, Badges, and Actions */}
-        <div className="flex items-center justify-between mb-4">
-          <button 
+      <div className="pt-2">
+        {/* Premium Header with Back Button and Actions */}
+        <div className="flex items-center justify-between mb-3">
+          <motion.button
             onClick={handleBack}
-            className="flex items-center text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+            className="flex items-center text-sm font-semibold text-gray-700 hover:text-primary transition-all duration-300 glass-card px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg"
+            whileHover={{ scale: 1.05, x: -4 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            <ArrowLeft className="h-5 w-5 mr-1.5" /> 
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back
-          </button>
-          
+          </motion.button>
+
           <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleShare}
-              className="h-9 w-9 rounded-full"
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <Share2 className="h-5 w-5 text-gray-700" />
-            </Button>
-            
-            {isCreator && (
-              <Button 
+              <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLocation(`/events/manage/${eventData.id}`)}
-                className="h-9 w-9 rounded-full"
+                onClick={handleShare}
+                className="h-10 w-10 rounded-full glass-card shadow-md hover:shadow-lg"
               >
-                <Settings className="h-5 w-5 text-gray-700" />
+                <Share2 className="h-4 w-4 text-gray-700" />
               </Button>
+            </motion.div>
+
+            {isCreator && (
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLocation(`/events/manage/${eventData.id}`)}
+                  className="h-10 w-10 rounded-full glass-card shadow-md hover:shadow-lg"
+                >
+                  <Settings className="h-4 w-4 text-gray-700" />
+                </Button>
+              </motion.div>
             )}
           </div>
         </div>
 
-        {/* Event badges as headers */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Premium Event Badges */}
+        <div className="flex flex-wrap gap-2 mb-5">
           {eventData.sportType && (
-            <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-3 py-1 font-semibold shadow-md`}>
-              {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
-            </Badge>
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-4 py-1.5 font-bold shadow-premium text-sm`}>
+                {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
+              </Badge>
+            </motion.div>
           )}
-          <Badge className="bg-gray-600 text-white hover:bg-gray-700 px-3 py-1" variant="outline">
-            {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
-            {eventData.isPublic ? "Public" : "Private"}
-          </Badge>
-          <Badge className="bg-green-600 text-white hover:bg-green-700 px-3 py-1" variant="outline">
-            {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
-          </Badge>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Badge className="glass bg-gray-600/90 text-white hover:bg-gray-700/90 px-4 py-1.5 shadow-md text-sm font-semibold" variant="outline">
+              {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+              {eventData.isPublic ? "Public" : "Private"}
+            </Badge>
+          </motion.div>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Badge className="glass bg-green-600/90 text-white hover:bg-green-700/90 px-4 py-1.5 shadow-md text-sm font-semibold" variant="outline">
+              {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+            </Badge>
+          </motion.div>
         </div>
 
-        {/* Hero Section */}
-        <div className="relative rounded-xl overflow-hidden aspect-[1.618/1] md:aspect-[2.618/1] mb-4 bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
-          {/* Image loading state */}
-          {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-            </div>
-          )}
-          
-          {/* Error state */}
-          {imageError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className={`rounded-xl h-16 w-16 flex items-center justify-center mb-4 ${getSportBadgeColor(eventData.sportType)}`}>
-                <ImageIcon className="h-8 w-8 text-white" />
+        {/* Compact Premium Hero Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+          className="glass-card overflow-hidden mb-4 shadow-premium-lg"
+        >
+          {/* Compact Image Header */}
+          <div className="relative h-48 bg-gradient-to-br from-gray-900 to-gray-800">
+            {/* Image loading state */}
+            {!imageLoaded && !imageError && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-white"></div>
               </div>
-              <h3 className="text-white font-medium">{eventData.sportType?.charAt(0).toUpperCase() + eventData.sportType?.slice(1) || 'Sport'}</h3>
-            </div>
-          )}
-          
-          {/* Actual image with overlay */}
-          <img 
-            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
-            alt={eventData.title || 'Event'} 
-            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => {
-              setImageError(true);
-              console.error("Failed to load image for event:", eventData.title);
-            }}
-          />
-          
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-          
-          {/* Content overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-            {/* Event title with opaque background */}
-            <div className="bg-gray-100/90 backdrop-blur-sm rounded-lg px-4 py-3 mb-4 inline-block">
-              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight tracking-tight">{eventData.title || "Event Title"}</h1>
-            </div>
-            
-            {/* Creator info */}
-            <div className="flex items-center">
-              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                {eventData.creator?.profileImage ? (
-                  <AvatarImage src={eventData.creator.profileImage} />
-                ) : (
-                  <AvatarFallback className="bg-primary text-white">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
-                )}
-              </Avatar>
-              <div className="ml-2.5">
-                <p className="text-white font-medium text-sm leading-tight">
-                  {eventData.creator?.name || eventData.creator?.username || "Unknown"}
-                </p>
-                <p className="text-white/70 text-xs">Organizer</p>
+            )}
+
+            {/* Error state */}
+            {imageError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className={`rounded-xl h-12 w-12 flex items-center justify-center mb-2 ${getSportBadgeColor(eventData.sportType)}`}>
+                  <ImageIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            )}
+
+            {/* Actual image */}
+            <img
+              src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
+              alt={eventData.title || 'Event'}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                setImageError(true);
+                console.error("Failed to load image for event:", eventData.title);
+              }}
+            />
+
+            {/* Subtle gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          </div>
+
+          {/* Compact Info Section */}
+          <div className="p-4">
+            {/* Title with Inline Icons on the Right */}
+            <div className="mb-3">
+              <h1 className="text-lg font-bold text-gray-900 leading-tight mb-2">{eventData.title || "Event Title"}</h1>
+
+              {/* Date & Participants Inline */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                {/* Date */}
+                <div className="flex items-center space-x-1.5 flex-1">
+                  <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full p-1 flex-shrink-0">
+                    <CalendarIcon className="h-3 w-3 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs text-gray-900 truncate">{formatEventDate(eventData.date)}</p>
+                    <p className="text-[10px] text-gray-600">{formatEventTime(eventData.date)}</p>
+                  </div>
+                </div>
+
+                {/* Participants */}
+                <div className="flex items-center space-x-1.5 flex-1">
+                  <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full p-1 flex-shrink-0">
+                    <Users className="h-3 w-3 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-xs text-gray-900">{actualParticipantCount}/{eventData.maxParticipants}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` }}
+                        transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+                        className="bg-gradient-to-r from-primary to-secondary h-1 rounded-full"
+                      ></motion.div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Creator */}
+              <div className="flex items-center text-xs text-gray-600">
+                <Avatar className="h-5 w-5 mr-1.5">
+                  {eventData.creator?.profileImage ? (
+                    <AvatarImage src={eventData.creator.profileImage} />
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-[10px] font-semibold">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
+                  )}
+                </Avatar>
+                <span className="font-medium">by {eventData.creator?.name || eventData.creator?.username || "Unknown"}</span>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
         
-        {/* Key Info Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-            <CalendarIcon className="h-6 w-6 text-primary mb-2" />
-            <p className="text-xs text-gray-500">Date & Time</p>
-            <p className="font-medium text-sm md:text-base">{formatEventDate(eventData.date)}</p>
-            <p className="text-xs text-gray-600">{formatEventTime(eventData.date)}</p>
-          </div>
-          
-          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-            <Users className="h-6 w-6 text-primary mb-2" />
-            <p className="text-xs text-gray-500">Participants</p>
-            <p className="font-medium text-sm md:text-base">
-              {actualParticipantCount} of {eventData.maxParticipants}
-            </p>
-            <div className="w-full max-w-24 bg-gray-200 rounded-full h-1.5 mt-1.5">
-              <div 
-                className="bg-primary h-1.5 rounded-full" 
-                style={{ 
-                  width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` 
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Join/Decline Buttons for Group Events - No RSVP yet */}
+        {/* Sticky Premium Join/Decline Buttons */}
         {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
-          <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-            <div className="flex gap-3">
-              <Button 
-                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700" 
-                onClick={handleJoin}
-                disabled={joinEventMutation.isPending}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
+            className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-lg border-b border-gray-100/50 shadow-md mb-4"
+          >
+            <div className="flex gap-3 max-w-4xl mx-auto">
+              <motion.div
+                className="flex-1"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Users className="mr-2.5 h-5 w-5" />
-                {joinEventMutation.isPending ? "Joining..." : "Join Event"}
-              </Button>
-              <Button 
-                variant="outline"
-                className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] border-red-200 text-red-600 hover:bg-red-50" 
-                onClick={() => toast({ title: "Declined", description: "You declined to join this event." })}
+                <Button
+                  className="w-full py-4 text-sm font-bold rounded-xl shadow-premium hover:shadow-premium-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  onClick={handleJoin}
+                  disabled={joinEventMutation.isPending}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  {joinEventMutation.isPending ? "Joining..." : "Join Event"}
+                </Button>
+              </motion.div>
+              <motion.div
+                className="flex-1"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <X className="mr-2.5 h-5 w-5" />
-                Decline
-              </Button>
+                <Button
+                  variant="outline"
+                  className="w-full py-4 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-red-200 text-red-600 hover:bg-red-50 glass"
+                  onClick={() => toast({ title: "Declined", description: "You declined to join this event." })}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Decline
+                </Button>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Join/Decline Buttons for Group Events - Pending RSVP */}
@@ -894,15 +959,15 @@ const EventDetails = () => {
         
         {/* Tabs with Details */}
         <Tabs defaultValue="details" className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 p-1 rounded-xl">
-            <TabsTrigger value="details" className="rounded-lg py-2.5">About</TabsTrigger>
-            <TabsTrigger value="participants" className="rounded-lg py-2.5">
-              Participants 
-              <span className="ml-1.5 bg-gray-200 text-gray-700 text-xs px-1.5 py-0.5 rounded-full">
+          <TabsList className="grid w-full grid-cols-3 gap-1 mb-6 bg-gray-100/80 p-1.5 rounded-xl">
+            <TabsTrigger value="details" className="rounded-lg py-2.5 px-2 text-xs font-semibold">About</TabsTrigger>
+            <TabsTrigger value="participants" className="rounded-lg py-2.5 px-2 text-xs font-semibold">
+              <span className="truncate">Participants</span>
+              <span className="ml-1 bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-full">
                 {actualParticipantCount}
               </span>
             </TabsTrigger>
-            <TabsTrigger value="discussion" className="rounded-lg py-2.5">Discussion</TabsTrigger>
+            <TabsTrigger value="discussion" className="rounded-lg py-2.5 px-2 text-xs font-semibold">Chat</TabsTrigger>
           </TabsList>
           
           <TabsContent value="details">
