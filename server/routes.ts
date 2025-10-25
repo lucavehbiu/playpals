@@ -80,8 +80,8 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
     console.log('Authentication failed for:', req.url);
     
     // Temporary fallback during authentication debugging
-    if (req.url.includes('/api/sports-groups') || 
-        req.url.includes('/api/users/') || 
+    if (req.url.includes('/api/sports-groups') ||
+        req.url.includes('/api/users/') ||
         req.url.includes('/api/friendships') ||
         req.url.includes('/api/friend-requests') ||
         req.url.includes('/api/tournament-invitations') ||
@@ -90,6 +90,7 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
         req.url.includes('/api/user-sports-groups') ||
         req.url.includes('/api/events') ||
         req.url.includes('/api/rsvps') ||
+        req.url.includes('/api/teams/join-notifications') ||
         req.url.includes('/api/user')) {
       
       // Extract user ID from URL if present
@@ -479,27 +480,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events', async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-      
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100; // Default to 100 events
+
       // Get all discoverable events
       const events = await storage.getDiscoverableEvents(userId);
       console.log("Fetched discoverable events:", events ? events.length : 0);
-      
-      // Add creator info to each event
-      const eventsWithCreators = await Promise.all(
-        events.map(async (event) => {
-          const creator = await storage.getUser(event.creatorId);
-          return {
-            ...event,
-            creator: creator ? {
-              id: creator.id,
-              username: creator.username,
-              name: creator.name,
-              profileImage: creator.profileImage
-            } : null
-          };
-        })
+
+      // Limit the number of events to prevent performance issues
+      const limitedEvents = events.slice(0, limit);
+
+      // Get unique creator IDs
+      const creatorIds = [...new Set(limitedEvents.map(e => e.creatorId))];
+
+      // Fetch all creators in one batch query
+      const creators = await Promise.all(
+        creatorIds.map(id => storage.getUser(id))
       );
-      
+
+      // Create a map of creator ID to creator info for fast lookup
+      const creatorMap = new Map(
+        creators.filter(c => c !== undefined).map(c => [c!.id, {
+          id: c!.id,
+          username: c!.username,
+          name: c!.name,
+          profileImage: c!.profileImage
+        }])
+      );
+
+      // Add creator info to each event using the map (O(1) lookup)
+      const eventsWithCreators = limitedEvents.map(event => ({
+        ...event,
+        creator: creatorMap.get(event.creatorId) || null
+      }));
+
       res.json(eventsWithCreators || []);
     } catch (error) {
       console.error("Error fetching events:", error);

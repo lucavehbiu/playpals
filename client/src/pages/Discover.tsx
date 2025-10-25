@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { LocationFilter } from "@/components/filters/LocationFilter";
 import { useLocationFilter } from "@/hooks/use-location-filter";
+import { EventCardSkeleton, TournamentCardSkeleton, SkeletonGrid } from "@/components/ui/loading-skeletons";
+import { NoResultsEmptyState } from "@/components/ui/empty-states";
 
 const Discover = () => {
   const { toast } = useToast();
@@ -201,25 +203,39 @@ const Discover = () => {
   const totalResults = (filteredEvents?.length || 0) + (filteredTournaments?.length || 0);
   
   return (
-    <div>
+    <div className="relative">
+      {/* Subtle background pattern for premium feel */}
+      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
+
       {/* Premium header with sparkle effect */}
-      <motion.div 
-        className="relative mb-6 rounded-xl overflow-hidden"
+      <motion.div
+        className="relative mb-6 rounded-xl overflow-hidden shadow-md"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="bg-gradient-to-r from-primary to-blue-600 p-6 relative">
-          {/* Background pattern */}
+        <div className="bg-gradient-to-r from-primary via-blue-600 to-blue-700 p-6 md:p-8 relative">
+          {/* Animated background pattern */}
           <div className="absolute inset-0 bg-pattern opacity-10"></div>
-          
-          <div className="flex justify-between items-center relative z-10">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center">
-                <Sparkles className="w-6 h-6 mr-2 text-yellow-200" />
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10"
+            animate={{
+              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          ></motion.div>
+
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center mb-2">
+                <Sparkles className="w-6 h-6 md:w-7 md:h-7 mr-2 text-yellow-200 animate-pulse" />
                 Discover Events & Tournaments
               </h1>
-              <p className="text-blue-100 mt-1 max-w-lg">
+              <p className="text-blue-50 text-sm md:text-base max-w-2xl leading-relaxed">
                 Find sports events and tournaments happening near you and connect with players sharing your interests
               </p>
             </div>
@@ -455,28 +471,28 @@ const Discover = () => {
       </motion.div>
       
       {isLoading ? (
-        <motion.div 
-          className="flex justify-center items-center h-64"
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          <div className="text-center">
-            {/* Premium loading animation */}
-            <div className="relative mx-auto w-20 h-20">
-              <div className="w-20 h-20 rounded-full border-4 border-gray-200"></div>
-              <div className="absolute top-0 left-0 w-20 h-20 rounded-full border-t-4 border-r-4 border-primary animate-spin"></div>
-              <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
-                <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 5L12 2L9 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M12 2V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8 8L4 12L8 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M4 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 18L19 21L22 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M19 21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+          <div className="mb-5">
+            <div className="flex justify-between items-center">
+              <div className="h-8 w-48 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
             </div>
-            <p className="mt-4 text-primary font-medium">Discovering events for you...</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+              >
+                {i % 4 === 0 ? <TournamentCardSkeleton /> : <EventCardSkeleton />}
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       ) : error ? (
@@ -653,40 +669,9 @@ const Discover = () => {
             
             {/* Empty State */}
             {totalResults === 0 && (
-              <motion.div 
-                className="col-span-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="text-center py-16 px-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
-                  <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">No events found</h3>
-                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                    We couldn't find any events matching your search criteria. Try adjusting your filters or check back later.
-                  </p>
-                  <button 
-                    className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors"
-                    onClick={() => {
-                      setSelectedSport("all");
-                      setLocationFilter("");
-                      setDateFilter("");
-                      setShowFreeOnly(false);
-                      setShowPublicOnly(true);
-                      setContentType("all");
-                    }}
-                  >
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Reset All Filters
-                  </button>
-                </div>
-              </motion.div>
+              <div className="col-span-3">
+                <NoResultsEmptyState searchTerm={selectedSport !== "all" ? selectedSport : undefined} />
+              </div>
             )}
           </div>
         </>

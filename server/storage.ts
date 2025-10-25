@@ -5662,17 +5662,22 @@ Promise.all(testUsers.map(async (userData) => {
       </svg>`)
     }
   ];
-  
-  // Create events from the sample data
-  console.log(`Creating ${sampleEvents.length} sample events...`);
-  
-  for (const eventData of sampleEvents) {
-    try {
-      await storage.createEvent(eventData);
-      console.log(`Created event: ${eventData.title}`);
-    } catch (error) {
-      console.error(`Error creating event ${eventData.title}:`, error);
+
+  // Only create sample events if the database is empty (prevent duplicates)
+  const existingEvents = await storage.getPublicEvents();
+  if (existingEvents.length === 0) {
+    console.log(`Creating ${sampleEvents.length} sample events...`);
+
+    for (const eventData of sampleEvents) {
+      try {
+        await storage.createEvent(eventData);
+        console.log(`Created event: ${eventData.title}`);
+      } catch (error) {
+        console.error(`Error creating event ${eventData.title}:`, error);
+      }
     }
+  } else {
+    console.log(`Skipping sample event creation - database already has ${existingEvents.length} events`);
   }
   
   // Create user sport preferences for realistic matching

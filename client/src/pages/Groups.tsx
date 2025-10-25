@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Users, MessageCircle, Calendar, Clock, MapPin } from "lucide-react";
+import { Plus, Users, MessageCircle, Calendar, Clock, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useGroupNotifications } from "@/hooks/use-group-notifications";
 import { queryClient } from "@/lib/queryClient";
 import { sportTypes } from "@shared/schema";
+import { motion } from "framer-motion";
+import { GroupCardSkeleton } from "@/components/ui/loading-skeletons";
+import { NoGroupsEmptyState } from "@/components/ui/empty-states";
 
 const createGroupSchema = z.object({
   name: z.string().min(1, "Group name is required").max(50, "Group name must be 50 characters or less"),
@@ -259,11 +262,41 @@ export default function Groups() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold">Groups</h1>
-          <p className="text-gray-500">Discover and manage sports groups</p>
+    <div className="container mx-auto p-4 relative">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
+
+      <motion.div
+        className="mb-6 relative z-10"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary via-blue-600 to-blue-700 rounded-xl p-6 md:p-8 mb-6 shadow-md relative overflow-hidden">
+          {/* Animated background */}
+          <div className="absolute inset-0 bg-pattern opacity-10"></div>
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10"
+            animate={{
+              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          ></motion.div>
+
+          <div className="relative z-10">
+            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center mb-2">
+              <Sparkles className="w-6 h-6 md:w-7 md:h-7 mr-2 text-yellow-200 animate-pulse" />
+              Sports Groups
+            </h1>
+            <p className="text-blue-50 text-sm md:text-base max-w-2xl leading-relaxed">
+              Join communities of sports enthusiasts and organize regular games together
+            </p>
+          </div>
         </div>
         
         {/* Search and Filters */}
@@ -437,26 +470,29 @@ export default function Groups() {
       </div>
 
       {isGroupsLoading ? (
-        <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.05 }}
+            >
+              <GroupCardSkeleton />
+            </motion.div>
+          ))}
+        </motion.div>
       ) : groupsError ? (
         <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
           <p>Failed to load groups. Please try again later.</p>
         </div>
       ) : groups.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <div className="mx-auto mb-4 bg-primary/10 h-16 w-16 rounded-full flex items-center justify-center">
-            <Plus className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-lg font-medium mb-2">No groups yet</h3>
-          <p className="text-gray-500 mb-4">
-            Create your first group to organize games and invite players
-          </p>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            Create Group
-          </Button>
-        </div>
+        <NoGroupsEmptyState isOwn={membershipFilter === "my_groups"} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map((group: any) => {
@@ -464,52 +500,70 @@ export default function Groups() {
             
             return (
               <Link key={group.id} href={`/groups/${group.id}`}>
-                <Card className="relative overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200">
-                  {/* Activity indicator ribbon */}
-                  {notificationCount > 0 && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <Badge variant="destructive" className="text-xs font-semibold px-2 py-1 bg-red-500 hover:bg-red-600">
-                        {notificationCount} new activit{notificationCount === 1 ? 'y' : 'ies'}
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle>{group.name}</CardTitle>
-                        <CardDescription className="text-xs mt-1">
-                          Created on {new Date(group.createdAt).toLocaleDateString()}
-                        </CardDescription>
-                      </div>
-                      <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                        {group.sportType}
-                      </div>
-                    </div>
-                  </CardHeader>
-                <CardContent className="pb-3">
-                  <p className="text-sm text-gray-600 mb-4">{group.description}</p>
-                  
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>{group.memberCount} members</span>
-                  </div>
-                  
-                  <div className="mt-3">
-                    <h4 className="text-sm font-medium mb-2">Group Admin</h4>
-                    <div className="flex -space-x-2">
-                      <div 
-                        className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white"
-                        title={`${group.admin?.name || 'Admin'} (admin)`}
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="relative overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 group">
+                    {/* Hover gradient effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                    {/* Activity indicator ribbon */}
+                    {notificationCount > 0 && (
+                      <motion.div
+                        className="absolute top-2 right-2 z-10"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200 }}
                       >
-                        <span className="text-xs font-medium text-gray-600">
-                          {group.admin?.name?.charAt(0) || 'A'}
-                        </span>
+                        <Badge variant="destructive" className="text-xs font-semibold px-2 py-1 bg-red-500 hover:bg-red-600 shadow-lg">
+                          {notificationCount} new activit{notificationCount === 1 ? 'y' : 'ies'}
+                        </Badge>
+                      </motion.div>
+                    )}
+
+                    <CardHeader className="pb-2 relative z-10">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="group-hover:text-primary transition-colors duration-200">{group.name}</CardTitle>
+                          <CardDescription className="text-xs mt-1">
+                            Created on {new Date(group.createdAt).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <Badge className="bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-200 px-2 py-1 text-xs font-medium">
+                          {group.sportType}
+                        </Badge>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                    </CardHeader>
+                    <CardContent className="pb-3 relative z-10">
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{group.description}</p>
+
+                      <div className="flex justify-between text-sm text-gray-500 mb-3">
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-1 text-primary" />
+                          <span className="font-medium">{group.memberCount} members</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <h4 className="text-xs font-medium text-gray-500 mb-2">Group Admin</h4>
+                        <div className="flex items-center">
+                          <div
+                            className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border-2 border-white shadow-sm"
+                            title={`${group.admin?.name || 'Admin'} (admin)`}
+                          >
+                            <span className="text-xs font-semibold text-primary">
+                              {group.admin?.name?.charAt(0) || 'A'}
+                            </span>
+                          </div>
+                          <span className="ml-2 text-sm text-gray-700 font-medium">{group.admin?.name || 'Admin'}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
             );
           })}
         </div>

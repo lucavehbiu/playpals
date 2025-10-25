@@ -1,13 +1,13 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { 
-  CalendarIcon, 
-  MapPinIcon, 
-  UserIcon, 
-  Clock, 
-  PlusIcon, 
-  Share2Icon, 
-  ThumbsUpIcon, 
+import {
+  CalendarIcon,
+  MapPinIcon,
+  UserIcon,
+  Clock,
+  PlusIcon,
+  Share2Icon,
+  ThumbsUpIcon,
   MessageCircleIcon,
   ChevronRightIcon,
   Heart,
@@ -33,6 +33,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { FeedItemSkeleton } from "@/components/ui/loading-skeletons";
+import { NoActivityEmptyState } from "@/components/ui/empty-states";
 
 const Feed = () => {
   const { user } = useAuth();
@@ -69,8 +71,43 @@ const Feed = () => {
   
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="max-w-4xl mx-auto relative">
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" aria-hidden="true"></div>
+
+        {/* Stories skeleton */}
+        <div className="mb-4">
+          <div className="h-6 w-40 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="flex space-x-3 overflow-x-auto pb-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-[80px] flex flex-col items-center">
+                <div className="w-[68px] h-[68px] rounded-full bg-gray-200 animate-pulse mb-1.5"></div>
+                <div className="w-[60px] h-3 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tabs skeleton */}
+        <div className="flex space-x-1 border-b mb-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-12 w-32 bg-gray-200 rounded-t animate-pulse"></div>
+          ))}
+        </div>
+
+        {/* Feed items skeleton */}
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.1 }}
+            >
+              <FeedItemSkeleton />
+            </motion.div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -278,26 +315,7 @@ const Feed = () => {
       {/* Feed content based on active tab */}
       <div className="mb-8 space-y-6">
         {!tabContent || tabContent.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Card className="text-center p-6 bg-white shadow-sm border-none">
-              <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <UserPlus className="h-8 w-8 text-primary/70" />
-                </div>
-                <h3 className="text-lg font-medium mb-2">No activity yet</h3>
-                <p className="text-gray-500 mb-4 max-w-md mx-auto">
-                  Follow more users and join events to see their activities in your feed.
-                </p>
-                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
-                  Find Users to Follow
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <NoActivityEmptyState />
         ) : (
           <motion.div 
             className="space-y-6"
