@@ -320,17 +320,17 @@ const Teams = () => {
           </motion.div>
         </div>
 
-        {/* Search and Filters - Premium glassmorphism design */}
-        <div className="glass-card p-4 space-y-3">
+        {/* Search and Filters - Clean minimal design */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3 shadow-sm">
           <Input
             placeholder="Search teams..."
             value={teamSearchQuery}
             onChange={(e) => setTeamSearchQuery(e.target.value)}
-            className="border-2 border-gray-200 focus:border-primary rounded-xl bg-white/70 backdrop-blur-sm"
+            className="border-gray-200 focus:border-primary"
           />
           <div className="flex flex-wrap gap-2">
             <Select value={membershipFilter} onValueChange={setMembershipFilter}>
-              <SelectTrigger className="w-full sm:w-auto rounded-xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm">
+              <SelectTrigger className="w-full sm:w-auto border-gray-200">
                 <SelectValue placeholder="Filter teams" />
               </SelectTrigger>
               <SelectContent>
@@ -339,19 +339,17 @@ const Teams = () => {
               </SelectContent>
             </Select>
             <Select value={selectedSport} onValueChange={setSelectedSport}>
-              <SelectTrigger className="w-full sm:w-auto rounded-xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm">
+              <SelectTrigger className="w-full sm:w-auto border-gray-200">
                 <SelectValue placeholder="Filter by sport" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Sports</SelectItem>
                 {sportTypes.map((sport) => (
                   <SelectItem key={sport} value={sport}>
-                    <div className="flex flex-col">
-                      <span>{sport.charAt(0).toUpperCase() + sport.slice(1)}</span>
-                      {(sportCounts[sport] || 0) > 0 && (
-                        <span className="text-xs text-gray-500">{sportCounts[sport]} teams</span>
-                      )}
-                    </div>
+                    {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                    {(sportCounts[sport] || 0) > 0 && (
+                      <span className="text-xs text-gray-500 ml-2">({sportCounts[sport]})</span>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -534,11 +532,11 @@ const Teams = () => {
                 }}
                 whileHover={{ y: -4 }}
               >
-                <Card className="overflow-hidden glass-card border-2 hover:border-primary/30 transition-all duration-300 h-full flex flex-col">
+                <Card className="overflow-hidden bg-white border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-300 h-full flex flex-col">
                   <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+                    <div className="flex justify-between items-start gap-3 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-bold text-gray-900 mb-1 truncate">
                           {team.name}
                         </CardTitle>
                         <CardDescription className="text-xs flex items-center gap-1.5 text-gray-500">
@@ -546,18 +544,16 @@ const Teams = () => {
                           {new Date(team.createdAt).toLocaleDateString()}
                         </CardDescription>
                       </div>
-                      <div className="px-3 py-1.5 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-                        <span className="text-xs font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          {team.sportType}
-                        </span>
-                      </div>
+                      <span className="px-3 py-1 rounded-md bg-primary/10 text-primary font-semibold text-xs whitespace-nowrap">
+                        {team.sportType}
+                      </span>
                     </div>
 
                     {/* User Role Badge */}
                     {userRole && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 w-fit">
-                        <Shield className="h-3 w-3 text-green-600" />
-                        <span className="text-xs font-semibold text-green-700 capitalize">{userRole}</span>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-100 w-fit">
+                        <Shield className="h-3 w-3 text-green-700" />
+                        <span className="text-xs font-bold text-green-700 capitalize">{userRole}</span>
                       </div>
                     )}
                   </CardHeader>
@@ -566,40 +562,38 @@ const Teams = () => {
                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{team.description || 'No description'}</p>
 
                     {/* Members Count */}
-                    <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
-                      <Users className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm font-semibold text-blue-900">
+                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-700">
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <span className="font-semibold">
                         {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
                       </span>
                     </div>
 
                     {/* Team Leaders */}
-                    <div>
-                      <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                        <Trophy className="h-3.5 w-3.5 text-amber-500" />
-                        Team Leaders
-                      </h4>
-                      <div className="flex -space-x-2">
-                        {captains.length > 0 ? (
-                          captains.map((member: any) => (
+                    {captains.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1">
+                          <Trophy className="h-3 w-3" />
+                          Leaders
+                        </h4>
+                        <div className="flex -space-x-2">
+                          {captains.map((member: any) => (
                             <div
                               key={member.id}
-                              className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center border-2 border-white shadow-md hover:scale-110 transition-transform cursor-pointer"
+                              className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center border-2 border-white shadow-sm hover:scale-110 transition-transform cursor-pointer"
                               title={`${member.user?.username || 'User'} (${member.role})`}
                             >
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-xs font-bold text-white">
                                 {member.user?.username?.charAt(0).toUpperCase() || 'U'}
                               </span>
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-xs text-gray-400 italic">No leaders assigned</div>
-                        )}
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
 
-                  <CardFooter className="flex justify-between pt-3 border-t border-gray-100 bg-gray-50/50">
+                  <CardFooter className="flex justify-between pt-3 border-t border-gray-100">
                     {canInviteMembers(team) && (
                       <Dialog open={isInviteMemberOpen && selectedTeam === team.id} onOpenChange={(open) => {
                         setIsInviteMemberOpen(open);
@@ -618,7 +612,7 @@ const Teams = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5"
+                            className="border-gray-200 hover:border-primary hover:text-primary hover:bg-primary/5"
                           >
                             <UserPlusIcon className="h-4 w-4 mr-1.5" />
                             Invite
@@ -763,7 +757,7 @@ const Teams = () => {
                         variant="default"
                         size="sm"
                         onClick={() => setLocation(`/teams/${team.id}`)}
-                        className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-sm"
+                        className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-sm"
                       >
                         View Team
                         <ArrowRightIcon className="h-4 w-4 ml-1.5" />
@@ -772,7 +766,7 @@ const Teams = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="rounded-xl hover:bg-gray-100"
+                          className="hover:bg-gray-100"
                         >
                           <SettingsIcon className="h-4 w-4" />
                         </Button>
