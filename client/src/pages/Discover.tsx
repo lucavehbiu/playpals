@@ -207,87 +207,63 @@ const Discover = () => {
       {/* Subtle background pattern for premium feel */}
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
 
-      {/* Premium header with sparkle effect */}
+      {/* Premium Glassmorphic Header */}
       <motion.div
-        className="relative mb-6 rounded-xl overflow-hidden shadow-md"
+        className="relative mb-6 rounded-2xl overflow-hidden shadow-premium-lg"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="bg-gradient-to-r from-primary via-brand-cyan to-secondary p-6 md:p-8 relative">
-          {/* Animated background pattern */}
-          <div className="absolute inset-0 bg-pattern opacity-10"></div>
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-brand-cyan/10 to-primary/10"
-            animate={{
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          ></motion.div>
+        <div className="bg-gradient-to-br from-primary via-primary/95 to-secondary p-8 md:p-10 relative">
+          {/* Glassmorphic overlay */}
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center mb-2">
-                <Sparkles className="w-6 h-6 md:w-7 md:h-7 mr-2 text-yellow-200 animate-pulse" />
-                Discover Events & Tournaments
-              </h1>
-              <p className="text-white/90 text-sm md:text-base max-w-2xl leading-relaxed">
-                Find sports events and tournaments happening near you and connect with players sharing your interests
-              </p>
+              <motion.h1
+                className="text-3xl md:text-4xl font-bold text-white flex items-center mb-3"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-3">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                Discover Events
+              </motion.h1>
+              <motion.p
+                className="text-white/90 text-base md:text-lg max-w-2xl leading-relaxed font-medium"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Find sports events and tournaments near you
+              </motion.p>
             </div>
-            
-            <motion.div 
-              className="hidden md:block"
-              animate={{ 
-                y: [0, -5, 0],
-                rotate: [0, 1, 0],
-              }}
-              transition={{ 
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut" 
-              }}
-            >
-              <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-60">
-                <path d="M100 25C106.904 25 112.5 30.5964 112.5 37.5C112.5 44.4036 106.904 50 100 50C93.0964 50 87.5 44.4036 87.5 37.5C87.5 30.5964 93.0964 25 100 25Z" fill="white"/>
-                <path d="M150 75C156.904 75 162.5 80.5964 162.5 87.5C162.5 94.4036 156.904 100 150 100C143.096 100 137.5 94.4036 137.5 87.5C137.5 80.5964 143.096 75 150 75Z" fill="white"/>
-                <path d="M50 75C56.9036 75 62.5 80.5964 62.5 87.5C62.5 94.4036 56.9036 100 50 100C43.0964 100 37.5 94.4036 37.5 87.5C37.5 80.5964 43.0964 75 50 75Z" fill="white"/>
-                <path d="M100 125C106.904 125 112.5 130.596 112.5 137.5C112.5 144.404 106.904 150 100 150C93.0964 150 87.5 144.404 87.5 137.5C87.5 130.596 93.0964 125 100 125Z" fill="white"/>
-                <path d="M37.5 37.5L85 85" stroke="white" strokeWidth="3"/>
-                <path d="M37.5 137.5L85 90" stroke="white" strokeWidth="3"/>
-                <path d="M162.5 37.5L115 85" stroke="white" strokeWidth="3"/>
-                <path d="M162.5 137.5L115 90" stroke="white" strokeWidth="3"/>
-              </svg>
-            </motion.div>
           </div>
         </div>
       </motion.div>
       
-      {/* Premium Filter Panel */}
-      <motion.div 
-        className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 mb-6 backdrop-blur-sm relative overflow-hidden"
+      {/* Premium Glassmorphic Filter Panel */}
+      <motion.div
+        className="glass-card p-6 rounded-2xl shadow-premium border border-gray-200/80 mb-6 relative overflow-hidden"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {/* Background subtle pattern */}
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
-        
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-            <Filter className="w-5 h-5 mr-2 text-primary" />
-            Find Your Perfect Match
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent flex items-center">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mr-3">
+              <Filter className="w-5 h-5 text-primary" />
+            </div>
+            Filters
           </h2>
-          
+
           {/* Reset Button */}
           {(selectedSport !== "all" || isLocationFilterActive || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
             <motion.button
-              className="flex items-center text-xs font-medium text-gray-500 hover:text-primary transition-colors py-1 px-2 rounded-full bg-gray-100 dark:bg-gray-700 dark:text-gray-300"
+              className="flex items-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200"
               onClick={() => {
                 setSelectedSport("all");
                 clearLocationFilter();
@@ -296,59 +272,47 @@ const Discover = () => {
                 setShowPublicOnly(true);
                 setContentType("all");
               }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <X className="w-3 h-3 mr-1" />
-              Reset Filters
+              <X className="w-4 h-4 mr-1.5" />
+              Reset
             </motion.button>
           )}
         </div>
         
         {/* Filters Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Content Type Filter */}
           <div className="relative">
-            <div className="flex items-center mb-1.5">
-              <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                <Filter className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <label htmlFor="type-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Content Type
-              </label>
-            </div>
+            <label htmlFor="type-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
+              Content Type
+            </label>
             <div className="relative">
               <select
                 id="type-filter"
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
                 value={contentType}
                 onChange={(e) => setContentType(e.target.value)}
               >
-                <option value="all">All</option>
+                <option value="all">All Content</option>
                 <option value="events">Events Only</option>
                 <option value="tournaments">Tournaments Only</option>
               </select>
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <Filter className="h-4 w-4" />
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                <Filter className="h-5 w-5" />
               </div>
             </div>
           </div>
           {/* Sport Filter */}
           <div className="relative">
-            <div className="flex items-center mb-1.5">
-              <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-              </div>
-              <label htmlFor="sport-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Sport/Activity
-              </label>
-            </div>
+            <label htmlFor="sport-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
+              Sport/Activity
+            </label>
             <div className="relative">
               <select
                 id="sport-filter"
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-8 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
                 value={selectedSport}
                 onChange={(e) => setSelectedSport(e.target.value)}
               >
@@ -359,8 +323,8 @@ const Discover = () => {
                   </option>
                 ))}
               </select>
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -381,44 +345,44 @@ const Discover = () => {
           
           {/* Date Filter */}
           <div className="relative">
-            <div className="flex items-center mb-1.5">
-              <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-2">
-                <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <label htmlFor="date-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Date (From)
-              </label>
-            </div>
+            <label htmlFor="date-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
+              Date (From)
+            </label>
             <div className="relative">
               <input
                 type="date"
                 id="date-filter"
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-3 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <Calendar className="h-4 w-4" />
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                <Calendar className="h-5 w-5" />
               </div>
               {dateFilter && (
-                <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
                   onClick={() => setDateFilter("")}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               )}
             </div>
           </div>
         </div>
         
-        {/* Checkbox Filters */}
-        <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Preferences:</span>
-          
+        {/* Premium Checkbox Filters */}
+        <div className="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-gray-200/60">
+          <span className="text-sm font-bold text-gray-600">Quick Filters:</span>
+
           {/* Free Only */}
-          <motion.div 
-            className="flex items-center"
+          <motion.label
+            htmlFor="free-only"
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              showFreeOnly
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -430,21 +394,36 @@ const Discover = () => {
                 checked={showFreeOnly}
                 onChange={(e) => setShowFreeOnly(e.target.checked)}
               />
-              <div className={`pointer-events-none h-5 w-5 rounded border ${showFreeOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
+              <div className={`pointer-events-none h-5 w-5 rounded-md border-2 ${
+                showFreeOnly ? 'border-primary bg-primary' : 'border-gray-300'
+              } transition-all duration-200`}></div>
               {showFreeOnly && (
-                <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <motion.svg
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                </motion.svg>
               )}
             </div>
-            <label htmlFor="free-only" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-              Free events only
-            </label>
-          </motion.div>
-          
+            <span className={`text-sm font-semibold ${showFreeOnly ? 'text-primary' : 'text-gray-700'}`}>
+              Free Only
+            </span>
+          </motion.label>
+
           {/* Public Only */}
-          <motion.div 
-            className="flex items-center"
+          <motion.label
+            htmlFor="public-only"
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+              showPublicOnly
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -456,17 +435,27 @@ const Discover = () => {
                 checked={showPublicOnly}
                 onChange={(e) => setShowPublicOnly(e.target.checked)}
               />
-              <div className={`pointer-events-none h-5 w-5 rounded border ${showPublicOnly ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'} transition-colors`}></div>
+              <div className={`pointer-events-none h-5 w-5 rounded-md border-2 ${
+                showPublicOnly ? 'border-primary bg-primary' : 'border-gray-300'
+              } transition-all duration-200`}></div>
               {showPublicOnly && (
-                <svg className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <motion.svg
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                </motion.svg>
               )}
             </div>
-            <label htmlFor="public-only" className="ml-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-              Public events only
-            </label>
-          </motion.div>
+            <span className={`text-sm font-semibold ${showPublicOnly ? 'text-primary' : 'text-gray-700'}`}>
+              Public Only
+            </span>
+          </motion.label>
         </div>
       </motion.div>
       
@@ -523,38 +512,40 @@ const Discover = () => {
         </motion.div>
       ) : (
         <>
-          {/* Results count & sorting */}
-          <motion.div 
-            className="flex flex-wrap justify-between items-center mb-5"
+          {/* Premium Results Count & Sorting */}
+          <motion.div
+            className="flex flex-wrap justify-between items-center mb-6"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <div className="flex items-center">
-              <span className="h-8 px-3 rounded-full bg-primary/10 flex items-center text-primary text-sm font-medium">
-                <span className="mr-1.5 font-semibold">{totalResults}</span> 
-                {contentType === "events" ? "Events" : contentType === "tournaments" ? "Tournaments" : "Items"} Found
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="h-11 px-5 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center border border-primary/20 shadow-sm">
+                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mr-2">
+                  {totalResults}
+                </span>
+                <span className="text-sm font-semibold text-gray-600">
+                  {contentType === "events" ? "Events" : contentType === "tournaments" ? "Tournaments" : "Results"}
+                </span>
+              </div>
               {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
-                <div className="ml-3 text-xs text-gray-500">
-                  <span className="inline-flex items-center">
-                    <Filter className="w-3 h-3 mr-1 text-gray-400" />
-                    Filters applied
-                  </span>
+                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200">
+                  <Filter className="w-4 h-4 text-blue-600" />
+                  <span className="text-xs font-semibold text-blue-700">Filtered</span>
                 </div>
               )}
             </div>
-            
+
             <div className="mt-2 sm:mt-0">
               {totalResults > 0 && (
                 <div className="relative inline-block">
-                  <select className="pl-3 pr-8 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <select className="pl-4 pr-10 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer transition-all duration-200 shadow-sm">
                     <option value="latest">Newest First</option>
                     <option value="oldest">Oldest First</option>
                     <option value="location">By Location</option>
                   </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                     </svg>
                   </div>
