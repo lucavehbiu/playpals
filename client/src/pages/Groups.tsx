@@ -273,11 +273,11 @@ export default function Groups() {
         transition={{ duration: 0.5 }}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary via-blue-600 to-blue-700 rounded-xl p-6 md:p-8 mb-6 shadow-md relative overflow-hidden">
+        <div className="bg-gradient-to-r from-primary via-brand-cyan to-secondary rounded-xl p-6 md:p-8 mb-6 shadow-md relative overflow-hidden">
           {/* Animated background */}
           <div className="absolute inset-0 bg-pattern opacity-10"></div>
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10"
+            className="absolute inset-0 bg-gradient-to-r from-brand-cyan/10 to-primary/10"
             animate={{
               backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
             }}
@@ -467,7 +467,7 @@ export default function Groups() {
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
       {isGroupsLoading ? (
         <motion.div

@@ -54,7 +54,7 @@ const MobileNav = () => {
   return (
     <>
       {/* Fixed Mobile Nav at Bottom */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden"> 
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 flex items-center justify-between px-4 z-[100] md:hidden safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"> 
         {/* Nav Items - Home, Events, Create, Groups, Teams */}
         <NavItem 
           href="/" 
@@ -70,20 +70,47 @@ const MobileNav = () => {
           isActive={location === '/discover'} 
         />
         
-        {/* Create Button */}
-        <div ref={createButtonRef} className="relative -top-5">
+        {/* Premium Create Button with Glow Effect */}
+        <div ref={createButtonRef} className="relative -top-6">
           <div className="flex flex-col items-center">
-            <div
+            <motion.div
               onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
-              className={`rounded-full h-12 w-12 flex items-center justify-center shadow-md transition-all duration-200 ${
-                isCreateMenuOpen 
-                  ? "bg-red-500 rotate-45" 
-                  : "bg-primary"
-              }`}
+              className="relative cursor-pointer"
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <PlusIcon className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-[10px] font-medium text-gray-500 mt-1">Create</span>
+              {/* Glow effect */}
+              <div className={cn(
+                "absolute inset-0 rounded-full blur-xl transition-all duration-300",
+                isCreateMenuOpen
+                  ? "bg-red-500/60"
+                  : "bg-primary/60 animate-pulse-glow"
+              )} />
+
+              {/* Button */}
+              <motion.div
+                className={cn(
+                  "relative h-14 w-14 rounded-full flex items-center justify-center",
+                  "shadow-premium transition-all duration-300",
+                  isCreateMenuOpen
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-primary to-secondary"
+                )}
+                animate={{
+                  rotate: isCreateMenuOpen ? 45 : 0
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20
+                }}
+              >
+                <PlusIcon className="h-7 w-7 text-white drop-shadow-lg" strokeWidth={2.5} />
+              </motion.div>
+            </motion.div>
+
+            <span className="text-[10px] font-semibold text-gray-600 mt-2 tracking-wide">Create</span>
           </div>
           
           {/* Create options popup */}
@@ -94,7 +121,7 @@ const MobileNav = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.9 }}
                 transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-                className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1 w-52 z-50 backdrop-blur-sm"
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 glass-card shadow-premium-lg p-1 w-56 z-50"
               >
                 <div className="space-y-1 p-2">
                   <button
@@ -253,50 +280,95 @@ const MobileNav = () => {
   );
 };
 
-// Extracted navigation item component for cleaner code
-const NavItem = ({ 
-  href, 
-  icon, 
-  label, 
+// Premium navigation item component with enhanced design
+const NavItem = ({
+  href,
+  icon,
+  label,
   isActive,
-  badge 
-}: { 
-  href: string; 
-  icon: React.ReactNode; 
-  label: string; 
+  badge
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
   isActive: boolean;
   badge?: number;
 }) => {
   return (
     <Link href={href}>
-      <div className="flex flex-col items-center justify-center py-2 px-3">
+      <motion.div
+        className="flex flex-col items-center justify-center py-2 px-3 relative"
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        {/* Active background pill */}
+        {isActive && (
+          <motion.div
+            layoutId="activeTab"
+            className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl"
+            initial={false}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30
+            }}
+          />
+        )}
+
         <div className={cn(
-          "flex items-center justify-center transition-all duration-200 mb-1 relative",
-          isActive 
-            ? "text-primary" 
-            : "text-gray-400 hover:text-gray-600"
+          "flex items-center justify-center relative z-10 mb-1",
+          "transition-all duration-300",
+          isActive
+            ? "text-primary scale-110"
+            : "text-gray-400 hover:text-gray-600 hover:scale-105"
         )}>
-          {icon}
+          <motion.div
+            animate={isActive ? {
+              y: [0, -3, 0],
+            } : {}}
+            transition={{
+              duration: 0.6,
+              repeat: isActive ? Infinity : 0,
+              repeatDelay: 3
+            }}
+          >
+            {icon}
+          </motion.div>
+
           {badge && badge > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1.5 -right-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-medium shadow-lg"
+            >
               {badge > 9 ? '9+' : badge}
-            </span>
+            </motion.span>
           )}
         </div>
+
         <span className={cn(
-          "text-[11px] font-medium transition-colors",
-          isActive 
-            ? "text-primary" 
+          "text-[10px] font-semibold transition-all duration-300 relative z-10",
+          isActive
+            ? "text-primary tracking-wide"
             : "text-gray-500"
         )}>
           {label}
         </span>
-        
-        {/* Active indicator dot */}
+
+        {/* Active indicator - animated dot */}
         {isActive && (
-          <div className="w-1 h-1 rounded-full bg-primary mt-1"></div>
+          <motion.div
+            layoutId="activeDot"
+            className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary"
+            initial={false}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30
+            }}
+          />
         )}
-      </div>
+      </motion.div>
     </Link>
   );
 };

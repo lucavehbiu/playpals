@@ -69,6 +69,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // PlayPals brand colors
+        brand: {
+          cyan: "hsl(var(--playpals-cyan))",
+          teal: "hsl(var(--playpals-teal))",
+        },
       },
       keyframes: {
         "accordion-down": {

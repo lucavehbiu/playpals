@@ -214,11 +214,11 @@ const Discover = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="bg-gradient-to-r from-primary via-blue-600 to-blue-700 p-6 md:p-8 relative">
+        <div className="bg-gradient-to-r from-primary via-brand-cyan to-secondary p-6 md:p-8 relative">
           {/* Animated background pattern */}
           <div className="absolute inset-0 bg-pattern opacity-10"></div>
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10"
+            className="absolute inset-0 bg-gradient-to-r from-brand-cyan/10 to-primary/10"
             animate={{
               backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
             }}
@@ -235,7 +235,7 @@ const Discover = () => {
                 <Sparkles className="w-6 h-6 md:w-7 md:h-7 mr-2 text-yellow-200 animate-pulse" />
                 Discover Events & Tournaments
               </h1>
-              <p className="text-blue-50 text-sm md:text-base max-w-2xl leading-relaxed">
+              <p className="text-white/90 text-sm md:text-base max-w-2xl leading-relaxed">
                 Find sports events and tournaments happening near you and connect with players sharing your interests
               </p>
             </div>

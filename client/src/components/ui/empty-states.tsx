@@ -73,7 +73,7 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
           {action && (
             action.href ? (
               <Link href={action.href}>
-                <Button className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
+                <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300">
                   <PlusCircle className="w-4 h-4 mr-2" />
                   {action.label}
                 </Button>
@@ -81,7 +81,7 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
             ) : (
               <Button
                 onClick={action.onClick}
-                className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700"
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 {action.label}
