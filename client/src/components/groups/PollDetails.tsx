@@ -361,114 +361,106 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   };
 
   return (
-    <div className="space-y-6 bg-white p-4 rounded-lg border-2 border-blue-500"
-         style={{ minHeight: '400px', zIndex: 10, position: 'relative' }}>
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">{poll.title}</h3>
-              {poll.description && (
-                <p className="text-gray-600 mt-1">{poll.description}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={pollIsActive ? "default" : "secondary"}>
-                {pollIsActive ? "Active" : "Expired"}
-              </Badge>
-              {user && user.id === poll.createdBy && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+    <div className="space-y-4">
+      {/* Poll Header */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{poll.title}</h3>
+            {poll.description && (
+              <p className="text-sm text-gray-600">{poll.description}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge
+              variant={pollIsActive ? "default" : "secondary"}
+              className={pollIsActive ? "bg-blue-500" : ""}
+            >
+              {pollIsActive ? "Active" : "Expired"}
+            </Badge>
+            {user && user.id === poll.createdBy && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    disabled={deletePollMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Poll</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this poll? This action cannot be undone and will remove all responses from group members.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeletePoll}
+                      className="bg-red-600 hover:bg-red-700"
                       disabled={deletePollMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Poll</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this poll? This action cannot be undone and will remove all responses from group members.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeletePoll}
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={deletePollMutation.isPending}
-                      >
-                        {deletePollMutation.isPending ? "Deleting..." : "Delete Poll"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
+                      {deletePollMutation.isPending ? "Deleting..." : "Delete Poll"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                Min {poll.minMembers} members
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                {poll.duration} minutes
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
-              </span>
-            </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5" />
+            <span>Min {poll.minMembers} members</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{poll.duration} minutes</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}</span>
+          </div>
+        </div>
+      </div>
 
       {pollIsActive && user && (
-        <Card className={userResponses && userResponses.length > 0 ? "border-green-200 bg-green-50" : ""}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-semibold flex items-center gap-2">
-                  Your Availability
-                  {userResponses && userResponses.length > 0 && (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  )}
-                </h4>
-                <p className="text-gray-600">
-                  {userResponses && userResponses.length > 0 
-                    ? `Available for ${userResponses.length} time slots` 
-                    : "Set your available times"
-                  }
-                </p>
-              </div>
-              <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
-                <DialogTrigger asChild>
-                  {(() => {
-                    const hasResponses = userResponses && userResponses.length > 0;
-                    console.log('Button decision - user:', user?.name, 'hasResponses:', hasResponses, 'userResponses:', userResponses);
-                    return hasResponses ? (
-                      <Button variant="outline" size="sm">
-                        Update Availability
-                      </Button>
-                    ) : (
-                      <Button size="sm">
-                        Set Availability
-                      </Button>
-                    );
-                  })()}
-                </DialogTrigger>
+        <div className={`bg-white border rounded-lg p-4 ${userResponses && userResponses.length > 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                Your Availability
+                {userResponses && userResponses.length > 0 && (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                )}
+              </h4>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {userResponses && userResponses.length > 0
+                  ? `Set your available times`
+                  : "Set your available times"
+                }
+              </p>
+            </div>
+            <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
+              <DialogTrigger asChild>
+                {(() => {
+                  const hasResponses = userResponses && userResponses.length > 0;
+                  console.log('Button decision - user:', user?.name, 'hasResponses:', hasResponses, 'userResponses:', userResponses);
+                  return (
+                    <Button
+                      size="sm"
+                      className={hasResponses ? "bg-gradient-to-r from-primary to-secondary" : "bg-gradient-to-r from-primary to-secondary"}
+                    >
+                      {hasResponses ? 'Set Availability' : 'Set Availability'}
+                    </Button>
+                  );
+                })()}
+              </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-lg">Set Your Availability</DialogTitle>
@@ -578,107 +570,77 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
                 </DialogContent>
               </Dialog>
             </div>
-          </CardHeader>
-        </Card>
-      )}
-
-      {/* Show message for expired polls */}
-      {!pollIsActive && (
-        <Card className="border-gray-200 bg-gray-50">
-          <CardContent className="pt-6">
-            <div className="text-center text-gray-600">
-              <p className="font-medium">This poll has expired</p>
-              <p className="text-sm">Availability can no longer be set for this poll.</p>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
       )}
 
       {pollAnalysis?.suggestions?.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h4 className="text-lg font-semibold flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Suggested Events
-            </h4>
-            <p className="text-gray-600">Times when enough members are available to create events</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pollAnalysis.suggestions.map((suggestion: any, index: number) => (
-                <div key={index} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h5 className="font-semibold text-green-900">
-                        {DAYS_OF_WEEK[suggestion.timeSlot.dayOfWeek]} Event
-                      </h5>
-                      <p className="text-sm text-green-700">
-                        {suggestion.timeSlot.startTime} - {suggestion.timeSlot.endTime}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
-                        {suggestion.estimatedParticipants || suggestion.timeSlot.availableCount} available
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-green-700">
-                    <span>✓ Meets minimum {poll.minMembers} members</span>
-                    <span>Duration: {poll.duration} minutes</span>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs text-green-600 mb-1">
-                      {suggestion.estimatedParticipants} members available • {suggestion.confidence} confidence
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            Suggested Events
+          </h4>
+          <p className="text-sm text-gray-600 mb-4">Times when enough members are available to create events</p>
+          <div className="space-y-3">
+            {pollAnalysis.suggestions.map((suggestion: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 bg-green-50 border-green-200">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h5 className="font-bold text-green-900">
+                      {DAYS_OF_WEEK[suggestion.timeSlot.dayOfWeek]} Event
+                    </h5>
+                    <p className="text-sm text-green-700">
+                      {suggestion.timeSlot.startTime} - {suggestion.timeSlot.endTime}
                     </p>
                   </div>
-                  {suggestion.timeSlot.isUsedForEvent ? (
-                    <div className="mt-3 space-y-2">
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        disabled
-                        variant="secondary"
-                      >
-                        Event Already Created
-                      </Button>
-                      <p className="text-xs text-gray-500">
-                        This time slot has already been used to create an event
-                      </p>
-                    </div>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="mt-3 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleCreateEvent(suggestion)}
-                    >
-                      Create Event
-                    </Button>
-                  )}
+                  <Badge className="bg-green-600 hover:bg-green-700">
+                    {suggestion.estimatedParticipants || suggestion.timeSlot.availableCount} available
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center gap-3 text-xs text-green-700 mb-3">
+                  <span>✓ Meets minimum {poll.minMembers} members</span>
+                  <span>Duration: {poll.duration} minutes</span>
+                </div>
+                <div className="text-xs text-green-600 mb-3">
+                  {suggestion.estimatedParticipants} members available • {suggestion.confidence} confidence
+                </div>
+                {suggestion.timeSlot.isUsedForEvent ? (
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    disabled
+                    variant="secondary"
+                  >
+                    Event Already Created
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => handleCreateEvent(suggestion)}
+                  >
+                    Create Event
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <h4 className="text-lg font-semibold">Poll Summary</h4>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p className="text-gray-600">
-              <span className="font-medium">{poll.responseCount}</span> members have responded
-            </p>
-            <p className="text-gray-600">
-              Created by <span className="font-medium">{poll.creator.name}</span> on {format(new Date(poll.createdAt), 'MMM d, yyyy')}
-            </p>
-            <p className="text-gray-600">
-              Minimum <span className="font-medium">{poll.minMembers}</span> members needed to create events
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <h4 className="text-lg font-bold text-gray-900 mb-3">Poll Summary</h4>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>
+            <span className="font-semibold text-gray-900">{poll.responseCount}</span> members have responded
+          </p>
+          <p>
+            Created by <span className="font-medium text-gray-900">{poll.creator.name}</span> on {format(new Date(poll.createdAt), 'MMM d, yyyy')}
+          </p>
+          <p>
+            Minimum <span className="font-medium text-gray-900">{poll.minMembers}</span> members needed to create events
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

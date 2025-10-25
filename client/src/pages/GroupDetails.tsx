@@ -709,147 +709,167 @@ export default function GroupDetails() {
 
         {/* Events Tab */}
         {activeTab === 'events' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Group Events
-                </div>
-                <Button 
-                  onClick={() => {
-                    window.location.href = `/events/create?groupId=${groupId}`;
-                  }}
-                  size="sm"
-                >
-                  Create Event
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {eventsLoading ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="animate-pulse space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Group Events</h2>
+                <p className="text-gray-600 text-sm mt-0.5">Upcoming events and activities for the group</p>
+              </div>
+              <Button
+                onClick={() => {
+                  window.location.href = `/events/create?groupId=${groupId}`;
+                }}
+                className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md"
+              >
+                <Calendar className="h-4 w-4" />
+                Create Event
+              </Button>
+            </div>
+
+            {/* Events List */}
+            {eventsLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="animate-pulse space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        <div className="h-4 bg-gray-200 rounded w-20"></div>
+                      </div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
-                  ))}
-                </div>
-              ) : events.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                  </div>
+                ))}
+              </div>
+            ) : events.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-lg p-8">
+                <div className="text-center py-4 text-gray-500">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No events yet</p>
-                  <p className="text-sm">Be the first to create an event for this group!</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No events yet</h3>
+                  <p className="text-sm mb-4">Be the first to create an event for this group!</p>
+                  <Button
+                    onClick={() => {
+                      window.location.href = `/events/create?groupId=${groupId}`;
+                    }}
+                    className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+                  >
+                    Create First Event
+                  </Button>
                 </div>
-              ) : (
-                <div className="space-y-4">
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3">
                   {events.map((event: any) => {
                     const isNewEvent = unreadEventIds.includes(event.id);
                     // Find user's RSVP status for this event
                     const userRSVP = userRSVPs.find(rsvp => rsvp.eventId === event.id);
                     const rsvpStatus = userRSVP?.status || 'no_response';
-                    
-                    // Determine border and background colors based on RSVP status
-                    let statusClasses = '';
+
+                    // Determine styling based on RSVP status
                     let statusBadge = null;
-                    
-                    if (rsvpStatus === 'pending') {
-                      statusClasses = 'border-yellow-300 bg-yellow-50/50';
-                      statusBadge = <Badge className="bg-yellow-500 text-white">Pending Response</Badge>;
-                    } else if (rsvpStatus === 'approved') {
-                      statusClasses = 'border-green-300 bg-green-50/50';
-                      statusBadge = <Badge className="bg-green-500 text-white">Attending</Badge>;
-                    } else if (rsvpStatus === 'declined' || rsvpStatus === 'denied') {
-                      statusClasses = 'border-red-300 bg-red-50/50';
-                      statusBadge = <Badge className="bg-red-500 text-white">Declined</Badge>;
-                    } else {
-                      statusClasses = 'border-gray-300 bg-gray-50/30';
-                      statusBadge = <Badge variant="outline">No Response</Badge>;
-                    }
-                    
-                    // Override with new event styling if applicable
+                    let borderClass = 'border-gray-200';
+
                     if (isNewEvent) {
-                      statusClasses = 'border-blue-300 bg-blue-50/50';
+                      borderClass = 'border-primary border-l-4';
+                    } else if (rsvpStatus === 'pending') {
+                      statusBadge = <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs">Pending</Badge>;
+                    } else if (rsvpStatus === 'approved') {
+                      statusBadge = <Badge className="bg-green-600 hover:bg-green-700 text-white text-xs">Attending</Badge>;
+                    } else if (rsvpStatus === 'declined' || rsvpStatus === 'denied') {
+                      statusBadge = <Badge className="bg-red-600 hover:bg-red-700 text-white text-xs">Declined</Badge>;
+                    } else {
+                      statusBadge = <Badge variant="outline" className="text-xs">No Response</Badge>;
                     }
-                    
+
                     return (
-                      <div 
-                        key={event.id} 
-                        className={`border rounded-lg p-4 hover:bg-gray-50 relative ${statusClasses}`}
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={() => {
+                          window.location.href = `/events/${event.id}?from=group&groupId=${groupId}`;
+                        }}
+                        className={`bg-white border ${borderClass} rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer ${
+                          isNewEvent ? 'bg-blue-50/30' : ''
+                        }`}
                       >
-                        {isNewEvent && (
-                          <div className="absolute -top-2 -right-2">
-                            <Badge className="bg-red-500 text-white text-xs px-2 py-1">
-                              NEW
-                            </Badge>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className={`font-semibold ${isNewEvent ? 'text-blue-700' : ''}`}>
-                                {event.title}
-                              </h3>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <h3 className="text-lg font-bold text-gray-900 truncate">{event.title}</h3>
                               {isNewEvent && (
-                                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                                <Badge className="bg-primary hover:bg-primary/90 text-white text-xs">
+                                  NEW
+                                </Badge>
                               )}
                               {!isNewEvent && statusBadge}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {event.date ? 
-                                  `${new Date(event.date).toLocaleDateString()} at ${new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
-                                  : 'Date TBD'}
-                              </span>
-                              {event.location && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {event.location}
+
+                            {event.description && (
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
+                            )}
+
+                            <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>
+                                  {event.date ?
+                                    `${new Date(event.date).toLocaleDateString()} at ${new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                                    : 'Date TBD'}
                                 </span>
+                              </div>
+                              {event.location && (
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  <span className="truncate">{event.location}</span>
+                                </div>
                               )}
                             </div>
+
                             {event.creator && (
-                              <p className="text-xs text-gray-400 mt-2">
-                                Created by {event.creator.name}
-                              </p>
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <p className="text-xs text-gray-500">
+                                  Created by <span className="font-medium text-gray-700">{event.creator.name}</span>
+                                </p>
+                              </div>
                             )}
                           </div>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               window.location.href = `/events/${event.id}?from=group&groupId=${groupId}`;
                             }}
-                            className={isNewEvent ? 'border-blue-300' : ''}
+                            className="text-xs h-8 flex-shrink-0"
                           >
                             View Details
                           </Button>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
-              )}
-              
-              {/* Event History Button */}
-              <div className="mt-6 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    window.location.href = `/groups/${groupId}/events/history`;
-                  }}
-                  className="w-full"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  View Event History
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Event History Button */}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      window.location.href = `/groups/${groupId}/events/history`;
+                    }}
+                    className="w-full"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    View Event History
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         )}
 
         {/* Polls Tab */}
