@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,6 +33,55 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { WebSocketProvider } from "@/hooks/WebSocketProvider";
 import { ProtectedRoute } from "./lib/protected-route";
 
+function MainLayout() {
+  const [location] = useLocation();
+
+  // Check if we're on event details page (but not edit, manage, or create)
+  const isEventDetails = location.match(/^\/events\/\d+$/) !== null;
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isEventDetails && <Header />}
+
+      <main className={`flex-grow pb-safe overflow-y-auto ${isEventDetails ? 'h-screen' : 'pt-14 h-[calc(100vh-3.5rem)]'}`} id="main-content">
+        <div className={isEventDetails ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4'}>
+          <Switch>
+            <ProtectedRoute path="/" component={Feed} />
+            <ProtectedRoute path="/myevents">
+              <MyEvents />
+            </ProtectedRoute>
+            <ProtectedRoute path="/discover" component={Discover} />
+            <ProtectedRoute path="/search" component={GlobalSearch} />
+            <ProtectedRoute path="/events/create" component={CreateEvent} />
+            <ProtectedRoute path="/create-event" component={CreateEvent} />
+            <ProtectedRoute path="/create-event/invite" component={CreateEventInvite} />
+            <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
+            <ProtectedRoute path="/events/:id/edit" component={EditEvent} />
+            <ProtectedRoute path="/events/:id" component={EventDetails} />
+            <ProtectedRoute path="/teams" component={Teams} />
+            <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
+            <ProtectedRoute path="/tournaments" component={Tournaments} />
+            <ProtectedRoute path="/tournaments/:id" component={TournamentDetails} />
+            <ProtectedRoute path="/groups" component={Groups} />
+            <ProtectedRoute path="/groups/:id/events/history" component={GroupEventHistory} />
+            <ProtectedRoute path="/groups/:id" component={GroupDetails} />
+            <ProtectedRoute path="/friends" component={Friends} />
+            <ProtectedRoute path="/discover-friends" component={DiscoverFriends} />
+            <ProtectedRoute path="/invitations" component={Invitations} />
+            <ProtectedRoute path="/notifications" component={NotificationHistory} />
+            <ProtectedRoute path="/profile" component={Profile} />
+            <ProtectedRoute path="/profile/:userId" component={Profile} />
+            <ProtectedRoute path="/profile-completion" component={ProfileCompletion} />
+            <Route path="*" component={NotFound} />
+          </Switch>
+        </div>
+      </main>
+
+      <MobileNav />
+    </div>
+  );
+}
+
 function Router() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,45 +91,7 @@ function Router() {
           <SportPreferencesPage />
         </Route>
         <Route>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            
-            <main className="flex-grow pt-14 pb-safe overflow-y-auto h-[calc(100vh-3.5rem)]" id="main-content"> {/* Content area with fixed height */}
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4">
-                <Switch>
-                  <ProtectedRoute path="/" component={Feed} />
-                  <ProtectedRoute path="/myevents">
-                    <MyEvents />
-                  </ProtectedRoute>
-                  <ProtectedRoute path="/discover" component={Discover} />
-                  <ProtectedRoute path="/search" component={GlobalSearch} />
-                  <ProtectedRoute path="/events/create" component={CreateEvent} />
-                  <ProtectedRoute path="/create-event" component={CreateEvent} />
-                  <ProtectedRoute path="/create-event/invite" component={CreateEventInvite} />
-                  <ProtectedRoute path="/events/manage/:id" component={ManageEvent} />
-                  <ProtectedRoute path="/events/:id/edit" component={EditEvent} />
-                  <ProtectedRoute path="/events/:id" component={EventDetails} />
-                  <ProtectedRoute path="/teams" component={Teams} />
-                  <ProtectedRoute path="/teams/:teamId" component={TeamDetails} />
-                  <ProtectedRoute path="/tournaments" component={Tournaments} />
-                  <ProtectedRoute path="/tournaments/:id" component={TournamentDetails} />
-                  <ProtectedRoute path="/groups" component={Groups} />
-                  <ProtectedRoute path="/groups/:id/events/history" component={GroupEventHistory} />
-                  <ProtectedRoute path="/groups/:id" component={GroupDetails} />
-                  <ProtectedRoute path="/friends" component={Friends} />
-                  <ProtectedRoute path="/discover-friends" component={DiscoverFriends} />
-                  <ProtectedRoute path="/invitations" component={Invitations} />
-                  <ProtectedRoute path="/notifications" component={NotificationHistory} />
-                  <ProtectedRoute path="/profile" component={Profile} />
-                  <ProtectedRoute path="/profile/:userId" component={Profile} />
-                  <ProtectedRoute path="/profile-completion" component={ProfileCompletion} />
-                  <Route path="*" component={NotFound} />
-                </Switch>
-              </div>
-            </main>
-            
-            <MobileNav />
-          </div>
+          <MainLayout />
         </Route>
       </Switch>
     </div>

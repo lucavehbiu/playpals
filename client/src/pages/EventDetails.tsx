@@ -408,187 +408,131 @@ const EventDetails = () => {
   }
   
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-16">
-      {/* Content Container */}
-      <div className="pt-2">
-        {/* Premium Header with Back Button and Actions */}
-        <div className="flex items-center justify-between mb-3">
-          <motion.button
-            onClick={handleBack}
-            className="flex items-center text-sm font-semibold text-gray-700 hover:text-primary transition-all duration-300 glass-card px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg"
-            whileHover={{ scale: 1.05, x: -4 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </motion.button>
+    <div className="pb-24">
+      {/* Full-Width Hero Image with Overlay */}
+      <div className="relative">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative h-[400px] bg-gradient-to-br from-gray-900 to-gray-800">
+          {/* Image loading state */}
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-white"></div>
+            </div>
+          )}
 
-          <div className="flex gap-2">
-            <motion.div
+          {/* Error state */}
+          {imageError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className={`rounded-xl h-12 w-12 flex items-center justify-center mb-2 ${getSportBadgeColor(eventData.sportType)}`}>
+                <ImageIcon className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          )}
+
+          {/* Actual image */}
+          <img
+            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
+            alt={eventData.title || 'Event'}
+            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              console.error("Failed to load image for event:", eventData.title);
+            }}
+          />
+
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20"></div>
+
+          {/* Header-Style Navigation Bar - Fixed at Top */}
+          <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-4 z-20 bg-gradient-to-b from-black/60 to-transparent">
+            {/* Back Button */}
+            <motion.button
+              onClick={handleBack}
+              className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <Button
-                variant="ghost"
-                size="icon"
+              <ArrowLeft className="h-5 w-5" />
+            </motion.button>
+
+            {/* Right Action Buttons */}
+            <div className="flex gap-2">
+              <motion.button
                 onClick={handleShare}
-                className="h-10 w-10 rounded-full glass-card shadow-md hover:shadow-lg"
-              >
-                <Share2 className="h-4 w-4 text-gray-700" />
-              </Button>
-            </motion.div>
-
-            {isCreator && (
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 90 }}
+                className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
+                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLocation(`/events/manage/${eventData.id}`)}
-                  className="h-10 w-10 rounded-full glass-card shadow-md hover:shadow-lg"
-                >
-                  <Settings className="h-4 w-4 text-gray-700" />
-                </Button>
-              </motion.div>
-            )}
-          </div>
-        </div>
+                <Share2 className="h-5 w-5" />
+              </motion.button>
 
-        {/* Premium Event Badges - Larger */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {eventData.sportType && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-5 py-2 font-bold shadow-premium text-base`}>
+              {isCreator && (
+                <motion.button
+                  onClick={() => setLocation(`/events/manage/${eventData.id}`)}
+                  className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Settings className="h-5 w-5" />
+                </motion.button>
+              )}
+            </div>
+          </div>
+
+          {/* Subtle Badges - Floating Top of Image */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            {eventData.sportType && (
+              <Badge className={`${getSportBadgeColor(eventData.sportType)} text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm bg-opacity-90`}>
                 {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
               </Badge>
-            </motion.div>
-          )}
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Badge className="bg-gray-700 text-white hover:bg-gray-800 px-5 py-2 shadow-md text-base font-bold flex items-center" variant="default">
-              {eventData.isPublic ? <Globe className="h-4 w-4 mr-1.5" /> : <Lock className="h-4 w-4 mr-1.5" />}
+            )}
+            <Badge className="bg-black/50 text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm border-white/20">
+              {eventData.isPublic ? <Globe className="h-2.5 w-2.5 mr-1" /> : <Lock className="h-2.5 w-2.5 mr-1" />}
               {eventData.isPublic ? "Public" : "Private"}
             </Badge>
-          </motion.div>
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Badge className="bg-green-600 text-white hover:bg-green-700 px-5 py-2 shadow-md text-base font-bold flex items-center" variant="default">
-              {eventData.isFree ? "Free" : <><DollarSign className="h-4 w-4 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+            <Badge className="bg-black/50 text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm border-white/20">
+              {eventData.isFree ? "Free" : <><DollarSign className="h-2.5 w-2.5 mr-0.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
             </Badge>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Compact Premium Hero Card with Title Inside */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-          className="glass-card overflow-hidden mb-4 shadow-premium-lg"
-        >
-          {/* Image Header with Title Overlay */}
-          <div className="relative h-56 bg-gradient-to-br from-gray-900 to-gray-800">
-            {/* Image loading state */}
-            {!imageLoaded && !imageError && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-white"></div>
+          {/* Minimal Title Overlay at Bottom */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-12 bg-gradient-to-t from-black/80 to-transparent">
+            <h1 className="text-2xl font-bold text-white leading-tight mb-2">{eventData.title || "Event Title"}</h1>
+
+            {/* Compact Info */}
+            <div className="flex items-center gap-3 text-white/90 text-sm mb-2">
+              <div className="flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span className="font-medium">{formatEventDate(eventData.date)}</span>
               </div>
-            )}
-
-            {/* Error state */}
-            {imageError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className={`rounded-xl h-12 w-12 flex items-center justify-center mb-2 ${getSportBadgeColor(eventData.sportType)}`}>
-                  <ImageIcon className="h-6 w-6 text-white" />
-                </div>
+              <span className="text-white/50">•</span>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                <span className="font-medium">{actualParticipantCount}/{eventData.maxParticipants}</span>
               </div>
-            )}
+            </div>
 
-            {/* Actual image */}
-            <img
-              src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
-              alt={eventData.title || 'Event'}
-              className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                setImageError(true);
-                console.error("Failed to load image for event:", eventData.title);
-              }}
-            />
-
-            {/* Stronger gradient overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-
-            {/* Title and Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <h1 className="text-2xl font-bold text-white leading-tight mb-3 drop-shadow-lg">{eventData.title || "Event Title"}</h1>
-
-              {/* Date & Participants Inline */}
-              <div className="flex items-center gap-4">
-                {/* Date */}
-                <div className="flex items-center space-x-2">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 flex-shrink-0">
-                    <CalendarIcon className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-white drop-shadow-md">{formatEventDate(eventData.date)}</p>
-                    <p className="text-xs text-white/90 drop-shadow-md">{formatEventTime(eventData.date)}</p>
-                  </div>
-                </div>
-
-                {/* Participants */}
-                <div className="flex items-center space-x-2">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 flex-shrink-0">
-                    <Users className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-white drop-shadow-md">{actualParticipantCount}/{eventData.maxParticipants}</p>
-                    <div className="w-16 bg-white/30 rounded-full h-1.5 overflow-hidden backdrop-blur-sm">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` }}
-                        transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
-                        className="bg-white h-1.5 rounded-full shadow-sm"
-                      ></motion.div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Creator */}
-              <div className="flex items-center text-sm text-white/90 mt-3">
-                <Avatar className="h-6 w-6 mr-2 ring-2 ring-white/30">
-                  {eventData.creator?.profileImage ? (
-                    <AvatarImage src={eventData.creator.profileImage} />
-                  ) : (
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs font-semibold">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
-                  )}
-                </Avatar>
-                <span className="font-semibold drop-shadow-md">by {eventData.creator?.name || eventData.creator?.username || "Unknown"}</span>
-              </div>
+            {/* Creator */}
+            <div className="flex items-center text-xs text-white/80">
+              <Avatar className="h-5 w-5 mr-1.5 ring-1 ring-white/20">
+                {eventData.creator?.profileImage ? (
+                  <AvatarImage src={eventData.creator.profileImage} />
+                ) : (
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-[9px]">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
+                )}
+              </Avatar>
+              <span>by {eventData.creator?.name || eventData.creator?.username || "Unknown"}</span>
             </div>
           </div>
         </motion.div>
+      </div>
+
+      {/* Content Section */}
+      <div className="px-4">
         
         {/* Fixed Premium Join/Decline Buttons to Bottom */}
         {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
@@ -869,41 +813,6 @@ const EventDetails = () => {
           </div>
         )}
         
-        {/* Location Map Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <MapPinIcon className="h-5 w-5 text-primary mr-2" />
-            Event Location
-          </h3>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <GoogleMapsWrapper>
-              <EventMap
-                latitude={eventData.locationCoordinates?.lat}
-                longitude={eventData.locationCoordinates?.lng}
-                address={eventData.location}
-                showMarker={true}
-                height="300px"
-              />
-            </GoogleMapsWrapper>
-            
-            {/* Location Details */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
-              <div className="flex items-start space-x-3">
-                <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-gray-900">{eventData.location}</p>
-                  {eventData.locationCoordinates?.lat && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      Coordinates: {eventData.locationCoordinates.lat}, {eventData.locationCoordinates.lng}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        
         {/* Invite Friends Modal */}
         {eventData && (
           <InviteFriendsModal
@@ -955,18 +864,22 @@ const EventDetails = () => {
         )}
         
         {/* Tabs with Details */}
-        <Tabs defaultValue="details" className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 gap-1 mb-6 bg-gray-100/80 p-1 rounded-xl">
-            <TabsTrigger value="details" className="rounded-lg py-2 px-1.5 text-[11px] font-bold whitespace-nowrap">About</TabsTrigger>
-            <TabsTrigger value="participants" className="rounded-lg py-2 px-1 text-[11px] font-bold">
-              <span className="inline-flex items-center gap-0.5">
+        <Tabs defaultValue="details" className="mb-8 mt-4">
+          <TabsList className="w-full grid grid-cols-3 gap-2 bg-transparent p-0 h-auto">
+            <TabsTrigger value="details" className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all">
+              About
+            </TabsTrigger>
+            <TabsTrigger value="participants" className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all">
+              <span className="flex items-center gap-1.5">
                 <span>People</span>
-                <span className="bg-gray-200 text-gray-700 text-[9px] px-1 py-0.5 rounded-full font-bold min-w-[16px] text-center">
+                <span className="bg-white/20 text-current text-xs px-1.5 py-0.5 rounded-full font-bold">
                   {actualParticipantCount}
                 </span>
               </span>
             </TabsTrigger>
-            <TabsTrigger value="discussion" className="rounded-lg py-2 px-1.5 text-[11px] font-bold whitespace-nowrap">Chat</TabsTrigger>
+            <TabsTrigger value="discussion" className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all">
+              Chat
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="details">
