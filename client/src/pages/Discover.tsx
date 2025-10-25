@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { sportTypes, type Tournament } from "@shared/schema";
 import { format, parseISO, isAfter, isSameDay } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Map, Calendar, Filter, X, Search, Trophy, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,8 @@ const Discover = () => {
   const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   const [contentType, setContentType] = useState<string>("all"); // "all", "events", "tournaments"
-  
+  const [showFilters, setShowFilters] = useState<boolean>(false); // Filter sidebar visibility
+
   // Use the new location filter hook
   const {
     locationFilter,
@@ -207,257 +208,211 @@ const Discover = () => {
       {/* Subtle background pattern for premium feel */}
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
 
-      {/* Premium Glassmorphic Header */}
-      <motion.div
-        className="relative mb-6 rounded-2xl overflow-hidden shadow-premium-lg"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="bg-gradient-to-br from-primary via-primary/95 to-secondary p-8 md:p-10 relative">
-          {/* Glassmorphic overlay */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      {/* Clean Minimal Header - Just Title and Filter Button */}
+      <div className="flex items-center justify-between mb-6">
+        <motion.h1
+          className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          Discover Events
+        </motion.h1>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
-            <div className="flex-1">
-              <motion.h1
-                className="text-3xl md:text-4xl font-bold text-white flex items-center mb-3"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-3">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                Discover Events
-              </motion.h1>
-              <motion.p
-                className="text-white/90 text-base md:text-lg max-w-2xl leading-relaxed font-medium"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Find sports events and tournaments near you
-              </motion.p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-      
-      {/* Premium Glassmorphic Filter Panel */}
-      <motion.div
-        className="glass-card p-6 rounded-2xl shadow-premium border border-gray-200/80 mb-6 relative overflow-hidden"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent flex items-center">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mr-3">
-              <Filter className="w-5 h-5 text-primary" />
-            </div>
-            Filters
-          </h2>
-
-          {/* Reset Button */}
+        {/* Clean Filter Toggle Button */}
+        <motion.button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+            showFilters
+              ? 'bg-primary text-white shadow-md'
+              : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Filter className="h-5 w-5" />
+          <span className="hidden sm:inline">Filters</span>
           {(selectedSport !== "all" || isLocationFilterActive || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
-            <motion.button
-              className="flex items-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200"
-              onClick={() => {
-                setSelectedSport("all");
-                clearLocationFilter();
-                setDateFilter("");
-                setShowFreeOnly(false);
-                setShowPublicOnly(true);
-                setContentType("all");
-              }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <X className="w-4 h-4 mr-1.5" />
-              Reset
-            </motion.button>
+            <span className="h-2 w-2 rounded-full bg-red-500"></span>
           )}
-        </div>
-        
-        {/* Filters Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Content Type Filter */}
-          <div className="relative">
-            <label htmlFor="type-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
-              Content Type
-            </label>
-            <div className="relative">
-              <select
-                id="type-filter"
-                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
-                value={contentType}
-                onChange={(e) => setContentType(e.target.value)}
-              >
-                <option value="all">All Content</option>
-                <option value="events">Events Only</option>
-                <option value="tournaments">Tournaments Only</option>
-              </select>
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                <Filter className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-          {/* Sport Filter */}
-          <div className="relative">
-            <label htmlFor="sport-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
-              Sport/Activity
-            </label>
-            <div className="relative">
-              <select
-                id="sport-filter"
-                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
-                value={selectedSport}
-                onChange={(e) => setSelectedSport(e.target.value)}
-              >
-                <option value="all">All Sports</option>
-                {sportTypes.map(sport => (
-                  <option key={sport} value={sport}>
-                    {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          
-          {/* Location Filter with Google Maps Autocomplete and Radius */}
-          <div className="relative">
-            <LocationFilter
-              value={locationFilter}
-              onChange={handleLocationFilterChange}
-              placeholder="Search city, venue, area..."
-              showRadiusSlider={true}
-              maxRadius={locationOptions.maxRadius}
-              minRadius={locationOptions.minRadius}
+        </motion.button>
+      </div>
+
+      {/* Slide-out Filter Sidebar */}
+      <AnimatePresence>
+        {showFilters && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowFilters(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
             />
-          </div>
-          
-          {/* Date Filter */}
-          <div className="relative">
-            <label htmlFor="date-filter" className="text-sm font-semibold text-gray-700 mb-2 block">
-              Date (From)
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                id="date-filter"
-                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-10 shadow-sm hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all duration-200"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                <Calendar className="h-5 w-5" />
-              </div>
-              {dateFilter && (
+
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 overflow-y-auto"
+            >
+              {/* Sidebar Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Filters</h2>
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
-                  onClick={() => setDateFilter("")}
+                  onClick={() => setShowFilters(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Premium Checkbox Filters */}
-        <div className="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-gray-200/60">
-          <span className="text-sm font-bold text-gray-600">Quick Filters:</span>
+              </div>
 
-          {/* Free Only */}
-          <motion.label
-            htmlFor="free-only"
-            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-              showFreeOnly
-                ? 'border-primary bg-primary/5 shadow-sm'
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="relative h-5 w-5">
-              <input
-                id="free-only"
-                type="checkbox"
-                className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                checked={showFreeOnly}
-                onChange={(e) => setShowFreeOnly(e.target.checked)}
-              />
-              <div className={`pointer-events-none h-5 w-5 rounded-md border-2 ${
-                showFreeOnly ? 'border-primary bg-primary' : 'border-gray-300'
-              } transition-all duration-200`}></div>
-              {showFreeOnly && (
-                <motion.svg
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </motion.svg>
-              )}
-            </div>
-            <span className={`text-sm font-semibold ${showFreeOnly ? 'text-primary' : 'text-gray-700'}`}>
-              Free Only
-            </span>
-          </motion.label>
+              {/* Filters Content */}
+              <div className="p-6 space-y-6">
+                {/* Sport */}
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Sport/Activity
+                  </label>
+                  <div className="relative">
+                    <select
+                      className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                      value={selectedSport}
+                      onChange={(e) => setSelectedSport(e.target.value)}
+                    >
+                      <option value="all">All Sports</option>
+                      {sportTypes.map(sport => (
+                        <option key={sport} value={sport}>
+                          {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Public Only */}
-          <motion.label
-            htmlFor="public-only"
-            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-              showPublicOnly
-                ? 'border-primary bg-primary/5 shadow-sm'
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="relative h-5 w-5">
-              <input
-                id="public-only"
-                type="checkbox"
-                className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-                checked={showPublicOnly}
-                onChange={(e) => setShowPublicOnly(e.target.checked)}
-              />
-              <div className={`pointer-events-none h-5 w-5 rounded-md border-2 ${
-                showPublicOnly ? 'border-primary bg-primary' : 'border-gray-300'
-              } transition-all duration-200`}></div>
-              {showPublicOnly && (
-                <motion.svg
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="3"
+                {/* Location */}
+                <div>
+                  <LocationFilter
+                    value={locationFilter}
+                    onChange={handleLocationFilterChange}
+                    placeholder="Search location..."
+                    showRadiusSlider={true}
+                    maxRadius={locationOptions.maxRadius}
+                    minRadius={locationOptions.minRadius}
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Date (From)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                    />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Filters */}
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-3">Quick Filters</p>
+                  <div className="space-y-2">
+                    {/* Content Type Pills */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <button
+                        onClick={() => setContentType("all")}
+                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                          contentType === "all"
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={() => setContentType("events")}
+                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                          contentType === "events"
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Events
+                      </button>
+                      <button
+                        onClick={() => setContentType("tournaments")}
+                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                          contentType === "tournaments"
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Tournaments
+                      </button>
+                    </div>
+
+                    <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
+                      <input
+                        type="checkbox"
+                        checked={showFreeOnly}
+                        onChange={(e) => setShowFreeOnly(e.target.checked)}
+                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Free Only</span>
+                    </label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
+                      <input
+                        type="checkbox"
+                        checked={showPublicOnly}
+                        onChange={(e) => setShowPublicOnly(e.target.checked)}
+                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Public Only</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedSport("all");
+                    clearLocationFilter();
+                    setDateFilter("");
+                    setShowFreeOnly(false);
+                    setShowPublicOnly(true);
+                    setContentType("all");
+                  }}
+                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </motion.svg>
-              )}
-            </div>
-            <span className={`text-sm font-semibold ${showPublicOnly ? 'text-primary' : 'text-gray-700'}`}>
-              Public Only
-            </span>
-          </motion.label>
-        </div>
-      </motion.div>
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  Show Results
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       
       {isLoading ? (
         <motion.div
