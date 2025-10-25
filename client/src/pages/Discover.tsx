@@ -2,20 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Event } from "@/lib/types";
 import EventCard from "@/components/event/EventCard";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { sportTypes, type Tournament } from "@shared/schema";
 import { format, parseISO, isAfter, isSameDay } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Map, Calendar, Filter, X, Search, Trophy, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import { Filter, Trophy, MapPin, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { LocationFilter } from "@/components/filters/LocationFilter";
 import { useLocationFilter } from "@/hooks/use-location-filter";
 import { EventCardSkeleton, TournamentCardSkeleton, SkeletonGrid } from "@/components/ui/loading-skeletons";
 import { NoResultsEmptyState } from "@/components/ui/empty-states";
+import { DiscoverFilterSidebar } from "@/components/filters/DiscoverFilterSidebar";
 
 const Discover = () => {
   const { toast } = useToast();
@@ -26,6 +26,7 @@ const Discover = () => {
   const [showPublicOnly, setShowPublicOnly] = useState<boolean>(true);
   const [contentType, setContentType] = useState<string>("all"); // "all", "events", "tournaments"
   const [showFilters, setShowFilters] = useState<boolean>(false); // Filter sidebar visibility
+  const [sortBy, setSortBy] = useState<string>("latest"); // "latest", "oldest", "location"
 
   // Use the new location filter hook
   const {
@@ -198,11 +199,60 @@ const Discover = () => {
   });
 
   // Apply location filtering using the new location filter hook
-  const filteredEvents = filterByLocation(basicFilteredEvents || []);
-  const filteredTournaments = filterByLocation(basicFilteredTournaments || []);
+  const locationFilteredEvents = filterByLocation(basicFilteredEvents || []);
+  const locationFilteredTournaments = filterByLocation(basicFilteredTournaments || []);
+
+  // Apply sorting
+  const filteredEvents = useMemo(() => {
+    if (!locationFilteredEvents) return [];
+
+    const sorted = [...locationFilteredEvents];
+
+    if (sortBy === "latest") {
+      return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } else if (sortBy === "oldest") {
+      return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }
+    // For "location" sorting, we'd need user's current location
+    // For now, just return the filtered list
+    return sorted;
+  }, [locationFilteredEvents, sortBy]);
+
+  const filteredTournaments = useMemo(() => {
+    if (!locationFilteredTournaments) return [];
+
+    const sorted = [...locationFilteredTournaments];
+
+    if (sortBy === "latest" && sorted[0]?.startDate) {
+      return sorted.sort((a, b) => {
+        const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+        const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+        return dateB - dateA;
+      });
+    } else if (sortBy === "oldest" && sorted[0]?.startDate) {
+      return sorted.sort((a, b) => {
+        const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+        const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+        return dateA - dateB;
+      });
+    }
+    return sorted;
+  }, [locationFilteredTournaments, sortBy]);
 
   const totalResults = (filteredEvents?.length || 0) + (filteredTournaments?.length || 0);
-  
+
+  // Calculate active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedSport !== "all") count++;
+    if (isLocationFilterActive) count++;
+    if (dateFilter) count++;
+    if (showFreeOnly) count++;
+    if (!showPublicOnly) count++;
+    if (contentType !== "all") count++;
+    return count;
+  }, [selectedSport, isLocationFilterActive, dateFilter, showFreeOnly, showPublicOnly, contentType]);
+
   return (
     <div className="relative">
       {/* Subtle background pattern for premium feel */}
@@ -218,201 +268,46 @@ const Discover = () => {
           Discover Events
         </motion.h1>
 
-        {/* Clean Filter Toggle Button */}
+        {/* Compact Filter Toggle Button - Right Aligned */}
         <motion.button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+          className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
             showFilters
               ? 'bg-primary text-white shadow-md'
-              : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300'
+              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
           }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Filter className="h-5 w-5" />
-          <span className="hidden sm:inline">Filters</span>
-          {(selectedSport !== "all" || isLocationFilterActive || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
-            <span className="h-2 w-2 rounded-full bg-red-500"></span>
+          <Filter className="h-4 w-4" />
+          {activeFiltersCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shadow-md">
+              {activeFiltersCount}
+            </span>
           )}
         </motion.button>
       </div>
 
-      {/* Slide-out Filter Sidebar */}
-      <AnimatePresence>
-        {showFilters && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowFilters(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-            />
-
-            {/* Sidebar */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 overflow-y-auto"
-            >
-              {/* Sidebar Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Filters</h2>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Filters Content */}
-              <div className="p-6 space-y-6">
-                {/* Sport */}
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                    Sport/Activity
-                  </label>
-                  <div className="relative">
-                    <select
-                      className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                      value={selectedSport}
-                      onChange={(e) => setSelectedSport(e.target.value)}
-                    >
-                      <option value="all">All Sports</option>
-                      {sportTypes.map(sport => (
-                        <option key={sport} value={sport}>
-                          {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <LocationFilter
-                    value={locationFilter}
-                    onChange={handleLocationFilterChange}
-                    placeholder="Search location..."
-                    showRadiusSlider={true}
-                    maxRadius={locationOptions.maxRadius}
-                    minRadius={locationOptions.minRadius}
-                  />
-                </div>
-
-                {/* Date */}
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                    Date (From)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Filters */}
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Quick Filters</p>
-                  <div className="space-y-2">
-                    {/* Content Type Pills */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <button
-                        onClick={() => setContentType("all")}
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                          contentType === "all"
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        All
-                      </button>
-                      <button
-                        onClick={() => setContentType("events")}
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                          contentType === "events"
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Events
-                      </button>
-                      <button
-                        onClick={() => setContentType("tournaments")}
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                          contentType === "tournaments"
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Tournaments
-                      </button>
-                    </div>
-
-                    <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
-                      <input
-                        type="checkbox"
-                        checked={showFreeOnly}
-                        onChange={(e) => setShowFreeOnly(e.target.checked)}
-                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Free Only</span>
-                    </label>
-                    <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
-                      <input
-                        type="checkbox"
-                        checked={showPublicOnly}
-                        onChange={(e) => setShowPublicOnly(e.target.checked)}
-                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Public Only</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar Footer */}
-              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
-                <button
-                  onClick={() => {
-                    setSelectedSport("all");
-                    clearLocationFilter();
-                    setDateFilter("");
-                    setShowFreeOnly(false);
-                    setShowPublicOnly(true);
-                    setContentType("all");
-                  }}
-                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-colors"
-                >
-                  Show Results
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Filter Sidebar Component */}
+      <DiscoverFilterSidebar
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+        selectedSport={selectedSport}
+        setSelectedSport={setSelectedSport}
+        locationFilter={locationFilter}
+        handleLocationFilterChange={handleLocationFilterChange}
+        clearLocationFilter={clearLocationFilter}
+        isLocationFilterActive={isLocationFilterActive}
+        locationOptions={locationOptions}
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+        showFreeOnly={showFreeOnly}
+        setShowFreeOnly={setShowFreeOnly}
+        showPublicOnly={showPublicOnly}
+        setShowPublicOnly={setShowPublicOnly}
+        contentType={contentType}
+        setContentType={setContentType}
+      />
       
       {isLoading ? (
         <motion.div
@@ -467,40 +362,61 @@ const Discover = () => {
         </motion.div>
       ) : (
         <>
-          {/* Premium Results Count & Sorting */}
+          {/* Compact Results Count & Controls - Right Aligned */}
           <motion.div
-            className="flex flex-wrap justify-between items-center mb-6"
+            className="flex justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-100"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <div className="flex items-center gap-3">
-              <div className="h-11 px-5 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center border border-primary/20 shadow-sm">
-                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mr-2">
-                  {totalResults}
-                </span>
-                <span className="text-sm font-semibold text-gray-600">
-                  {contentType === "events" ? "Events" : contentType === "tournaments" ? "Tournaments" : "Results"}
-                </span>
-              </div>
-              {(selectedSport !== "all" || locationFilter || dateFilter || showFreeOnly || !showPublicOnly || contentType !== "all") && (
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200">
-                  <Filter className="w-4 h-4 text-blue-600" />
-                  <span className="text-xs font-semibold text-blue-700">Filtered</span>
-                </div>
-              )}
+            {/* Left side - Results count */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold text-gray-900">
+                {totalResults}
+              </span>
+              <span className="text-xs text-gray-500">
+                {contentType === "events" ? "events" : contentType === "tournaments" ? "tournaments" : "results"}
+              </span>
             </div>
 
-            <div className="mt-2 sm:mt-0">
+            {/* Right side - Clear & Sort */}
+            <div className="flex items-center gap-2">
+              {/* Clear Filters Button - Only show when filters are active */}
+              {activeFiltersCount > 0 && (
+                <motion.button
+                  onClick={() => {
+                    setSelectedSport("all");
+                    clearLocationFilter();
+                    setDateFilter("");
+                    setShowFreeOnly(false);
+                    setShowPublicOnly(true);
+                    setContentType("all");
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <X className="h-3 w-3" />
+                  Clear
+                </motion.button>
+              )}
+
+              {/* Sort Dropdown - Only show when there are results */}
               {totalResults > 0 && (
-                <div className="relative inline-block">
-                  <select className="pl-4 pr-10 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer transition-all duration-200 shadow-sm">
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="pl-3 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 focus:ring-1 focus:ring-primary/30 focus:border-primary appearance-none cursor-pointer transition-all duration-200"
+                  >
                     <option value="latest">Newest First</option>
                     <option value="oldest">Oldest First</option>
                     <option value="location">By Location</option>
                   </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                     </svg>
                   </div>

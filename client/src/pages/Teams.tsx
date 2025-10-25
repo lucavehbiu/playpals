@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, UserPlusIcon, CalendarIcon, SettingsIcon, Loader2, ArrowRightIcon } from "lucide-react";
+import { PlusIcon, UserPlusIcon, CalendarIcon, SettingsIcon, Loader2, ArrowRightIcon, Users, Trophy, Shield } from "lucide-react";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -285,24 +286,51 @@ const Teams = () => {
   };
   
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold">Teams</h1>
-          <p className="text-gray-500">Discover and manage sports teams</p>
+    <div className="relative">
+      {/* Subtle background pattern for premium feel */}
+      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
+
+      {/* Premium Header Section */}
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              Teams
+            </h1>
+            <p className="text-gray-600">Discover and manage sports teams</p>
+          </div>
+
+          {/* Create Team Button */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={() => setIsCreateTeamOpen(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Create Team
+            </Button>
+          </motion.div>
         </div>
-        
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
+
+        {/* Search and Filters - Premium glassmorphism design */}
+        <div className="glass-card p-4 space-y-3">
           <Input
             placeholder="Search teams..."
             value={teamSearchQuery}
             onChange={(e) => setTeamSearchQuery(e.target.value)}
-            className="flex-1"
+            className="border-2 border-gray-200 focus:border-primary rounded-xl bg-white/70 backdrop-blur-sm"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={membershipFilter} onValueChange={setMembershipFilter}>
-              <SelectTrigger className="w-full md:w-40">
+              <SelectTrigger className="w-full sm:w-auto rounded-xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm">
                 <SelectValue placeholder="Filter teams" />
               </SelectTrigger>
               <SelectContent>
@@ -311,7 +339,7 @@ const Teams = () => {
               </SelectContent>
             </Select>
             <Select value={selectedSport} onValueChange={setSelectedSport}>
-              <SelectTrigger className="w-full md:w-40">
+              <SelectTrigger className="w-full sm:w-auto rounded-xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm">
                 <SelectValue placeholder="Filter by sport" />
               </SelectTrigger>
               <SelectContent>
@@ -330,6 +358,8 @@ const Teams = () => {
             </Select>
           </div>
         </div>
+
+        {/* Create Team Dialog */}
         <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -427,104 +457,173 @@ const Teams = () => {
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
-      
+      </motion.div>
+
       {isTeamsLoading ? (
-        <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : teamsError ? (
-        <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
-          <p>Failed to load teams. Please try again later.</p>
-        </div>
-      ) : teams.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <div className="mx-auto mb-4 bg-primary/10 h-16 w-16 rounded-full flex items-center justify-center">
-            <PlusIcon className="h-8 w-8 text-primary" />
+        <motion.div
+          className="flex justify-center items-center h-64"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-sm text-gray-600">Loading teams...</p>
           </div>
-          <h3 className="text-lg font-medium mb-2">No teams yet</h3>
-          <p className="text-gray-500 mb-4">
+        </motion.div>
+      ) : teamsError ? (
+        <motion.div
+          className="glass-card p-8 text-center border-2 border-red-200"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-red-700 mb-2">Error Loading Teams</h3>
+          <p className="text-red-600">Failed to load teams. Please try again later.</p>
+        </motion.div>
+      ) : teams.length === 0 ? (
+        <motion.div
+          className="glass-card p-12 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="mx-auto mb-6 bg-gradient-to-br from-primary/10 to-secondary/10 h-20 w-20 rounded-full flex items-center justify-center">
+            <Users className="h-10 w-10 text-primary" />
+          </div>
+          <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            No teams yet
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
             Create your first team to organize games and invite players
           </p>
-          <Button onClick={() => setIsCreateTeamOpen(true)}>
-            Create Team
-          </Button>
-        </div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={() => setIsCreateTeamOpen(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Create Your First Team
+            </Button>
+          </motion.div>
+        </motion.div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teams.map((team) => {
+          {teams.map((team, index) => {
             const members = teamMembersMap[team.id] || [];
             const memberCount = members.length;
             const userRole = getUserRoleInTeam(team.id);
             const captains = members.filter((m: any) => m.role === 'captain' || m.role === 'admin');
-            
+
             return (
-              <Card key={team.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
+              <motion.div
+                key={team.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1)
+                }}
+                whileHover={{ y: -4 }}
+              >
+                <Card className="overflow-hidden glass-card border-2 hover:border-primary/30 transition-all duration-300 h-full flex flex-col">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+                          {team.name}
+                        </CardTitle>
+                        <CardDescription className="text-xs flex items-center gap-1.5 text-gray-500">
+                          <CalendarIcon className="h-3 w-3" />
+                          {new Date(team.createdAt).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
+                        <span className="text-xs font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                          {team.sportType}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* User Role Badge */}
+                    {userRole && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 w-fit">
+                        <Shield className="h-3 w-3 text-green-600" />
+                        <span className="text-xs font-semibold text-green-700 capitalize">{userRole}</span>
+                      </div>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="pb-4 flex-1">
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{team.description || 'No description'}</p>
+
+                    {/* Members Count */}
+                    <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-semibold text-blue-900">
+                        {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
+                      </span>
+                    </div>
+
+                    {/* Team Leaders */}
                     <div>
-                      <CardTitle>{team.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        Created on {new Date(team.createdAt).toLocaleDateString()}
-                      </CardDescription>
+                      <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                        <Trophy className="h-3.5 w-3.5 text-amber-500" />
+                        Team Leaders
+                      </h4>
+                      <div className="flex -space-x-2">
+                        {captains.length > 0 ? (
+                          captains.map((member: any) => (
+                            <div
+                              key={member.id}
+                              className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center border-2 border-white shadow-md hover:scale-110 transition-transform cursor-pointer"
+                              title={`${member.user?.username || 'User'} (${member.role})`}
+                            >
+                              <span className="text-sm font-bold text-white">
+                                {member.user?.username?.charAt(0).toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-gray-400 italic">No leaders assigned</div>
+                        )}
+                      </div>
                     </div>
-                    <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                      {team.sportType}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-3">
-                  <p className="text-sm text-gray-600 mb-4">{team.description}</p>
-                  
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>{memberCount} members</span>
-                    <span>
-                      {userRole ? `You: ${userRole}` : 'Not a member'}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-3">
-                    <h4 className="text-sm font-medium mb-2">Team Captains & Admins</h4>
-                    <div className="flex -space-x-2">
-                      {captains.length > 0 ? (
-                        captains.map((member: any) => (
-                          <div 
-                            key={member.id} 
-                            className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white"
-                            title={`${member.user?.username || 'User'} (${member.role})`}
+                  </CardContent>
+
+                  <CardFooter className="flex justify-between pt-3 border-t border-gray-100 bg-gray-50/50">
+                    {canInviteMembers(team) && (
+                      <Dialog open={isInviteMemberOpen && selectedTeam === team.id} onOpenChange={(open) => {
+                        setIsInviteMemberOpen(open);
+                        if (open) {
+                          setSelectedTeam(team.id);
+                          // Reset form and search results
+                          memberForm.reset();
+                          setUserSearchQuery('');
+                          setSearchResults([]);
+                          setSelectedUser(null);
+                        } else {
+                          setSelectedTeam(null);
+                        }
+                      }}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5"
                           >
-                            <span className="text-xs font-medium text-gray-600">
-                              {member.user?.username?.charAt(0) || 'U'}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-xs text-gray-400">No captains or admins</div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between pt-2 border-t">
-                  {canInviteMembers(team) && (
-                    <Dialog open={isInviteMemberOpen && selectedTeam === team.id} onOpenChange={(open) => {
-                      setIsInviteMemberOpen(open);
-                      if (open) {
-                        setSelectedTeam(team.id);
-                        // Reset form and search results
-                        memberForm.reset();
-                        setUserSearchQuery('');
-                        setSearchResults([]);
-                        setSelectedUser(null);
-                      } else {
-                        setSelectedTeam(null);
-                      }
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <UserPlusIcon className="h-4 w-4 mr-1" />
-                          Invite
-                        </Button>
-                      </DialogTrigger>
+                            <UserPlusIcon className="h-4 w-4 mr-1.5" />
+                            Invite
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
                           <DialogTitle>Invite to {team.name}</DialogTitle>
@@ -657,24 +756,31 @@ const Teams = () => {
                         </Form>
                       </DialogContent>
                     </Dialog>
-                  )}
-                  <div className="space-x-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setLocation(`/teams/${team.id}`)}
-                    >
-                      <ArrowRightIcon className="h-4 w-4 mr-1" />
-                      View Team
-                    </Button>
-                    {isTeamAdminOrCreator(team) && (
-                      <Button variant="ghost" size="sm">
-                        <SettingsIcon className="h-4 w-4" />
-                      </Button>
                     )}
-                  </div>
-                </CardFooter>
-              </Card>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setLocation(`/teams/${team.id}`)}
+                        className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-sm"
+                      >
+                        View Team
+                        <ArrowRightIcon className="h-4 w-4 ml-1.5" />
+                      </Button>
+                      {isTeamAdminOrCreator(team) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-xl hover:bg-gray-100"
+                        >
+                          <SettingsIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardFooter>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
