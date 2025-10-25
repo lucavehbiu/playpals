@@ -651,65 +651,69 @@ const CreateEvent = () => {
   };
   
   return (
-    <div className="w-full max-w-2xl mx-auto min-h-screen bg-white">
+    <div className="w-full max-w-2xl mx-auto min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <Button 
-          variant="ghost" 
-          className="p-2" 
+      <div className="flex items-center justify-between p-6 border-b bg-white shadow-sm">
+        <Button
+          variant="ghost"
+          className="p-2 hover:bg-gray-100"
           onClick={currentStep === 0 ? goBack : handleBack}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-semibold">Create Event</h1>
+        <h1 className="text-xl font-bold text-gray-900">Create Event</h1>
         <div className="w-10" /> {/* Spacer */}
       </div>
-      
+
       {/* Progress Bar */}
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-500">Step {currentStep + 1} of {STEPS.length}</span>
-          <span className="text-sm text-gray-500">{Math.round(((currentStep + 1) / STEPS.length) * 100)}%</span>
+      <div className="px-6 py-6 bg-white">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-gray-600">Step {currentStep + 1} of {STEPS.length}</span>
+          <span className="text-sm font-bold text-primary">{Math.round(((currentStep + 1) / STEPS.length) * 100)}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full transition-all duration-300 ease-out"
             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
           />
         </div>
       </div>
-      
+
       {/* Step Indicator */}
-      <div className="px-6 py-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-3xl">{STEPS[currentStep].icon}</span>
+      <div className="px-6 py-6 bg-white border-b">
+        <div className="flex items-center gap-3">
+          <div className="text-4xl flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
+            {STEPS[currentStep].icon}
+          </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{STEPS[currentStep].label}</h2>
-            <p className="text-gray-500">Step {currentStep + 1} of {STEPS.length}</p>
+            <p className="text-sm text-gray-500 font-medium">Step {currentStep + 1} of {STEPS.length}</p>
           </div>
         </div>
       </div>
-      
+
       {/* Current Step Content */}
       <div className="px-6 py-8 flex-1">
-        {renderCurrentStep()}
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          {renderCurrentStep()}
+        </div>
       </div>
-      
+
       {/* Navigation Buttons */}
-      <div className="sticky bottom-0 bg-white border-t p-6">
-        <div className="flex justify-between space-x-4">
-          <Button 
-            variant="outline" 
+      <div className="sticky bottom-0 bg-white border-t shadow-lg p-6">
+        <div className="flex gap-4">
+          <Button
+            variant="outline"
             onClick={handleBack}
             disabled={currentStep === 0}
-            className="flex-1"
+            className="flex-1 border-gray-300"
           >
             Back
           </Button>
-          <Button 
+          <Button
             onClick={handleNext}
             disabled={!isStepValid(currentStep) || createEventMutation.isPending}
-            className="flex-1"
+            className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md"
           >
             {createEventMutation.isPending ? (
               "Creating..."

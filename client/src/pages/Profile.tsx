@@ -368,88 +368,76 @@ const Profile = () => {
   }
   
   return (
-    <div className="bg-background min-h-screen">
-      {/* Profile header with golden ratio background pattern */}
-      <div 
-        className="relative bg-gradient-to-br from-primary/95 to-blue-900 p-6 pb-8 text-white overflow-hidden"
-        style={{
-          backgroundColor: '#003366',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 1000 1000' fill='none'%3E%3Cg opacity='0.1' stroke='white'%3E%3Cpath d='M500 500 C 500 310 690 310 690 500 C 690 690 500 690 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 380 620 380 620 500 C 620 620 500 620 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 420 580 420 580 500 C 580 580 500 580 500 500 Z' stroke-width='2'/%3E%3Cpath d='M500 500 C 500 450 550 450 550 500 C 550 550 500 550 500 500 Z' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        {/* Glass effect card for profile info */}
-        <div className="sm:flex sm:items-center sm:justify-between backdrop-blur-sm bg-white/10 rounded-2xl px-5 py-4 shadow-lg">
-          <div className="sm:flex sm:items-center">
-            {/* Profile image with golden ratio circle */}
-            <div className="flex items-center justify-center">
-              <div className="relative w-24 h-24 rounded-full border-2 border-white/50 p-1 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full animate-pulse-slow opacity-20 bg-white/30" />
+    <div className="bg-gray-50 min-h-screen">
+      {/* Clean Profile Header */}
+      <div className="relative bg-white border-b border-gray-200">
+        <div className="px-6 py-6">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex items-center gap-5">
+              {/* Profile image */}
+              <div className="relative w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center flex-shrink-0">
                 {user.profileImage ? (
-                  <img 
-                    src={user.profileImage} 
-                    alt={`${user.name}'s profile`} 
-                    className="w-full h-full rounded-full object-cover" 
+                  <img
+                    src={user.profileImage}
+                    alt={`${user.name}'s profile`}
+                    className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full rounded-full bg-white/80 flex items-center justify-center text-2xl font-bold text-primary">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-white">
                     {user.name.charAt(0)}
                   </div>
                 )}
               </div>
-            </div>
-            
-            {/* User information with compact layout */}
-            <div className="mt-4 sm:mt-0 sm:ml-5">
-              <h1 className="text-2xl font-bold tracking-tight text-white shadow-sm">{user.name}</h1>
-              <p className="text-blue-100 font-medium shadow-sm">@{user.username}</p>
-              <div className="flex items-center mt-2 gap-2">
+
+              {/* User information */}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">{user.name}</h1>
+                <p className="text-gray-600 font-medium mb-3">@{user.username}</p>
+                <div className="flex items-center gap-2 flex-wrap">
                 {/* Rating section - clickable for other users */}
                 {!isOwnProfile ? (
-                  <button 
+                  <button
                     onClick={() => setShowRatingModal(true)}
-                    className="flex items-center bg-white/30 rounded-full shadow-sm hover:bg-white/40 transition-colors border-0 m-0 outline-none focus:outline-none"
-                    style={{ padding: '2px 8px' }}
+                    className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1 rounded-md hover:bg-yellow-100 transition-colors text-sm font-medium"
                   >
-                    <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                    <span className="text-white font-medium">{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
+                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                    <span>{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
                   </button>
                 ) : (
-                  <div className="flex items-center bg-white/30 rounded-full shadow-sm" style={{ padding: '2px 8px' }}>
-                    <Star className="w-4 h-4 text-yellow-300 fill-yellow-300 mr-1" />
-                    <span className="text-white font-medium">{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
+                  <div className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1 rounded-md text-sm font-medium">
+                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                    <span>{averageRatingData?.average ? averageRatingData.average.toFixed(1) : "0.0"}</span>
                   </div>
                 )}
-                
-                {/* Matches count - identical structure and sizing */}
-                <div className="flex items-center bg-white/30 rounded-full shadow-sm" style={{ padding: '2px 8px' }}>
-                  <svg className="w-4 h-4 text-green-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+
+                {/* Matches count */}
+                <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm font-medium">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-white font-medium">{userMatches?.totalMatches || 0}</span>
+                  <span>{userMatches?.totalMatches || 0} matches</span>
                 </div>
-                
+
                 {/* Mutual friends count - only show for other users */}
                 {!isOwnProfile && mutualFriendsCount > 0 && (
-                  <div className="flex items-center bg-white/30 rounded-full shadow-sm" style={{ padding: '2px 8px' }}>
-                    <svg className="w-4 h-4 text-blue-300 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-sm font-medium">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                     </svg>
-                    <span className="text-white font-medium">{mutualFriendsCount} mutual</span>
+                    <span>{mutualFriendsCount} mutual</span>
                   </div>
                 )}
               </div>
+              </div>
             </div>
-          </div>
-          
-          {/* Action buttons with glass morphism */}
-          <div className="mt-4 sm:mt-0 flex gap-2">
+
+          {/* Action buttons */}
+          <div className="flex gap-2 flex-wrap">
             {isOwnProfile ? (
               <>
-                <button 
-                  className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-4 rounded-full text-sm font-medium 
-                  hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
+                <button
+                  className="bg-white border border-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium
+                  hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center justify-center shadow-sm"
                   onClick={() => setShowEditProfile(true)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -457,9 +445,9 @@ const Profile = () => {
                   </svg>
                   Edit Profile
                 </button>
-                <button 
-                  className="bg-red-500/80 backdrop-blur-md border border-red-400/50 text-white py-2 px-4 rounded-full text-sm font-medium 
-                  hover:bg-red-600/90 transition-all duration-300 shadow-md flex items-center justify-center"
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-lg text-sm font-medium
+                  hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-sm"
                   onClick={handleLogout}
                   disabled={logoutMutation.isPending}
                 >
@@ -472,7 +460,7 @@ const Profile = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 bg-white/90 backdrop-blur-md"
+                  className="text-red-600 border-red-200 hover:bg-red-50"
                   disabled={respondToFriendRequestMutation.isPending}
                   onClick={() => handleFriendRequestResponse(incomingRequest.id, "rejected")}
                 >
@@ -490,9 +478,9 @@ const Profile = () => {
                 </Button>
               </div>
             ) : friendshipStatus === 'friends' ? (
-              <button 
-                className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
-                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center"
+              <button
+                className="bg-green-50 border border-green-200 text-green-700 py-2 px-5 rounded-lg text-sm font-medium
+                hover:bg-green-100 transition-all duration-200 flex items-center justify-center"
                 onClick={() => toast({
                   title: "Friends",
                   description: "You are already friends with this user."
@@ -502,9 +490,9 @@ const Profile = () => {
                 Friends
               </button>
             ) : (
-              <button 
-                className="bg-white/20 backdrop-blur-md border border-white/30 text-white py-2 px-5 rounded-full text-sm font-medium 
-                hover:bg-white/30 transition-all duration-300 shadow-md flex items-center justify-center disabled:opacity-50"
+              <button
+                className="bg-gradient-to-r from-primary to-secondary text-white py-2 px-5 rounded-lg text-sm font-medium
+                hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center disabled:opacity-50"
                 onClick={() => {
                   if (friendshipStatus === 'none') {
                     sendFriendRequestMutation.mutate(parseInt(userId));
@@ -519,169 +507,67 @@ const Profile = () => {
               </button>
             )}
           </div>
+          </div>
         </div>
       </div>
       
-      {/* Premium Tabs with motion effects */}
-      <div className="border-b border-gray-200 bg-white dark:bg-gray-900 relative">
-        {/* Subtle background pattern for premium feel */}
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" aria-hidden="true"></div>
-        
-        <div className="px-2 overflow-x-auto scrollbar-hide">
-          <nav className="flex justify-around -mb-px">
-            <motion.button
-              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+      {/* Clean Tabs */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="px-6 overflow-x-auto scrollbar-hide">
+          <nav className="flex gap-8 -mb-px">
+            <button
+              className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
                 activeTab === 'profile'
-                  ? 'border-b-2 border-primary text-primary relative'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('profile')}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <User className="h-6 w-6 mr-2" />
+              <User className="h-4 w-4" />
               <span>Profile</span>
-              {activeTab === 'profile' && (
-                <motion.div 
-                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
-                  layoutId="activeProfileTab"
-                  initial={false}
-                  animate={{ 
-                    backgroundPosition: ["0% center", "100% center", "0% center"],
-                    transition: { duration: 5, ease: "linear", repeat: Infinity }
-                  }}
-                />
-              )}
-            </motion.button>
-            
-            <motion.button
-              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+            </button>
+
+            <button
+              className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
                 activeTab === 'events'
-                  ? 'border-b-2 border-primary text-primary relative'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('events')}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <Calendar className="h-6 w-6 mr-2" />
+              <Calendar className="h-4 w-4" />
               <span>Events</span>
-              {activeTab === 'events' && (
-                <motion.div 
-                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
-                  layoutId="activeProfileTab"
-                  initial={false}
-                  animate={{ 
-                    backgroundPosition: ["0% center", "100% center", "0% center"],
-                    transition: { duration: 5, ease: "linear", repeat: Infinity }
-                  }}
-                />
-              )}
-            </motion.button>
-            
-            <motion.button
-              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+            </button>
+
+            <button
+              className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
                 activeTab === 'teams'
-                  ? 'border-b-2 border-primary text-primary relative'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('teams')}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <Users className="h-6 w-6 mr-2" />
+              <Users className="h-4 w-4" />
               <span>Teams</span>
-              {activeTab === 'teams' && (
-                <motion.div 
-                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
-                  layoutId="activeProfileTab"
-                  initial={false}
-                  animate={{ 
-                    backgroundPosition: ["0% center", "100% center", "0% center"],
-                    transition: { duration: 5, ease: "linear", repeat: Infinity }
-                  }}
-                />
-              )}
-            </motion.button>
+            </button>
 
-            <motion.button
-              className={`py-4 px-6 font-medium text-base flex items-center justify-center whitespace-nowrap transition-all duration-300 w-1/4 ${
+            <button
+              className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
                 activeTab === 'friends'
-                  ? 'border-b-2 border-primary text-primary relative'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
               onClick={() => setActiveTab('friends')}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <UserCheck className="h-6 w-6 mr-2" />
+              <UserCheck className="h-4 w-4" />
               <span>Friends</span>
-              {activeTab === 'friends' && (
-                <motion.div 
-                  className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-blue-500 to-primary"
-                  layoutId="activeProfileTab"
-                  initial={false}
-                  animate={{ 
-                    backgroundPosition: ["0% center", "100% center", "0% center"],
-                    transition: { duration: 5, ease: "linear", repeat: Infinity }
-                  }}
-                />
-              )}
-            </motion.button>
+            </button>
           </nav>
         </div>
       </div>
 
-      {/* Rating Modal */}
-      {showRatingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4">Rate {user.name}</h3>
-            <div className="flex justify-center gap-2 mb-4">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setSelectedRating(star)}
-                  className="text-2xl transition-colors"
-                >
-                  <Star 
-                    className={`w-8 h-8 ${
-                      star <= selectedRating 
-                        ? 'text-yellow-400 fill-yellow-400' 
-                        : 'text-gray-300'
-                    }`} 
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowRatingModal(false);
-                  setSelectedRating(0);
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedRating > 0) {
-                    submitRatingMutation.mutate({ rating: selectedRating });
-                  }
-                }}
-                disabled={selectedRating === 0 || submitRatingMutation.isPending}
-                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
-              >
-                {submitRatingMutation.isPending ? 'Submitting...' : 'Submit'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Tab content */}
-      <div className="px-2 py-3 max-w-full">
+      <div className="px-6 py-6 max-w-full">
         {activeTab === 'profile' && (
           <div className="max-w-none">
             {/* Profile Completion Banner - Only show for own profile */}
