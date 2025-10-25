@@ -199,7 +199,7 @@ export default function GroupDetails() {
 
   if (groupLoading || !group || !user) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-6 py-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3"></div>
           <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -227,7 +227,7 @@ export default function GroupDetails() {
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm"
       >
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 truncate">
@@ -330,8 +330,8 @@ export default function GroupDetails() {
         </div>
       </motion.div>
 
-      {/* Page Content Container */}
-      <div className="container mx-auto px-4 py-6">
+      {/* Page Content Container - Full Width */}
+      <div className="px-6 py-6">
         {/* Members Sidebar - Slide-out */}
         <AnimatePresence>
           {showMembers && (

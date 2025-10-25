@@ -38,13 +38,15 @@ function MainLayout() {
 
   // Check if we're on event details page (but not edit, manage, or create)
   const isEventDetails = location.match(/^\/events\/\d+$/) !== null;
+  // Check if we're on group details page
+  const isGroupDetails = location.match(/^\/groups\/\d+$/) !== null;
 
   return (
     <div className="min-h-screen flex flex-col">
       {!isEventDetails && <Header />}
 
       <main className={`flex-grow pb-safe overflow-y-auto ${isEventDetails ? 'h-screen' : 'pt-14 h-[calc(100vh-3.5rem)]'}`} id="main-content">
-        <div className={isEventDetails ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4'}>
+        <div className={isEventDetails || isGroupDetails ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16 md:pb-4'}>
           <Switch>
             <ProtectedRoute path="/" component={Feed} />
             <ProtectedRoute path="/myevents">
