@@ -459,8 +459,8 @@ const EventDetails = () => {
           </div>
         </div>
 
-        {/* Premium Event Badges */}
-        <div className="flex flex-wrap gap-2 mb-5">
+        {/* Premium Event Badges - Larger */}
+        <div className="flex flex-wrap gap-2 mb-3">
           {eventData.sportType && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
@@ -469,7 +469,7 @@ const EventDetails = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-4 py-1.5 font-bold shadow-premium text-sm`}>
+              <Badge className={`${getSportBadgeColor(eventData.sportType)} hover:${getSportBadgeColor(eventData.sportType)} text-white px-5 py-2 font-bold shadow-premium text-base`}>
                 {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
               </Badge>
             </motion.div>
@@ -481,8 +481,8 @@ const EventDetails = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Badge className="glass bg-gray-600/90 text-white hover:bg-gray-700/90 px-4 py-1.5 shadow-md text-sm font-semibold" variant="outline">
-              {eventData.isPublic ? <Globe className="h-3.5 w-3.5 mr-1.5" /> : <Lock className="h-3.5 w-3.5 mr-1.5" />}
+            <Badge className="bg-gray-700 text-white hover:bg-gray-800 px-5 py-2 shadow-md text-base font-bold flex items-center" variant="default">
+              {eventData.isPublic ? <Globe className="h-4 w-4 mr-1.5" /> : <Lock className="h-4 w-4 mr-1.5" />}
               {eventData.isPublic ? "Public" : "Private"}
             </Badge>
           </motion.div>
@@ -493,21 +493,21 @@ const EventDetails = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Badge className="glass bg-green-600/90 text-white hover:bg-green-700/90 px-4 py-1.5 shadow-md text-sm font-semibold" variant="outline">
-              {eventData.isFree ? "Free" : <><DollarSign className="h-3.5 w-3.5 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
+            <Badge className="bg-green-600 text-white hover:bg-green-700 px-5 py-2 shadow-md text-base font-bold flex items-center" variant="default">
+              {eventData.isFree ? "Free" : <><DollarSign className="h-4 w-4 mr-1.5" />{((eventData.cost || 0) / 100).toFixed(2)}</>}
             </Badge>
           </motion.div>
         </div>
 
-        {/* Compact Premium Hero Card */}
+        {/* Compact Premium Hero Card with Title Inside */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
           className="glass-card overflow-hidden mb-4 shadow-premium-lg"
         >
-          {/* Compact Image Header */}
-          <div className="relative h-48 bg-gradient-to-br from-gray-900 to-gray-800">
+          {/* Image Header with Title Overlay */}
+          <div className="relative h-56 bg-gradient-to-br from-gray-900 to-gray-800">
             {/* Image loading state */}
             {!imageLoaded && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -536,42 +536,39 @@ const EventDetails = () => {
               }}
             />
 
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-          </div>
+            {/* Stronger gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
-          {/* Compact Info Section */}
-          <div className="p-4">
-            {/* Title with Inline Icons on the Right */}
-            <div className="mb-3">
-              <h1 className="text-lg font-bold text-gray-900 leading-tight mb-2">{eventData.title || "Event Title"}</h1>
+            {/* Title and Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <h1 className="text-2xl font-bold text-white leading-tight mb-3 drop-shadow-lg">{eventData.title || "Event Title"}</h1>
 
               {/* Date & Participants Inline */}
-              <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-4">
                 {/* Date */}
-                <div className="flex items-center space-x-1.5 flex-1">
-                  <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full p-1 flex-shrink-0">
-                    <CalendarIcon className="h-3 w-3 text-primary" />
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 flex-shrink-0">
+                    <CalendarIcon className="h-4 w-4 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-xs text-gray-900 truncate">{formatEventDate(eventData.date)}</p>
-                    <p className="text-[10px] text-gray-600">{formatEventTime(eventData.date)}</p>
+                    <p className="font-bold text-sm text-white drop-shadow-md">{formatEventDate(eventData.date)}</p>
+                    <p className="text-xs text-white/90 drop-shadow-md">{formatEventTime(eventData.date)}</p>
                   </div>
                 </div>
 
                 {/* Participants */}
-                <div className="flex items-center space-x-1.5 flex-1">
-                  <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full p-1 flex-shrink-0">
-                    <Users className="h-3 w-3 text-primary" />
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 flex-shrink-0">
+                    <Users className="h-4 w-4 text-white" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-xs text-gray-900">{actualParticipantCount}/{eventData.maxParticipants}</p>
-                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-white drop-shadow-md">{actualParticipantCount}/{eventData.maxParticipants}</p>
+                    <div className="w-16 bg-white/30 rounded-full h-1.5 overflow-hidden backdrop-blur-sm">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(actualParticipantCount / eventData.maxParticipants) * 100}%` }}
                         transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
-                        className="bg-gradient-to-r from-primary to-secondary h-1 rounded-full"
+                        className="bg-white h-1.5 rounded-full shadow-sm"
                       ></motion.div>
                     </div>
                   </div>
@@ -579,27 +576,27 @@ const EventDetails = () => {
               </div>
 
               {/* Creator */}
-              <div className="flex items-center text-xs text-gray-600">
-                <Avatar className="h-5 w-5 mr-1.5">
+              <div className="flex items-center text-sm text-white/90 mt-3">
+                <Avatar className="h-6 w-6 mr-2 ring-2 ring-white/30">
                   {eventData.creator?.profileImage ? (
                     <AvatarImage src={eventData.creator.profileImage} />
                   ) : (
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-[10px] font-semibold">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs font-semibold">{eventData.creator?.name?.[0] || "U"}</AvatarFallback>
                   )}
                 </Avatar>
-                <span className="font-medium">by {eventData.creator?.name || eventData.creator?.username || "Unknown"}</span>
+                <span className="font-semibold drop-shadow-md">by {eventData.creator?.name || eventData.creator?.username || "Unknown"}</span>
               </div>
             </div>
           </div>
         </motion.div>
         
-        {/* Sticky Premium Join/Decline Buttons */}
+        {/* Fixed Premium Join/Decline Buttons to Bottom */}
         {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
-            className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-lg border-b border-gray-100/50 shadow-md mb-4"
+            className="fixed bottom-16 left-0 right-0 z-40 px-4 py-3 bg-white/98 backdrop-blur-xl border-t border-gray-200/80 shadow-premium-lg"
           >
             <div className="flex gap-3 max-w-4xl mx-auto">
               <motion.div
@@ -608,11 +605,11 @@ const EventDetails = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  className="w-full py-4 text-sm font-bold rounded-xl shadow-premium hover:shadow-premium-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  className="w-full py-4 text-base font-bold rounded-xl shadow-premium hover:shadow-premium-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                   onClick={handleJoin}
                   disabled={joinEventMutation.isPending}
                 >
-                  <Users className="mr-2 h-4 w-4" />
+                  <Users className="mr-2 h-5 w-5" />
                   {joinEventMutation.isPending ? "Joining..." : "Join Event"}
                 </Button>
               </motion.div>
@@ -623,10 +620,10 @@ const EventDetails = () => {
               >
                 <Button
                   variant="outline"
-                  className="w-full py-4 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-red-200 text-red-600 hover:bg-red-50 glass"
+                  className="w-full py-4 text-base font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-red-300 text-red-600 hover:bg-red-50 bg-white"
                   onClick={() => toast({ title: "Declined", description: "You declined to join this event." })}
                 >
-                  <X className="mr-2 h-4 w-4" />
+                  <X className="mr-2 h-5 w-5" />
                   Decline
                 </Button>
               </motion.div>
@@ -959,15 +956,17 @@ const EventDetails = () => {
         
         {/* Tabs with Details */}
         <Tabs defaultValue="details" className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 gap-1 mb-6 bg-gray-100/80 p-1.5 rounded-xl">
-            <TabsTrigger value="details" className="rounded-lg py-2.5 px-2 text-xs font-semibold">About</TabsTrigger>
-            <TabsTrigger value="participants" className="rounded-lg py-2.5 px-2 text-xs font-semibold">
-              <span className="truncate">Participants</span>
-              <span className="ml-1 bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-full">
-                {actualParticipantCount}
+          <TabsList className="grid w-full grid-cols-3 gap-1 mb-6 bg-gray-100/80 p-1 rounded-xl">
+            <TabsTrigger value="details" className="rounded-lg py-2 px-1.5 text-[11px] font-bold whitespace-nowrap">About</TabsTrigger>
+            <TabsTrigger value="participants" className="rounded-lg py-2 px-1 text-[11px] font-bold">
+              <span className="inline-flex items-center gap-0.5">
+                <span>People</span>
+                <span className="bg-gray-200 text-gray-700 text-[9px] px-1 py-0.5 rounded-full font-bold min-w-[16px] text-center">
+                  {actualParticipantCount}
+                </span>
               </span>
             </TabsTrigger>
-            <TabsTrigger value="discussion" className="rounded-lg py-2.5 px-2 text-xs font-semibold">Chat</TabsTrigger>
+            <TabsTrigger value="discussion" className="rounded-lg py-2 px-1.5 text-[11px] font-bold whitespace-nowrap">Chat</TabsTrigger>
           </TabsList>
           
           <TabsContent value="details">
