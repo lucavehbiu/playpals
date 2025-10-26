@@ -75,69 +75,9 @@ const authenticateUser = (req: Request, res: Response, next: Function) => {
     url: req.url,
     headers: req.headers.cookie ? 'has cookies' : 'no cookies'
   });
-  
+
   if (!req.isAuthenticated()) {
     console.log('Authentication failed for:', req.url);
-    
-    // Temporary fallback during authentication debugging
-    if (req.url.includes('/api/sports-groups') ||
-        req.url.includes('/api/users/') ||
-        req.url.includes('/api/friendships') ||
-        req.url.includes('/api/friend-requests') ||
-        req.url.includes('/api/tournament-invitations') ||
-        req.url.includes('/api/onboarding-preferences') ||
-        req.url.includes('/api/groups') ||
-        req.url.includes('/api/user-sports-groups') ||
-        req.url.includes('/api/events') ||
-        req.url.includes('/api/rsvps') ||
-        req.url.includes('/api/teams/join-notifications') ||
-        req.url.includes('/api/user')) {
-      
-      // Extract user ID from URL if present
-      const userIdMatch = req.url.match(/\/api\/users\/(\d+)/);
-      const userSportsGroupsMatch = req.url.match(/\/api\/user-sports-groups\/(\d+)/);
-      let userId = userIdMatch ? parseInt(userIdMatch[1]) : 
-                   userSportsGroupsMatch ? parseInt(userSportsGroupsMatch[1]) : 
-                   4; // Default to Emma Davis (user 4) who is currently logged in
-      
-      // For friend request actions, we need to determine the correct user
-      if (req.url.includes('/api/friend-requests/')) {
-        // For friend request acceptance, default to Ajlin (4967) as the recipient
-        userId = 4967;
-      }
-      
-      // For tournament invitations, default to Ajlin (4967) since they're testing
-      if (req.url.includes('/api/tournament-invitations')) {
-        userId = 4967;
-      }
-      
-      // For onboarding preferences, check if user ID is in the URL or use current user
-      if (req.url.includes('/api/onboarding-preferences')) {
-        const onboardingUserMatch = req.url.match(/\/api\/onboarding-preferences\/(\d+)/);
-        if (onboardingUserMatch) {
-          userId = parseInt(onboardingUserMatch[1]);
-        } else {
-          // For the main onboarding preferences endpoint, default to Emma Davis (user 4)
-          userId = 4;
-        }
-      }
-      
-      // For event creation, use Emma Davis (user 4) as the creator
-      if (req.method === 'POST' && req.url.includes('/api/events')) {
-        userId = 4; // Emma Davis
-      }
-      
-      // For viewing user profile/details, default to Emma Davis (user 4)
-      if (req.url === '/api/user') {
-        userId = 4; // Emma Davis
-      }
-      
-      console.log('Temporary auth bypass - URL:', req.url, 'User ID:', userId);
-      req.user = { id: userId, username: `user${userId}`, name: `User ${userId}` } as any;
-      console.log('Auth bypass - set req.user:', req.user);
-      return next();
-    }
-    
     return res.status(401).json({ message: "Unauthorized - Please log in" });
   }
   console.log('Authentication successful for user:', req.user?.id);

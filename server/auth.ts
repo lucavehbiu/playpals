@@ -37,9 +37,9 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: "your-session-secret", // In production, use environment variable
+    secret: process.env.AUTH_SECRET || "your-session-secret",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Changed to false - don't create session until user logs in
     cookie: {
       secure: false, // Disable for development
       httpOnly: true,
@@ -123,13 +123,7 @@ export function setupAuth(app: Express) {
       done(null, user);
     } catch (err) {
       console.error('Error deserializing user:', err);
-      // For debugging - if user lookup fails, still return a valid user object for Emma
-      if (id === 4) {
-        console.log('Fallback: creating Emma Davis user object for session');
-        done(null, { id: 4, username: 'emmadavis', name: 'Emma Davis' });
-      } else {
-        done(err);
-      }
+      done(err);
     }
   });
 
@@ -178,19 +172,7 @@ export function setupAuth(app: Express) {
   app.get("/api/user", async (req, res) => {
     console.log('GET /api/user - isAuthenticated:', req.isAuthenticated(), 'user:', req.user?.id);
     if (!req.isAuthenticated()) {
-      // Temporary fallback for debugging - return Emma Davis as default user
-      console.log('Authentication bypass for /api/user - returning Emma Davis');
-      try {
-        const emmaUser = await storage.getUser(4); // Emma Davis
-        if (emmaUser) {
-          return res.json(emmaUser);
-        }
-        // Fallback if user lookup fails
-        return res.json({ id: 4, username: 'emmadavis', name: 'Emma Davis', bio: 'Yoga instructor' });
-      } catch (error) {
-        console.error('Error getting user 4:', error);
-        return res.json({ id: 4, username: 'emmadavis', name: 'Emma Davis', bio: 'Yoga instructor' });
-      }
+      return res.status(401).json({ message: "Not authenticated" });
     }
     res.json(req.user);
   });
