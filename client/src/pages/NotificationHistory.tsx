@@ -14,7 +14,14 @@ import { Link } from 'wouter';
 
 interface NotificationItem {
   id: string;
-  type: 'team_acceptance' | 'group_event' | 'group_message' | 'team_join_request' | 'event_response' | 'event_invitation' | 'friend_request';
+  type:
+    | 'team_acceptance'
+    | 'group_event'
+    | 'group_message'
+    | 'team_join_request'
+    | 'event_response'
+    | 'event_invitation'
+    | 'friend_request';
   title: string;
   description: string;
   createdAt: string;
@@ -29,17 +36,17 @@ interface NotificationItem {
 
 export default function NotificationHistory() {
   const { user } = useAuth();
-  
+
   // Get real notification data from hooks
   const { rsvps, eventResponses, joinRequests, teamMemberNotifications } = useNotifications();
 
   // Get friend request history (all friend requests - pending, accepted, rejected)
   const { data: friendRequestHistory = [] } = useQuery({
-    queryKey: ["/api/users", user?.id, "friend-requests-history"],
+    queryKey: ['/api/users', user?.id, 'friend-requests-history'],
     queryFn: async () => {
       if (!user?.id) return [];
       const response = await fetch(`/api/users/${user.id}/friend-requests?history=true`);
-      if (!response.ok) throw new Error("Failed to fetch friend request history");
+      if (!response.ok) throw new Error('Failed to fetch friend request history');
       return response.json();
     },
     enabled: !!user?.id,
@@ -50,7 +57,7 @@ export default function NotificationHistory() {
     queryKey: [`/api/users/${user?.id}/team-join-history`],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/users/${user.id}/team-join-history`);
         if (res.ok) {
@@ -70,7 +77,7 @@ export default function NotificationHistory() {
     queryKey: [`/api/users/${user?.id}/rsvp-history`],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/users/${user.id}/rsvp-history`);
         if (res.ok) {
@@ -90,7 +97,7 @@ export default function NotificationHistory() {
     queryKey: [`/api/users/${user?.id}/group-notifications-history`],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/users/${user.id}/group-notifications?history=true`);
         if (res.ok) {
@@ -114,20 +121,20 @@ export default function NotificationHistory() {
       const isReceived = request.receiverId === user?.id;
       const isAccepted = request.status === 'accepted';
       const isPending = request.status === 'pending';
-      
+
       let title = 'Friend Request';
       let description = '';
       let relatedUser = null;
-      
+
       if (isReceived) {
         // Request received by current user
         relatedUser = {
           id: request.senderId,
           name: request.senderName,
           username: request.senderUsername,
-          profileImage: request.senderProfileImage
+          profileImage: request.senderProfileImage,
         };
-        
+
         if (isPending) {
           title = 'Friend Request';
           description = `${request.senderName || 'Someone'} wants to be your friend`;
@@ -144,9 +151,9 @@ export default function NotificationHistory() {
           id: request.receiverId,
           name: request.receiverName,
           username: request.receiverUsername,
-          profileImage: request.receiverProfileImage
+          profileImage: request.receiverProfileImage,
         };
-        
+
         if (isPending) {
           title = 'Friend Request Sent';
           description = `You sent a friend request to ${request.receiverName || 'Someone'}`;
@@ -158,7 +165,7 @@ export default function NotificationHistory() {
           description = `${request.receiverName || 'Someone'} declined your friend request`;
         }
       }
-      
+
       notifications.push({
         id: `friend-request-${request.id}`,
         type: 'friend_request',
@@ -169,14 +176,14 @@ export default function NotificationHistory() {
         actionable: isPending && isReceived, // Only pending received requests are actionable
         relatedId: relatedUser?.id,
         relatedType: 'user' as any,
-        user: relatedUser
+        user: relatedUser,
       });
     });
 
     // Add team join history
     teamJoinHistory.forEach((joinRequest: any) => {
       const statusText = joinRequest.status === 'accepted' ? 'accepted' : 'declined';
-      
+
       notifications.push({
         id: `team-join-${joinRequest.id}`,
         type: 'team_acceptance',
@@ -186,14 +193,14 @@ export default function NotificationHistory() {
         viewed: true,
         actionable: false,
         relatedId: joinRequest.teamId,
-        relatedType: 'team' as any
+        relatedType: 'team' as any,
       });
     });
 
     // Add RSVP history (when creators respond to user's RSVPs)
     rsvpHistory.forEach((rsvp: any) => {
       const statusText = rsvp.status === 'approved' ? 'approved' : 'declined';
-      
+
       notifications.push({
         id: `rsvp-${rsvp.id}`,
         type: 'event_response',
@@ -203,7 +210,7 @@ export default function NotificationHistory() {
         viewed: true,
         actionable: false,
         relatedId: rsvp.eventId,
-        relatedType: 'event' as any
+        relatedType: 'event' as any,
       });
     });
 
@@ -222,7 +229,7 @@ export default function NotificationHistory() {
         title = 'Group Message';
         description = groupNotif.message || 'New message in group';
       }
-      
+
       notifications.push({
         id: `group-${groupNotif.id}`,
         type: notificationType,
@@ -232,7 +239,7 @@ export default function NotificationHistory() {
         viewed: groupNotif.viewed || true,
         actionable: false,
         relatedId: groupNotif.groupId,
-        relatedType: 'group' as any
+        relatedType: 'group' as any,
       });
     });
 
@@ -249,25 +256,27 @@ export default function NotificationHistory() {
         relatedId: response.event?.id,
         relatedType: 'event',
         user: response.user,
-        event: response.event
+        event: response.event,
       });
     });
 
     // Add pending RSVP invitations
-    rsvps.filter((rsvp: any) => rsvp.status === 'pending' || rsvp.status === 'maybe').forEach((rsvp: any) => {
-      notifications.push({
-        id: `rsvp-${rsvp.id}`,
-        type: 'event_invitation',
-        title: 'Event Invitation',
-        description: `You've been invited to "${rsvp.event?.title || 'an event'}"`,
-        createdAt: rsvp.createdAt,
-        viewed: false,
-        actionable: true,
-        relatedId: rsvp.event?.id,
-        relatedType: 'event',
-        event: rsvp.event
+    rsvps
+      .filter((rsvp: any) => rsvp.status === 'pending' || rsvp.status === 'maybe')
+      .forEach((rsvp: any) => {
+        notifications.push({
+          id: `rsvp-${rsvp.id}`,
+          type: 'event_invitation',
+          title: 'Event Invitation',
+          description: `You've been invited to "${rsvp.event?.title || 'an event'}"`,
+          createdAt: rsvp.createdAt,
+          viewed: false,
+          actionable: true,
+          relatedId: rsvp.event?.id,
+          relatedType: 'event',
+          event: rsvp.event,
+        });
       });
-    });
 
     // Add team join requests
     joinRequests.forEach((request: any) => {
@@ -282,7 +291,7 @@ export default function NotificationHistory() {
         relatedId: request.teamId,
         relatedType: 'team',
         user: request.user,
-        team: request.team
+        team: request.team,
       });
     });
 
@@ -297,13 +306,24 @@ export default function NotificationHistory() {
         viewed: true,
         actionable: false,
         relatedId: notification.teamId,
-        relatedType: 'team'
+        relatedType: 'team',
       });
     });
 
     // Sort by creation date (newest first)
-    return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [eventResponses, rsvps, joinRequests, teamMemberNotifications, friendRequestHistory, teamJoinHistory, rsvpHistory, groupNotificationHistory]);
+    return notifications.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [
+    eventResponses,
+    rsvps,
+    joinRequests,
+    teamMemberNotifications,
+    friendRequestHistory,
+    teamJoinHistory,
+    rsvpHistory,
+    groupNotificationHistory,
+  ]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -381,17 +401,19 @@ export default function NotificationHistory() {
             ) : (
               <div className="divide-y">
                 {allNotifications.map((notification: NotificationItem, index: number) => (
-                  <div 
+                  <div
                     key={notification.id}
                     className={`p-3 hover:bg-gray-50 transition-colors ${
                       !notification.viewed ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
                     <div className="flex items-start space-x-3">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
+                      <div
+                        className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}
+                      >
                         {getNotificationIcon(notification.type)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -402,10 +424,12 @@ export default function NotificationHistory() {
                               {notification.description}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(notification.createdAt), {
+                                addSuffix: true,
+                              })}
                             </p>
                           </div>
-                          
+
                           <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
                             {notification.actionable && (
                               <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
@@ -428,9 +452,7 @@ export default function NotificationHistory() {
 
         <div className="mt-6 text-center">
           <Link href="/">
-            <Button variant="outline">
-              Back to Home
-            </Button>
+            <Button variant="outline">Back to Home</Button>
           </Link>
         </div>
       </div>

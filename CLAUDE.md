@@ -43,6 +43,7 @@ npm run db:push
 ### Environment Setup
 
 Copy `.env.example` to `.env` and configure:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `AUTH_SECRET`: Session secret for authentication
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: Google OAuth credentials
@@ -94,6 +95,7 @@ The application uses a centralized storage layer (`server/storage.ts`) that prov
 ### Key Database Tables
 
 Core entities defined in `shared/schema.ts`:
+
 - `users`: User accounts with profile data, privacy settings, and OAuth info
 - `events`: Sports events with location (Google Maps integration), participants, visibility
 - `teams`: User-created teams with admin/member roles
@@ -123,6 +125,7 @@ Core entities defined in `shared/schema.ts`:
 ### Real-time Features
 
 WebSocket server runs alongside Express (see `server/routes.ts`):
+
 - Broadcasts event updates, join requests, notifications
 - Client hook: `use-websocket.tsx` for subscribing to updates
 - WebSocketProvider wraps the app to maintain connection state
@@ -130,6 +133,7 @@ WebSocket server runs alongside Express (see `server/routes.ts`):
 ### Path Aliases
 
 Configured in `vite.config.ts` and `tsconfig.json`:
+
 - `@/`: maps to `client/src/`
 - `@shared/`: maps to `shared/`
 - `@assets/`: maps to `attached_assets/`
@@ -173,6 +177,7 @@ Configured in `vite.config.ts` and `tsconfig.json`:
 ### Heroku Deployment
 
 The project is configured for Heroku deployment:
+
 - `Procfile` defines the web process: `web: npm run start`
 - `heroku-postbuild` script in package.json runs the build
 - Production server serves static files from `dist/public/`
@@ -193,6 +198,7 @@ The project is configured for Heroku deployment:
 The app follows a **clean, minimal design system** with these core patterns:
 
 #### Color Palette
+
 - **Primary**: Blue gradient (`from-primary to-secondary`)
 - **Backgrounds**: White cards on gray-50 base (`bg-gray-50`)
 - **Borders**: Light gray (`border-gray-200`)
@@ -206,6 +212,7 @@ The app follows a **clean, minimal design system** with these core patterns:
 #### Component Patterns
 
 **Cards & Containers:**
+
 ```tsx
 // Standard card
 <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
@@ -217,6 +224,7 @@ The app follows a **clean, minimal design system** with these core patterns:
 ```
 
 **Badges & Pills:**
+
 ```tsx
 // Colored badge
 <span className="bg-primary/10 text-primary px-3 py-1 rounded-md text-xs font-semibold">
@@ -231,6 +239,7 @@ The app follows a **clean, minimal design system** with these core patterns:
 ```
 
 **Buttons:**
+
 ```tsx
 // Primary gradient button
 <button className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
@@ -244,23 +253,27 @@ The app follows a **clean, minimal design system** with these core patterns:
 ```
 
 **Headers:**
+
 ```tsx
 // Page header with clean white background
 <div className="relative bg-white border-b border-gray-200">
-  <div className="px-6 py-6">
-    {/* Header content */}
-  </div>
+  <div className="px-6 py-6">{/* Header content */}</div>
 </div>
 ```
 
 **Tabs:**
+
 ```tsx
 // Simple underline tabs
 <div className="border-b border-gray-200 bg-white">
   <nav className="flex gap-8 px-6">
-    <button className={`py-4 font-medium text-sm flex items-center gap-2 border-b-2 ${
-      active ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:border-gray-300'
-    }`}>
+    <button
+      className={`py-4 font-medium text-sm flex items-center gap-2 border-b-2 ${
+        active
+          ? 'border-primary text-primary'
+          : 'border-transparent text-gray-600 hover:border-gray-300'
+      }`}
+    >
       <Icon className="h-4 w-4" />
       <span>{label}</span>
     </button>
@@ -269,12 +282,14 @@ The app follows a **clean, minimal design system** with these core patterns:
 ```
 
 **Typography:**
+
 - Headings: `text-3xl font-bold text-gray-900` (H1), `text-xl font-bold text-gray-900` (H2)
 - Body: `text-sm` or `text-base text-gray-700`
 - Metadata: `text-xs text-gray-500`
 - Icons: `h-3.5 w-3.5` for badges, `h-4 w-4` for buttons
 
 **Spacing:**
+
 - Cards: `p-4` or `p-6`
 - Vertical spacing: `space-y-3` or `space-y-4`
 - Gaps: `gap-2`, `gap-3`, or `gap-4`
@@ -290,6 +305,7 @@ Follow these practices for maintainability:
 5. **Co-locate related components**: Group by feature in `components/[feature]/`
 
 Example modular structure:
+
 ```
 components/profile/
 ├── ProfileHeader.tsx        # Header with badges and actions
@@ -303,6 +319,7 @@ components/profile/
 ### Animation
 
 Use Framer Motion sparingly for:
+
 - Page transitions: `initial={{ opacity: 0, y: 20 }}` → `animate={{ opacity: 1, y: 0 }}`
 - Staggered lists: `delay: index * 0.05`
 - Smooth transitions: `transition-all duration-200`

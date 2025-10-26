@@ -21,41 +21,34 @@ describe('RSVPs API', () => {
     mockStorage._reset();
 
     // Register and login first user (event creator)
-    const registerResponse = await request(app)
-      .post('/api/register')
-      .send({
-        username: 'eventcreator',
-        password: 'Creator123',
-        email: 'creator@test.com',
-        name: 'Event Creator',
-      });
+    const registerResponse = await request(app).post('/api/register').send({
+      username: 'eventcreator',
+      password: 'Creator123',
+      email: 'creator@test.com',
+      name: 'Event Creator',
+    });
 
     sessionCookie = registerResponse.headers['set-cookie'];
     userId = registerResponse.body.id;
 
     // Create an event for RSVP tests
-    const eventResponse = await request(app)
-      .post('/api/events')
-      .set('Cookie', sessionCookie)
-      .send({
-        title: 'Test Event',
-        sportType: 'basketball',
-        location: 'Test Location',
-        date: new Date().toISOString(),
-        maxParticipants: 10,
-      });
+    const eventResponse = await request(app).post('/api/events').set('Cookie', sessionCookie).send({
+      title: 'Test Event',
+      sportType: 'basketball',
+      location: 'Test Location',
+      date: new Date().toISOString(),
+      maxParticipants: 10,
+    });
 
     eventId = eventResponse.body.id;
 
     // Register second user for RSVP tests
-    const otherUserResponse = await request(app)
-      .post('/api/register')
-      .send({
-        username: 'attendee',
-        password: 'Attendee123',
-        email: 'attendee@test.com',
-        name: 'Event Attendee',
-      });
+    const otherUserResponse = await request(app).post('/api/register').send({
+      username: 'attendee',
+      password: 'Attendee123',
+      email: 'attendee@test.com',
+      name: 'Event Attendee',
+    });
 
     otherUserCookie = otherUserResponse.headers['set-cookie'];
     otherUserId = otherUserResponse.body.id;
@@ -86,10 +79,7 @@ describe('RSVPs API', () => {
         status: 'pending',
       };
 
-      const response = await request(app)
-        .post('/api/rsvps')
-        .send(rsvpData)
-        .expect(401);
+      const response = await request(app).post('/api/rsvps').send(rsvpData).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });
@@ -135,14 +125,12 @@ describe('RSVPs API', () => {
         .send({ eventId, status: 'attending' });
 
       // Register and create RSVP for third user
-      const thirdUserResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'thirduser',
-          password: 'Third123',
-          email: 'third@test.com',
-          name: 'Third User',
-        });
+      const thirdUserResponse = await request(app).post('/api/register').send({
+        username: 'thirduser',
+        password: 'Third123',
+        email: 'third@test.com',
+        name: 'Third User',
+      });
 
       await request(app)
         .post('/api/rsvps')
@@ -151,9 +139,7 @@ describe('RSVPs API', () => {
     });
 
     it('should return all RSVPs for an event', async () => {
-      const response = await request(app)
-        .get(`/api/rsvps/event/${eventId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/rsvps/event/${eventId}`).expect(200);
 
       expect(response.body).toHaveLength(2);
       expect(response.body[0]).toHaveProperty('eventId', eventId);
@@ -211,9 +197,7 @@ describe('RSVPs API', () => {
     });
 
     it('should return all RSVPs for a user', async () => {
-      const response = await request(app)
-        .get(`/api/rsvps/user/${otherUserId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/rsvps/user/${otherUserId}`).expect(200);
 
       expect(response.body).toHaveLength(2);
       expect(response.body[0]).toHaveProperty('userId', otherUserId);
@@ -222,14 +206,12 @@ describe('RSVPs API', () => {
 
     it('should return empty array for user with no RSVPs', async () => {
       // Register user who hasn't RSVP'd
-      const newUserResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'norsvp',
-          password: 'NoRsvp123',
-          email: 'norsvp@test.com',
-          name: 'No RSVP User',
-        });
+      const newUserResponse = await request(app).post('/api/register').send({
+        username: 'norsvp',
+        password: 'NoRsvp123',
+        email: 'norsvp@test.com',
+        name: 'No RSVP User',
+      });
 
       const response = await request(app)
         .get(`/api/rsvps/user/${newUserResponse.body.id}`)
@@ -277,14 +259,12 @@ describe('RSVPs API', () => {
 
     it('should prevent unauthorized user from updating RSVP', async () => {
       // Register third user
-      const thirdUserResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'unauthorized',
-          password: 'Unauth123',
-          email: 'unauth@test.com',
-          name: 'Unauthorized User',
-        });
+      const thirdUserResponse = await request(app).post('/api/register').send({
+        username: 'unauthorized',
+        password: 'Unauth123',
+        email: 'unauth@test.com',
+        name: 'Unauthorized User',
+      });
 
       const thirdUserCookie = thirdUserResponse.headers['set-cookie'];
       const updates = { status: 'declined' };
@@ -301,10 +281,7 @@ describe('RSVPs API', () => {
     it('should require authentication to update RSVP', async () => {
       const updates = { status: 'attending' };
 
-      const response = await request(app)
-        .put(`/api/rsvps/${rsvpId}`)
-        .send(updates)
-        .expect(401);
+      const response = await request(app).put(`/api/rsvps/${rsvpId}`).send(updates).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });
@@ -357,9 +334,7 @@ describe('RSVPs API', () => {
     });
 
     it('should require authentication to delete RSVP', async () => {
-      const response = await request(app)
-        .delete(`/api/rsvps/${rsvpId}`)
-        .expect(401);
+      const response = await request(app).delete(`/api/rsvps/${rsvpId}`).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });

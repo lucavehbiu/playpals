@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Calendar,
   Users,
@@ -9,9 +9,9 @@ import {
   Search,
   Sparkles,
   PlusCircle,
-  Target
-} from "lucide-react";
-import { Link } from "wouter";
+  Target,
+} from 'lucide-react';
+import { Link } from 'wouter';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -37,14 +37,14 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
       y: 0,
       transition: {
         duration: 0.5,
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
   };
 
   return (
@@ -70,8 +70,8 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
         </motion.p>
 
         <motion.div variants={itemVariants} className="flex flex-col gap-3">
-          {action && (
-            action.href ? (
+          {action &&
+            (action.href ? (
               <Link href={action.href}>
                 <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300">
                   <PlusCircle className="w-4 h-4 mr-2" />
@@ -86,11 +86,10 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
                 <PlusCircle className="w-4 h-4 mr-2" />
                 {action.label}
               </Button>
-            )
-          )}
+            ))}
 
-          {secondaryAction && (
-            secondaryAction.href ? (
+          {secondaryAction &&
+            (secondaryAction.href ? (
               <Link href={secondaryAction.href}>
                 <Button variant="outline" className="w-full">
                   <Search className="w-4 h-4 mr-2" />
@@ -102,8 +101,7 @@ export function EmptyState({ icon, title, description, action, secondaryAction }
                 <Search className="w-4 h-4 mr-2" />
                 {secondaryAction.label}
               </Button>
-            )
-          )}
+            ))}
         </motion.div>
       </Card>
     </motion.div>
@@ -115,19 +113,23 @@ export function NoEventsEmptyState({ isOwn = false }: { isOwn?: boolean }) {
   return (
     <EmptyState
       icon={<Calendar className="w-10 h-10 text-primary" />}
-      title={isOwn ? "No events yet" : "No events found"}
+      title={isOwn ? 'No events yet' : 'No events found'}
       description={
         isOwn
-          ? "Start by creating your first event and invite your friends to join!"
+          ? 'Start by creating your first event and invite your friends to join!'
           : "We couldn't find any events matching your criteria. Try adjusting your filters or check back later."
       }
-      action={isOwn ? {
-        label: "Create Event",
-        href: "/myevents"
-      } : undefined}
+      action={
+        isOwn
+          ? {
+              label: 'Create Event',
+              href: '/myevents',
+            }
+          : undefined
+      }
       secondaryAction={{
-        label: "Browse All Events",
-        href: "/discover"
+        label: 'Browse All Events',
+        href: '/discover',
       }}
     />
   );
@@ -137,19 +139,23 @@ export function NoTeamsEmptyState({ isOwn = false }: { isOwn?: boolean }) {
   return (
     <EmptyState
       icon={<Users className="w-10 h-10 text-primary" />}
-      title={isOwn ? "No teams yet" : "No teams found"}
+      title={isOwn ? 'No teams yet' : 'No teams found'}
       description={
         isOwn
-          ? "Create a team to organize your sports activities and compete together."
-          : "Join a team to connect with like-minded players and participate in group activities."
+          ? 'Create a team to organize your sports activities and compete together.'
+          : 'Join a team to connect with like-minded players and participate in group activities.'
       }
-      action={isOwn ? {
-        label: "Create Team",
-        href: "/teams"
-      } : undefined}
+      action={
+        isOwn
+          ? {
+              label: 'Create Team',
+              href: '/teams',
+            }
+          : undefined
+      }
       secondaryAction={{
-        label: "Browse Teams",
-        href: "/teams"
+        label: 'Browse Teams',
+        href: '/teams',
       }}
     />
   );
@@ -162,12 +168,12 @@ export function NoTournamentsEmptyState() {
       title="No tournaments available"
       description="There are no tournaments at the moment. Check back soon or create your own!"
       action={{
-        label: "Create Tournament",
-        href: "/tournaments"
+        label: 'Create Tournament',
+        href: '/tournaments',
       }}
       secondaryAction={{
-        label: "View All Tournaments",
-        href: "/tournaments"
+        label: 'View All Tournaments',
+        href: '/tournaments',
       }}
     />
   );
@@ -180,12 +186,12 @@ export function NoFriendsEmptyState() {
       title="No friends yet"
       description="Start building your network by connecting with other sports enthusiasts!"
       action={{
-        label: "Find Friends",
-        href: "/discover-friends"
+        label: 'Find Friends',
+        href: '/discover-friends',
       }}
       secondaryAction={{
-        label: "Browse Players",
-        href: "/discover"
+        label: 'Browse Players',
+        href: '/discover',
       }}
     />
   );
@@ -199,11 +205,11 @@ export function NoResultsEmptyState({ searchTerm }: { searchTerm?: string }) {
       description={
         searchTerm
           ? `We couldn't find anything matching "${searchTerm}". Try different keywords or browse all content.`
-          : "No results match your search criteria. Try adjusting your filters."
+          : 'No results match your search criteria. Try adjusting your filters.'
       }
       secondaryAction={{
-        label: "Clear Filters",
-        onClick: () => window.location.reload()
+        label: 'Clear Filters',
+        onClick: () => window.location.reload(),
       }}
     />
   );
@@ -213,19 +219,23 @@ export function NoGroupsEmptyState({ isOwn = false }: { isOwn?: boolean }) {
   return (
     <EmptyState
       icon={<Users className="w-10 h-10 text-primary" />}
-      title={isOwn ? "No groups yet" : "No groups found"}
+      title={isOwn ? 'No groups yet' : 'No groups found'}
       description={
         isOwn
-          ? "Create a sports group to organize regular games and build a community."
-          : "Join a group to connect with players who share your interests."
+          ? 'Create a sports group to organize regular games and build a community.'
+          : 'Join a group to connect with players who share your interests.'
       }
-      action={isOwn ? {
-        label: "Create Group",
-        href: "/groups?create=true"
-      } : undefined}
+      action={
+        isOwn
+          ? {
+              label: 'Create Group',
+              href: '/groups?create=true',
+            }
+          : undefined
+      }
       secondaryAction={{
-        label: "Browse Groups",
-        href: "/groups"
+        label: 'Browse Groups',
+        href: '/groups',
       }}
     />
   );
@@ -238,12 +248,12 @@ export function NoActivityEmptyState() {
       title="No activity yet"
       description="Get started by joining events, connecting with friends, and exploring what PlayPals has to offer!"
       action={{
-        label: "Discover Events",
-        href: "/discover"
+        label: 'Discover Events',
+        href: '/discover',
       }}
       secondaryAction={{
-        label: "Find Friends",
-        href: "/discover-friends"
+        label: 'Find Friends',
+        href: '/discover-friends',
       }}
     />
   );

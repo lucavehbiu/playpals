@@ -88,7 +88,7 @@ export interface RSVP {
   id: number;
   eventId: number;
   userId: number;
-  status: "approved" | "denied" | "maybe" | "pending";
+  status: 'approved' | 'denied' | 'maybe' | 'pending';
   createdAt: string;
 }
 

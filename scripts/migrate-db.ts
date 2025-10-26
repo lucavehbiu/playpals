@@ -48,7 +48,7 @@ const MIGRATION_ORDER = [
   'matchResults',
   'matchParticipants',
   'matchResultNotifications',
-  'scoreHistory'
+  'scoreHistory',
 ];
 
 interface MigrationStats {
@@ -91,7 +91,7 @@ async function importTableData(targetDb: any, tableName: string, data: any[]): P
 
     // Get column names from first row
     const columns = Object.keys(data[0]);
-    const columnList = columns.map(c => `"${c}"`).join(', ');
+    const columnList = columns.map((c) => `"${c}"`).join(', ');
 
     // Build VALUES clause for batch insert
     const valuePlaceholders: string[] = [];
@@ -111,19 +111,24 @@ async function importTableData(targetDb: any, tableName: string, data: any[]): P
       INSERT INTO "${tableName}" (${columnList})
       VALUES ${valuePlaceholders.join(', ')}
       ON CONFLICT (id) DO UPDATE SET
-        ${columns.filter(c => c !== 'id').map(c => `"${c}" = EXCLUDED."${c}"`).join(', ')}
+        ${columns
+          .filter((c) => c !== 'id')
+          .map((c) => `"${c}" = EXCLUDED."${c}"`)
+          .join(', ')}
     `;
 
     await targetDb.execute(sql.raw(insertQuery, values));
 
     // Reset sequence to max id
-    await targetDb.execute(sql.raw(`
+    await targetDb.execute(
+      sql.raw(`
       SELECT setval(
         pg_get_serial_sequence('"${tableName}"', 'id'),
         COALESCE((SELECT MAX(id) FROM "${tableName}"), 1),
         true
       )
-    `));
+    `)
+    );
 
     console.log(`  ✅ Imported ${data.length} rows into ${tableName}`);
     return data.length;
@@ -148,7 +153,7 @@ async function migrateTable(
       table: tableName,
       rowsExported: data.length,
       rowsImported: importedRows,
-      success: true
+      success: true,
     };
   } catch (error: any) {
     return {
@@ -156,14 +161,14 @@ async function migrateTable(
       rowsExported: 0,
       rowsImported: 0,
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 async function main() {
   console.log('🚀 Starting Database Migration\n');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
 
   // Get connection strings from environment
   const replitDbUrl = process.env.REPLIT_DATABASE_URL;
@@ -180,7 +185,7 @@ async function main() {
   console.log('📊 Connection Details:');
   console.log(`  Source (Replit): ${replitDbUrl.replace(/:[^:@]+@/, ':***@')}`);
   console.log(`  Target (Local):  ${localDbUrl.replace(/:[^:@]+@/, ':***@')}`);
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
 
   // Create database connections
   console.log('\n🔌 Connecting to databases...');
@@ -217,28 +222,27 @@ async function main() {
     console.log('\n' + '='.repeat(60));
     console.log('📊 Migration Summary\n');
 
-    const successful = stats.filter(s => s.success);
-    const failed = stats.filter(s => !s.success);
+    const successful = stats.filter((s) => s.success);
+    const failed = stats.filter((s) => !s.success);
 
     console.log(`✅ Successful: ${successful.length}/${stats.length} tables`);
     console.log(`📈 Total rows migrated: ${totalRows}`);
 
     if (failed.length > 0) {
       console.log(`\n❌ Failed tables (${failed.length}):`);
-      failed.forEach(stat => {
+      failed.forEach((stat) => {
         console.log(`  - ${stat.table}: ${stat.error}`);
       });
     }
 
     console.log('\n📋 Detailed Results:');
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       const icon = stat.success ? '✅' : '❌';
       console.log(`  ${icon} ${stat.table}: ${stat.rowsImported} rows`);
     });
 
     console.log('\n' + '='.repeat(60));
     console.log('✨ Migration completed!');
-
   } catch (error: any) {
     console.error('\n❌ Migration failed:', error.message);
     throw error;

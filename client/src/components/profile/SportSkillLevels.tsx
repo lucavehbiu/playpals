@@ -1,24 +1,37 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Star, ChevronDown } from "lucide-react";
-import { sportTypes } from "@shared/schema";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Trash2, Star, ChevronDown } from 'lucide-react';
+import { sportTypes } from '@shared/schema';
 
 const skillLevelSchema = z.object({
-  sportType: z.string().min(1, "Sport type is required"),
-  experienceLevel: z.enum(["never", "beginner", "intermediate", "advanced", "expert"]),
-  competitiveLevel: z.enum(["recreational", "competitive", "professional"]).optional(),
-  preferredPosition: z.string().optional()
+  sportType: z.string().min(1, 'Sport type is required'),
+  experienceLevel: z.enum(['never', 'beginner', 'intermediate', 'advanced', 'expert']),
+  competitiveLevel: z.enum(['recreational', 'competitive', 'professional']).optional(),
+  preferredPosition: z.string().optional(),
 });
 
 interface SportSkillLevel {
@@ -45,11 +58,11 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
   const form = useForm<z.infer<typeof skillLevelSchema>>({
     resolver: zodResolver(skillLevelSchema),
     defaultValues: {
-      sportType: "",
-      experienceLevel: "beginner",
-      competitiveLevel: "recreational",
-      preferredPosition: ""
-    }
+      sportType: '',
+      experienceLevel: 'beginner',
+      competitiveLevel: 'recreational',
+      preferredPosition: '',
+    },
   });
 
   useEffect(() => {
@@ -59,10 +72,10 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
   const fetchSkillLevels = async () => {
     if (!user) return;
-    
+
     try {
       const response = await fetch(`/api/users/${user.id}/sport-skill-levels`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (response.ok) {
         const data = await response.json();
@@ -75,18 +88,18 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
   const fetchUserPreferredSports = async () => {
     if (!user) return;
-    
+
     try {
       const response = await fetch(`/api/onboarding-preferences/${user.id}`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       console.log('API Response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('User onboarding data:', data);
         console.log('Preferred sports from API:', data.preferredSports);
-        
+
         if (data.preferredSports && data.preferredSports.length > 0) {
           setUserPreferredSports(data.preferredSports);
         } else {
@@ -121,24 +134,24 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
   const onSubmit = async (values: z.infer<typeof skillLevelSchema>) => {
     if (!user) return;
-    
+
     setIsLoading(true);
     try {
       await apiRequest('POST', `/api/users/${user.id}/sport-skill-levels`, values);
-      
+
       toast({
-        title: "Skill level added",
-        description: `Added ${values.sportType} skill level to your profile.`
+        title: 'Skill level added',
+        description: `Added ${values.sportType} skill level to your profile.`,
       });
-      
+
       form.reset();
       setIsEditing(false);
       fetchSkillLevels();
     } catch (error: any) {
       toast({
-        title: "Error adding skill level",
-        description: error.message || "Please try again later.",
-        variant: "destructive"
+        title: 'Error adding skill level',
+        description: error.message || 'Please try again later.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -148,39 +161,46 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
   const deleteSkillLevel = async (id: number) => {
     try {
       await apiRequest('DELETE', `/api/sport-skill-levels/${id}`);
-      
+
       toast({
-        title: "Skill level removed",
-        description: "The skill level has been removed from your profile."
+        title: 'Skill level removed',
+        description: 'The skill level has been removed from your profile.',
       });
-      
+
       fetchSkillLevels();
     } catch (error) {
       toast({
-        title: "Error removing skill level",
-        description: "Please try again later.",
-        variant: "destructive"
+        title: 'Error removing skill level',
+        description: 'Please try again later.',
+        variant: 'destructive',
       });
     }
   };
 
   const getExperienceBadge = (level: string) => {
     switch (level) {
-      case 'expert': return 'bg-red-100 text-red-800';
-      case 'advanced': return 'bg-orange-100 text-orange-800';
-      case 'intermediate': return 'bg-blue-100 text-blue-800';
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'never': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'expert':
+        return 'bg-red-100 text-red-800';
+      case 'advanced':
+        return 'bg-orange-100 text-orange-800';
+      case 'intermediate':
+        return 'bg-blue-100 text-blue-800';
+      case 'beginner':
+        return 'bg-green-100 text-green-800';
+      case 'never':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Sport Skill Levels</h3>
-      
+
       <div className="text-sm text-gray-600">
-        Share your experience level in different sports to help others find teammates with similar abilities.
+        Share your experience level in different sports to help others find teammates with similar
+        abilities.
       </div>
 
       {/* Existing Skill Levels */}
@@ -270,12 +290,18 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                   render={({ field }) => {
                     const getDisplayValue = (value: string) => {
                       switch (value) {
-                        case "never": return "Never played";
-                        case "beginner": return "Beginner";
-                        case "intermediate": return "Intermediate";
-                        case "advanced": return "Advanced";
-                        case "expert": return "Expert";
-                        default: return "Select experience level";
+                        case 'never':
+                          return 'Never played';
+                        case 'beginner':
+                          return 'Beginner';
+                        case 'intermediate':
+                          return 'Intermediate';
+                        case 'advanced':
+                          return 'Advanced';
+                        case 'expert':
+                          return 'Expert';
+                        default:
+                          return 'Select experience level';
                       }
                     };
 
@@ -286,7 +312,9 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select experience level">
-                                {field.value ? getDisplayValue(field.value) : "Select experience level"}
+                                {field.value
+                                  ? getDisplayValue(field.value)
+                                  : 'Select experience level'}
                               </SelectValue>
                             </SelectTrigger>
                           </FormControl>
@@ -294,31 +322,41 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
                             <SelectItem value="never" className="py-3">
                               <div className="flex flex-col space-y-1">
                                 <span className="font-medium">Never played</span>
-                                <span className="text-xs text-gray-500">No experience with this sport</span>
+                                <span className="text-xs text-gray-500">
+                                  No experience with this sport
+                                </span>
                               </div>
                             </SelectItem>
                             <SelectItem value="beginner" className="py-3">
                               <div className="flex flex-col space-y-1">
                                 <span className="font-medium">Beginner</span>
-                                <span className="text-xs text-gray-500">Less than 1x per week - just starting out</span>
+                                <span className="text-xs text-gray-500">
+                                  Less than 1x per week - just starting out
+                                </span>
                               </div>
                             </SelectItem>
                             <SelectItem value="intermediate" className="py-3">
                               <div className="flex flex-col space-y-1">
                                 <span className="font-medium">Intermediate</span>
-                                <span className="text-xs text-gray-500">1-2x per week - comfortable with basics</span>
+                                <span className="text-xs text-gray-500">
+                                  1-2x per week - comfortable with basics
+                                </span>
                               </div>
                             </SelectItem>
                             <SelectItem value="advanced" className="py-3">
                               <div className="flex flex-col space-y-1">
                                 <span className="font-medium">Advanced</span>
-                                <span className="text-xs text-gray-500">3-4x per week - skilled and confident</span>
+                                <span className="text-xs text-gray-500">
+                                  3-4x per week - skilled and confident
+                                </span>
                               </div>
                             </SelectItem>
                             <SelectItem value="expert" className="py-3">
                               <div className="flex flex-col space-y-1">
                                 <span className="font-medium">Expert</span>
-                                <span className="text-xs text-gray-500">5+ times per week - highly skilled athlete</span>
+                                <span className="text-xs text-gray-500">
+                                  5+ times per week - highly skilled athlete
+                                </span>
                               </div>
                             </SelectItem>
                           </SelectContent>
@@ -370,11 +408,11 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
                 <div className="flex space-x-4">
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Adding..." : "Add Skill Level"}
+                    {isLoading ? 'Adding...' : 'Add Skill Level'}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => {
                       setIsEditing(false);
                       form.reset();
@@ -391,7 +429,7 @@ export function SportSkillLevels({ onComplete, onCancel }: SportSkillLevelsProps
 
       <div className="flex space-x-4 pt-4">
         <Button onClick={onComplete}>
-          {skillLevels.length > 0 ? "Complete Profile" : "Skip for Now"}
+          {skillLevels.length > 0 ? 'Complete Profile' : 'Skip for Now'}
         </Button>
         <Button variant="outline" onClick={onCancel}>
           Back

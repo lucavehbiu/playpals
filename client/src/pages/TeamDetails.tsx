@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { useLocation, Link } from "wouter";
-import { queryClient } from "../lib/queryClient";
-import { formatDate } from "../lib/utils";
-import { Tab } from "@headlessui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useLocation, Link } from 'wouter';
+import { queryClient } from '../lib/queryClient';
+import { formatDate } from '../lib/utils';
+import { Tab } from '@headlessui/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
   Calendar,
   ChevronLeft,
@@ -23,13 +23,21 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-} from "lucide-react";
-import JoinRequestsPanel from "@/components/layout/JoinRequestsPanel";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+} from 'lucide-react';
+import JoinRequestsPanel from '@/components/layout/JoinRequestsPanel';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -38,41 +46,36 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 // Form schemas
 const createPostSchema = z.object({
-  content: z.string().min(1, "Post content is required"),
+  content: z.string().min(1, 'Post content is required'),
 });
 
 const createScheduleSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
+  startTime: z.string().min(1, 'Start time is required'),
+  endTime: z.string().min(1, 'End time is required'),
   location: z.string().optional(),
   isRequired: z.boolean().default(false),
 });
 
 const responseSchema = z.object({
-  response: z.enum(["attending", "not_attending", "maybe"]),
+  response: z.enum(['attending', 'not_attending', 'maybe']),
   notes: z.string().optional(),
   maybeDeadline: z.string().optional(),
 });
@@ -85,54 +88,52 @@ const TeamDetails = () => {
   const [isCreateScheduleOpen, setIsCreateScheduleOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<any | null>(null);
   const [responseDialogOpen, setResponseDialogOpen] = useState(false);
-  
+
   // Extract teamId from URL
   const urlParts = window.location.pathname.split('/');
   const teamId = parseInt(urlParts[urlParts.length - 1]);
-  
+
   if (isNaN(teamId)) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Invalid Team ID</h1>
         <p className="mb-4">The team you're looking for doesn't exist.</p>
-        <Button onClick={() => setLocation("/teams")}>
-          Back to Teams
-        </Button>
+        <Button onClick={() => setLocation('/teams')}>Back to Teams</Button>
       </div>
     );
   }
-  
+
   // Form for creating a post
-  const postForm = useForm<{content: string}>({
+  const postForm = useForm<{ content: string }>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
-      content: "",
+      content: '',
     },
   });
-  
+
   // Form for creating a schedule
   const scheduleForm = useForm({
     resolver: zodResolver(createScheduleSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      startTime: "",
-      endTime: "",
-      location: "",
+      title: '',
+      description: '',
+      startTime: '',
+      endTime: '',
+      location: '',
       isRequired: false,
     },
   });
-  
+
   // Form for responding to schedule
   const responseForm = useForm({
     resolver: zodResolver(responseSchema),
     defaultValues: {
-      response: "attending",
-      notes: "",
+      response: 'attending',
+      notes: '',
       maybeDeadline: new Date(Date.now() + 86400000).toISOString().substring(0, 16), // Next day as default
     },
   });
-  
+
   // Query to fetch team data
   const { data: team, isLoading: isTeamLoading } = useQuery({
     queryKey: ['/api/teams', teamId],
@@ -142,7 +143,7 @@ const TeamDetails = () => {
       return await result.json();
     },
   });
-  
+
   // Query to fetch team members
   const { data: members = [], isLoading: isMembersLoading } = useQuery({
     queryKey: ['/api/teams', teamId, 'members'],
@@ -152,7 +153,7 @@ const TeamDetails = () => {
       return await result.json();
     },
   });
-  
+
   // Query to fetch team posts
   const { data: posts = [], isLoading: isPostsLoading } = useQuery({
     queryKey: ['/api/teams', teamId, 'posts'],
@@ -162,7 +163,7 @@ const TeamDetails = () => {
       return await result.json();
     },
   });
-  
+
   // Query to fetch team schedules
   const { data: schedules = [], isLoading: isSchedulesLoading } = useQuery({
     queryKey: ['/api/teams', teamId, 'schedules'],
@@ -172,10 +173,10 @@ const TeamDetails = () => {
       return await result.json();
     },
   });
-  
+
   // Mutation to create a post
   const createPostMutation = useMutation({
-    mutationFn: async (data: {content: string}) => {
+    mutationFn: async (data: { content: string }) => {
       const response = await fetch(`/api/teams/${teamId}/posts`, {
         method: 'POST',
         headers: {
@@ -187,11 +188,11 @@ const TeamDetails = () => {
           content: data.content,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create post');
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -199,19 +200,19 @@ const TeamDetails = () => {
       postForm.reset();
       setIsCreatePostOpen(false);
       toast({
-        title: "Post Created",
-        description: "Your post has been created successfully.",
+        title: 'Post Created',
+        description: 'Your post has been created successfully.',
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create post. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create post. Please try again.',
+        variant: 'destructive',
       });
     },
   });
-  
+
   // Mutation to create a schedule
   const createScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -231,11 +232,11 @@ const TeamDetails = () => {
           isRequired: data.isRequired,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create schedule');
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -243,19 +244,19 @@ const TeamDetails = () => {
       scheduleForm.reset();
       setIsCreateScheduleOpen(false);
       toast({
-        title: "Schedule Created",
-        description: "The team schedule has been created successfully.",
+        title: 'Schedule Created',
+        description: 'The team schedule has been created successfully.',
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create schedule. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create schedule. Please try again.',
+        variant: 'destructive',
       });
     },
   });
-  
+
   // Mutation to respond to a schedule
   const respondToScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -266,29 +267,31 @@ const TeamDetails = () => {
         notes: data.notes,
         maybeDeadline: data.response === 'maybe' ? data.maybeDeadline : null,
       });
-      
+
       // Make sure we have a selected schedule
       if (!selectedSchedule || !selectedSchedule.id) {
         throw new Error('No schedule selected');
       }
-      
+
       // Check if user has already responded to this schedule
-      const hasResponded = selectedSchedule.responses && 
+      const hasResponded =
+        selectedSchedule.responses &&
         selectedSchedule.responses.some((r: any) => r.userId === user?.id);
-      
+
       if (hasResponded) {
         throw new Error('You have already responded to this schedule');
       }
-      
+
       // Create a clean request payload
       const payload = {
         scheduleId: selectedSchedule.id,
         userId: user?.id,
         response: data.response,
         notes: data.notes || null,
-        maybeDeadline: data.response === 'maybe' ? new Date(data.maybeDeadline).toISOString() : null,
+        maybeDeadline:
+          data.response === 'maybe' ? new Date(data.maybeDeadline).toISOString() : null,
       };
-      
+
       const response = await fetch(`/api/schedules/${selectedSchedule.id}/responses`, {
         method: 'POST',
         headers: {
@@ -296,7 +299,7 @@ const TeamDetails = () => {
         },
         body: JSON.stringify(payload),
       });
-      
+
       if (!response.ok) {
         // Try to get the detailed error
         let errorMessage = 'Failed to respond to schedule';
@@ -309,7 +312,7 @@ const TeamDetails = () => {
         }
         throw new Error(errorMessage);
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -318,47 +321,48 @@ const TeamDetails = () => {
       setResponseDialogOpen(false);
       setSelectedSchedule(null);
       toast({
-        title: "Response Submitted",
-        description: "Your response has been submitted successfully.",
+        title: 'Response Submitted',
+        description: 'Your response has been submitted successfully.',
       });
     },
     onError: (error: Error) => {
       console.error('Schedule response error:', error);
-      
+
       // Special handling for "already responded" error
       if (error.message.includes('already responded')) {
         setResponseDialogOpen(false);
         setSelectedSchedule(null);
         toast({
-          title: "Already Responded",
-          description: "You have already submitted a response to this schedule. Updating responses will be available soon.",
-          variant: "default",
+          title: 'Already Responded',
+          description:
+            'You have already submitted a response to this schedule. Updating responses will be available soon.',
+          variant: 'default',
         });
         return;
       }
-      
+
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit response. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to submit response. Please try again.',
+        variant: 'destructive',
       });
     },
   });
-  
+
   // Get current user's role in the team
   const currentUserMember = members.find((member: any) => member.userId === user?.id);
   const userRole = currentUserMember?.role || null;
-  
+
   // Check if user is a member, admin, or creator
   const isUserMember = currentUserMember !== undefined;
   const isAdmin = userRole === 'admin' || (team && team.creatorId === user?.id);
-  
+
   // Query to check if user has a pending join request
   const { data: joinRequestStatus, isLoading: isJoinRequestStatusLoading } = useQuery({
     queryKey: [`/api/teams/${teamId}/join-requests`, user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      
+
       try {
         // Check from the server if the user has a pending request for this team
         const response = await fetch(`/api/teams/${teamId}/join-request-status?userId=${user.id}`, {
@@ -366,7 +370,7 @@ const TeamDetails = () => {
             'Content-Type': 'application/json',
           },
         });
-        
+
         if (!response.ok) {
           if (response.status === 404) {
             return null; // No request found
@@ -374,14 +378,16 @@ const TeamDetails = () => {
           console.warn('Failed to check join request status with status:', response.status);
           return null; // Return null instead of throwing to prevent breaking the UI
         }
-        
+
         // Parse the requests and look for the user's request
         const requests = await response.json();
         if (Array.isArray(requests)) {
-          const userRequest = requests.find(req => req.userId === user.id && req.status === 'pending');
+          const userRequest = requests.find(
+            (req) => req.userId === user.id && req.status === 'pending'
+          );
           return userRequest || null;
         }
-        
+
         return requests; // If it returned a specific request
       } catch (error) {
         console.error('Error checking join request status:', error);
@@ -390,10 +396,10 @@ const TeamDetails = () => {
     },
     enabled: !!user?.id && !isUserMember,
   });
-  
+
   // Check if user has a pending request
   const hasPendingRequest = joinRequestStatus && joinRequestStatus.status === 'pending';
-  
+
   // Mutation to send team join request
   const joinTeamMutation = useMutation({
     mutationFn: async () => {
@@ -409,21 +415,21 @@ const TeamDetails = () => {
     onSuccess: () => {
       // Refresh the join request status
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/join-requests`, user?.id] });
-      
+
       toast({
-        title: "Join request sent",
-        description: "Your request to join this team has been sent to the team admin.",
+        title: 'Join request sent',
+        description: 'Your request to join this team has been sent to the team admin.',
       });
     },
     onError: (error) => {
       toast({
-        title: "Failed to send join request",
+        title: 'Failed to send join request',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
-  
+
   // Show loading state while data is being fetched
   if (isTeamLoading) {
     return (
@@ -432,49 +438,49 @@ const TeamDetails = () => {
       </div>
     );
   }
-  
+
   // If team doesn't exist, show error
   if (!team) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Team Not Found</h1>
         <p className="mb-4">The team you're looking for doesn't exist.</p>
-        <Button onClick={() => setLocation("/teams")}>
-          Back to Teams
-        </Button>
+        <Button onClick={() => setLocation('/teams')}>Back to Teams</Button>
       </div>
     );
   }
-  
-  const onCreatePost = (data: {content: string}) => {
+
+  const onCreatePost = (data: { content: string }) => {
     createPostMutation.mutate(data);
   };
-  
+
   const onCreateSchedule = (data: any) => {
     createScheduleMutation.mutate(data);
   };
-  
+
   const onSubmitResponse = (data: any) => {
     respondToScheduleMutation.mutate(data);
   };
-  
+
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => setLocation("/teams")} className="mb-2">
+        <Button variant="ghost" size="sm" onClick={() => setLocation('/teams')} className="mb-2">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Teams
         </Button>
-        
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">{team.name}</h1>
             <div className="text-gray-500">
-              <Badge variant="outline" className="mr-2">{team.sportType}</Badge>
+              <Badge variant="outline" className="mr-2">
+                {team.sportType}
+              </Badge>
               <span className="ml-1">{team.description}</span>
             </div>
           </div>
-          
+
           {isAdmin && (
             <Button variant="outline" size="sm">
               <Settings className="h-4 w-4 mr-2" />
@@ -483,21 +489,24 @@ const TeamDetails = () => {
           )}
         </div>
       </div>
-      
+
       {!isUserMember && (
         <div className="bg-gray-50 p-6 rounded-lg mb-6 text-center">
           <h2 className="text-lg font-semibold mb-3">Want to join this team?</h2>
           <p className="text-gray-600 mb-4">
             You need to be a member to see team posts, schedules, and other details.
           </p>
-          
+
           {isJoinRequestStatusLoading ? (
             <div className="flex justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : hasPendingRequest ? (
             <div className="flex flex-col items-center gap-2">
-              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 py-2 px-3">
+              <Badge
+                variant="outline"
+                className="bg-yellow-50 text-yellow-700 border-yellow-200 py-2 px-3"
+              >
                 <Clock className="h-4 w-4 mr-2" />
                 Request Pending
               </Badge>
@@ -506,10 +515,7 @@ const TeamDetails = () => {
               </p>
             </div>
           ) : (
-            <Button 
-              onClick={() => joinTeamMutation.mutate()} 
-              disabled={joinTeamMutation.isPending}
-            >
+            <Button onClick={() => joinTeamMutation.mutate()} disabled={joinTeamMutation.isPending}>
               {joinTeamMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -522,25 +528,29 @@ const TeamDetails = () => {
           )}
         </div>
       )}
-      
+
       <Tab.Group>
         <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-          <Tab className={({ selected }) =>
-            `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+          <Tab
+            className={({ selected }) =>
+              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
              ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
              focus:outline-none focus:ring-0`
-          }>
+            }
+          >
             <div className="flex items-center justify-center">
               <MessageSquare className="h-4 w-4 mr-2" />
               {isUserMember ? 'Team Feed' : 'Overview'}
             </div>
           </Tab>
           {isUserMember && (
-            <Tab className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+            <Tab
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
                ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
                focus:outline-none focus:ring-0`
-            }>
+              }
+            >
               <div className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-2" />
                 Schedule
@@ -548,29 +558,33 @@ const TeamDetails = () => {
             </Tab>
           )}
           {isAdmin && (
-            <Tab className={({ selected }) =>
-              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+            <Tab
+              className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
                ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
                focus:outline-none focus:ring-0`
-            }>
+              }
+            >
               <div className="flex items-center justify-center">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Join Requests
               </div>
             </Tab>
           )}
-          <Tab className={({ selected }) =>
-            `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+          <Tab
+            className={({ selected }) =>
+              `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
              ${selected ? 'bg-white shadow text-primary' : 'text-gray-500 hover:bg-white/[0.12] hover:text-gray-700'}
              focus:outline-none focus:ring-0`
-          }>
+            }
+          >
             <div className="flex items-center justify-center">
               <User className="h-4 w-4 mr-2" />
               Members
             </div>
           </Tab>
         </Tab.List>
-        
+
         <Tab.Panels>
           {/* Team Feed Panel or Overview */}
           <Tab.Panel>
@@ -593,9 +607,12 @@ const TeamDetails = () => {
                             Share updates, news, or information with your team.
                           </DialogDescription>
                         </DialogHeader>
-                        
+
                         <Form {...postForm}>
-                          <form onSubmit={postForm.handleSubmit(onCreatePost)} className="space-y-4">
+                          <form
+                            onSubmit={postForm.handleSubmit(onCreatePost)}
+                            className="space-y-4"
+                          >
                             <FormField
                               control={postForm.control}
                               name="content"
@@ -603,17 +620,17 @@ const TeamDetails = () => {
                                 <FormItem>
                                   <FormLabel>Content</FormLabel>
                                   <FormControl>
-                                    <Textarea 
-                                      placeholder="Write your post here..." 
-                                      className="min-h-[120px]" 
-                                      {...field} 
+                                    <Textarea
+                                      placeholder="Write your post here..."
+                                      className="min-h-[120px]"
+                                      {...field}
                                     />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                            
+
                             <DialogFooter>
                               <Button type="submit" disabled={createPostMutation.isPending}>
                                 {createPostMutation.isPending ? (
@@ -635,7 +652,7 @@ const TeamDetails = () => {
                     </Dialog>
                   )}
                 </div>
-                
+
                 {isPostsLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -645,14 +662,12 @@ const TeamDetails = () => {
                     <MessageSquare className="mx-auto h-10 w-10 text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-700 mb-2">No posts yet</h3>
                     <p className="text-gray-500 mb-4">
-                      {isAdmin 
-                        ? "Create the first post to share with your team." 
-                        : "There are no team posts yet. Check back later."}
+                      {isAdmin
+                        ? 'Create the first post to share with your team.'
+                        : 'There are no team posts yet. Check back later.'}
                     </p>
                     {isAdmin && (
-                      <Button onClick={() => setIsCreatePostOpen(true)}>
-                        Create Post
-                      </Button>
+                      <Button onClick={() => setIsCreatePostOpen(true)}>Create Post</Button>
                     )}
                   </div>
                 ) : (
@@ -667,7 +682,9 @@ const TeamDetails = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{post.user?.name || post.user?.username || 'Team Member'}</div>
+                              <div className="font-medium">
+                                {post.user?.name || post.user?.username || 'Team Member'}
+                              </div>
                               <div className="text-gray-500 text-sm">
                                 {formatDate(post.createdAt)} · {getMemberRole(post.userId, members)}
                               </div>
@@ -700,17 +717,17 @@ const TeamDetails = () => {
                       <h4 className="font-medium text-sm text-gray-500">Description</h4>
                       <p className="mt-1">{team.description}</p>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-medium text-sm text-gray-500">Sport</h4>
                       <p className="mt-1">{team.sportType}</p>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-medium text-sm text-gray-500">Created</h4>
                       <p className="mt-1">{new Date(team.createdAt).toLocaleDateString()}</p>
                     </div>
-                    
+
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-600 italic">
                         Join this team to see team posts, schedules, and interact with members.
@@ -721,7 +738,7 @@ const TeamDetails = () => {
               </div>
             )}
           </Tab.Panel>
-          
+
           {/* Schedule Panel - Only visible to members */}
           {isUserMember && (
             <Tab.Panel>
@@ -741,9 +758,12 @@ const TeamDetails = () => {
                           Plan practices, games, or other team activities.
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <Form {...scheduleForm}>
-                        <form onSubmit={scheduleForm.handleSubmit(onCreateSchedule)} className="space-y-4">
+                        <form
+                          onSubmit={scheduleForm.handleSubmit(onCreateSchedule)}
+                          className="space-y-4"
+                        >
                           <FormField
                             control={scheduleForm.control}
                             name="title"
@@ -757,7 +777,7 @@ const TeamDetails = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={scheduleForm.control}
                             name="description"
@@ -771,7 +791,7 @@ const TeamDetails = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                               control={scheduleForm.control}
@@ -786,7 +806,7 @@ const TeamDetails = () => {
                                 </FormItem>
                               )}
                             />
-                            
+
                             <FormField
                               control={scheduleForm.control}
                               name="endTime"
@@ -801,7 +821,7 @@ const TeamDetails = () => {
                               )}
                             />
                           </div>
-                          
+
                           <FormField
                             control={scheduleForm.control}
                             name="location"
@@ -815,7 +835,7 @@ const TeamDetails = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={scheduleForm.control}
                             name="isRequired"
@@ -838,7 +858,7 @@ const TeamDetails = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <DialogFooter>
                             <Button type="submit" disabled={createScheduleMutation.isPending}>
                               {createScheduleMutation.isPending ? (
@@ -857,7 +877,7 @@ const TeamDetails = () => {
                   </Dialog>
                 )}
               </div>
-              
+
               {isSchedulesLoading ? (
                 <div className="flex justify-center items-center h-64">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -867,14 +887,12 @@ const TeamDetails = () => {
                   <CalendarIcon className="mx-auto h-10 w-10 text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-700 mb-2">No schedules yet</h3>
                   <p className="text-gray-500 mb-4">
-                    {isAdmin 
-                      ? "Create the first schedule for your team." 
-                      : "There are no team schedules yet. Check back later."}
+                    {isAdmin
+                      ? 'Create the first schedule for your team.'
+                      : 'There are no team schedules yet. Check back later.'}
                   </p>
                   {isAdmin && (
-                    <Button onClick={() => setIsCreateScheduleOpen(true)}>
-                      Create Schedule
-                    </Button>
+                    <Button onClick={() => setIsCreateScheduleOpen(true)}>Create Schedule</Button>
                   )}
                 </div>
               ) : (
@@ -893,7 +911,10 @@ const TeamDetails = () => {
                             </div>
                           </div>
                           {schedule.isRequired && (
-                            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                            <Badge
+                              variant="outline"
+                              className="bg-red-50 text-red-700 border-red-200"
+                            >
                               Required
                             </Badge>
                           )}
@@ -903,7 +924,7 @@ const TeamDetails = () => {
                         {schedule.description && (
                           <p className="text-gray-700 mb-3">{schedule.description}</p>
                         )}
-                        
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                           <div className="bg-gray-50 p-3 rounded-lg">
                             <div className="text-sm font-medium text-gray-500 mb-1">Time</div>
@@ -911,7 +932,7 @@ const TeamDetails = () => {
                               {formatTimeRange(schedule.startTime, schedule.endTime)}
                             </div>
                           </div>
-                          
+
                           {schedule.location && (
                             <div className="bg-gray-50 p-3 rounded-lg">
                               <div className="text-sm font-medium text-gray-500 mb-1">Location</div>
@@ -919,7 +940,7 @@ const TeamDetails = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="mb-3">
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Responses</h4>
                           <div className="flex gap-4">
@@ -930,7 +951,9 @@ const TeamDetails = () => {
                                     <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs mr-1">
                                       <CheckCircle className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm">{getResponseCount(schedule, 'attending')}</span>
+                                    <span className="text-sm">
+                                      {getResponseCount(schedule, 'attending')}
+                                    </span>
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -938,7 +961,7 @@ const TeamDetails = () => {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            
+
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -946,7 +969,9 @@ const TeamDetails = () => {
                                     <div className="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs mr-1">
                                       <XCircle className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm">{getResponseCount(schedule, 'not_attending')}</span>
+                                    <span className="text-sm">
+                                      {getResponseCount(schedule, 'not_attending')}
+                                    </span>
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -954,7 +979,7 @@ const TeamDetails = () => {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            
+
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -962,7 +987,9 @@ const TeamDetails = () => {
                                     <div className="h-6 w-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs mr-1">
                                       <Clock className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm">{getResponseCount(schedule, 'maybe')}</span>
+                                    <span className="text-sm">
+                                      {getResponseCount(schedule, 'maybe')}
+                                    </span>
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -974,11 +1001,14 @@ const TeamDetails = () => {
                         </div>
                       </CardContent>
                       <CardFooter className="flex justify-end bg-gray-50">
-                        <Dialog open={responseDialogOpen && selectedSchedule?.id === schedule.id} onOpenChange={(open) => {
-                          setResponseDialogOpen(open);
-                          if (open) setSelectedSchedule(schedule);
-                          else setSelectedSchedule(null);
-                        }}>
+                        <Dialog
+                          open={responseDialogOpen && selectedSchedule?.id === schedule.id}
+                          onOpenChange={(open) => {
+                            setResponseDialogOpen(open);
+                            if (open) setSelectedSchedule(schedule);
+                            else setSelectedSchedule(null);
+                          }}
+                        >
                           <DialogTrigger asChild>
                             <Button>Respond</Button>
                           </DialogTrigger>
@@ -989,9 +1019,12 @@ const TeamDetails = () => {
                                 Let your team know if you'll be attending {schedule.title}.
                               </DialogDescription>
                             </DialogHeader>
-                            
+
                             <Form {...responseForm}>
-                              <form onSubmit={responseForm.handleSubmit(onSubmitResponse)} className="space-y-4">
+                              <form
+                                onSubmit={responseForm.handleSubmit(onSubmitResponse)}
+                                className="space-y-4"
+                              >
                                 <FormField
                                   control={responseForm.control}
                                   name="response"
@@ -1006,14 +1039,23 @@ const TeamDetails = () => {
                                         >
                                           <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="attending" id="attending" />
-                                            <Label htmlFor="attending" className="flex items-center">
+                                            <Label
+                                              htmlFor="attending"
+                                              className="flex items-center"
+                                            >
                                               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                                               Attending
                                             </Label>
                                           </div>
                                           <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="not_attending" id="not_attending" />
-                                            <Label htmlFor="not_attending" className="flex items-center">
+                                            <RadioGroupItem
+                                              value="not_attending"
+                                              id="not_attending"
+                                            />
+                                            <Label
+                                              htmlFor="not_attending"
+                                              className="flex items-center"
+                                            >
                                               <XCircle className="h-4 w-4 text-red-500 mr-2" />
                                               Not Attending
                                             </Label>
@@ -1031,7 +1073,7 @@ const TeamDetails = () => {
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 <FormField
                                   control={responseForm.control}
                                   name="notes"
@@ -1039,13 +1081,16 @@ const TeamDetails = () => {
                                     <FormItem>
                                       <FormLabel>Notes (Optional)</FormLabel>
                                       <FormControl>
-                                        <Textarea placeholder="Add any additional notes here..." {...field} />
+                                        <Textarea
+                                          placeholder="Add any additional notes here..."
+                                          {...field}
+                                        />
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 {responseForm.watch('response') === 'maybe' && (
                                   <FormField
                                     control={responseForm.control}
@@ -1064,9 +1109,12 @@ const TeamDetails = () => {
                                     )}
                                   />
                                 )}
-                                
+
                                 <DialogFooter>
-                                  <Button type="submit" disabled={respondToScheduleMutation.isPending}>
+                                  <Button
+                                    type="submit"
+                                    disabled={respondToScheduleMutation.isPending}
+                                  >
                                     {respondToScheduleMutation.isPending ? (
                                       <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1088,14 +1136,14 @@ const TeamDetails = () => {
               )}
             </Tab.Panel>
           )}
-          
+
           {/* Join Requests Panel - Only visible to admins */}
           {isAdmin && (
             <Tab.Panel>
               <JoinRequestsPanel teamId={teamId} />
             </Tab.Panel>
           )}
-          
+
           {/* Members Panel */}
           <Tab.Panel>
             {isMembersLoading ? (
@@ -1116,15 +1164,15 @@ const TeamDetails = () => {
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              {member.user?.name || member.user?.username || `Member #${member.userId}`}
+                              {member.user?.name ||
+                                member.user?.username ||
+                                `Member #${member.userId}`}
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <Badge variant={getRoleBadgeVariant(member.role)} className="mr-2">
                                 {formatRole(member.role)}
                               </Badge>
-                              {member.position && (
-                                <span>{member.position}</span>
-                              )}
+                              {member.position && <span>{member.position}</span>}
                             </div>
                           </div>
                         </div>
@@ -1137,7 +1185,7 @@ const TeamDetails = () => {
                     </Card>
                   ))}
                 </div>
-                
+
                 {isAdmin && (
                   <div className="mt-6 flex justify-center">
                     <Button variant="outline" className="mx-auto">
@@ -1176,16 +1224,16 @@ function getMemberRole(userId: number, members: any[]) {
 function formatTimeRange(start: string, end: string) {
   const startDate = new Date(start);
   const endDate = new Date(end);
-  
+
   const options: Intl.DateTimeFormatOptions = {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
   };
-  
+
   const startTime = new Intl.DateTimeFormat('en-US', options).format(startDate);
   const endTime = new Intl.DateTimeFormat('en-US', options).format(endDate);
-  
+
   return `${startTime} - ${endTime}`;
 }
 

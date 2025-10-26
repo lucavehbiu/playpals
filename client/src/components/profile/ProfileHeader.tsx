@@ -1,6 +1,6 @@
-import { Star, LogOut, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { UserProfile } from "@/lib/types";
+import { Star, LogOut, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { UserProfile } from '@/lib/types';
 
 interface ProfileHeaderProps {
   user: UserProfile;
@@ -39,7 +39,7 @@ export function ProfileHeader({
   onSendFriendRequest,
   onRespondToFriendRequest,
   logoutPending,
-  respondPending
+  respondPending,
 }: ProfileHeaderProps) {
   return (
     <div className="relative bg-white border-b border-gray-200">
@@ -73,19 +73,23 @@ export function ProfileHeader({
                     className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1 rounded-md hover:bg-yellow-100 transition-colors text-sm font-medium"
                   >
                     <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                    <span>{averageRating ? averageRating.toFixed(1) : "0.0"}</span>
+                    <span>{averageRating ? averageRating.toFixed(1) : '0.0'}</span>
                   </button>
                 ) : (
                   <div className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1 rounded-md text-sm font-medium">
                     <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                    <span>{averageRating ? averageRating.toFixed(1) : "0.0"}</span>
+                    <span>{averageRating ? averageRating.toFixed(1) : '0.0'}</span>
                   </div>
                 )}
 
                 {/* Matches count */}
                 <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-md text-sm font-medium">
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   <span>{totalMatches || 0} matches</span>
                 </div>
@@ -112,7 +116,12 @@ export function ProfileHeader({
                   hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center justify-center shadow-sm"
                   onClick={onShowEditProfile}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1.5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                   </svg>
                   Edit Profile
@@ -134,7 +143,7 @@ export function ProfileHeader({
                   size="sm"
                   className="text-red-600 border-red-200 hover:bg-red-50"
                   disabled={respondPending}
-                  onClick={() => onRespondToFriendRequest(incomingRequest.id, "rejected")}
+                  onClick={() => onRespondToFriendRequest(incomingRequest.id, 'rejected')}
                 >
                   <X className="h-4 w-4 mr-1" />
                   Decline
@@ -143,7 +152,7 @@ export function ProfileHeader({
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-white"
                   disabled={respondPending}
-                  onClick={() => onRespondToFriendRequest(incomingRequest.id, "accepted")}
+                  onClick={() => onRespondToFriendRequest(incomingRequest.id, 'accepted')}
                 >
                   <Check className="h-4 w-4 mr-1" />
                   Accept
@@ -164,7 +173,12 @@ export function ProfileHeader({
                 onClick={onSendFriendRequest}
                 disabled={buttonConfig.disabled}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                 </svg>
                 {buttonConfig.text}

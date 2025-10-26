@@ -1,16 +1,26 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, User, Calendar, Users, Trophy, ArrowRight, MapPin, Clock, Star } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
-import { Link } from "wouter";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Search,
+  User,
+  Calendar,
+  Users,
+  Trophy,
+  ArrowRight,
+  MapPin,
+  Clock,
+  Star,
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/use-auth';
+import { motion } from 'framer-motion';
+import { Link } from 'wouter';
 
 interface SearchResult {
   id: number;
@@ -30,9 +40,9 @@ interface SearchResult {
 
 export default function GlobalSearch() {
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+
   const [userResults, setUserResults] = useState<SearchResult[]>([]);
   const [eventResults, setEventResults] = useState<SearchResult[]>([]);
   const [groupResults, setGroupResults] = useState<SearchResult[]>([]);
@@ -42,11 +52,11 @@ export default function GlobalSearch() {
   // Search function for users
   const searchUsers = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/users/search?q=${encodeURIComponent(query)}`);
+      const response = await apiRequest('GET', `/api/users/search?q=${encodeURIComponent(query)}`);
       const users = await response.json();
-      
+
       return users.map((user: any) => ({
         id: user.id,
         type: 'user' as const,
@@ -55,12 +65,16 @@ export default function GlobalSearch() {
         image: user.profileImage,
         location: user.location,
         link: `/profile/${user.id}`,
-        sportType: user.bio?.includes('basketball') ? 'basketball' : 
-                   user.bio?.includes('soccer') ? 'soccer' : 
-                   user.bio?.includes('tennis') ? 'tennis' : 'other'
+        sportType: user.bio?.includes('basketball')
+          ? 'basketball'
+          : user.bio?.includes('soccer')
+            ? 'soccer'
+            : user.bio?.includes('tennis')
+              ? 'tennis'
+              : 'other',
       }));
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error('Error searching users:', error);
       return [];
     }
   };
@@ -68,11 +82,11 @@ export default function GlobalSearch() {
   // Search function for events
   const searchEvents = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/events`);
+      const response = await apiRequest('GET', `/api/events`);
       const events = await response.json();
-      
+
       const queryLower = query.toLowerCase();
       const filteredEvents = events.filter((event: any) => {
         return (
@@ -82,7 +96,7 @@ export default function GlobalSearch() {
           (event.sportType && event.sportType.toLowerCase().includes(queryLower))
         );
       });
-      
+
       return filteredEvents.map((event: any) => ({
         id: event.id,
         type: 'event' as const,
@@ -95,10 +109,10 @@ export default function GlobalSearch() {
         creatorName: event.creator?.name,
         isPublic: event.isPublic,
         isFree: event.isFree,
-        link: `/events/${event.id}`
+        link: `/events/${event.id}`,
       }));
     } catch (error) {
-      console.error("Error searching events:", error);
+      console.error('Error searching events:', error);
       return [];
     }
   };
@@ -106,11 +120,14 @@ export default function GlobalSearch() {
   // Search function for groups
   const searchGroups = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/sports-groups/discoverable?search=${encodeURIComponent(query)}`);
+      const response = await apiRequest(
+        'GET',
+        `/api/sports-groups/discoverable?search=${encodeURIComponent(query)}`
+      );
       const groups = await response.json();
-      
+
       return groups.map((group: any) => ({
         id: group.id,
         type: 'group' as const,
@@ -120,10 +137,10 @@ export default function GlobalSearch() {
         sportType: group.sportType,
         memberCount: group.memberCount,
         isPublic: group.isPublic,
-        link: `/groups/${group.id}`
+        link: `/groups/${group.id}`,
       }));
     } catch (error) {
-      console.error("Error searching groups:", error);
+      console.error('Error searching groups:', error);
       return [];
     }
   };
@@ -131,11 +148,11 @@ export default function GlobalSearch() {
   // Search function for teams
   const searchTeams = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/teams`);
+      const response = await apiRequest('GET', `/api/teams`);
       const teams = await response.json();
-      
+
       const queryLower = query.toLowerCase();
       const filteredTeams = teams.filter((team: any) => {
         return (
@@ -144,7 +161,7 @@ export default function GlobalSearch() {
           (team.sportType && team.sportType.toLowerCase().includes(queryLower))
         );
       });
-      
+
       return filteredTeams.map((team: any) => ({
         id: team.id,
         type: 'team' as const,
@@ -154,10 +171,10 @@ export default function GlobalSearch() {
         sportType: team.sportType,
         memberCount: team.memberCount,
         isPublic: team.isPublic,
-        link: `/teams/${team.id}`
+        link: `/teams/${team.id}`,
       }));
     } catch (error) {
-      console.error("Error searching teams:", error);
+      console.error('Error searching teams:', error);
       return [];
     }
   };
@@ -179,7 +196,7 @@ export default function GlobalSearch() {
           searchUsers(searchQuery),
           searchEvents(searchQuery),
           searchGroups(searchQuery),
-          searchTeams(searchQuery)
+          searchTeams(searchQuery),
         ]);
 
         setUserResults(users);
@@ -187,7 +204,7 @@ export default function GlobalSearch() {
         setGroupResults(groups);
         setTeamResults(teams);
       } catch (error) {
-        console.error("Search error:", error);
+        console.error('Search error:', error);
       } finally {
         setIsSearching(false);
       }
@@ -197,7 +214,8 @@ export default function GlobalSearch() {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
-  const totalResults = userResults.length + eventResults.length + groupResults.length + teamResults.length;
+  const totalResults =
+    userResults.length + eventResults.length + groupResults.length + teamResults.length;
 
   const UserCard = ({ user }: { user: SearchResult }) => (
     <Link href={user.link}>
@@ -209,7 +227,10 @@ export default function GlobalSearch() {
                 <AvatarImage src={user.image} alt={user.name} />
               ) : (
                 <AvatarFallback>
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {user.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')}
                 </AvatarFallback>
               )}
             </Avatar>
@@ -352,12 +373,8 @@ export default function GlobalSearch() {
           transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Search PlayPals
-          </h1>
-          <p className="text-gray-600">
-            Find users, events, groups, and teams across the platform
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Search PlayPals</h1>
+          <p className="text-gray-600">Find users, events, groups, and teams across the platform</p>
         </motion.div>
 
         {/* Search Bar */}
@@ -396,7 +413,8 @@ export default function GlobalSearch() {
                     Search Results for "{searchQuery}"
                   </h2>
                   <div className="text-sm text-gray-600">
-                    Found {totalResults} results ({userResults.length} users, {eventResults.length} events, {groupResults.length} groups, {teamResults.length} teams)
+                    Found {totalResults} results ({userResults.length} users, {eventResults.length}{' '}
+                    events, {groupResults.length} groups, {teamResults.length} teams)
                   </div>
                 </div>
 
@@ -497,9 +515,7 @@ export default function GlobalSearch() {
                     <div className="text-gray-400 mb-4">
                       <Search className="h-16 w-16 mx-auto" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No results found
-                    </h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
                     <p className="text-gray-600">
                       Try adjusting your search terms or check for typos
                     </p>
@@ -521,9 +537,7 @@ export default function GlobalSearch() {
             <div className="text-gray-400 mb-4">
               <Search className="h-16 w-16 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Start searching
-            </h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Start searching</h3>
             <p className="text-gray-600">
               Enter a search term above to find users, events, groups, and teams
             </p>

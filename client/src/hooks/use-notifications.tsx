@@ -43,14 +43,14 @@ export const useNotifications = () => {
   const queryClient = useQueryClient();
   const [pendingCount, setPendingCount] = useState(0);
   const [viewedEventResponses, setViewedEventResponses] = useState<Set<number>>(new Set());
-  
+
   // Automatic polling timer
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Setup regular polling for notifications
   useEffect(() => {
     if (!user?.id) return;
-    
+
     // Define polling function
     const refreshNotifications = () => {
       if (user?.id) {
@@ -61,13 +61,13 @@ export const useNotifications = () => {
         queryClient.refetchQueries({ queryKey: [`/api/users/${user.id}/tournament-invitations`] });
       }
     };
-    
+
     // Start polling every 30 seconds
     pollingIntervalRef.current = setInterval(refreshNotifications, 30000);
-    
+
     // Initial fetch
     refreshNotifications();
-    
+
     // Cleanup on unmount
     return () => {
       if (pollingIntervalRef.current) {
@@ -76,7 +76,7 @@ export const useNotifications = () => {
       }
     };
   }, [user, queryClient]);
-  
+
   // Fetch RSVPs for the current user (invitations TO the user)
   const { data: rsvps = [] } = useQuery<RSVPWithEvent[]>({
     queryKey: [`/api/rsvps/user/${user?.id}`],
@@ -94,7 +94,7 @@ export const useNotifications = () => {
     queryKey: ['/api/event-responses', user?.id],
     queryFn: async () => {
       if (!user?.id || !userEvents || userEvents.length === 0) return [];
-      
+
       const responses: RSVPWithEvent[] = [];
       for (const event of userEvents) {
         try {
@@ -102,53 +102,55 @@ export const useNotifications = () => {
           if (res.ok) {
             const eventRsvps = await res.json();
             // Only include approved responses (people who accepted invitations)
-            const approvedResponses = eventRsvps.filter((rsvp: any) => 
-              rsvp.status === 'approved' && rsvp.userId !== user.id
+            const approvedResponses = eventRsvps.filter(
+              (rsvp: any) => rsvp.status === 'approved' && rsvp.userId !== user.id
             );
-            responses.push(...approvedResponses.map((rsvp: any) => ({
-              ...rsvp,
-              event: event
-            })));
+            responses.push(
+              ...approvedResponses.map((rsvp: any) => ({
+                ...rsvp,
+                event: event,
+              }))
+            );
           }
         } catch (error) {
           console.error(`Error fetching RSVPs for event ${event.id}:`, error);
         }
       }
-      
+
       return responses;
     },
     enabled: !!user?.id && userEvents.length > 0,
-    staleTime: 30000
+    staleTime: 30000,
   });
-  
-  // Get teams the user belongs to 
+
+  // Get teams the user belongs to
   const { data: userTeams = [] } = useQuery<any[]>({
     queryKey: [`/api/teams/user/${user?.id}`],
     enabled: !!user?.id,
   });
-  
+
   // Fetch pending join requests for teams where user is admin
   const { data: joinRequests = [] } = useQuery<TeamJoinRequest[]>({
     queryKey: ['/api/teams/join-requests'],
     queryFn: async () => {
       if (!user?.id || !userTeams || userTeams.length === 0) return [];
-      
+
       // Get the teams where user is admin or creator
       const adminTeams = userTeams.filter((team: any) => {
         // Check if user is creator
         if (team.creatorId === user.id) return true;
-        
+
         // Check if user is admin in this team
         const members = team.members || [];
-        return members.some((member: any) => 
-          member.userId === user.id && 
-          (member.role === 'admin' || member.role === 'captain')
+        return members.some(
+          (member: any) =>
+            member.userId === user.id && (member.role === 'admin' || member.role === 'captain')
         );
       });
-      
+
       // If user is not admin in any team, return empty array
       if (adminTeams.length === 0) return [];
-      
+
       // Fetch join requests for each admin team
       const requests: TeamJoinRequest[] = [];
       for (const team of adminTeams) {
@@ -156,26 +158,28 @@ export const useNotifications = () => {
           const res = await fetch(`/api/teams/${team.id}/join-requests`);
           if (res.ok) {
             const teamRequests = await res.json();
-            requests.push(...teamRequests.filter((req: TeamJoinRequest) => req.status === 'pending'));
+            requests.push(
+              ...teamRequests.filter((req: TeamJoinRequest) => req.status === 'pending')
+            );
           }
         } catch (error) {
           console.error(`Error fetching join requests for team ${team.id}:`, error);
         }
       }
-      
+
       return requests;
     },
     enabled: !!user?.id && userTeams.length > 0,
     // Stale time of 30 seconds to reduce API calls
-    staleTime: 30000
+    staleTime: 30000,
   });
-  
+
   // Fetch team member notifications (accepted join requests)
   const { data: teamMemberNotifications = [] } = useQuery<TeamNotification[]>({
     queryKey: ['/api/teams/notifications'],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/teams/join-notifications/${user.id}`);
         if (res.ok) {
@@ -189,7 +193,7 @@ export const useNotifications = () => {
     },
     enabled: !!user?.id,
     // Stale time of 30 seconds to reduce API calls
-    staleTime: 30000
+    staleTime: 30000,
   });
 
   // Fetch friend requests (notifications for incoming friend requests)
@@ -197,7 +201,7 @@ export const useNotifications = () => {
     queryKey: [`/api/users/${user?.id}/friend-requests`],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/users/${user.id}/friend-requests`);
         if (res.ok) {
@@ -210,7 +214,7 @@ export const useNotifications = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 30000
+    staleTime: 30000,
   });
 
   // Fetch tournament invitations
@@ -218,7 +222,7 @@ export const useNotifications = () => {
     queryKey: [`/api/users/${user?.id}/tournament-invitations`],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       try {
         const res = await fetch(`/api/users/${user.id}/tournament-invitations`);
         if (res.ok) {
@@ -233,57 +237,64 @@ export const useNotifications = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 30000
+    staleTime: 30000,
   });
-  
+
   // Calculate total notification count
   useEffect(() => {
     let count = 0;
-    
+
     // Count pending RSVP invitations (invitations TO the user)
     const pendingInvitations = rsvps.filter((rsvp: RSVPWithEvent) => {
-      return rsvp.status === "maybe" || rsvp.status === "pending";
+      return rsvp.status === 'maybe' || rsvp.status === 'pending';
     });
     count += pendingInvitations.length;
-    
+
     // Don't count event responses in notifications - they are informational only
     // These will be shown in notification history instead
-    
+
     // Count pending team join requests
     count += joinRequests.length;
-    
+
     // Count team member notifications
     count += teamMemberNotifications.length;
-    
+
     // Count pending friend requests
     count += friendRequests.length;
-    
+
     // Count pending tournament invitations
     count += tournamentInvitations.length;
-    
+
     setPendingCount(count);
-  }, [rsvps, eventResponses, joinRequests, teamMemberNotifications, friendRequests, tournamentInvitations]);
-  
+  }, [
+    rsvps,
+    eventResponses,
+    joinRequests,
+    teamMemberNotifications,
+    friendRequests,
+    tournamentInvitations,
+  ]);
+
   // Mark a notification as viewed
   const markNotificationViewed = async (notificationId: number) => {
     try {
       await fetch(`/api/teams/join-notifications/${notificationId}/viewed`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       // Invalidate the notifications query to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/teams/notifications'] });
     } catch (error) {
       console.error('Error marking notification as viewed:', error);
     }
   };
-  
+
   // Mark event response as viewed
   const markEventResponseViewed = (responseId: number) => {
-    setViewedEventResponses(prev => new Set([...prev, responseId]));
+    setViewedEventResponses((prev) => new Set([...prev, responseId]));
   };
 
   return {
@@ -296,6 +307,6 @@ export const useNotifications = () => {
     tournamentInvitations,
     markNotificationViewed,
     markEventResponseViewed,
-    isLoading: !rsvps
+    isLoading: !rsvps,
   };
 };

@@ -66,18 +66,20 @@ export const createMockStorage = () => {
       const creator = users.get(event.creatorId);
       return {
         ...event,
-        creator: creator ? {
-          id: creator.id,
-          username: creator.username,
-          name: creator.name,
-          email: creator.email,
-          profileImage: creator.profileImage,
-          bio: creator.bio,
-          location: creator.location,
-          headline: creator.headline,
-          coverImage: creator.coverImage,
-          createdAt: creator.createdAt,
-        } : undefined,
+        creator: creator
+          ? {
+              id: creator.id,
+              username: creator.username,
+              name: creator.name,
+              email: creator.email,
+              profileImage: creator.profileImage,
+              bio: creator.bio,
+              location: creator.location,
+              headline: creator.headline,
+              coverImage: creator.coverImage,
+              createdAt: creator.createdAt,
+            }
+          : undefined,
       };
     }),
 
@@ -158,12 +160,14 @@ export const createMockStorage = () => {
       const admin = users.get(team.adminId);
       return {
         ...team,
-        admin: admin ? {
-          id: admin.id,
-          username: admin.username,
-          name: admin.name,
-          profileImage: admin.profileImage,
-        } : undefined,
+        admin: admin
+          ? {
+              id: admin.id,
+              username: admin.username,
+              name: admin.name,
+              profileImage: admin.profileImage,
+            }
+          : undefined,
       };
     }),
 
@@ -222,12 +226,14 @@ export const createMockStorage = () => {
           const user = users.get(tm.userId);
           return {
             ...tm,
-            user: user ? {
-              id: user.id,
-              username: user.username,
-              name: user.name,
-              profileImage: user.profileImage,
-            } : undefined,
+            user: user
+              ? {
+                  id: user.id,
+                  username: user.username,
+                  name: user.name,
+                  profileImage: user.profileImage,
+                }
+              : undefined,
           };
         });
     }),

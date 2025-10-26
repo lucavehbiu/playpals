@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 // Event Card Skeleton
 export function EventCardSkeleton() {
@@ -177,7 +177,7 @@ export function TournamentCardSkeleton() {
 // Grid of skeletons helper
 export function SkeletonGrid({
   count = 6,
-  SkeletonComponent = EventCardSkeleton
+  SkeletonComponent = EventCardSkeleton,
 }: {
   count?: number;
   SkeletonComponent?: React.ComponentType;

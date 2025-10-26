@@ -25,10 +25,7 @@ describe('Authentication API', () => {
         name: 'Test User',
       };
 
-      const response = await request(app)
-        .post('/api/register')
-        .send(newUser)
-        .expect(201);
+      const response = await request(app).post('/api/register').send(newUser).expect(201);
 
       expect(response.body).toHaveProperty('id');
       expect(response.body.username).toBe(newUser.username);
@@ -45,20 +42,14 @@ describe('Authentication API', () => {
         name: 'Test User 2',
       };
 
-      const registerResponse = await request(app)
-        .post('/api/register')
-        .send(newUser)
-        .expect(201);
+      const registerResponse = await request(app).post('/api/register').send(newUser).expect(201);
 
       // Extract session cookie
       const cookies = registerResponse.headers['set-cookie'];
       expect(cookies).toBeDefined();
 
       // Try to access protected route with session
-      const userResponse = await request(app)
-        .get('/api/user')
-        .set('Cookie', cookies)
-        .expect(200);
+      const userResponse = await request(app).get('/api/user').set('Cookie', cookies).expect(200);
 
       expect(userResponse.body.username).toBe(newUser.username);
     });
@@ -72,10 +63,7 @@ describe('Authentication API', () => {
       };
 
       // Register first user
-      await request(app)
-        .post('/api/register')
-        .send(user)
-        .expect(201);
+      await request(app).post('/api/register').send(user).expect(201);
 
       // Try to register with same username
       const duplicateUser = {
@@ -85,10 +73,7 @@ describe('Authentication API', () => {
         name: 'Second User',
       };
 
-      const response = await request(app)
-        .post('/api/register')
-        .send(duplicateUser)
-        .expect(400);
+      const response = await request(app).post('/api/register').send(duplicateUser).expect(400);
 
       expect(response.body.message).toContain('already exists');
     });
@@ -97,14 +82,12 @@ describe('Authentication API', () => {
   describe('POST /api/login', () => {
     beforeEach(async () => {
       // Create a test user for login tests
-      await request(app)
-        .post('/api/register')
-        .send({
-          username: 'logintest',
-          password: 'LoginTest123',
-          email: 'login@test.com',
-          name: 'Login Test',
-        });
+      await request(app).post('/api/register').send({
+        username: 'logintest',
+        password: 'LoginTest123',
+        email: 'login@test.com',
+        name: 'Login Test',
+      });
 
       // Reset mock to clear registration call
       mockStorage.getUserByUsername.mockClear();
@@ -137,10 +120,7 @@ describe('Authentication API', () => {
       expect(cookies).toBeDefined();
 
       // Verify session works
-      const userResponse = await request(app)
-        .get('/api/user')
-        .set('Cookie', cookies)
-        .expect(200);
+      const userResponse = await request(app).get('/api/user').set('Cookie', cookies).expect(200);
 
       expect(userResponse.body.username).toBe('logintest');
     });
@@ -175,14 +155,12 @@ describe('Authentication API', () => {
 
     beforeEach(async () => {
       // Register and login a user
-      const registerResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'logouttest',
-          password: 'LogoutTest123',
-          email: 'logout@test.com',
-          name: 'Logout Test',
-        });
+      const registerResponse = await request(app).post('/api/register').send({
+        username: 'logouttest',
+        password: 'LogoutTest123',
+        email: 'logout@test.com',
+        name: 'Logout Test',
+      });
 
       sessionCookie = registerResponse.headers['set-cookie'];
     });
@@ -197,36 +175,25 @@ describe('Authentication API', () => {
     });
 
     it('should clear session after logout', async () => {
-      await request(app)
-        .post('/api/logout')
-        .set('Cookie', sessionCookie)
-        .expect(200);
+      await request(app).post('/api/logout').set('Cookie', sessionCookie).expect(200);
 
       // Try to access protected route - should fail
-      await request(app)
-        .get('/api/user')
-        .set('Cookie', sessionCookie)
-        .expect(401);
+      await request(app).get('/api/user').set('Cookie', sessionCookie).expect(401);
     });
   });
 
   describe('GET /api/user', () => {
     it('should return user data when authenticated', async () => {
-      const registerResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'authtest',
-          password: 'AuthTest123',
-          email: 'auth@test.com',
-          name: 'Auth Test',
-        });
+      const registerResponse = await request(app).post('/api/register').send({
+        username: 'authtest',
+        password: 'AuthTest123',
+        email: 'auth@test.com',
+        name: 'Auth Test',
+      });
 
       const cookies = registerResponse.headers['set-cookie'];
 
-      const response = await request(app)
-        .get('/api/user')
-        .set('Cookie', cookies)
-        .expect(200);
+      const response = await request(app).get('/api/user').set('Cookie', cookies).expect(200);
 
       expect(response.body.username).toBe('authtest');
       expect(response.body.email).toBe('auth@test.com');
@@ -234,9 +201,7 @@ describe('Authentication API', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const response = await request(app)
-        .get('/api/user')
-        .expect(401);
+      const response = await request(app).get('/api/user').expect(401);
 
       expect(response.body.message).toContain('Not authenticated');
     });

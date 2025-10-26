@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { History, Edit, AlertTriangle, Trophy, Users } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { History, Edit, AlertTriangle, Trophy, Users } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { format } from 'date-fns';
 
 interface EditScoreModalProps {
   isOpen: boolean;
@@ -41,10 +41,10 @@ interface ScoreHistoryItem {
 export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditScoreModalProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  
+
   const [scoreA, setScoreA] = useState(matchResult?.scoreA || 0);
   const [scoreB, setScoreB] = useState(matchResult?.scoreB || 0);
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
   const [showHistory, setShowHistory] = useState(false);
 
   // Reset form when modal opens
@@ -52,7 +52,7 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
     if (isOpen && matchResult) {
       setScoreA(matchResult.scoreA || 0);
       setScoreB(matchResult.scoreB || 0);
-      setReason("");
+      setReason('');
     }
   }, [isOpen, matchResult]);
 
@@ -73,52 +73,53 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
   const editScoreMutation = useMutation({
     mutationFn: async () => {
       const winningSide = getWinningSide(scoreA, scoreB);
-      
-      const res = await apiRequest("PUT", `/api/events/${eventId}/score`, {
+
+      const res = await apiRequest('PUT', `/api/events/${eventId}/score`, {
         scoreA: parseInt(scoreA.toString()),
         scoreB: parseInt(scoreB.toString()),
         winningSide,
-        reason: reason.trim() || null
+        reason: reason.trim() || null,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update score");
+        throw new Error(errorData.message || 'Failed to update score');
       }
-      
+
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/score-history`] });
       queryClient.invalidateQueries({ queryKey: [`/api/rsvps/event/${eventId}`] });
-      
+
       toast({
-        title: "Score Updated",
-        description: "The score has been updated successfully. All participants have been notified.",
-        variant: "default",
+        title: 'Score Updated',
+        description:
+          'The score has been updated successfully. All participants have been notified.',
+        variant: 'default',
       });
-      
+
       onClose();
     },
     onError: (error: Error) => {
       toast({
-        title: "Update Failed",
+        title: 'Update Failed',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate scores
     if (scoreA < 0 || scoreB < 0) {
       toast({
-        title: "Invalid Score",
-        description: "Scores cannot be negative numbers.",
-        variant: "destructive",
+        title: 'Invalid Score',
+        description: 'Scores cannot be negative numbers.',
+        variant: 'destructive',
       });
       return;
     }
@@ -126,9 +127,9 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
     // Check if scores actually changed
     if (scoreA === matchResult.scoreA && scoreB === matchResult.scoreB) {
       toast({
-        title: "No Changes",
-        description: "The scores you entered are the same as current scores.",
-        variant: "destructive",
+        title: 'No Changes',
+        description: 'The scores you entered are the same as current scores.',
+        variant: 'destructive',
       });
       return;
     }
@@ -156,7 +157,8 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
               <div className="text-sm">
                 <p className="font-medium text-amber-800 mb-1">Score Edit Notice</p>
                 <p className="text-amber-700">
-                  Editing the score will notify all event participants about the change and add an entry to the score history.
+                  Editing the score will notify all event participants about the change and add an
+                  entry to the score history.
                 </p>
               </div>
             </div>
@@ -185,9 +187,7 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Team A Score
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Team A Score</label>
                 <Input
                   type="number"
                   min="0"
@@ -197,9 +197,7 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Team B Score
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Team B Score</label>
                 <Input
                   type="number"
                   min="0"
@@ -223,12 +221,8 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button
-                type="submit"
-                disabled={editScoreMutation.isPending}
-                className="flex-1"
-              >
-                {editScoreMutation.isPending ? "Updating..." : "Update Score"}
+              <Button type="submit" disabled={editScoreMutation.isPending} className="flex-1">
+                {editScoreMutation.isPending ? 'Updating...' : 'Update Score'}
               </Button>
               <Button
                 type="button"
@@ -249,7 +243,7 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
               className="w-full justify-start"
             >
               <History className="h-4 w-4 mr-2" />
-              {showHistory ? "Hide" : "Show"} Score History
+              {showHistory ? 'Hide' : 'Show'} Score History
               {scoreHistory.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {scoreHistory.length}
@@ -270,7 +264,9 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
                 <div className="text-center py-6">
                   <History className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">No score edits yet</p>
-                  <p className="text-sm text-gray-400">This will be the first edit for this match</p>
+                  <p className="text-sm text-gray-400">
+                    This will be the first edit for this match
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -281,16 +277,19 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={historyItem.editor.profileImage || undefined} />
                             <AvatarFallback className="text-xs">
-                              {historyItem.editor.name.split(' ').map(n => n[0]).join('')}
+                              {historyItem.editor.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')}
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium text-sm">{historyItem.editor.name}</span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {format(new Date(historyItem.editedAt), "MMM d, h:mm a")}
+                          {format(new Date(historyItem.editedAt), 'MMM d, h:mm a')}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm">
                         <span className="text-gray-600">
                           {historyItem.previousScoreA}-{historyItem.previousScoreB}
@@ -300,11 +299,9 @@ export const EditScoreModal = ({ isOpen, onClose, eventId, matchResult }: EditSc
                           {historyItem.newScoreA}-{historyItem.newScoreB}
                         </span>
                       </div>
-                      
+
                       {historyItem.reason && (
-                        <p className="text-sm text-gray-600 mt-2 italic">
-                          "{historyItem.reason}"
-                        </p>
+                        <p className="text-sm text-gray-600 mt-2 italic">"{historyItem.reason}"</p>
                       )}
                     </div>
                   ))}

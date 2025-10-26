@@ -106,9 +106,7 @@ export const createTestApp = (mockStorage: any): Express => {
   // Mock passport initialization
   app.use((req: any, res, next) => {
     req.isAuthenticated = () => !!req.session.userId;
-    req.user = req.session.userId
-      ? { id: req.session.userId, username: 'testuser' }
-      : undefined;
+    req.user = req.session.userId ? { id: req.session.userId, username: 'testuser' } : undefined;
     next();
   });
 

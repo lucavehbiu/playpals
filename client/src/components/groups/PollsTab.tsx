@@ -43,26 +43,29 @@ export function PollsTab({ groupId }: PollsTabProps) {
     queryKey: ['sports-groups', groupId, 'polls'],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         throw new Error('Failed to fetch polls');
       }
       const result = await response.json();
       const polls = Array.isArray(result) ? result : [];
-      
+
       // Check each poll for event creation availability
       const pollsWithStatus = await Promise.all(
         polls.map(async (poll) => {
           try {
-            const analysisResponse = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`, {
-              credentials: 'include'
-            });
+            const analysisResponse = await fetch(
+              `/api/sports-groups/${groupId}/polls/${poll.id}/analysis`,
+              {
+                credentials: 'include',
+              }
+            );
             if (analysisResponse.ok) {
               const analysisData = await analysisResponse.json();
               return {
                 ...poll,
-                canCreateEvent: analysisData.suggestions && analysisData.suggestions.length > 0
+                canCreateEvent: analysisData.suggestions && analysisData.suggestions.length > 0,
               };
             }
           } catch (error) {
@@ -71,7 +74,7 @@ export function PollsTab({ groupId }: PollsTabProps) {
           return { ...poll, canCreateEvent: false };
         })
       );
-      
+
       return pollsWithStatus;
     },
     retry: 1,
@@ -85,8 +88,8 @@ export function PollsTab({ groupId }: PollsTabProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => {
               console.log('Back button clicked');
               setSelectedPoll(null);
@@ -116,9 +119,7 @@ export function PollsTab({ groupId }: PollsTabProps) {
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to load polls</h3>
         <p className="text-gray-600 mb-4">There was an error loading the polls for this group.</p>
-        <Button onClick={() => window.location.reload()}>
-          Try Again
-        </Button>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
     );
   }
@@ -128,7 +129,9 @@ export function PollsTab({ groupId }: PollsTabProps) {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Group Polls</h2>
-          <p className="text-gray-600 text-sm mt-0.5">Coordinate event scheduling through availability polling</p>
+          <p className="text-gray-600 text-sm mt-0.5">
+            Coordinate event scheduling through availability polling
+          </p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -147,9 +150,7 @@ export function PollsTab({ groupId }: PollsTabProps) {
             <p className="text-gray-600 text-center mb-4">
               Create your first poll to coordinate event times with group members
             </p>
-            <Button onClick={() => setShowCreateModal(true)}>
-              Create First Poll
-            </Button>
+            <Button onClick={() => setShowCreateModal(true)}>Create First Poll</Button>
           </CardContent>
         </Card>
       ) : (
@@ -168,10 +169,10 @@ export function PollsTab({ groupId }: PollsTabProps) {
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="text-lg font-bold text-gray-900 truncate">{poll.title}</h3>
                     <Badge
-                      variant={poll.isActive ? "default" : "secondary"}
-                      className={poll.isActive ? "bg-blue-500" : ""}
+                      variant={poll.isActive ? 'default' : 'secondary'}
+                      className={poll.isActive ? 'bg-blue-500' : ''}
                     >
-                      {poll.isActive ? "Active" : "Closed"}
+                      {poll.isActive ? 'Active' : 'Closed'}
                     </Badge>
                     {poll.canCreateEvent && (
                       <Badge className="bg-green-600 hover:bg-green-700">
@@ -202,7 +203,9 @@ export function PollsTab({ groupId }: PollsTabProps) {
 
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                     <p className="text-xs text-gray-500">
-                      <span className="font-semibold text-gray-700">{poll.responseCount}</span> responses • Created by <span className="font-medium">{poll.creator.name}</span>
+                      <span className="font-semibold text-gray-700">{poll.responseCount}</span>{' '}
+                      responses • Created by{' '}
+                      <span className="font-medium">{poll.creator.name}</span>
                     </p>
                     <Button
                       size="sm"

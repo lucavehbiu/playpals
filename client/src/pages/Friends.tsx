@@ -1,30 +1,30 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, UserPlus, Users, Check, X, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Search, UserPlus, Users, Check, X, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 export default function Friends() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Get user's friends
   const { data: friends = [], isLoading: isLoadingFriends } = useQuery({
-    queryKey: ["/api/users", user?.id, "friends"],
+    queryKey: ['/api/users', user?.id, 'friends'],
     queryFn: async () => {
       if (!user?.id) return [];
       const response = await fetch(`/api/users/${user.id}/friends`);
-      if (!response.ok) throw new Error("Failed to fetch friends");
+      if (!response.ok) throw new Error('Failed to fetch friends');
       return response.json();
     },
     enabled: !!user?.id,
@@ -32,13 +32,13 @@ export default function Friends() {
 
   // Get pending friend requests
   const { data: friendRequests = [], isLoading: isLoadingRequests } = useQuery({
-    queryKey: ["/api/users", user?.id, "friend-requests"],
+    queryKey: ['/api/users', user?.id, 'friend-requests'],
     queryFn: async () => {
       if (!user?.id) return [];
       const response = await fetch(`/api/users/${user.id}/friend-requests`);
-      if (!response.ok) throw new Error("Failed to fetch friend requests");
+      if (!response.ok) throw new Error('Failed to fetch friend requests');
       const data = await response.json();
-      console.log("Friend requests data:", data); // Debug log
+      console.log('Friend requests data:', data); // Debug log
       return data;
     },
     enabled: !!user?.id,
@@ -46,11 +46,13 @@ export default function Friends() {
 
   // Search users
   const { data: searchResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ["/api/users/search-friends", searchQuery],
+    queryKey: ['/api/users/search-friends', searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      const response = await fetch(`/api/users/search-friends?q=${encodeURIComponent(searchQuery)}`);
-      if (!response.ok) throw new Error("Failed to search users");
+      const response = await fetch(
+        `/api/users/search-friends?q=${encodeURIComponent(searchQuery)}`
+      );
+      if (!response.ok) throw new Error('Failed to search users');
       return response.json();
     },
     enabled: searchQuery.length > 2,
@@ -59,57 +61,63 @@ export default function Friends() {
   // Send friend request mutation
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (friendId: number) => {
-      const response = await fetch("/api/friend-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/friend-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendId }),
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to send friend request");
+        throw new Error(error.message || 'Failed to send friend request');
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Friend request sent successfully!",
+        title: 'Success',
+        description: 'Friend request sent successfully!',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users/search-friends"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/search-friends'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send friend request",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to send friend request',
+        variant: 'destructive',
       });
     },
   });
 
   // Accept/reject friend request mutation
   const updateFriendRequestMutation = useMutation({
-    mutationFn: async ({ requestId, status }: { requestId: number; status: 'accepted' | 'rejected' }) => {
+    mutationFn: async ({
+      requestId,
+      status,
+    }: {
+      requestId: number;
+      status: 'accepted' | 'rejected';
+    }) => {
       const response = await fetch(`/api/friend-requests/${requestId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!response.ok) throw new Error("Failed to update friend request");
+      if (!response.ok) throw new Error('Failed to update friend request');
       return response.json();
     },
     onSuccess: (_, { status }) => {
       toast({
-        title: "Success",
-        description: status === 'accepted' ? "Friend request accepted!" : "Friend request rejected",
+        title: 'Success',
+        description: status === 'accepted' ? 'Friend request accepted!' : 'Friend request rejected',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "friend-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "friends"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'friend-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'friends'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update friend request",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to update friend request',
+        variant: 'destructive',
       });
     },
   });
@@ -118,23 +126,23 @@ export default function Friends() {
   const removeFriendMutation = useMutation({
     mutationFn: async (friendshipId: number) => {
       const response = await fetch(`/api/friendships/${friendshipId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
-      if (!response.ok) throw new Error("Failed to remove friend");
+      if (!response.ok) throw new Error('Failed to remove friend');
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Friend removed successfully",
+        title: 'Success',
+        description: 'Friend removed successfully',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "friends"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'friends'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to remove friend",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to remove friend',
+        variant: 'destructive',
       });
     },
   });
@@ -154,12 +162,8 @@ export default function Friends() {
 
         <Tabs defaultValue="friends" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="friends">
-              My Friends ({friends.length})
-            </TabsTrigger>
-            <TabsTrigger value="requests">
-              Requests ({friendRequests.length})
-            </TabsTrigger>
+            <TabsTrigger value="friends">My Friends ({friends.length})</TabsTrigger>
+            <TabsTrigger value="requests">Requests ({friendRequests.length})</TabsTrigger>
             <TabsTrigger value="search">Find Friends</TabsTrigger>
           </TabsList>
 
@@ -180,9 +184,7 @@ export default function Friends() {
               <div className="text-center py-12">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No friends yet</h3>
-                <p className="text-gray-500 mb-4">
-                  Start by searching for people to connect with
-                </p>
+                <p className="text-gray-500 mb-4">Start by searching for people to connect with</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -201,7 +203,7 @@ export default function Friends() {
                             )}
                           </Avatar>
                           <div>
-                            <CardTitle 
+                            <CardTitle
                               className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
                               onClick={() => setLocation(`/profile/${friend.id}`)}
                             >
@@ -216,11 +218,11 @@ export default function Friends() {
                           onClick={() => {
                             // Find friendship ID - this is a simple implementation
                             // In a real app, you'd get this from the API response
-                            if (confirm("Are you sure you want to remove this friend?")) {
+                            if (confirm('Are you sure you want to remove this friend?')) {
                               // For now, we'll need to implement this properly
                               toast({
-                                title: "Info",
-                                description: "Friend removal feature needs friendship ID from API",
+                                title: 'Info',
+                                description: 'Friend removal feature needs friendship ID from API',
                               });
                             }
                           }}
@@ -268,15 +270,20 @@ export default function Friends() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-12 w-12">
                             {request.sender?.profileImage ? (
-                              <AvatarImage src={request.sender.profileImage} alt={request.sender.name} />
+                              <AvatarImage
+                                src={request.sender.profileImage}
+                                alt={request.sender.name}
+                              />
                             ) : (
                               <AvatarFallback>
-                                {request.sender?.name?.charAt(0) || request.sender?.username?.charAt(0) || 'U'}
+                                {request.sender?.name?.charAt(0) ||
+                                  request.sender?.username?.charAt(0) ||
+                                  'U'}
                               </AvatarFallback>
                             )}
                           </Avatar>
                           <div>
-                            <CardTitle 
+                            <CardTitle
                               className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
                               onClick={() => setLocation(`/profile/${request.sender?.id}`)}
                             >
@@ -291,10 +298,12 @@ export default function Friends() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            onClick={() => updateFriendRequestMutation.mutate({
-                              requestId: request.id,
-                              status: 'accepted'
-                            })}
+                            onClick={() =>
+                              updateFriendRequestMutation.mutate({
+                                requestId: request.id,
+                                status: 'accepted',
+                              })
+                            }
                             disabled={updateFriendRequestMutation.isPending}
                           >
                             <Check className="h-4 w-4 mr-1" />
@@ -303,10 +312,12 @@ export default function Friends() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateFriendRequestMutation.mutate({
-                              requestId: request.id,
-                              status: 'rejected'
-                            })}
+                            onClick={() =>
+                              updateFriendRequestMutation.mutate({
+                                requestId: request.id,
+                                status: 'rejected',
+                              })
+                            }
                             disabled={updateFriendRequestMutation.isPending}
                           >
                             <X className="h-4 w-4 mr-1" />

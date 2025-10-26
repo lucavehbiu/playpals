@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { X, Clock, Users, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,25 +25,25 @@ interface CreatePollModalProps {
 function getUpcomingWeeks() {
   const weeks = [];
   const today = new Date();
-  
+
   for (let i = 0; i < 8; i++) {
     const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() + (i * 7));
-    
+    weekStart.setDate(today.getDate() + i * 7);
+
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
-    
+
     const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
+
     weeks.push({
       value: weekEnd.toISOString(),
       label: `${startMonth} - ${endMonth}`,
       startDate: weekStart,
-      endDate: weekEnd
+      endDate: weekEnd,
     });
   }
-  
+
   return weeks;
 }
 
@@ -54,7 +60,7 @@ const DURATION_OPTIONS = [
   { value: 90, label: '1.5 hours' },
   { value: 120, label: '2 hours' },
   { value: 150, label: '2.5 hours' },
-  { value: 180, label: '3 hours' }
+  { value: 180, label: '3 hours' },
 ];
 
 const MIN_MEMBERS_OPTIONS = [
@@ -64,7 +70,7 @@ const MIN_MEMBERS_OPTIONS = [
   { value: 5, label: '5 people' },
   { value: 6, label: '6 people' },
   { value: 8, label: '8 people' },
-  { value: 10, label: '10 people' }
+  { value: 10, label: '10 people' },
 ];
 
 export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModalProps) {
@@ -87,17 +93,17 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
       onClose();
     },
     onError: (error: any) => {
-      toast({ 
-        title: 'Error creating poll', 
+      toast({
+        title: 'Error creating poll',
         description: error.message || 'Please try again',
-        variant: 'destructive'
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim()) {
       toast({ title: 'Please enter a poll title', variant: 'destructive' });
       return;
@@ -117,7 +123,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
       timeSlots.push({
         dayOfWeek: i,
         startTime: '09:00',
-        endTime: '21:00'
+        endTime: '21:00',
       });
     }
 
@@ -126,7 +132,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
       minMembers: parseInt(minMembers),
       duration: parseInt(duration),
       endDate: weekEnd.toISOString(),
-      timeSlots
+      timeSlots,
     });
   };
 
@@ -163,7 +169,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
                   <SelectValue placeholder="Select minimum members" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MIN_MEMBERS_OPTIONS.map(option => (
+                  {MIN_MEMBERS_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value.toString()}>
                       {option.label}
                     </SelectItem>
@@ -182,7 +188,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
                   <SelectValue placeholder="Select event duration" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DURATION_OPTIONS.map(option => (
+                  {DURATION_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value.toString()}>
                       {option.label}
                     </SelectItem>
@@ -201,7 +207,7 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
                   <SelectValue placeholder="Choose a week for the event" />
                 </SelectTrigger>
                 <SelectContent>
-                  {upcomingWeeks.map(week => (
+                  {upcomingWeeks.map((week) => (
                     <SelectItem key={week.value} value={week.value}>
                       {week.label}
                     </SelectItem>
@@ -212,8 +218,8 @@ export function CreatePollModal({ groupId, onClose, onSuccess }: CreatePollModal
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">
-                Members will be able to indicate their availability for any time during the selected week. 
-                The system will then suggest the best times based on everyone's responses.
+                Members will be able to indicate their availability for any time during the selected
+                week. The system will then suggest the best times based on everyone's responses.
               </p>
             </div>
 

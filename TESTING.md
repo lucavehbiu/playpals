@@ -87,10 +87,7 @@ describe('POST /api/events', () => {
   });
 
   it('should reject unauthenticated requests', async () => {
-    await request(app)
-      .post('/api/events')
-      .send({ title: 'Test' })
-      .expect(401);
+    await request(app).post('/api/events').send({ title: 'Test' }).expect(401);
   });
 });
 ```
@@ -154,6 +151,7 @@ vi.mock('@/server/storage', () => ({
 ## CI/CD Integration
 
 Tests run automatically:
+
 - ✅ Before every commit (via pre-commit hook - TODO)
 - ✅ On every pull request (via GitHub Actions - TODO)
 - ✅ Before deployment to production
@@ -161,16 +159,19 @@ Tests run automatically:
 ## Debugging Tests
 
 ### Run specific test file
+
 ```bash
 npm test -- auth.test.ts
 ```
 
 ### Run tests matching pattern
+
 ```bash
 npm test -- -t "should create an event"
 ```
 
 ### Debug in VS Code
+
 Add breakpoint and run "JavaScript Debug Terminal"
 
 ## Common Testing Patterns
@@ -190,10 +191,7 @@ beforeAll(async () => {
 });
 
 it('should access protected route', async () => {
-  await request(app)
-    .get('/api/user')
-    .set('Cookie', authCookie)
-    .expect(200);
+  await request(app).get('/api/user').set('Cookie', authCookie).expect(200);
 });
 ```
 
@@ -233,15 +231,18 @@ it('should broadcast event creation', (done) => {
 ## Troubleshooting
 
 ### Tests fail with "Cannot find module"
+
 - Check path aliases in `vitest.config.ts`
 - Ensure `tsconfig.json` paths match
 
 ### Database connection errors
+
 - Tests should use mock database or test database
 - Never run tests against production database
 - Use `beforeEach` to reset test data
 
 ### Timeout errors
+
 - Increase timeout: `it('test', { timeout: 10000 }, async () => {})`
 - Check for unresolved promises
 - Ensure async operations complete

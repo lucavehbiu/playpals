@@ -20,27 +20,23 @@ describe('Teams API', () => {
     mockStorage._reset();
 
     // Register and login first user
-    const registerResponse = await request(app)
-      .post('/api/register')
-      .send({
-        username: 'teamadmin',
-        password: 'Admin123',
-        email: 'admin@test.com',
-        name: 'Team Admin',
-      });
+    const registerResponse = await request(app).post('/api/register').send({
+      username: 'teamadmin',
+      password: 'Admin123',
+      email: 'admin@test.com',
+      name: 'Team Admin',
+    });
 
     sessionCookie = registerResponse.headers['set-cookie'];
     userId = registerResponse.body.id;
 
     // Register second user for member tests
-    const otherUserResponse = await request(app)
-      .post('/api/register')
-      .send({
-        username: 'teammember',
-        password: 'Member123',
-        email: 'member@test.com',
-        name: 'Team Member',
-      });
+    const otherUserResponse = await request(app).post('/api/register').send({
+      username: 'teammember',
+      password: 'Member123',
+      email: 'member@test.com',
+      name: 'Team Member',
+    });
 
     otherUserCookie = otherUserResponse.headers['set-cookie'];
     otherUserId = otherUserResponse.body.id;
@@ -75,10 +71,7 @@ describe('Teams API', () => {
         sportType: 'soccer',
       };
 
-      const response = await request(app)
-        .post('/api/teams')
-        .send(teamData)
-        .expect(401);
+      const response = await request(app).post('/api/teams').send(teamData).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });
@@ -98,9 +91,7 @@ describe('Teams API', () => {
       const teamId = createResponse.body.id;
 
       // Get team members
-      const membersResponse = await request(app)
-        .get(`/api/teams/${teamId}/members`)
-        .expect(200);
+      const membersResponse = await request(app).get(`/api/teams/${teamId}/members`).expect(200);
 
       expect(membersResponse.body).toHaveLength(1);
       expect(membersResponse.body[0].userId).toBe(userId);
@@ -121,9 +112,7 @@ describe('Teams API', () => {
         .set('Cookie', sessionCookie)
         .send({ name: 'Team 2', sportType: 'soccer' });
 
-      const response = await request(app)
-        .get('/api/teams')
-        .expect(200);
+      const response = await request(app).get('/api/teams').expect(200);
 
       expect(response.body).toHaveLength(2);
       expect(response.body[0].name).toBe('Team 1');
@@ -146,9 +135,7 @@ describe('Teams API', () => {
         .send({ name: 'User2 Team', sportType: 'soccer' });
 
       // Get first user's teams
-      const response = await request(app)
-        .get(`/api/teams/user/${userId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/teams/user/${userId}`).expect(200);
 
       expect(response.body).toHaveLength(1);
       expect(response.body[0].name).toBe('User1 Team');
@@ -164,9 +151,7 @@ describe('Teams API', () => {
 
       const teamId = createResponse.body.id;
 
-      const response = await request(app)
-        .get(`/api/teams/${teamId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/teams/${teamId}`).expect(200);
 
       expect(response.body.id).toBe(teamId);
       expect(response.body.name).toBe('Detail Team');
@@ -176,9 +161,7 @@ describe('Teams API', () => {
     });
 
     it('should return 404 for non-existent team', async () => {
-      const response = await request(app)
-        .get('/api/teams/99999')
-        .expect(404);
+      const response = await request(app).get('/api/teams/99999').expect(404);
 
       expect(response.body.message).toContain('Team not found');
     });
@@ -227,10 +210,7 @@ describe('Teams API', () => {
     it('should require authentication to update team', async () => {
       const updates = { name: 'No Auth Update' };
 
-      const response = await request(app)
-        .put(`/api/teams/${teamId}`)
-        .send(updates)
-        .expect(401);
+      const response = await request(app).put(`/api/teams/${teamId}`).send(updates).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });
@@ -267,9 +247,7 @@ describe('Teams API', () => {
       expect(response.body.message).toContain('Team deleted successfully');
 
       // Verify team is deleted
-      await request(app)
-        .get(`/api/teams/${teamId}`)
-        .expect(404);
+      await request(app).get(`/api/teams/${teamId}`).expect(404);
     });
 
     it('should delete team members when deleting team', async () => {
@@ -280,15 +258,10 @@ describe('Teams API', () => {
         .send({ userId: otherUserId, role: 'member' });
 
       // Delete team
-      await request(app)
-        .delete(`/api/teams/${teamId}`)
-        .set('Cookie', sessionCookie)
-        .expect(200);
+      await request(app).delete(`/api/teams/${teamId}`).set('Cookie', sessionCookie).expect(200);
 
       // Verify members are also deleted
-      const membersResponse = await request(app)
-        .get(`/api/teams/${teamId}/members`)
-        .expect(200);
+      const membersResponse = await request(app).get(`/api/teams/${teamId}/members`).expect(200);
 
       expect(membersResponse.body).toHaveLength(0);
     });
@@ -303,9 +276,7 @@ describe('Teams API', () => {
     });
 
     it('should require authentication to delete team', async () => {
-      const response = await request(app)
-        .delete(`/api/teams/${teamId}`)
-        .expect(401);
+      const response = await request(app).delete(`/api/teams/${teamId}`).expect(401);
 
       expect(response.body.message).toContain('Unauthorized');
     });
@@ -397,9 +368,7 @@ describe('Teams API', () => {
         .set('Cookie', sessionCookie)
         .send({ userId: otherUserId, role: 'member' });
 
-      const response = await request(app)
-        .get(`/api/teams/${teamId}/members`)
-        .expect(200);
+      const response = await request(app).get(`/api/teams/${teamId}/members`).expect(200);
 
       expect(response.body).toHaveLength(2); // Admin + new member
       expect(response.body[0]).toHaveProperty('user');
@@ -519,14 +488,12 @@ describe('Teams API', () => {
 
     it('should prevent unauthorized user from removing member', async () => {
       // Register third user
-      const thirdUserResponse = await request(app)
-        .post('/api/register')
-        .send({
-          username: 'thirduser',
-          password: 'Third123',
-          email: 'third@test.com',
-          name: 'Third User',
-        });
+      const thirdUserResponse = await request(app).post('/api/register').send({
+        username: 'thirduser',
+        password: 'Third123',
+        email: 'third@test.com',
+        name: 'Third User',
+      });
 
       const thirdUserCookie = thirdUserResponse.headers['set-cookie'];
 

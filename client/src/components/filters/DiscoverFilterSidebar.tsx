@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Calendar } from "lucide-react";
-import { sportTypes } from "@shared/schema";
-import { LocationFilter } from "@/components/filters/LocationFilter";
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Calendar } from 'lucide-react';
+import { sportTypes } from '@shared/schema';
+import { LocationFilter } from '@/components/filters/LocationFilter';
 
 interface DiscoverFilterSidebarProps {
   showFilters: boolean;
@@ -88,15 +88,24 @@ export function DiscoverFilterSidebar({
                     onChange={(e) => setSelectedSport(e.target.value)}
                   >
                     <option value="all">All Sports</option>
-                    {sportTypes.map(sport => (
+                    {sportTypes.map((sport) => (
                       <option key={sport} value={sport}>
                         {sport.charAt(0).toUpperCase() + sport.slice(1)}
                       </option>
                     ))}
                   </select>
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -139,9 +148,9 @@ export function DiscoverFilterSidebar({
                   {/* Content Type Pills */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     <button
-                      onClick={() => setContentType("all")}
+                      onClick={() => setContentType('all')}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                        contentType === "all"
+                        contentType === 'all'
                           ? 'bg-primary text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
@@ -149,9 +158,9 @@ export function DiscoverFilterSidebar({
                       All
                     </button>
                     <button
-                      onClick={() => setContentType("events")}
+                      onClick={() => setContentType('events')}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                        contentType === "events"
+                        contentType === 'events'
                           ? 'bg-primary text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
@@ -159,9 +168,9 @@ export function DiscoverFilterSidebar({
                       Events
                     </button>
                     <button
-                      onClick={() => setContentType("tournaments")}
+                      onClick={() => setContentType('tournaments')}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                        contentType === "tournaments"
+                        contentType === 'tournaments'
                           ? 'bg-primary text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
@@ -196,12 +205,12 @@ export function DiscoverFilterSidebar({
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
               <button
                 onClick={() => {
-                  setSelectedSport("all");
+                  setSelectedSport('all');
                   clearLocationFilter();
-                  setDateFilter("");
+                  setDateFilter('');
                   setShowFreeOnly(false);
                   setShowPublicOnly(true);
-                  setContentType("all");
+                  setContentType('all');
                 }}
                 className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >

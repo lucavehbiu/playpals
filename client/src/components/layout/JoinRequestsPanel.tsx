@@ -13,15 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  User, 
-  AlertCircle, 
-  Loader2,
-  Bell
-} from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, AlertCircle, Loader2, Bell } from 'lucide-react';
 
 interface TeamJoinRequest {
   id: number;
@@ -53,7 +45,11 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
   const [selectedTab, setSelectedTab] = useState('pending');
 
   // Fetch team join requests
-  const { data: joinRequests = [], isLoading, refetch } = useQuery<TeamJoinRequest[]>({
+  const {
+    data: joinRequests = [],
+    isLoading,
+    refetch,
+  } = useQuery<TeamJoinRequest[]>({
     queryKey: ['/api/teams', teamId, 'join-requests'],
     queryFn: async () => {
       try {
@@ -74,29 +70,31 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
     refetchInterval: 10000, // Refetch every 10 seconds to ensure we don't miss any requests
     refetchOnWindowFocus: true, // Refetch when the user focuses the window
   });
-  
+
   // Effect to refetch when notifications change
   React.useEffect(() => {
-    if (notifications.some(n => n.type === 'join_request' && n.teamId === teamId)) {
+    if (notifications.some((n) => n.type === 'join_request' && n.teamId === teamId)) {
       console.log('New join request notification detected, refetching...');
       refetch();
     }
   }, [notifications, teamId, refetch]);
 
   // Filter requests by status
-  const pendingRequests = joinRequests.filter(req => req.status === 'pending');
-  const acceptedRequests = joinRequests.filter(req => req.status === 'accepted');
-  const rejectedRequests = joinRequests.filter(req => req.status === 'rejected');
+  const pendingRequests = joinRequests.filter((req) => req.status === 'pending');
+  const acceptedRequests = joinRequests.filter((req) => req.status === 'accepted');
+  const rejectedRequests = joinRequests.filter((req) => req.status === 'rejected');
 
   // Check for real-time notifications about new join requests
   const newJoinRequestNotifications = notifications.filter(
-    n => n.type === 'join_request' && n.teamId === teamId
+    (n) => n.type === 'join_request' && n.teamId === teamId
   );
 
   // Mutation for responding to join requests
   const respondToRequestMutation = useMutation({
-    mutationFn: async ({ requestId, status }: { requestId: number, status: string }) => {
-      const res = await apiRequest('PUT', `/api/teams/${teamId}/join-requests/${requestId}`, { status });
+    mutationFn: async ({ requestId, status }: { requestId: number; status: string }) => {
+      const res = await apiRequest('PUT', `/api/teams/${teamId}/join-requests/${requestId}`, {
+        status,
+      });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to update join request');
@@ -164,7 +162,7 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
           )}
         </div>
       </CardHeader>
-      
+
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <div className="px-6">
           <TabsList className="w-full">
@@ -176,8 +174,12 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="accepted" className="flex-1">Accepted</TabsTrigger>
-            <TabsTrigger value="rejected" className="flex-1">Rejected</TabsTrigger>
+            <TabsTrigger value="accepted" className="flex-1">
+              Accepted
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="flex-1">
+              Rejected
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -198,15 +200,18 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                 />
               ))
             )}
-            
+
             {/* Show real-time notifications that aren't in the list yet */}
             {newJoinRequestNotifications.map((notification) => {
               // Check if this notification is already in the joinRequests array
-              const isInRequests = pendingRequests.some(req => req.id === notification.requestId);
-              
+              const isInRequests = pendingRequests.some((req) => req.id === notification.requestId);
+
               if (!isInRequests) {
                 return (
-                  <Card key={`notification-${notification.requestId}`} className="border border-primary/20 bg-primary/5">
+                  <Card
+                    key={`notification-${notification.requestId}`}
+                    className="border border-primary/20 bg-primary/5"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
                         <div className="p-2 bg-primary/10 rounded-full">
@@ -220,7 +225,9 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                               variant="outline"
                               size="sm"
                               className="text-red-500 border-red-200 hover:bg-red-50"
-                              onClick={() => handleRespondToRequest(notification.requestId, 'rejected')}
+                              onClick={() =>
+                                handleRespondToRequest(notification.requestId, 'rejected')
+                              }
                               disabled={respondToRequestMutation.isPending}
                             >
                               <XCircle className="h-4 w-4 mr-1" />
@@ -229,7 +236,9 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleRespondToRequest(notification.requestId, 'accepted')}
+                              onClick={() =>
+                                handleRespondToRequest(notification.requestId, 'accepted')
+                              }
                               disabled={respondToRequestMutation.isPending}
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
@@ -257,7 +266,10 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                 <div key={request.id} className="flex items-start p-4 border rounded-lg">
                   <Avatar className="h-10 w-10 mr-4">
                     {request.user?.profileImage ? (
-                      <AvatarImage src={request.user.profileImage} alt={request.user?.name || 'User'} />
+                      <AvatarImage
+                        src={request.user.profileImage}
+                        alt={request.user?.name || 'User'}
+                      />
                     ) : (
                       <AvatarFallback className="bg-green-100 text-green-500">
                         {request.user?.name?.charAt(0) || 'U'}
@@ -267,7 +279,10 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                   <div className="flex-1">
                     <p className="font-medium">{request.user?.name || 'Unknown User'}</p>
                     <div className="flex items-center mt-1">
-                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-600 border-green-200"
+                      >
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Accepted
                       </Badge>
@@ -292,7 +307,10 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
                 <div key={request.id} className="flex items-start p-4 border rounded-lg">
                   <Avatar className="h-10 w-10 mr-4">
                     {request.user?.profileImage ? (
-                      <AvatarImage src={request.user.profileImage} alt={request.user?.name || 'User'} />
+                      <AvatarImage
+                        src={request.user.profileImage}
+                        alt={request.user?.name || 'User'}
+                      />
                     ) : (
                       <AvatarFallback className="bg-red-100 text-red-500">
                         {request.user?.name?.charAt(0) || 'U'}
@@ -322,12 +340,12 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({ teamId }) 
 };
 
 // Individual request item component
-const RequestItem = ({ 
-  request, 
-  onRespond, 
-  isPending 
-}: { 
-  request: TeamJoinRequest; 
+const RequestItem = ({
+  request,
+  onRespond,
+  isPending,
+}: {
+  request: TeamJoinRequest;
   onRespond: (requestId: number, status: 'accepted' | 'rejected') => void;
   isPending: boolean;
 }) => {
@@ -359,9 +377,9 @@ const RequestItem = ({
           </div>
         </div>
       </CardContent>
-      
+
       <Separator />
-      
+
       <CardFooter className="p-3 flex justify-end gap-2">
         <Button
           variant="outline"

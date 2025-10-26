@@ -43,7 +43,10 @@ const createTournamentSchema = z.object({
   description: z.string().optional(),
   sportType: z.string().min(1, 'Sport type is required'),
   tournamentType: z.string().min(1, 'Tournament type is required'),
-  maxParticipants: z.number().min(2, 'At least 2 participants required').max(64, 'Maximum 64 participants'),
+  maxParticipants: z
+    .number()
+    .min(2, 'At least 2 participants required')
+    .max(64, 'Maximum 64 participants'),
   location: z.string().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -75,12 +78,28 @@ const sportTypes = [
 ];
 
 const tournamentTypes = [
-  { value: 'round_robin', label: 'Round Robin', description: 'Every participant plays every other participant' },
-  { value: 'single_elimination', label: 'Single Elimination', description: 'One loss eliminates a participant' },
-  { value: 'double_elimination', label: 'Double Elimination', description: 'Two losses eliminate a participant' },
+  {
+    value: 'round_robin',
+    label: 'Round Robin',
+    description: 'Every participant plays every other participant',
+  },
+  {
+    value: 'single_elimination',
+    label: 'Single Elimination',
+    description: 'One loss eliminates a participant',
+  },
+  {
+    value: 'double_elimination',
+    label: 'Double Elimination',
+    description: 'Two losses eliminate a participant',
+  },
 ];
 
-export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateTournamentModalProps) {
+export function CreateTournamentModal({
+  open,
+  onOpenChange,
+  onSuccess,
+}: CreateTournamentModalProps) {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
 
@@ -109,13 +128,17 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
         tournamentType: data.tournamentType,
         maxParticipants: data.maxParticipants,
         location: data.location || 'TBD', // Provide default value since location is required
-        startDate: data.startDate ? new Date(data.startDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        startDate: data.startDate
+          ? new Date(data.startDate)
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         endDate: data.endDate ? new Date(data.endDate) : null,
-        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : null,
+        registrationDeadline: data.registrationDeadline
+          ? new Date(data.registrationDeadline)
+          : null,
         isPublic: data.isPublic ?? true,
         // Remove fields that don't exist in the tournament schema
       };
-      
+
       console.log('Creating tournament with payload:', payload);
       const response = await fetch('/api/tournaments', {
         method: 'POST',
@@ -130,7 +153,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
           return value;
         }),
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Tournament creation failed:', response.status, errorText);
@@ -142,7 +165,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
         }
         throw new Error(errorData.message || `HTTP ${response.status}: ${errorText}`);
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -214,7 +237,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Tell participants about your tournament..."
                           className="resize-none"
                           rows={3}
@@ -259,9 +282,9 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                       <FormItem>
                         <FormLabel>Max Participants</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="2" 
+                          <Input
+                            type="number"
+                            min="2"
                             max="64"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
@@ -338,12 +361,12 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP")
+                                  format(field.value, 'PPP')
                                 ) : (
                                   <span>Pick a date</span>
                                 )}
@@ -357,7 +380,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={(date) =>
-                                date < new Date() || date < new Date("1900-01-01")
+                                date < new Date() || date < new Date('1900-01-01')
                               }
                               initialFocus
                             />
@@ -380,12 +403,12 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP")
+                                  format(field.value, 'PPP')
                                 ) : (
                                   <span>Pick a date</span>
                                 )}
@@ -399,7 +422,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={(date) =>
-                                date < new Date() || date < new Date("1900-01-01")
+                                date < new Date() || date < new Date('1900-01-01')
                               }
                               initialFocus
                             />
@@ -419,9 +442,9 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                       <FormItem>
                         <FormLabel>Entry Fee ($)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
+                          <Input
+                            type="number"
+                            min="0"
                             step="0.01"
                             placeholder="0.00"
                             {...field}
@@ -440,9 +463,9 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                       <FormItem>
                         <FormLabel>Prize Pool ($)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
+                          <Input
+                            type="number"
+                            min="0"
                             step="0.01"
                             placeholder="0.00"
                             {...field}
@@ -467,10 +490,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                         </div>
                       </div>
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -483,7 +503,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                     <FormItem>
                       <FormLabel>Rules & Additional Info</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Special rules, equipment requirements, etc..."
                           className="resize-none"
                           rows={3}
@@ -499,10 +519,7 @@ export function CreateTournamentModal({ open, onOpenChange, onSuccess }: CreateT
                   <Button type="button" variant="outline" onClick={prevStep}>
                     Back
                   </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createTournamentMutation.isPending}
-                  >
+                  <Button type="submit" disabled={createTournamentMutation.isPending}>
                     {createTournamentMutation.isPending ? 'Creating...' : 'Create Tournament'}
                   </Button>
                 </div>

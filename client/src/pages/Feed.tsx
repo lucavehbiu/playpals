@@ -1,5 +1,5 @@
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
 import {
   CalendarIcon,
   MapPinIcon,
@@ -18,33 +18,42 @@ import {
   Star,
   Sparkles,
   X,
-  Eye
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
-import { Event } from "@/lib/types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import StoriesViewer from "@/components/stories/StoriesViewer";
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
-import { FeedItemSkeleton } from "@/components/ui/loading-skeletons";
-import { NoActivityEmptyState } from "@/components/ui/empty-states";
+  Eye,
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { getQueryFn } from '@/lib/queryClient';
+import { Event } from '@/lib/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import StoriesViewer from '@/components/stories/StoriesViewer';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
+import { FeedItemSkeleton } from '@/components/ui/loading-skeletons';
+import { NoActivityEmptyState } from '@/components/ui/empty-states';
 
 const Feed = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"trending" | "following" | "discover">("trending");
+  const [activeTab, setActiveTab] = useState<'trending' | 'following' | 'discover'>('trending');
   const [, setLocation] = useLocation();
   const [animateStories, setAnimateStories] = useState(false);
   const [quickViewEvent, setQuickViewEvent] = useState<Event | null>(null);
   const [storiesViewerOpen, setStoriesViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
-  
+
   // Fetch discoverable events for this user
   const { data: followedEvents, isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events', user?.id],
@@ -61,20 +70,26 @@ const Feed = () => {
     },
     enabled: !!user, // Only run when user is loaded
   });
-  
+
   // Animation effect when page loads
   useEffect(() => {
     // Small delay to trigger animation after component mounts
     const timer = setTimeout(() => setAnimateStories(true), 300);
     return () => clearTimeout(timer);
   }, []);
-  
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto relative">
         {/* Premium background pattern */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" aria-hidden="true"></div>
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" aria-hidden="true"></div>
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none"
+          aria-hidden="true"
+        ></div>
+        <div
+          className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"
+          aria-hidden="true"
+        ></div>
 
         {/* Premium Stories skeleton with shimmer */}
         <div className="mb-6">
@@ -160,31 +175,39 @@ const Feed = () => {
       </div>
     );
   }
-  
+
   // Get upcoming events for stories section
   const upcomingEvents = followedEvents?.slice(0, 5) || [];
-  
+
   // Get popular content based on active tab
   const getTabContent = () => {
     // For this demo, we'll just use the same events but in different order for different tabs
-    if (activeTab === "trending") {
-      return [...(followedEvents || [])].sort((a, b) => b.currentParticipants - a.currentParticipants);
-    } else if (activeTab === "following") {
+    if (activeTab === 'trending') {
+      return [...(followedEvents || [])].sort(
+        (a, b) => b.currentParticipants - a.currentParticipants
+      );
+    } else if (activeTab === 'following') {
       return followedEvents || [];
     } else {
       // Discover tab - randomize order for demo purposes
       return [...(followedEvents || [])].sort(() => Math.random() - 0.5);
     }
   };
-  
+
   const tabContent = getTabContent();
-  
+
   return (
     <div className="max-w-4xl mx-auto relative">
       {/* Premium subtle background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" aria-hidden="true"></div>
-      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" aria-hidden="true"></div>
-      
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none"
+        aria-hidden="true"
+      ></div>
+      <div
+        className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"
+        aria-hidden="true"
+      ></div>
+
       {/* Premium glassmorphic stories scroller */}
       <div className="mb-6 relative z-10">
         <div className="flex items-center justify-between mb-3">
@@ -204,7 +227,7 @@ const Feed = () => {
               className="flex space-x-4 overflow-x-auto pb-3 px-4 sm:px-2 scrollbar-hide snap-x-mandatory touch-pan-x"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
             >
               {/* Premium Event Story Cards - Glassmorphic design */}
               {upcomingEvents.map((event: Event, index: number) => (
@@ -215,14 +238,14 @@ const Feed = () => {
                   transition={{
                     duration: 0.5,
                     delay: 0.08 * index,
-                    type: "spring",
+                    type: 'spring',
                     stiffness: 260,
-                    damping: 20
+                    damping: 20,
                   }}
                   whileHover={{
                     scale: 1.05,
                     y: -8,
-                    transition: { type: "spring", stiffness: 400, damping: 17 }
+                    transition: { type: 'spring', stiffness: 400, damping: 17 },
                   }}
                   whileTap={{ scale: 0.95 }}
                   className="flex-shrink-0 w-[90px] sm:w-[110px] cursor-pointer snap-center group"
@@ -237,12 +260,12 @@ const Feed = () => {
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                       animate={{
-                        backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+                        backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
-                        ease: "linear"
+                        ease: 'linear',
                       }}
                     />
 
@@ -269,15 +292,17 @@ const Feed = () => {
                       <motion.div
                         className="absolute -right-1 -bottom-1 z-20"
                         whileHover={{ scale: 1.15 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                       >
                         <div className="glass-card p-1 shadow-lg">
                           <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                            {event.sportType === 'basketball' ?
-                              <Award className="h-3 w-3 text-primary drop-shadow-sm" /> :
-                              event.sportType === 'soccer' ?
-                              <Zap className="h-3 w-3 text-primary drop-shadow-sm" /> :
-                              <Star className="h-3 w-3 text-primary drop-shadow-sm" />}
+                            {event.sportType === 'basketball' ? (
+                              <Award className="h-3 w-3 text-primary drop-shadow-sm" />
+                            ) : event.sportType === 'soccer' ? (
+                              <Zap className="h-3 w-3 text-primary drop-shadow-sm" />
+                            ) : (
+                              <Star className="h-3 w-3 text-primary drop-shadow-sm" />
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -293,7 +318,7 @@ const Feed = () => {
             </motion.div>
           </div>
         ) : (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-white shadow-sm rounded-xl p-4 mb-2"
@@ -301,10 +326,12 @@ const Feed = () => {
             <div className="flex items-center">
               {/* Empty state with Instagram-like style */}
               <div className="flex overflow-x-auto space-x-4 pb-1 px-1 -mx-1 scrollbar-hide snap-x-mandatory touch-pan-x">
-
                 {/* Empty story placeholders */}
                 {[...Array(4)].map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center opacity-50 snap-center">
+                  <div
+                    key={index}
+                    className="flex-shrink-0 w-[80px] sm:w-[100px] flex flex-col items-center opacity-50 snap-center"
+                  >
                     <div className="w-[68px] h-[68px] sm:w-[84px] sm:h-[84px] rounded-full mb-1.5 bg-gray-100 p-[2px]">
                       <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center border-[3px] border-white">
                         {index % 2 === 0 ? (
@@ -319,22 +346,22 @@ const Feed = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="text-center mt-2">
               <p className="text-sm text-gray-500">No events yet. Create your first event!</p>
               <Button
                 size="sm"
                 className="mt-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                onClick={() => setLocation("/myevents")}
+                onClick={() => setLocation('/myevents')}
               >
-                <PlusIcon className="h-4 w-4 mr-1" /> 
+                <PlusIcon className="h-4 w-4 mr-1" />
                 New Event
               </Button>
             </div>
           </motion.div>
         )}
       </div>
-      
+
       {/* Premium Feed Tabs with Glassmorphism */}
       <div className="mb-6">
         <div className="glass-card p-1 flex items-center space-x-1 shadow-md">
@@ -353,9 +380,9 @@ const Feed = () => {
                 className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-secondary shadow-glow-cyan"
                 initial={false}
                 transition={{
-                  type: "spring",
+                  type: 'spring',
                   stiffness: 500,
-                  damping: 30
+                  damping: 30,
                 }}
               />
             )}
@@ -380,9 +407,9 @@ const Feed = () => {
                 className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-secondary shadow-glow-cyan"
                 initial={false}
                 transition={{
-                  type: "spring",
+                  type: 'spring',
                   stiffness: 500,
-                  damping: 30
+                  damping: 30,
                 }}
               />
             )}
@@ -407,9 +434,9 @@ const Feed = () => {
                 className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-secondary shadow-glow-cyan"
                 initial={false}
                 transition={{
-                  type: "spring",
+                  type: 'spring',
                   stiffness: 500,
-                  damping: 30
+                  damping: 30,
                 }}
               />
             )}
@@ -420,15 +447,13 @@ const Feed = () => {
           </Button>
         </div>
       </div>
-      
 
-      
       {/* Feed content based on active tab */}
       <div className="mb-8 space-y-6">
         {!tabContent || tabContent.length === 0 ? (
           <NoActivityEmptyState />
         ) : (
-          <motion.div 
+          <motion.div
             className="space-y-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -442,13 +467,13 @@ const Feed = () => {
                 transition={{
                   duration: 0.5,
                   delay: index * 0.08,
-                  type: "spring",
+                  type: 'spring',
                   stiffness: 260,
-                  damping: 20
+                  damping: 20,
                 }}
                 whileHover={{
                   y: -8,
-                  transition: { type: "spring", stiffness: 400, damping: 17 }
+                  transition: { type: 'spring', stiffness: 400, damping: 17 },
                 }}
               >
                 <Card className="overflow-hidden glass-card shadow-premium hover:shadow-premium-lg border-none transition-all duration-500 group">
@@ -457,13 +482,13 @@ const Feed = () => {
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                       animate={{
-                        backgroundPosition: ["0% 0%", "100% 100%"],
+                        backgroundPosition: ['0% 0%', '100% 100%'],
                       }}
                       transition={{
                         duration: 8,
                         repeat: Infinity,
-                        repeatType: "reverse",
-                        ease: "linear"
+                        repeatType: 'reverse',
+                        ease: 'linear',
                       }}
                     />
 
@@ -473,7 +498,7 @@ const Feed = () => {
                         <div className="flex items-center">
                           <motion.div
                             whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                           >
                             <Avatar className="h-9 w-9 mr-2.5 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all duration-300">
                               <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold">
@@ -485,58 +510,74 @@ const Feed = () => {
                             <h3 className="text-sm font-semibold text-gray-900 flex items-center">
                               {event.creator?.name?.split(' ')[0] || 'Unknown'}
                               <Badge
-                                variant={event.sportType === 'basketball' ? 'default' :
-                                  event.sportType === 'soccer' ? 'secondary' :
-                                  event.sportType === 'tennis' ? 'outline' : 'default'}
+                                variant={
+                                  event.sportType === 'basketball'
+                                    ? 'default'
+                                    : event.sportType === 'soccer'
+                                      ? 'secondary'
+                                      : event.sportType === 'tennis'
+                                        ? 'outline'
+                                        : 'default'
+                                }
                                 className="ml-2 capitalize text-[10px] py-0.5 h-5 px-2 shadow-sm"
                               >
                                 {event.sportType}
                               </Badge>
                             </h3>
                             <p className="text-[10px] text-gray-500 font-medium mt-0.5">
-                              {event.createdAt ? formatDistanceToNow(new Date(event.createdAt), { addSuffix: true }) : 'Recently'}
+                              {event.createdAt
+                                ? formatDistanceToNow(new Date(event.createdAt), {
+                                    addSuffix: true,
+                                  })
+                                : 'Recently'}
                             </p>
                           </div>
                         </div>
                         <motion.div
                           whileHover={{ scale: 1.05 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                         >
                           {event.isFree ? (
-                            <Badge variant="outline" className="glass bg-green-50/80 text-green-700 border-green-200/50 text-[10px] shadow-sm">
+                            <Badge
+                              variant="outline"
+                              className="glass bg-green-50/80 text-green-700 border-green-200/50 text-[10px] shadow-sm"
+                            >
                               Free
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="glass bg-blue-50/80 text-blue-700 border-blue-200/50 text-[10px] shadow-sm">
-                              ${(event.cost ? (event.cost / 100).toFixed(2) : '0.00')}
+                            <Badge
+                              variant="outline"
+                              className="glass bg-blue-50/80 text-blue-700 border-blue-200/50 text-[10px] shadow-sm"
+                            >
+                              ${event.cost ? (event.cost / 100).toFixed(2) : '0.00'}
                             </Badge>
                           )}
                         </motion.div>
                       </div>
                     </div>
-                    
+
                     {/* Mobile-optimized content */}
-                    <div 
-                      className="p-3 sm:p-4 cursor-pointer" 
+                    <div
+                      className="p-3 sm:p-4 cursor-pointer"
                       onClick={() => setLocation(`/events/${event.id}`)}
                     >
                       <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
                       <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
                     </div>
-                    
+
                     {/* Mobile-optimized image with location overlay and quick view */}
                     {event.eventImage ? (
-                      <div 
+                      <div
                         className="cursor-pointer relative overflow-hidden"
                         onClick={(e) => {
                           e.preventDefault();
                           setQuickViewEvent(event);
                         }}
                       >
-                        <img 
-                          src={event.eventImage} 
-                          alt={event.title} 
-                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700" 
+                        <img
+                          src={event.eventImage}
+                          alt={event.title}
+                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700"
                         />
                         {/* Gradient overlay with location and date/time */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
@@ -546,28 +587,35 @@ const Feed = () => {
                               <div className="flex items-center">
                                 <CalendarIcon className="h-3 w-3 mr-1 text-white" />
                                 <span className="text-xs font-medium text-white">
-                                  {event.date ? new Date(event.date).toLocaleDateString('en-US', {
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: '2-digit'
-                                  }) : 'TBD'}
+                                  {event.date
+                                    ? new Date(event.date).toLocaleDateString('en-US', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: '2-digit',
+                                      })
+                                    : 'TBD'}
                                 </span>
                               </div>
                               <div className="flex items-center">
                                 <Clock className="h-3 w-3 mr-1 text-white" />
                                 <span className="text-xs font-medium text-white">
-                                  {event.date ? new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                                  {event.date
+                                    ? new Date(event.date).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })
+                                    : 'TBD'}
                                 </span>
                               </div>
                             </div>
                           </div>
-                        
+
                           {/* Location info bottom left */}
                           <div className="absolute bottom-2 left-3 flex items-center text-white">
                             <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             <p className="text-xs font-medium line-clamp-1">{event.location}</p>
                           </div>
-                          
+
                           {/* Participants count bottom right */}
                           <div className="absolute bottom-2 right-3 flex items-center text-white">
                             <UserIcon className="h-3 w-3 mr-1 flex-shrink-0" />
@@ -575,7 +623,7 @@ const Feed = () => {
                               {event.currentParticipants}/{event.maxParticipants}
                             </span>
                           </div>
-                          
+
                           {/* Quick view indicator center */}
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
                             <div className="bg-black/40 rounded-full p-2">
@@ -595,17 +643,24 @@ const Feed = () => {
                               <div>
                                 <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
                                 <p className="text-xs font-medium">
-                                  {event.date ? new Date(event.date).toLocaleDateString('en-US', {
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: '2-digit'
-                                  }) : 'TBD'}
+                                  {event.date
+                                    ? new Date(event.date).toLocaleDateString('en-US', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: '2-digit',
+                                      })
+                                    : 'TBD'}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-gray-500 mb-0.5">Time</p>
                                 <p className="text-xs font-medium">
-                                  {event.date ? new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                                  {event.date
+                                    ? new Date(event.date).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })
+                                    : 'TBD'}
                                 </p>
                               </div>
                             </div>
@@ -613,7 +668,7 @@ const Feed = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Premium action buttons with enhanced micro-interactions */}
                     <div className="border-t border-gray-100/50 backdrop-blur-sm grid grid-cols-3 divide-x divide-gray-100/50 relative z-10">
                       <motion.div whileTap={{ scale: 0.95 }}>
@@ -625,7 +680,7 @@ const Feed = () => {
                           <motion.div
                             className="relative z-10 flex items-center justify-center"
                             whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                           >
                             <Heart className="h-4 w-4 mr-1.5 sm:mr-2 group-hover:fill-primary/20 transition-all duration-300" />
                             <span className="hidden xs:inline font-medium">Interested</span>
@@ -642,7 +697,7 @@ const Feed = () => {
                           <motion.div
                             className="relative z-10 flex items-center justify-center"
                             whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                           >
                             <MessageCircleIcon className="h-4 w-4 mr-1.5 sm:mr-2 transition-all duration-300" />
                             <span className="hidden xs:inline font-medium">Comment</span>
@@ -659,7 +714,7 @@ const Feed = () => {
                           <motion.div
                             className="relative z-10 flex items-center justify-center"
                             whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                           >
                             <Share2Icon className="h-4 w-4 mr-1.5 sm:mr-2 transition-all duration-300" />
                             <span className="hidden xs:inline font-medium">Share</span>
@@ -674,7 +729,7 @@ const Feed = () => {
           </motion.div>
         )}
       </div>
-      
+
       {/* Premium Quick View Dialog with Glassmorphism */}
       <Dialog open={!!quickViewEvent} onOpenChange={() => setQuickViewEvent(null)}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden glass-card shadow-premium-lg border-none">
@@ -687,61 +742,88 @@ const Feed = () => {
               <div className="relative">
                 {quickViewEvent.eventImage && (
                   <div className="relative w-full h-[200px] sm:h-[280px]">
-                    <img 
-                      src={quickViewEvent.eventImage} 
+                    <img
+                      src={quickViewEvent.eventImage}
                       alt={quickViewEvent.title}
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   </div>
                 )}
-                
+
                 <div className="absolute top-2 right-2 z-10">
                   <DialogClose asChild>
-                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-black/30 border-0 text-white hover:bg-black/50 hover:text-white">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 rounded-full bg-black/30 border-0 text-white hover:bg-black/50 hover:text-white"
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </DialogClose>
                 </div>
-                
+
                 <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <Badge variant={quickViewEvent.sportType === 'basketball' ? 'default' : 
-                           quickViewEvent.sportType === 'soccer' ? 'secondary' : 
-                           quickViewEvent.sportType === 'tennis' ? 'outline' : 'default'} 
-                    className="mb-2 capitalize">
+                  <Badge
+                    variant={
+                      quickViewEvent.sportType === 'basketball'
+                        ? 'default'
+                        : quickViewEvent.sportType === 'soccer'
+                          ? 'secondary'
+                          : quickViewEvent.sportType === 'tennis'
+                            ? 'outline'
+                            : 'default'
+                    }
+                    className="mb-2 capitalize"
+                  >
                     {quickViewEvent.sportType}
                   </Badge>
                   <h3 className="text-xl font-bold mb-1">{quickViewEvent.title}</h3>
                   <div className="flex items-center space-x-3 text-sm">
                     <div className="flex items-center">
                       <CalendarIcon className="h-4 w-4 mr-1" />
-                      {quickViewEvent.date ? new Date(quickViewEvent.date).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: '2-digit'
-                      }) : 'TBD'}
+                      {quickViewEvent.date
+                        ? new Date(quickViewEvent.date).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: '2-digit',
+                          })
+                        : 'TBD'}
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
-                      {quickViewEvent.date ? new Date(quickViewEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                      {quickViewEvent.date
+                        ? new Date(quickViewEvent.date).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'TBD'}
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <div className="flex items-center mb-4">
                   <Avatar className="h-10 w-10 mr-3">
-                    <AvatarFallback>{quickViewEvent.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
+                    <AvatarFallback>
+                      {quickViewEvent.creator?.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h4 className="font-medium">Organized by {quickViewEvent.creator?.name || 'Unknown'}</h4>
+                    <h4 className="font-medium">
+                      Organized by {quickViewEvent.creator?.name || 'Unknown'}
+                    </h4>
                     <p className="text-sm text-gray-500">
-                      {quickViewEvent.createdAt ? formatDistanceToNow(new Date(quickViewEvent.createdAt), { addSuffix: true }) : 'Recently'}
+                      {quickViewEvent.createdAt
+                        ? formatDistanceToNow(new Date(quickViewEvent.createdAt), {
+                            addSuffix: true,
+                          })
+                        : 'Recently'}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
                   <div className="flex items-center mb-2">
                     <MapPinIcon className="h-4 w-4 text-gray-500 mr-2" />
@@ -749,14 +831,15 @@ const Feed = () => {
                   </div>
                   <div className="flex items-center">
                     <UserIcon className="h-4 w-4 text-gray-500 mr-2" />
-                    <p className="text-sm">{quickViewEvent.currentParticipants} of {quickViewEvent.maxParticipants} participants</p>
+                    <p className="text-sm">
+                      {quickViewEvent.currentParticipants} of {quickViewEvent.maxParticipants}{' '}
+                      participants
+                    </p>
                   </div>
                 </div>
-                
-                <p className="text-sm text-gray-700 mb-4">
-                  {quickViewEvent.description}
-                </p>
-                
+
+                <p className="text-sm text-gray-700 mb-4">{quickViewEvent.description}</p>
+
                 <div className="flex space-x-3">
                   <Button
                     className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/95 hover:to-secondary/95 text-white shadow-md hover:shadow-lg transition-all duration-300 group"
@@ -767,16 +850,20 @@ const Feed = () => {
                   >
                     <span className="flex items-center justify-center">
                       <Eye className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="group-hover:tracking-wide transition-all duration-300">View Details</span>
+                      <span className="group-hover:tracking-wide transition-all duration-300">
+                        View Details
+                      </span>
                     </span>
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="flex-1 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/30 shadow-sm group transition-all duration-300"
                   >
                     <span className="flex items-center justify-center">
                       <UserPlus className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="group-hover:tracking-wide transition-all duration-300">Join Event</span>
+                      <span className="group-hover:tracking-wide transition-all duration-300">
+                        Join Event
+                      </span>
                     </span>
                   </Button>
                 </div>
@@ -785,10 +872,10 @@ const Feed = () => {
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Instagram-style Stories Viewer */}
       {storiesViewerOpen && upcomingEvents.length > 0 && (
-        <StoriesViewer 
+        <StoriesViewer
           events={upcomingEvents}
           initialIndex={selectedStoryIndex}
           onClose={() => setStoriesViewerOpen(false)}

@@ -1,4 +1,4 @@
-import { User, Calendar, Users, UserCheck } from "lucide-react";
+import { User, Calendar, Users, UserCheck } from 'lucide-react';
 
 interface ProfileTabsProps {
   activeTab: 'profile' | 'events' | 'teams' | 'friends';

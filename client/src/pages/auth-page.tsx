@@ -1,59 +1,61 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/use-auth";
-import { loginUserData, registerUserData } from "@/lib/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Redirect } from "wouter";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { User, Lock, Star, ArrowRight, Mail } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import playPalsLogo from "@/assets/playpals-logo.jpg";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/use-auth';
+import { loginUserData, registerUserData } from '@/lib/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Redirect } from 'wouter';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { User, Lock, Star, ArrowRight, Mail } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+import playPalsLogo from '@/assets/playpals-logo.jpg';
 
 // Login schema
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 // Registration schema
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    username: z.string().min(3, 'Username must be at least 3 characters'),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Please enter a valid email'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      username: '',
+      password: '',
     },
   });
 
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: '',
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -75,7 +77,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,7 +85,7 @@ export default function AuthPage() {
       >
         {/* Logo and Brand */}
         <div className="text-center mb-8">
-          <motion.div 
+          <motion.div
             className="relative inline-block mb-4"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
@@ -103,22 +105,22 @@ export default function AuthPage() {
         {/* Tab Navigation */}
         <div className="flex bg-gray-100 rounded-full p-1 mb-6">
           <button
-            onClick={() => setActiveTab("login")}
+            onClick={() => setActiveTab('login')}
             className={`flex-1 flex items-center justify-center py-2 px-4 rounded-full text-sm font-medium transition-all ${
-              activeTab === "login"
-                ? "bg-white text-gray-800 shadow-sm"
-                : "text-gray-600 hover:text-gray-800"
+              activeTab === 'login'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
             }`}
           >
             <User className="w-4 h-4 mr-2" />
             Login
           </button>
           <button
-            onClick={() => setActiveTab("register")}
+            onClick={() => setActiveTab('register')}
             className={`flex-1 flex items-center justify-center py-2 px-4 rounded-full text-sm font-medium transition-all ${
-              activeTab === "register"
-                ? "bg-white text-gray-800 shadow-sm"
-                : "text-gray-600 hover:text-gray-800"
+              activeTab === 'register'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
             }`}
           >
             <User className="w-4 h-4 mr-2" />
@@ -127,12 +129,12 @@ export default function AuthPage() {
         </div>
 
         {/* Auth Card */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
           layout
         >
-          {activeTab === "login" && (
-            <motion.div 
+          {activeTab === 'login' && (
+            <motion.div
               key="login"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -144,8 +146,10 @@ export default function AuthPage() {
                 <Lock className="w-5 h-5 text-blue-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-800">Sign in</h2>
               </div>
-              <p className="text-gray-600 text-sm mb-6">Enter your credentials to access your account</p>
-              
+              <p className="text-gray-600 text-sm mb-6">
+                Enter your credentials to access your account
+              </p>
+
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <div>
                   <Label htmlFor="username" className="text-sm font-medium text-gray-700">
@@ -158,11 +162,13 @@ export default function AuthPage() {
                       type="text"
                       placeholder="Enter your username"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...loginForm.register("username")}
+                      {...loginForm.register('username')}
                     />
                   </div>
                   {loginForm.formState.errors.username && (
-                    <p className="text-xs text-red-500 mt-1">{loginForm.formState.errors.username.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {loginForm.formState.errors.username.message}
+                    </p>
                   )}
                 </div>
 
@@ -177,11 +183,13 @@ export default function AuthPage() {
                       type="password"
                       placeholder="••••••••"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...loginForm.register("password")}
+                      {...loginForm.register('password')}
                     />
                   </div>
                   {loginForm.formState.errors.password && (
-                    <p className="text-xs text-red-500 mt-1">{loginForm.formState.errors.password.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {loginForm.formState.errors.password.message}
+                    </p>
                   )}
                 </div>
 
@@ -215,7 +223,7 @@ export default function AuthPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.location.href = '/api/auth/google'}
+                  onClick={() => (window.location.href = '/api/auth/google')}
                   className="w-full h-12 border-gray-200 hover:bg-gray-50 flex items-center justify-center space-x-3"
                 >
                   <FcGoogle className="w-5 h-5" />
@@ -225,8 +233,8 @@ export default function AuthPage() {
             </motion.div>
           )}
 
-          {activeTab === "register" && (
-            <motion.div 
+          {activeTab === 'register' && (
+            <motion.div
               key="register"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -239,7 +247,7 @@ export default function AuthPage() {
                 <h2 className="text-xl font-semibold text-gray-800">Create Account</h2>
               </div>
               <p className="text-gray-600 text-sm mb-6">Join the community of sports enthusiasts</p>
-              
+
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <div>
                   <Label htmlFor="register-username" className="text-sm font-medium text-gray-700">
@@ -252,11 +260,13 @@ export default function AuthPage() {
                       type="text"
                       placeholder="Choose a unique username"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...registerForm.register("username")}
+                      {...registerForm.register('username')}
                     />
                   </div>
                   {registerForm.formState.errors.username && (
-                    <p className="text-xs text-red-500 mt-1">{registerForm.formState.errors.username.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {registerForm.formState.errors.username.message}
+                    </p>
                   )}
                 </div>
 
@@ -271,11 +281,13 @@ export default function AuthPage() {
                       type="text"
                       placeholder="Enter your full name"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...registerForm.register("name")}
+                      {...registerForm.register('name')}
                     />
                   </div>
                   {registerForm.formState.errors.name && (
-                    <p className="text-xs text-red-500 mt-1">{registerForm.formState.errors.name.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {registerForm.formState.errors.name.message}
+                    </p>
                   )}
                 </div>
 
@@ -290,11 +302,13 @@ export default function AuthPage() {
                       type="email"
                       placeholder="your.email@example.com"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...registerForm.register("email")}
+                      {...registerForm.register('email')}
                     />
                   </div>
                   {registerForm.formState.errors.email && (
-                    <p className="text-xs text-red-500 mt-1">{registerForm.formState.errors.email.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {registerForm.formState.errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -309,16 +323,21 @@ export default function AuthPage() {
                       type="password"
                       placeholder="Create a strong password"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...registerForm.register("password")}
+                      {...registerForm.register('password')}
                     />
                   </div>
                   {registerForm.formState.errors.password && (
-                    <p className="text-xs text-red-500 mt-1">{registerForm.formState.errors.password.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {registerForm.formState.errors.password.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="register-confirm-password" className="text-sm font-medium text-gray-700">
+                  <Label
+                    htmlFor="register-confirm-password"
+                    className="text-sm font-medium text-gray-700"
+                  >
                     Confirm Password
                   </Label>
                   <div className="relative mt-1">
@@ -328,11 +347,13 @@ export default function AuthPage() {
                       type="password"
                       placeholder="Confirm your password"
                       className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      {...registerForm.register("confirmPassword")}
+                      {...registerForm.register('confirmPassword')}
                     />
                   </div>
                   {registerForm.formState.errors.confirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">{registerForm.formState.errors.confirmPassword.message}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {registerForm.formState.errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 
@@ -366,7 +387,7 @@ export default function AuthPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.location.href = '/api/auth/google'}
+                  onClick={() => (window.location.href = '/api/auth/google')}
                   className="w-full h-12 border-gray-200 hover:bg-gray-50 flex items-center justify-center space-x-3"
                 >
                   <FcGoogle className="w-5 h-5" />

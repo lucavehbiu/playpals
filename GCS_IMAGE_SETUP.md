@@ -35,6 +35,7 @@ GCP_PROJECT_ID="your-project-id"    # Get from GCP Console
 Two options:
 
 **Option 1: Application Default Credentials (Recommended for local dev)**
+
 ```bash
 # Install gcloud CLI if not already installed
 # https://cloud.google.com/sdk/docs/install
@@ -47,6 +48,7 @@ gcloud config set project YOUR_PROJECT_ID
 ```
 
 **Option 2: Service Account Key**
+
 1. Go to GCP Console > IAM & Admin > Service Accounts
 2. Create a service account with "Storage Admin" role
 3. Download the JSON key file
@@ -59,6 +61,7 @@ gcloud config set project YOUR_PROJECT_ID
 All upload endpoints require authentication and use `multipart/form-data` with field name `image`.
 
 **Profile Image:**
+
 ```bash
 POST /api/users/:userId/profile-image
 Content-Type: multipart/form-data
@@ -71,6 +74,7 @@ curl -X POST http://localhost:5000/api/users/4/profile-image \
 ```
 
 **Cover Image:**
+
 ```bash
 POST /api/users/:userId/cover-image
 Content-Type: multipart/form-data
@@ -78,6 +82,7 @@ Field: image (file)
 ```
 
 **Event Image:**
+
 ```bash
 POST /api/events/:eventId/image
 Content-Type: multipart/form-data
@@ -85,6 +90,7 @@ Field: image (file)
 ```
 
 **Team Post Image:**
+
 ```bash
 POST /api/teams/:teamId/posts/:postId/image
 Content-Type: multipart/form-data
@@ -92,6 +98,7 @@ Field: image (file)
 ```
 
 **Tournament Image:**
+
 ```bash
 POST /api/tournaments/:tournamentId/image
 Content-Type: multipart/form-data
@@ -101,6 +108,7 @@ Field: image (file)
 ### Response Format
 
 All upload endpoints return:
+
 ```json
 {
   "imageUrl": "https://storage.googleapis.com/playpals/profiles/user-4-1234567890.jpg",
@@ -252,6 +260,7 @@ gsutil lifecycle set lifecycle.json gs://playpals
 ## Monitoring
 
 View storage usage and costs:
+
 ```bash
 # Check bucket size
 gsutil du -sh gs://playpals
@@ -298,6 +307,7 @@ To migrate existing images from Replit:
 4. Update database with new GCS URLs
 
 Script example:
+
 ```bash
 # Get all events with images
 psql $DATABASE_URL -c "SELECT id, event_image FROM events WHERE event_image IS NOT NULL" -t > events.txt
