@@ -56,3 +56,7 @@ yarn-error.log*
 replit.nix
 .bash_history
 .upm/
+
+# Testing
+coverage/
+.vitest/
