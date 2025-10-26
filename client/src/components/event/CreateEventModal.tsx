@@ -51,7 +51,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const [showCost, setShowCost] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isDragOver, setIsDragOver] = useState(false);
-  
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
+
   const [selectedLocation, setSelectedLocation] = useState<{
     placeId: string;
     address: string;
@@ -93,6 +94,25 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
     setValue("locationPlaceId", locationResult.placeId);
   };
 
+  // GCS upload function
+  const uploadImageToGCS = async (eventId: number, file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`/api/events/${eventId}/image`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image to GCS');
+    }
+
+    const data = await response.json();
+    return data.imageUrl;
+  };
+
   // Image handling functions
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -105,21 +125,23 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         });
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setValue("eventImage", result);
-      };
-      reader.readAsDataURL(file);
+
+      // Store the file for GCS upload after event creation
+      setUploadedImageFile(file);
+
+      // Show preview using object URL (more efficient than base64)
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+
+      // Mark that we have an image (will upload to GCS after event creation)
+      setValue("eventImage", "pending-upload");
     }
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(false);
-    
+
     const file = event.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       if (file.size > 5 * 1024 * 1024) {
@@ -130,14 +152,16 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         });
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setValue("eventImage", result);
-      };
-      reader.readAsDataURL(file);
+
+      // Store the file for GCS upload after event creation
+      setUploadedImageFile(file);
+
+      // Show preview using object URL (more efficient than base64)
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+
+      // Mark that we have an image (will upload to GCS after event creation)
+      setValue("eventImage", "pending-upload");
     }
   };
 
@@ -153,6 +177,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
 
   const removeImage = () => {
     setImagePreview("");
+    setUploadedImageFile(null);
     setValue("eventImage", "");
   };
   
@@ -160,11 +185,11 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
     mutationFn: async (data: CreateEventFormData) => {
       // Combine date and time
       const dateTime = new Date(`${data.date}T${data.time}`);
-      
+
       // Make sure boolean values are properly set
       const isPublic = data.isPublic === undefined ? true : !!data.isPublic;
       const isFree = data.isFree === undefined ? true : !!data.isFree;
-      
+
       // Format the data for the API
       const eventData = {
         title: data.title,
@@ -180,12 +205,27 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         isPublic: isPublic,
         isFree: isFree,
         cost: !isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
-        eventImage: data.eventImage || "",
+        // Don't send 'pending-upload' - photo will be uploaded after event creation
+        eventImage: (data.eventImage && data.eventImage !== 'pending-upload') ? data.eventImage : "",
         // The creatorId will be set from the authenticated user on the server
       };
-      
+
       const response = await apiRequest("POST", "/api/events", eventData);
-      return response.json();
+      const result = await response.json();
+
+      // If user uploaded a photo, upload it to GCS now
+      if (uploadedImageFile && result?.id) {
+        try {
+          console.log('Uploading image to GCS for event:', result.id);
+          const gcsUrl = await uploadImageToGCS(result.id, uploadedImageFile);
+          console.log('Image uploaded successfully to:', gcsUrl);
+        } catch (error) {
+          console.error('Failed to upload image to GCS:', error);
+          // Event is still created, just without the image
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
@@ -197,6 +237,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
       reset();
       setSelectedLocation(null);
       setImagePreview("");
+      setUploadedImageFile(null);
       if (onEventCreated) onEventCreated();
     },
     onError: (error: any) => {

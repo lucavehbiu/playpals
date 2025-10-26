@@ -70,9 +70,10 @@ const CreateEvent = () => {
   
   // Image generation state
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
-  
-  // Mutation for generating event images
+
+  // Mutation for generating event images (SVG - stays as data URL)
   const generateImageMutation = useMutation({
     mutationFn: async ({ sportType, title }: { sportType: string; title: string }) => {
       setIsGeneratingImage(true);
@@ -99,19 +100,54 @@ const CreateEvent = () => {
     }
   });
 
+  // Store uploaded file for later GCS upload
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
+
+  // Function to upload image to GCS after event creation
+  const uploadImageToGCS = async (eventId: number, file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`/api/events/${eventId}/image`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image to GCS');
+    }
+
+    const data = await response.json();
+    return data.imageUrl;
+  };
+
   // Mutation for creating an event
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
       const response = await apiRequest('POST', '/api/events', eventData);
       const result = await response.json();
-      
+
       // If event was created for a group, link it to the group
       if (groupId && result?.id) {
         await apiRequest('POST', `/api/sports-groups/${groupId}/events`, {
           eventId: result.id
         });
       }
-      
+
+      // If user uploaded a photo (not SVG), upload it to GCS now
+      if (uploadedImageFile && result?.id) {
+        try {
+          console.log('Uploading image to GCS for event:', result.id);
+          const gcsUrl = await uploadImageToGCS(result.id, uploadedImageFile);
+          console.log('Image uploaded successfully to:', gcsUrl);
+          // Image is now in GCS and the event has the URL
+        } catch (error) {
+          console.error('Failed to upload image to GCS:', error);
+          // Event is still created, just without the image
+        }
+      }
+
       return result;
     },
     onSuccess: async (data: any) => {
@@ -261,27 +297,28 @@ const CreateEvent = () => {
         maxParticipants: formData.maxParticipants,
         price: formData.price,
         isPrivate: formData.isPrivate,
-        eventImage: formData.eventImage || null // Include image for private events too
+        // Only include SVG data URLs, not 'pending-upload' placeholder
+        eventImage: (formData.eventImage && formData.eventImage !== 'pending-upload') ? formData.eventImage : null
       };
-      
+
       sessionStorage.setItem('pendingEventData', JSON.stringify(eventData));
       setLocation('/create-event/invite');
       return;
     }
-    
+
     // For public events or group events, create directly
     // Combine date and time
     const startDateTime = new Date(`${formData.date}T${formData.time}`);
-    
+
     // Calculate end time based on duration
     const endDateTime = new Date(startDateTime.getTime() + parseInt(formData.duration) * 60000);
-    
+
     const eventData = {
       title: formData.title,
       description: formData.description,
       sportType: formData.sportType,
       location: formData.location,
-      locationCoordinates: formData.locationLatitude && formData.locationLongitude 
+      locationCoordinates: formData.locationLatitude && formData.locationLongitude
         ? { lat: formData.locationLatitude, lng: formData.locationLongitude }
         : null,
       date: startDateTime.toISOString(),
@@ -290,7 +327,8 @@ const CreateEvent = () => {
       isPublic: !formData.isPrivate,
       isFree: parseFloat(formData.price) === 0,
       cost: Math.round((parseFloat(formData.price) || 0) * 100), // Convert to cents for backend
-      eventImage: formData.eventImage || null, // Include the image data
+      // Only include SVG data URLs, not 'pending-upload' placeholder (photo will be uploaded after event creation)
+      eventImage: (formData.eventImage && formData.eventImage !== 'pending-upload') ? formData.eventImage : null,
     };
     
     createEventMutation.mutate(eventData);
@@ -535,6 +573,7 @@ const CreateEvent = () => {
                   className="absolute top-2 right-2 bg-white"
                   onClick={() => {
                     setImagePreview("");
+                    setUploadedImageFile(null);
                     setFormData(prev => ({ ...prev, eventImage: "" }));
                   }}
                 >
@@ -584,13 +623,15 @@ const CreateEvent = () => {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const result = event.target?.result as string;
-                        setImagePreview(result);
-                        setFormData(prev => ({ ...prev, eventImage: result }));
-                      };
-                      reader.readAsDataURL(file);
+                      // Store the file for GCS upload after event creation
+                      setUploadedImageFile(file);
+
+                      // Show preview using object URL (more efficient than base64)
+                      const objectUrl = URL.createObjectURL(file);
+                      setImagePreview(objectUrl);
+
+                      // Mark that we have an image (will upload to GCS after event creation)
+                      setFormData(prev => ({ ...prev, eventImage: 'pending-upload' }));
                     }
                   }}
                 />

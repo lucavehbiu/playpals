@@ -82,10 +82,7 @@ export async function uploadImageToGCS(
       });
 
       blobStream.on('finish', async () => {
-        // Make the file public
-        await blob.makePublic();
-
-        // Return the public URL
+        // Return the public URL (bucket has uniform bucket-level access enabled)
         const publicUrl = `https://storage.googleapis.com/${bucketName}/${gcsFileName}`;
         console.log('Image uploaded to GCS:', publicUrl);
         resolve(publicUrl);
