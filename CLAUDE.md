@@ -186,6 +186,135 @@ The project is configured for Heroku deployment:
 3. Both run via `npm run build`
 4. Production mode serves static files via Express (see `server/vite.ts`)
 
+## UI/UX Design System
+
+### Design Principles
+
+The app follows a **clean, minimal design system** with these core patterns:
+
+#### Color Palette
+- **Primary**: Blue gradient (`from-primary to-secondary`)
+- **Backgrounds**: White cards on gray-50 base (`bg-gray-50`)
+- **Borders**: Light gray (`border-gray-200`)
+- **Text**: Gray-900 for headings, Gray-600 for secondary text
+- **Status Colors**:
+  - Yellow-50/700 for ratings/warnings
+  - Green-50/700 for success/matches
+  - Blue-50/700 for info/friends
+  - Red-500/600 for errors/logout
+
+#### Component Patterns
+
+**Cards & Containers:**
+```tsx
+// Standard card
+<div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+  {content}
+</div>
+
+// Page background
+<div className="bg-gray-50 min-h-screen">
+```
+
+**Badges & Pills:**
+```tsx
+// Colored badge
+<span className="bg-primary/10 text-primary px-3 py-1 rounded-md text-xs font-semibold">
+  {label}
+</span>
+
+// Status badge
+<div className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1 rounded-md text-sm font-medium">
+  <Icon className="w-3.5 h-3.5" />
+  <span>{value}</span>
+</div>
+```
+
+**Buttons:**
+```tsx
+// Primary gradient button
+<button className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+  {text}
+</button>
+
+// Secondary button
+<button className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+  {text}
+</button>
+```
+
+**Headers:**
+```tsx
+// Page header with clean white background
+<div className="relative bg-white border-b border-gray-200">
+  <div className="px-6 py-6">
+    {/* Header content */}
+  </div>
+</div>
+```
+
+**Tabs:**
+```tsx
+// Simple underline tabs
+<div className="border-b border-gray-200 bg-white">
+  <nav className="flex gap-8 px-6">
+    <button className={`py-4 font-medium text-sm flex items-center gap-2 border-b-2 ${
+      active ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:border-gray-300'
+    }`}>
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </button>
+  </nav>
+</div>
+```
+
+**Typography:**
+- Headings: `text-3xl font-bold text-gray-900` (H1), `text-xl font-bold text-gray-900` (H2)
+- Body: `text-sm` or `text-base text-gray-700`
+- Metadata: `text-xs text-gray-500`
+- Icons: `h-3.5 w-3.5` for badges, `h-4 w-4` for buttons
+
+**Spacing:**
+- Cards: `p-4` or `p-6`
+- Vertical spacing: `space-y-3` or `space-y-4`
+- Gaps: `gap-2`, `gap-3`, or `gap-4`
+
+### Component Organization
+
+Follow these practices for maintainability:
+
+1. **Break down large files**: Keep components under 400 lines
+2. **Extract reusable sections**: Header, Tabs, Tab content into separate components
+3. **Props over duplication**: Pass data and callbacks as props
+4. **Consistent naming**: Use descriptive names like `ProfileHeader`, `ProfileTabEvents`
+5. **Co-locate related components**: Group by feature in `components/[feature]/`
+
+Example modular structure:
+```
+components/profile/
+├── ProfileHeader.tsx        # Header with badges and actions
+├── ProfileTabs.tsx          # Tab navigation
+├── ProfileTabProfile.tsx    # Profile tab content
+├── ProfileTabEvents.tsx     # Events tab content
+├── ProfileTabTeams.tsx      # Teams tab content
+└── ProfileTabFriends.tsx    # Friends tab content
+```
+
+### Animation
+
+Use Framer Motion sparingly for:
+- Page transitions: `initial={{ opacity: 0, y: 20 }}` → `animate={{ opacity: 1, y: 0 }}`
+- Staggered lists: `delay: index * 0.05`
+- Smooth transitions: `transition-all duration-200`
+
+### Avoid
+
+- ❌ Excessive glassmorphism (`backdrop-blur`)
+- ❌ Heavy gradients everywhere
+- ❌ Animated gradient underlines
+- ❌ Too many shadows or effects
+- ❌ Inconsistent rounded corners (stick to `rounded-lg` or `rounded-md`)
+
 ## Important Notes
 
 - The project uses ESM modules (`"type": "module"` in package.json)

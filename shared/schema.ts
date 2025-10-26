@@ -250,22 +250,28 @@ export const playerRatings = pgTable("player_ratings", {
 export const skillMatcherPreferences = pgTable("skill_matcher_preferences", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  sportType: text("sport_type").notNull(),
-  skillMatchMode: text("skill_match_mode", { enum: skillMatchModes }).default("similar").notNull(),
-  preferredSkillLevels: text("preferred_skill_levels").array().notNull(), // Array of skill levels they want to match with
+  preferredSports: text("preferred_sports").array(), // Array of preferred sports
+  sportType: text("sport_type"), // Alternative single sport field
+  skillLevelPreference: text("skill_level_preference"), // Skill level preference
+  locationPreference: text("location_preference"), // Location preference
+  skillMatchMode: text("skill_match_mode", { enum: skillMatchModes }).default("similar"),
+  preferredSkillLevels: text("preferred_skill_levels").array(), // Array of skill levels they want to match with
   maxDistance: integer("max_distance").default(25), // Distance in miles/km
-  distancePreference: text("distance_preference", { enum: distancePreferences }).default("city").notNull(),
+  maxDistanceKm: integer("max_distance_km").default(25), // Distance in km
+  distancePreference: text("distance_preference", { enum: distancePreferences }).default("city"),
   ageRangeMin: integer("age_range_min").default(18),
   ageRangeMax: integer("age_range_max").default(65),
   genderPreference: text("gender_preference"), // 'male', 'female', 'any'
-  availabilityDays: text("availability_days").array().notNull(), // Array of days like ['monday', 'tuesday']
-  availabilityTimes: text("availability_times").array().notNull(), // Array of time slots like ['morning', 'evening']
+  preferredGender: text("preferred_gender"), // Alternative gender field
+  availability: text("availability"), // Availability as text
+  availabilityDays: text("availability_days").array(), // Array of days like ['monday', 'tuesday']
+  availabilityTimes: text("availability_times").array(), // Array of time slots like ['morning', 'evening']
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (t) => ({
-  // Ensure a user can only have one matcher preference per sport
-  uniqueMatcherPreference: unique().on(t.userId, t.sportType),
+  // Ensure a user can only have one matcher preference
+  uniqueMatcherPreference: unique().on(t.userId),
 }));
 
 // Skill Matches table to store generated matches
@@ -273,18 +279,20 @@ export const skillMatches = pgTable("skill_matches", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   matchedUserId: integer("matched_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  sportType: text("sport_type").notNull(),
+  sport: text("sport"), // Alternative to sportType for compatibility
+  sportType: text("sport_type"), // Also keep sportType
   compatibilityScore: integer("compatibility_score").notNull(), // 0-100 score
-  skillLevelDifference: integer("skill_level_difference").notNull(), // Absolute difference in skill levels
+  skillLevelDifference: integer("skill_level_difference"), // Absolute difference in skill levels
   distance: integer("distance"), // Distance between users in miles/km
   matchReason: text("match_reason").notNull(), // Explanation of why they were matched
   isViewed: boolean("is_viewed").default(false).notNull(),
-  isLiked: boolean("is_liked").default(false).notNull(),
+  isLiked: boolean("is_liked").default(false),
+  isDismissed: boolean("is_dismissed").default(false), // Whether match was dismissed
   isMutualMatch: boolean("is_mutual_match").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({
   // Prevent duplicate matches
-  uniqueMatch: unique().on(t.userId, t.matchedUserId, t.sportType),
+  uniqueMatch: unique().on(t.userId, t.matchedUserId),
 }));
 
 // Team Posts table
@@ -293,9 +301,11 @@ export const teamPosts = pgTable("team_posts", {
   teamId: integer("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
+  image: text("image"), // Image URL for post
   attachments: jsonb("attachments"),
   likes: integer("likes").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(), // When post was last updated
 });
 
 // Team Post Comments table
@@ -435,7 +445,9 @@ export const sportsGroupJoinRequests = pgTable("sports_group_join_requests", {
   groupId: integer("group_id").notNull().references(() => sportsGroups.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("pending"), // "pending", "accepted", "rejected"
+  message: text("message"), // Optional message from user
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(), // When status was last updated
 }, (t) => ({
   groupUserUnique: unique().on(t.groupId, t.userId),
 }));
@@ -1231,6 +1243,9 @@ export const tournaments = pgTable('tournaments', {
   drawPoints: integer('draw_points').default(1),
   lossPoints: integer('loss_points').default(0),
   matchDuration: integer('match_duration').default(90), // minutes
+  entryFee: integer('entry_fee').default(0), // Entry fee for tournament
+  prizePool: text('prize_pool'), // Prize pool description
+  rulesDescription: text('rules_description'), // Tournament rules
   status: text('status', { enum: ['draft', 'open', 'full', 'active', 'completed', 'cancelled'] }).default('draft'),
   creatorId: integer('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   tournamentImage: text('tournament_image'),
@@ -1246,9 +1261,11 @@ export const tournamentParticipants = pgTable('tournament_participants', {
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   teamName: text('team_name'), // For team tournaments
   participantName: text('participant_name').notNull(), // Display name
+  participantType: text('participant_type'), // individual or team
   registrationDate: timestamp('registration_date').defaultNow(),
   status: text('status', { enum: ['registered', 'confirmed', 'withdrawn'] }).default('registered'),
   seedPosition: integer('seed_position'), // For seeded tournaments
+  notes: text('notes'), // Additional notes about participant
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -1260,7 +1277,10 @@ export const tournamentMatches = pgTable('tournament_matches', {
   roundNumber: integer('round_number').notNull(),
   matchNumber: integer('match_number').notNull(),
   scheduledDate: timestamp('scheduled_date'),
+  scheduledTime: timestamp('scheduled_time'), // Scheduled time for match
   actualDate: timestamp('actual_date'),
+  actualStartTime: timestamp('actual_start_time'), // When match actually started
+  actualEndTime: timestamp('actual_end_time'), // When match actually ended
   status: text('status', { enum: ['scheduled', 'in_progress', 'completed', 'cancelled'] }).default('scheduled'),
   participant1Score: integer('participant1_score'),
   participant2Score: integer('participant2_score'),
@@ -1284,6 +1304,7 @@ export const tournamentStandings = pgTable('tournament_standings', {
   goalsAgainst: integer('goals_against').default(0), // Or points conceded
   goalDifference: integer('goal_difference').default(0),
   position: integer('position'),
+  notes: text('notes'), // Additional notes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -1432,3 +1453,10 @@ export type TournamentInvitation = typeof tournamentInvitations.$inferSelect;
 export type InsertTournamentInvitation = z.infer<typeof insertTournamentInvitationSchema>;
 
 export type TournamentType = typeof tournamentTypes[number];
+
+// Session table for express-session (PostgreSQL session store)
+export const session = pgTable("session", {
+  sid: varchar("sid", { length: 255 }).primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+});
