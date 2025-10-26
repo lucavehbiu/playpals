@@ -4832,3 +4832,892 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+  {
+    username: "admin",
+    password: "admin123",
+    name: "Alex Smith",
+    email: "alex@example.com",
+    bio: "Passionate about basketball and tennis. Always looking for new challenges!",
+    location: "New York, NY",
+    headline: "Sports Enthusiast & Coach"
+  },
+  {
+    username: "sarah_runner",
+    password: "password123",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
+    bio: "Marathon runner and yoga instructor. Love connecting with fellow athletes.",
+    location: "Los Angeles, CA",
+    headline: "Marathon Runner & Yoga Instructor"
+  },
+  {
+    username: "mike_soccer",
+    password: "password123",
+    name: "Mike Rodriguez",
+    email: "mike@example.com",
+    bio: "Soccer player for 15 years. Captain of local amateur league team.",
+    location: "Chicago, IL",
+    headline: "Soccer Team Captain"
+  },
+  {
+    username: "emma_tennis",
+    password: "password123",
+    name: "Emma Wilson",
+    email: "emma@example.com",
+    bio: "Former college tennis player. Now coaching and organizing tournaments.",
+    location: "Miami, FL",
+    headline: "Tennis Coach & Tournament Organizer"
+  },
+  {
+    username: "david_fitness",
+    password: "password123",
+    name: "David Chen",
+    email: "david@example.com",
+    bio: "CrossFit athlete and personal trainer. Believer in functional fitness.",
+    location: "Seattle, WA",
+    headline: "CrossFit Athlete & Personal Trainer"
+  },
+  {
+    username: "lisa_swimmer",
+    password: "password123",
+    name: "Lisa Park",
+    email: "lisa@example.com",
+    bio: "Competitive swimmer and water polo player. Ocean swimming enthusiast.",
+    location: "San Diego, CA",
+    headline: "Competitive Swimmer"
+  },
+  // New 10 random users
+  {
+    username: "carlos_runner",
+    password: "password123",
+    name: "Carlos Martinez",
+    email: "carlos@example.com",
+    bio: "Ultra-marathon runner and trail enthusiast. Love exploring new hiking paths.",
+    location: "Denver, CO",
+    headline: "Ultra Runner & Trail Explorer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#4f46e5"/>
+          <stop offset="100%" style="stop-color:#7c3aed"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg1)"/>
+      <circle cx="60" cy="45" r="22" fill="#fbbf24"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fbbf24"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">CM</text>
+    </svg>`)
+  },
+  {
+    username: "nina_volleyball",
+    password: "password123", 
+    name: "Nina Thompson",
+    email: "nina@example.com",
+    bio: "Beach volleyball player and coach. Organizing local tournaments and training camps.",
+    location: "San Diego, CA",
+    headline: "Beach Volleyball Coach",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ec4899"/>
+          <stop offset="100%" style="stop-color:#f97316"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg2)"/>
+      <circle cx="60" cy="45" r="22" fill="#fef3c7"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fef3c7"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">NT</text>
+    </svg>`)
+  },
+  {
+    username: "jordan_climbing",
+    password: "password123",
+    name: "Jordan Lee",
+    email: "jordan@example.com", 
+    bio: "Rock climbing instructor and outdoor adventure guide. Safety first, fun always!",
+    location: "Boulder, CO",
+    headline: "Rock Climbing Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#10b981"/>
+          <stop offset="100%" style="stop-color:#0ea5e9"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg3)"/>
+      <circle cx="60" cy="45" r="22" fill="#fed7aa"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fed7aa"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">JL</text>
+    </svg>`)
+  },
+  {
+    username: "priya_yoga",
+    password: "password123",
+    name: "Priya Patel",
+    email: "priya@example.com",
+    bio: "Certified yoga instructor specializing in power yoga and meditation practices.",
+    location: "Austin, TX",
+    headline: "Power Yoga Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6"/>
+          <stop offset="100%" style="stop-color:#ec4899"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg4)"/>
+      <circle cx="60" cy="45" r="22" fill="#f3e8ff"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#f3e8ff"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">PP</text>
+    </svg>`)
+  },
+  {
+    username: "tyler_cycling",
+    password: "password123",
+    name: "Tyler Johnson",
+    email: "tyler@example.com",
+    bio: "Competitive cyclist and bike shop owner. Organizing weekly group rides and races.",
+    location: "Portland, OR", 
+    headline: "Competitive Cyclist & Shop Owner",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#06b6d4"/>
+          <stop offset="100%" style="stop-color:#3b82f6"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg5)"/>
+      <circle cx="60" cy="45" r="22" fill="#ddd6fe"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#ddd6fe"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">TJ</text>
+    </svg>`)
+  },
+  {
+    username: "maya_boxing",
+    password: "password123",
+    name: "Maya Rivera",
+    email: "maya@example.com",
+    bio: "Professional boxing trainer and former amateur champion. Training fighters of all levels.",
+    location: "Las Vegas, NV",
+    headline: "Professional Boxing Trainer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#dc2626"/>
+          <stop offset="100%" style="stop-color:#ea580c"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg6)"/>
+      <circle cx="60" cy="45" r="22" fill="#fde68a"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fde68a"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">MR</text>
+    </svg>`)
+  },
+  {
+    username: "ethan_golf",
+    password: "password123",
+    name: "Ethan Davis",
+    email: "ethan@example.com", 
+    bio: "Golf pro and course designer. Teaching proper swing techniques and course management.",
+    location: "Scottsdale, AZ",
+    headline: "Golf Professional & Course Designer",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#059669"/>
+          <stop offset="100%" style="stop-color:#ca8a04"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg7)"/>
+      <circle cx="60" cy="45" r="22" fill="#fef9c3"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fef9c3"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">ED</text>
+    </svg>`)
+  },
+  {
+    username: "sophia_dance",
+    password: "password123",
+    name: "Sophia Kim",
+    email: "sophia@example.com",
+    bio: "Dance fitness instructor and choreographer. Making fitness fun through movement!",
+    location: "Miami, FL",
+    headline: "Dance Fitness Instructor",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f59e0b"/>
+          <stop offset="100%" style="stop-color:#ef4444"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg8)"/>
+      <circle cx="60" cy="45" r="22" fill="#fecaca"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#fecaca"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">SK</text>
+    </svg>`)
+  },
+  {
+    username: "marcus_martial",
+    password: "password123",
+    name: "Marcus Brown",
+    email: "marcus@example.com",
+    bio: "Mixed martial arts instructor and former competitor. Teaching discipline and technique.",
+    location: "Las Vegas, NV", 
+    headline: "MMA Instructor & Former Fighter",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg9" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#374151"/>
+          <stop offset="100%" style="stop-color:#1f2937"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg9)"/>
+      <circle cx="60" cy="45" r="22" fill="#f9fafb"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#f9fafb"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">MB</text>
+    </svg>`)
+  },
+  {
+    username: "zoe_skating",
+    password: "password123",
+    name: "Zoe Wilson",
+    email: "zoe@example.com",
+    bio: "Figure skating coach and former competitive skater. Training the next generation!",
+    location: "Minneapolis, MN",
+    headline: "Figure Skating Coach",
+    profileImage: "data:image/svg+xml;base64," + btoa(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg10" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#a855f7"/>
+          <stop offset="100%" style="stop-color:#06b6d4"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bg10)"/>
+      <circle cx="60" cy="45" r="22" fill="#e0e7ff"/>
+      <path d="M30 90 Q60 75 90 90 L90 120 L30 120 Z" fill="#e0e7ff"/>
+      <text x="60" y="110" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">ZW</text>
+    </svg>`)
+  }
+];
+
+// Create test users and sample data
+Promise.all(testUsers.map(async (userData) => {
+  try {
+    const user = await storage.createUser(userData);
+    console.log(`Created test user: ${user.username}`);
+    return user;
+  } catch (error) {
+    // User might already exist, try to get existing user
+    try {
+      const existingUsers = await storage.getAllUsers();
+      const existingUser = existingUsers.find(u => u.username === userData.username);
+      if (existingUser) {
+        console.log(`User ${userData.username} already exists`);
+        return existingUser;
+      }
+    } catch (e) {
+      console.error(`Error handling user ${userData.username}:`, error);
+    }
+    return null;
+  }
+})).then(async (users) => {
+  const validUsers = users.filter(u => u !== null);
+  console.log(`Successfully created/found ${validUsers.length} test users`);
+  
+  if (validUsers.length < 4) {
+    console.log('Not enough users created, skipping sample data creation');
+    return;
+  }
+  
+  // Create diverse sample events from different users
+  const sampleEvents = [
+    // Alex Smith (admin) - Basketball & Tennis events
+    {
+      title: "Morning Basketball Pickup",
+      description: "Early morning basketball session. Great way to start the day! All skill levels welcome.",
+      sportType: "basketball",
+      date: new Date(Date.now() + 86400000), // Tomorrow
+      location: "Central Park Basketball Courts",
+      locationCoordinates: { lat: 40.785091, lng: -73.968285 },
+      maxParticipants: 10,
+      currentParticipants: 3,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[0].id,
+      eventImage: null
+    },
+    {
+      title: "Tennis Doubles Championship",
+      description: "Competitive doubles tournament. Prizes for winners! Register with your partner.",
+      sportType: "tennis",
+      date: new Date(Date.now() + 345600000), // 4 days from now
+      location: "NYC Tennis Club",
+      locationCoordinates: { lat: 40.758896, lng: -73.985130 },
+      maxParticipants: 16,
+      currentParticipants: 8,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[0].id,
+      eventImage: null
+    },
+    
+    // Sarah Johnson - Running & Yoga events
+    {
+      title: "Central Park 5K Run",
+      description: "Join our weekly 5K run through Central Park. Perfect for building endurance and meeting fellow runners.",
+      sportType: "running",
+      date: new Date(Date.now() + 259200000), // 3 days from now
+      location: "Central Park - Bethesda Fountain",
+      locationCoordinates: { lat: 40.773663, lng: -73.971249 },
+      maxParticipants: 25,
+      currentParticipants: 12,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    {
+      title: "Sunrise Yoga Session",
+      description: "Start your weekend with peaceful yoga as the sun rises. Bring your own mat. All levels welcome.",
+      sportType: "yoga",
+      date: new Date(Date.now() + 518400000), // 6 days from now
+      location: "Brooklyn Bridge Park",
+      locationCoordinates: { lat: 40.702312, lng: -73.996136 },
+      maxParticipants: 20,
+      currentParticipants: 15,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    
+    // Mike Rodriguez - Soccer events
+    {
+      title: "Sunday Soccer League",
+      description: "Weekly league match. Looking for skilled players to join our team for the season.",
+      sportType: "soccer",
+      date: new Date(Date.now() + 432000000), // 5 days from now
+      location: "Randalls Island Soccer Fields",
+      locationCoordinates: { lat: 40.795765, lng: -73.922876 },
+      maxParticipants: 22,
+      currentParticipants: 18,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    {
+      title: "Youth Soccer Training Camp",
+      description: "Training session for young players (ages 12-16). Focus on fundamentals and teamwork.",
+      sportType: "soccer",
+      date: new Date(Date.now() + 172800000), // 2 days from now
+      location: "Chelsea Piers Soccer Fields",
+      locationCoordinates: { lat: 40.746621, lng: -74.009781 },
+      maxParticipants: 16,
+      currentParticipants: 9,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    
+    // Emma Wilson - Tennis events
+    {
+      title: "Beginner Tennis Clinic",
+      description: "Learn the basics of tennis in a fun, supportive environment. Rackets provided for beginners.",
+      sportType: "tennis",
+      date: new Date(Date.now() + 604800000), // 7 days from now
+      location: "Miami Tennis Academy",
+      locationCoordinates: { lat: 25.761681, lng: -80.191788 },
+      maxParticipants: 12,
+      currentParticipants: 7,
+      isPublic: true,
+      isFree: false,
+      cost: 40,
+      creatorId: validUsers[3].id,
+      eventImage: null
+    },
+    
+    // David Chen - CrossFit & Fitness events
+    {
+      title: "CrossFit Beach Workout",
+      description: "High-intensity beach workout. Bodyweight exercises with ocean views. Bring water and towel.",
+      sportType: "crossfit",
+      date: new Date(Date.now() + 691200000), // 8 days from now
+      location: "Santa Monica Beach",
+      locationCoordinates: { lat: 34.019394, lng: -118.491227 },
+      maxParticipants: 15,
+      currentParticipants: 11,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[0].id,
+      eventImage: null
+    },
+    {
+      title: "Functional Fitness Workshop",
+      description: "Learn proper form and techniques for functional movements. Great for CrossFit beginners.",
+      sportType: "crossfit",
+      date: new Date(Date.now() + 777600000), // 9 days from now
+      location: "Seattle Fitness Center",
+      locationCoordinates: { lat: 47.606209, lng: -122.332069 },
+      maxParticipants: 10,
+      currentParticipants: 6,
+      isPublic: true,
+      isFree: false,
+      cost: 35,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    
+    // Lisa Park - Swimming events
+    {
+      title: "Open Water Swimming",
+      description: "Ocean swimming session for experienced swimmers. Safety kayak will be present.",
+      sportType: "swimming",
+      date: new Date(Date.now() + 864000000), // 10 days from now
+      location: "La Jolla Cove",
+      locationCoordinates: { lat: 32.850932, lng: -117.273309 },
+      maxParticipants: 8,
+      currentParticipants: 5,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[3].id,
+      eventImage: null
+    },
+    {
+      title: "Water Polo Practice",
+      description: "Competitive water polo training. Must be a strong swimmer. New players welcome to try.",
+      sportType: "swimming",
+      date: new Date(Date.now() + 1209600000), // 14 days from now
+      location: "UCSD Aquatic Center",
+      locationCoordinates: { lat: 32.881178, lng: -117.240094 },
+      maxParticipants: 14,
+      currentParticipants: 10,
+      isPublic: true,
+      isFree: false,
+      cost: 20,
+      creatorId: validUsers[3].id, // Use existing user instead of non-existent index
+      eventImage: null
+    },
+    
+    // Mixed sports events from various users
+    {
+      title: "Volleyball Beach Tournament",
+      description: "Sand volleyball tournament. Teams of 4. Prizes for top 3 teams. Food trucks on site!",
+      sportType: "volleyball",
+      date: new Date(Date.now() + 1296000000), // 15 days from now
+      location: "Manhattan Beach Volleyball Courts",
+      locationCoordinates: { lat: 33.884566, lng: -118.410755 },
+      maxParticipants: 32,
+      currentParticipants: 20,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[1].id,
+      eventImage: null
+    },
+    {
+      title: "Hiking Adventure",
+      description: "Moderate difficulty hike with stunning views. Bring water, snacks, and hiking boots.",
+      sportType: "hiking",
+      date: new Date(Date.now() + 1382400000), // 16 days from now
+      location: "Griffith Observatory Trail",
+      locationCoordinates: { lat: 34.118434, lng: -118.300392 },
+      maxParticipants: 20,
+      currentParticipants: 14,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    {
+      title: "Cycling Group Ride",
+      description: "30-mile road cycling ride through scenic routes. Intermediate pace. Helmets required.",
+      sportType: "cycling",
+      date: new Date(Date.now() + 1468800000), // 17 days from now
+      location: "Golden Gate Park",
+      locationCoordinates: { lat: 37.769421, lng: -122.486214 },
+      maxParticipants: 25,
+      currentParticipants: 16,
+      isPublic: true,
+      isFree: true,
+      cost: 0,
+      creatorId: validUsers[2].id,
+      eventImage: null
+    },
+    {
+      title: "Badminton Club Night",
+      description: "Friendly badminton games. All skill levels. Rackets and shuttlecocks provided.",
+      sportType: "badminton",
+      date: new Date(Date.now() + 1555200000), // 18 days from now
+      location: "Community Sports Center",
+      locationCoordinates: { lat: 40.712775, lng: -74.005973 },
+      maxParticipants: 12,
+      currentParticipants: 8,
+      isPublic: true,
+      isFree: false,
+      cost: 10,
+      creatorId: validUsers[3].id,
+      eventImage: null
+    },
+    
+    // Events from the 10 new users (starting from index 6)
+    // Carlos Martinez - Running events
+    {
+      title: "Mountain Trail Ultra Run",
+      description: "50K trail run through Rocky Mountain trails. Advanced runners only. Aid stations provided.",
+      sportType: "running",
+      date: new Date(Date.now() + 1900800000), // 22 days from now
+      location: "Rocky Mountain National Park",
+      locationCoordinates: { lat: 40.3428, lng: -105.6836 },
+      maxParticipants: 20,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 40,
+      creatorId: validUsers[6]?.id || validUsers[0].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="runbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#10b981"/>
+            <stop offset="100%" style="stop-color:#059669"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#runbg)"/>
+        <path d="M50 150 Q100 100 150 120 T250 100" stroke="white" stroke-width="3" fill="none"/>
+        <circle cx="80" cy="130" r="3" fill="white"/>
+        <circle cx="180" cy="110" r="3" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">TRAIL RUN</text>
+      </svg>`)
+    },
+    
+    // Nina Thompson - Volleyball events
+    {
+      title: "Beach Volleyball Tournament",
+      description: "Professional level beach volleyball tournament. Teams of 2. Cash prizes for winners!",
+      sportType: "volleyball",
+      date: new Date(Date.now() + 2073600000), // 24 days from now
+      location: "Mission Beach Volleyball Courts",
+      locationCoordinates: { lat: 32.7767, lng: -117.2533 },
+      maxParticipants: 16,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[7]?.id || validUsers[1].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="volleybg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f59e0b"/>
+            <stop offset="100%" style="stop-color:#d97706"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#volleybg)"/>
+        <circle cx="150" cy="100" r="15" fill="white" stroke="#d97706" stroke-width="2"/>
+        <rect x="140" y="170" width="20" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">VOLLEYBALL</text>
+      </svg>`)
+    },
+    
+    // Jordan Lee - Rock Climbing
+    {
+      title: "Indoor Climbing Workshop",
+      description: "Learn proper climbing techniques and safety. Equipment included. Perfect for beginners.",
+      sportType: "climbing",
+      date: new Date(Date.now() + 2160000000), // 25 days from now
+      location: "Boulder Rock Club",
+      locationCoordinates: { lat: 40.0150, lng: -105.2705 },
+      maxParticipants: 10,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 35,
+      creatorId: validUsers[8]?.id || validUsers[2].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="climbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#7c3aed"/>
+            <stop offset="100%" style="stop-color:#5b21b6"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#climbg)"/>
+        <path d="M50 180 L100 140 L150 160 L200 120 L250 140" stroke="white" stroke-width="4" fill="none"/>
+        <circle cx="120" cy="150" r="4" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">CLIMBING</text>
+      </svg>`)
+    },
+    
+    // Priya Patel - Yoga events
+    {
+      title: "Power Yoga Flow Class",
+      description: "Intense 90-minute power yoga session. Build strength and flexibility. All levels welcome.",
+      sportType: "yoga",
+      date: new Date(Date.now() + 2246400000), // 26 days from now
+      location: "Austin Yoga Center",
+      locationCoordinates: { lat: 30.2672, lng: -97.7431 },
+      maxParticipants: 25,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 20,
+      creatorId: validUsers[9]?.id || validUsers[3].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="yogabg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#06b6d4"/>
+            <stop offset="100%" style="stop-color:#0891b2"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#yogabg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="40" fill="white"/>
+        <rect x="125" y="115" width="15" height="5" fill="white"/>
+        <rect x="160" y="115" width="15" height="5" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">YOGA</text>
+      </svg>`)
+    },
+    
+    // Tyler Johnson - Cycling
+    {
+      title: "Portland Century Ride",
+      description: "100-mile cycling challenge through scenic Oregon countryside. Support vehicle included.",
+      sportType: "cycling",
+      date: new Date(Date.now() + 2332800000), // 27 days from now
+      location: "Portland Cycling Club",
+      locationCoordinates: { lat: 45.5152, lng: -122.6784 },
+      maxParticipants: 30,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[10]?.id || validUsers[0].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bikebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6"/>
+            <stop offset="100%" style="stop-color:#1d4ed8"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#bikebg)"/>
+        <circle cx="100" cy="130" r="20" fill="none" stroke="white" stroke-width="3"/>
+        <circle cx="200" cy="130" r="20" fill="none" stroke="white" stroke-width="3"/>
+        <path d="M120 130 L180 130 L150 100 Z" stroke="white" stroke-width="3" fill="none"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">CYCLING</text>
+      </svg>`)
+    },
+    
+    // Maya Rivera - Boxing
+    {
+      title: "Boxing Fundamentals Workshop",
+      description: "Learn proper boxing stance, jab, cross, and footwork. Gloves provided. Great workout!",
+      sportType: "boxing",
+      date: new Date(Date.now() + 2419200000), // 28 days from now
+      location: "Las Vegas Boxing Gym",
+      locationCoordinates: { lat: 36.1699, lng: -115.1398 },
+      maxParticipants: 15,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[11]?.id || validUsers[1].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="boxbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#dc2626"/>
+            <stop offset="100%" style="stop-color:#b91c1c"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#boxbg)"/>
+        <circle cx="120" cy="110" r="12" fill="white"/>
+        <circle cx="180" cy="110" r="12" fill="white"/>
+        <rect x="140" y="120" width="20" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">BOXING</text>
+      </svg>`)
+    },
+    
+    // Ethan Davis - Golf
+    {
+      title: "Golf Swing Analysis Clinic",
+      description: "Professional golf instruction with video analysis. Improve your swing technique.",
+      sportType: "golf",
+      date: new Date(Date.now() + 2505600000), // 29 days from now
+      location: "Scottsdale Golf Course",
+      locationCoordinates: { lat: 33.4942, lng: -111.9261 },
+      maxParticipants: 8,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 50,
+      creatorId: validUsers[12]?.id || validUsers[2].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="golfbg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#059669"/>
+            <stop offset="100%" style="stop-color:#047857"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#golfbg)"/>
+        <circle cx="200" cy="160" r="6" fill="white"/>
+        <path d="M100 120 Q150 100 200 160" stroke="white" stroke-width="3" fill="none"/>
+        <rect x="145" y="95" width="3" height="30" fill="white"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">GOLF</text>
+      </svg>`)
+    },
+    
+    // Sophia Kim - Dance Fitness
+    {
+      title: "Dance Cardio Blast",
+      description: "High-energy dance fitness class mixing hip-hop, Latin, and pop moves. No experience needed!",
+      sportType: "dance",
+      date: new Date(Date.now() + 2592000000), // 30 days from now
+      location: "Miami Dance Studio",
+      locationCoordinates: { lat: 25.7617, lng: -80.1918 },
+      maxParticipants: 20,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 15,
+      creatorId: validUsers[13]?.id || validUsers[3].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dancebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ec4899"/>
+            <stop offset="100%" style="stop-color:#db2777"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#dancebg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <path d="M150 100 L130 140 M150 100 L170 140" stroke="white" stroke-width="4"/>
+        <path d="M135 120 L165 120" stroke="white" stroke-width="4"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">DANCE</text>
+      </svg>`)
+    },
+    
+    // Marcus Brown - Martial Arts
+    {
+      title: "MMA Introduction Class",
+      description: "Learn basic mixed martial arts techniques including striking and grappling. Beginner friendly.",
+      sportType: "martial_arts",
+      date: new Date(Date.now() + 2678400000), // 31 days from now
+      location: "Las Vegas MMA Academy",
+      locationCoordinates: { lat: 36.1699, lng: -115.1398 },
+      maxParticipants: 12,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 30,
+      creatorId: validUsers[14]?.id || validUsers[0].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="mmabg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#374151"/>
+            <stop offset="100%" style="stop-color:#1f2937"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#mmabg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="40" fill="white"/>
+        <path d="M135 110 L125 130 M165 110 L175 130" stroke="white" stroke-width="4"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="bold">MMA</text>
+      </svg>`)
+    },
+    
+    // Zoe Wilson - Figure Skating
+    {
+      title: "Figure Skating Basics",
+      description: "Learn fundamental figure skating moves including forward and backward skating, stops, and turns.",
+      sportType: "skating",
+      date: new Date(Date.now() + 2764800000), // 32 days from now
+      location: "Minneapolis Ice Arena",
+      locationCoordinates: { lat: 44.9778, lng: -93.2650 },
+      maxParticipants: 10,
+      currentParticipants: 0,
+      isPublic: true,
+      isFree: false,
+      cost: 25,
+      creatorId: validUsers[15]?.id || validUsers[1].id,
+      eventImage: "data:image/svg+xml;base64," + btoa(`<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="icebg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0ea5e9"/>
+            <stop offset="100%" style="stop-color:#0284c7"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="200" fill="url(#icebg)"/>
+        <circle cx="150" cy="90" r="8" fill="white"/>
+        <rect x="145" y="100" width="10" height="30" fill="white"/>
+        <path d="M100 150 Q150 120 200 150" stroke="white" stroke-width="3" fill="none"/>
+        <text x="150" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">SKATING</text>
+      </svg>`)
+    }
+  ];
+
+  // Only create sample events if the database is empty (prevent duplicates)
+  const existingEvents = await storage.getPublicEvents();
+  if (existingEvents.length === 0) {
+    console.log(`Creating ${sampleEvents.length} sample events...`);
+
+    for (const eventData of sampleEvents) {
+      try {
+        await storage.createEvent(eventData);
+        console.log(`Created event: ${eventData.title}`);
+      } catch (error) {
+        console.error(`Error creating event ${eventData.title}:`, error);
+      }
+    }
+  } else {
+    console.log(`Skipping sample event creation - database already has ${existingEvents.length} events`);
+  }
+  
+  // Create user sport preferences for realistic matching
+  console.log('Creating user sport preferences...');
+  
+  const userSportPrefs = [
+    // Alex Smith (admin) preferences
+    { userId: validUsers[0].id, sportType: "basketball", skillLevel: "advanced", yearsExperience: 8, isVisible: true },
+    { userId: validUsers[0].id, sportType: "tennis", skillLevel: "intermediate", yearsExperience: 5, isVisible: true },
+    
+    // Sarah Johnson preferences
+    { userId: validUsers[1].id, sportType: "running", skillLevel: "expert", yearsExperience: 12, isVisible: true },
+    { userId: validUsers[1].id, sportType: "yoga", skillLevel: "advanced", yearsExperience: 7, isVisible: true },
+    { userId: validUsers[1].id, sportType: "volleyball", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
+    
+    // Mike Rodriguez preferences
+    { userId: validUsers[2].id, sportType: "soccer", skillLevel: "expert", yearsExperience: 15, isVisible: true },
+    { userId: validUsers[2].id, sportType: "cycling", skillLevel: "advanced", yearsExperience: 6, isVisible: true },
+    
+    // Emma Wilson preferences
+    { userId: validUsers[3].id, sportType: "tennis", skillLevel: "expert", yearsExperience: 10, isVisible: true },
+    { userId: validUsers[3].id, sportType: "badminton", skillLevel: "advanced", yearsExperience: 4, isVisible: true },
+    
+    // David Chen preferences
+    { userId: validUsers[2].id, sportType: "crossfit", skillLevel: "expert", yearsExperience: 8, isVisible: true },
+    { userId: validUsers[2].id, sportType: "hiking", skillLevel: "advanced", yearsExperience: 10, isVisible: true },
+    { userId: validUsers[2].id, sportType: "cycling", skillLevel: "intermediate", yearsExperience: 3, isVisible: true },
+    
+    // Lisa Park preferences
+    { userId: validUsers[3].id, sportType: "swimming", skillLevel: "expert", yearsExperience: 14, isVisible: true },
+    { userId: validUsers[3].id, sportType: "volleyball", skillLevel: "advanced", yearsExperience: 5, isVisible: true }
+  ];
+  
+  for (const pref of userSportPrefs) {
+    try {
+      await storage.createUserSportPreference(pref);
+      console.log(`Created sport preference: ${pref.sportType} for user ${pref.userId}`);
+    } catch (error) {
+      console.error(`Error creating sport preference:`, error);
+    }
+  }
+  
+  console.log('Sample data creation completed!');
+}).catch(error => {
+  console.error("Error creating test users:", error);
+});

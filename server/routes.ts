@@ -65,6 +65,15 @@ import {
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth } from "./auth";
+import {
+  upload,
+  uploadProfileImage,
+  uploadCoverImage,
+  uploadEventImage,
+  uploadTeamPostImage,
+  uploadTournamentImage,
+  deleteImageFromGCS
+} from "./gcs-storage";
 
 // Authentication middleware using Passport
 const authenticateUser = (req: Request, res: Response, next: Function) => {
@@ -191,6 +200,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to generate image' });
     }
   });
+
+  // ============================================================================
+  // IMAGE UPLOAD ROUTES (Google Cloud Storage)
+  // ============================================================================
+
+  // Upload profile image
+  app.post('/api/users/:userId/profile-image', authenticateUser, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+
+      // Verify user is updating their own profile
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized to update this profile' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Upload to GCS
+      const imageUrl = await uploadProfileImage(req.file, userId);
+
+      // Update user's profile image in database
+      const updatedUser = await storage.updateUser(userId, { profileImage: imageUrl });
+
+      res.json({ imageUrl, user: updatedUser });
+    } catch (error: any) {
+      console.error('Profile image upload error:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload profile image' });
+    }
+  });
+
+  // Upload cover image
+  app.post('/api/users/:userId/cover-image', authenticateUser, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+
+      // Verify user is updating their own profile
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: 'Unauthorized to update this profile' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Delete old cover image if exists
+      const user = await storage.getUser(userId);
+      if (user?.coverImage) {
+        await deleteImageFromGCS(user.coverImage);
+      }
+
+      // Upload to GCS
+      const imageUrl = await uploadCoverImage(req.file, userId);
+
+      // Update user's cover image in database
+      const updatedUser = await storage.updateUser(userId, { coverImage: imageUrl });
+
+      res.json({ imageUrl, user: updatedUser });
+    } catch (error: any) {
+      console.error('Cover image upload error:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload cover image' });
+    }
+  });
+
+  // Upload event image
+  app.post('/api/events/:eventId/image', authenticateUser, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Verify user is the event creator
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      if (event.creatorId !== req.user?.id) {
+        return res.status(403).json({ message: 'Unauthorized to update this event' });
+      }
+
+      // Delete old event image if exists
+      if (event.eventImage) {
+        await deleteImageFromGCS(event.eventImage);
+      }
+
+      // Upload to GCS
+      const imageUrl = await uploadEventImage(req.file, eventId);
+
+      // Update event image in database
+      const updatedEvent = await storage.updateEvent(eventId, { eventImage: imageUrl });
+
+      res.json({ imageUrl, event: updatedEvent });
+    } catch (error: any) {
+      console.error('Event image upload error:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload event image' });
+    }
+  });
+
+  // Upload team post image
+  app.post('/api/teams/:teamId/posts/:postId/image', authenticateUser, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const postId = parseInt(req.params.postId);
+      const teamId = parseInt(req.params.teamId);
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Verify user is the post author
+      const post = await storage.getTeamPost(postId);
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+      if (post.authorId !== req.user?.id) {
+        return res.status(403).json({ message: 'Unauthorized to update this post' });
+      }
+
+      // Delete old image if exists
+      if (post.image) {
+        await deleteImageFromGCS(post.image);
+      }
+
+      // Upload to GCS
+      const imageUrl = await uploadTeamPostImage(req.file, postId);
+
+      // Update post image in database
+      const updatedPost = await storage.updateTeamPost(postId, { image: imageUrl });
+
+      res.json({ imageUrl, post: updatedPost });
+    } catch (error: any) {
+      console.error('Team post image upload error:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload post image' });
+    }
+  });
+
+  // Upload tournament image
+  app.post('/api/tournaments/:tournamentId/image', authenticateUser, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const tournamentId = parseInt(req.params.tournamentId);
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Verify user is the tournament creator
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: 'Tournament not found' });
+      }
+      if (tournament.creatorId !== req.user?.id) {
+        return res.status(403).json({ message: 'Unauthorized to update this tournament' });
+      }
+
+      // Delete old image if exists
+      if (tournament.tournamentImage) {
+        await deleteImageFromGCS(tournament.tournamentImage);
+      }
+
+      // Upload to GCS
+      const imageUrl = await uploadTournamentImage(req.file, tournamentId);
+
+      // Update tournament image in database
+      const updatedTournament = await storage.updateTournament(tournamentId, { tournamentImage: imageUrl });
+
+      res.json({ imageUrl, tournament: updatedTournament });
+    } catch (error: any) {
+      console.error('Tournament image upload error:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload tournament image' });
+    }
+  });
+
+  // ============================================================================
+  // USER ROUTES
+  // ============================================================================
 
   // User routes
   app.post('/api/users', async (req: Request, res: Response) => {
