@@ -77,19 +77,9 @@ import {
 
 // Authentication middleware using Passport
 const authenticateUser = (req: Request, res: Response, next: Function) => {
-  console.log('Auth check:', {
-    isAuthenticated: req.isAuthenticated(),
-    sessionID: req.sessionID,
-    userId: req.user?.id,
-    url: req.url,
-    headers: req.headers.cookie ? 'has cookies' : 'no cookies'
-  });
-
   if (!req.isAuthenticated()) {
-    console.log('Authentication failed for:', req.url);
     return res.status(401).json({ message: "Unauthorized - Please log in" });
   }
-  console.log('Authentication successful for user:', req.user?.id);
   next();
 };
 
@@ -662,9 +652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const participatedEventIds = userRSVPs
         .filter(rsvp => rsvp.status === 'approved')
         .map(rsvp => rsvp.eventId);
-      
-      console.log("Participated event IDs:", participatedEventIds);
-      
+
       // Fetch participated events individually
       const participatedEvents = [];
       for (const eventId of participatedEventIds) {
@@ -677,8 +665,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error(`Failed to fetch event ${eventId}:`, err);
         }
       }
-      
-      console.log("Fetched user events - Participated:", participatedEvents.length);
       
       // Add creator info and relationship type to each event
       const eventsWithCreators = await Promise.all(

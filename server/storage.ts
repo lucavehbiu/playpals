@@ -2599,13 +2599,7 @@ export class DatabaseStorage implements IStorage {
         }
       }
     });
-    
-    // Log for debugging
-    if (eventResult) {
-      console.log("Found event:", eventResult.id, eventResult.title);
-      console.log("Creator info:", eventResult.creator?.name || eventResult.creator?.username);
-    }
-    
+
     return eventResult;
   }
 
