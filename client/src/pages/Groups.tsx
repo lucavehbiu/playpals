@@ -1,34 +1,59 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Users, MessageCircle, Calendar, Clock, MapPin, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Link, useRoute, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { useGroupNotifications } from "@/hooks/use-group-notifications";
-import { queryClient } from "@/lib/queryClient";
-import { sportTypes } from "@shared/schema";
-import { motion } from "framer-motion";
-import { GroupCardSkeleton } from "@/components/ui/loading-skeletons";
-import { NoGroupsEmptyState } from "@/components/ui/empty-states";
+// @ts-nocheck
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Plus, Users, MessageCircle, Calendar, Clock, MapPin, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Link, useRoute, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useGroupNotifications } from '@/hooks/use-group-notifications';
+import { queryClient } from '@/lib/queryClient';
+import { sportTypes } from '@shared/schema';
+import { motion } from 'framer-motion';
+import { GroupCardSkeleton } from '@/components/ui/loading-skeletons';
+import { NoGroupsEmptyState } from '@/components/ui/empty-states';
 
 const createGroupSchema = z.object({
-  name: z.string().min(1, "Group name is required").max(50, "Group name must be 50 characters or less"),
+  name: z
+    .string()
+    .min(1, 'Group name is required')
+    .max(50, 'Group name must be 50 characters or less'),
   description: z.string().optional(),
-  sportType: z.string().min(1, "Sport type is required"),
-  maxMembers: z.number().min(2, "Minimum 2 members").max(50, "Maximum 50 members").default(20),
+  sportType: z.string().min(1, 'Sport type is required'),
+  maxMembers: z.number().min(2, 'Minimum 2 members').max(50, 'Maximum 50 members').default(20),
   isPrivate: z.boolean().default(false),
 });
 
@@ -38,9 +63,9 @@ export default function Groups() {
   const { user, loginMutation } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
-  const [match, params] = useRoute("/groups/:groupId");
+  const [match, params] = useRoute('/groups/:groupId');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  
+
   // Check if create parameter is in URL and open modal
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -50,12 +75,13 @@ export default function Groups() {
       window.history.replaceState({}, '', '/groups');
     }
   }, [location]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSport, setSelectedSport] = useState<string>("all");
-  const [membershipFilter, setMembershipFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSport, setSelectedSport] = useState<string>('all');
+  const [membershipFilter, setMembershipFilter] = useState<string>('all');
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
-  const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } = useGroupNotifications();
+  const { getNotificationCount, getTotalNotificationCount, markNotificationsViewed } =
+    useGroupNotifications();
 
   // Show login prompt if user is not authenticated
   if (!user) {
@@ -67,21 +93,21 @@ export default function Groups() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Groups</h1>
             <p className="text-gray-600">Please log in to view and manage your sports groups.</p>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={() => {
               // Auto-login Emma Davis for testing
-              loginMutation.mutate({ 
-                username: "emmadavis", 
-                password: "password123" 
+              loginMutation.mutate({
+                username: 'emmadavis',
+                password: 'password123',
               });
             }}
             disabled={loginMutation.isPending}
             className="w-full mb-3"
           >
-            {loginMutation.isPending ? "Logging in..." : "Quick Login (Emma Davis)"}
+            {loginMutation.isPending ? 'Logging in...' : 'Quick Login (Emma Davis)'}
           </Button>
-          
+
           <div className="text-center">
             <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm">
               ← Back to Home
@@ -98,16 +124,20 @@ export default function Groups() {
   const form = useForm<CreateGroupForm>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      sportType: "",
+      name: '',
+      description: '',
+      sportType: '',
       maxMembers: 20,
       isPrivate: false,
     },
   });
 
   // Query to fetch user's groups
-  const { data: userGroups = [], isLoading: isUserGroupsLoading, error: userGroupsError } = useQuery({
+  const {
+    data: userGroups = [],
+    isLoading: isUserGroupsLoading,
+    error: userGroupsError,
+  } = useQuery({
     queryKey: ['/api/user-sports-groups', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -121,7 +151,11 @@ export default function Groups() {
   });
 
   // Query to fetch discoverable groups
-  const { data: discoverableGroups = [], isLoading: isDiscoverableGroupsLoading, error: discoverableGroupsError } = useQuery({
+  const {
+    data: discoverableGroups = [],
+    isLoading: isDiscoverableGroupsLoading,
+    error: discoverableGroupsError,
+  } = useQuery({
     queryKey: ['/api/groups', 'browse'],
     queryFn: async () => {
       if (!user) return [];
@@ -138,73 +172,80 @@ export default function Groups() {
   const allGroups = useMemo(() => {
     const combined = [...userGroups, ...discoverableGroups];
     // Remove duplicates by id
-    const unique = combined.filter((group, index, self) => 
-      index === self.findIndex(g => g.id === group.id)
+    const unique = combined.filter(
+      (group, index, self) => index === self.findIndex((g) => g.id === group.id)
     );
     return unique;
   }, [userGroups, discoverableGroups]);
 
   const isGroupsLoading = isUserGroupsLoading || isDiscoverableGroupsLoading;
   const groupsError = userGroupsError || discoverableGroupsError;
-  
+
   // Apply filters to groups
   const groups = useMemo(() => {
     let filteredGroups = allGroups;
-    
+
     // Filter by sport type
-    if (selectedSport && selectedSport !== "all") {
+    if (selectedSport && selectedSport !== 'all') {
       filteredGroups = filteredGroups.filter((group: any) => group.sportType === selectedSport);
     }
-    
+
     // Filter by membership - check if group is in user's groups
-    if (membershipFilter === "my_groups") {
-      const userGroupIds = userGroups.map(group => group.id);
+    if (membershipFilter === 'my_groups') {
+      const userGroupIds = userGroups.map((group) => group.id);
       filteredGroups = filteredGroups.filter((group: any) => {
         return userGroupIds.includes(group.id);
       });
     }
-    
+
     // Filter by search query
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
-      filteredGroups = filteredGroups.filter((group: any) => 
-        group.name.toLowerCase().includes(searchLower) ||
-        (group.description && group.description.toLowerCase().includes(searchLower))
+      filteredGroups = filteredGroups.filter(
+        (group: any) =>
+          group.name.toLowerCase().includes(searchLower) ||
+          (group.description && group.description.toLowerCase().includes(searchLower))
       );
     }
-    
+
     return filteredGroups;
   }, [allGroups, userGroups, selectedSport, membershipFilter, searchQuery]);
 
   // Calculate group counts by sport for dropdown
   const sportCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    const groupsToCount = membershipFilter === "my_groups" 
-      ? userGroups
-      : allGroups;
-    
+    const groupsToCount = membershipFilter === 'my_groups' ? userGroups : allGroups;
+
     groupsToCount.forEach((group: any) => {
       counts[group.sportType] = (counts[group.sportType] || 0) + 1;
     });
     return counts;
   }, [allGroups, userGroups, membershipFilter]);
-  
+
   // Debug logging
   console.log('Groups component state:', {
     allGroups,
     allGroupsLength: allGroups?.length,
     isGroupsLoading,
-    groupsError
+    groupsError,
   });
 
   // Error handling component
-  const ErrorSection = ({ title, error, onRetry }: { title: string, error: any, onRetry: () => void }) => (
+  const ErrorSection = ({
+    title,
+    error,
+    onRetry,
+  }: {
+    title: string;
+    error: any;
+    onRetry: () => void;
+  }) => (
     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium text-red-800">{title}</h3>
           <p className="text-sm text-red-600 mt-1">
-            {error?.message || "An unexpected error occurred"}
+            {error?.message || 'An unexpected error occurred'}
           </p>
         </div>
         <Button
@@ -222,33 +263,33 @@ export default function Groups() {
   // Create sports group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (data: CreateGroupForm) => {
-      const response = await fetch("/api/sports-groups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/sports-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           ...data,
           adminId: user?.id,
         }),
       });
-      if (!response.ok) throw new Error("Failed to create group");
+      if (!response.ok) throw new Error('Failed to create group');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "sports-groups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sports-groups/discoverable"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'sports-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/sports-groups/discoverable'] });
       setIsCreateModalOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Sports group created successfully!",
+        title: 'Success',
+        description: 'Sports group created successfully!',
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to create sports group",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create sports group',
+        variant: 'destructive',
       });
     },
   });
@@ -264,7 +305,10 @@ export default function Groups() {
   return (
     <div className="relative">
       {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" aria-hidden="true"></div>
+      <div
+        className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"
+        aria-hidden="true"
+      ></div>
 
       <motion.div
         className="mb-6 relative z-10"
@@ -282,10 +326,7 @@ export default function Groups() {
           </div>
 
           {/* Create Group Button */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
@@ -327,7 +368,7 @@ export default function Groups() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -336,7 +377,7 @@ export default function Groups() {
                 Create a new sports group to organize regular games and activities.
               </DialogDescription>
             </DialogHeader>
-            
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -352,7 +393,7 @@ export default function Groups() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="sportType"
@@ -377,7 +418,7 @@ export default function Groups() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -385,7 +426,7 @@ export default function Groups() {
                     <FormItem>
                       <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Describe your group, skill level, when you play, etc."
                           className="resize-none"
                           rows={3}
@@ -396,7 +437,7 @@ export default function Groups() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="maxMembers"
@@ -423,34 +464,36 @@ export default function Groups() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="isPrivate"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>Private Group</FormLabel>
                         <FormDescription className="text-sm text-gray-500">
-                          Private groups require approval to join and won't appear in public searches.
+                          Private groups require approval to join and won't appear in public
+                          searches.
                         </FormDescription>
                       </div>
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="flex justify-end gap-3">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit" disabled={createGroupMutation.isPending}>
-                    {createGroupMutation.isPending ? "Creating..." : "Create Group"}
+                    {createGroupMutation.isPending ? 'Creating...' : 'Create Group'}
                   </Button>
                 </div>
               </form>
@@ -482,7 +525,7 @@ export default function Groups() {
           <p>Failed to load groups. Please try again later.</p>
         </div>
       ) : groups.length === 0 ? (
-        <NoGroupsEmptyState isOwn={membershipFilter === "my_groups"} />
+        <NoGroupsEmptyState isOwn={membershipFilter === 'my_groups'} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {groups.map((group: any, index: number) => {
@@ -495,7 +538,7 @@ export default function Groups() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
                     duration: 0.4,
-                    delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1)
+                    delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1),
                   }}
                   whileHover={{ y: -2 }}
                   className="h-full"

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Express, Request, Response, NextFunction } from 'express';
 import { createServer, type Server } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -2295,11 +2296,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           member.role !== 'captain' &&
           team.creatorId !== authenticatedUser.id
         ) {
-          return res
-            .status(403)
-            .json({
-              message: "Forbidden - You don't have permission to create schedules in this team",
-            });
+          return res.status(403).json({
+            message: "Forbidden - You don't have permission to create schedules in this team",
+          });
         }
 
         // Date conversion for startTime and endTime

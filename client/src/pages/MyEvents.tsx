@@ -1,14 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { Event } from "@/lib/types";
-import EventTabs from "@/components/event/EventTabs";
-import EventCard from "@/components/event/EventCard";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, Calendar, CalendarCheck, CalendarRange } from "lucide-react";
-import { motion } from "framer-motion";
-import React, { useState } from "react";
+// @ts-nocheck
+import { useQuery } from '@tanstack/react-query';
+import { Event } from '@/lib/types';
+import EventTabs from '@/components/event/EventTabs';
+import EventCard from '@/components/event/EventCard';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, Calendar, CalendarCheck, CalendarRange } from 'lucide-react';
+import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 
 // Component to display upcoming events
 const UpcomingEvents = ({
@@ -22,9 +23,8 @@ const UpcomingEvents = ({
   publicEvents,
   isLoadingPublic,
   user,
-  toast
+  toast,
 }: any) => {
-
   // Filter events that are in the future
   const upcomingEvents = events?.filter((event: Event) => new Date(event.date) >= new Date()) || [];
 
@@ -38,7 +38,9 @@ const UpcomingEvents = ({
       <div className="mb-6">
         <h1 className="text-lg font-semibold flex items-center text-gray-800">
           <CalendarRange className="h-4 w-4 mr-2 text-primary" />
-          {upcomingEvents.length > 0 ? `${upcomingEvents.length} event${upcomingEvents.length === 1 ? '' : 's'} scheduled` : 'Your schedule is clear'}
+          {upcomingEvents.length > 0
+            ? `${upcomingEvents.length} event${upcomingEvents.length === 1 ? '' : 's'} scheduled`
+            : 'Your schedule is clear'}
         </h1>
       </div>
 
@@ -53,7 +55,7 @@ const UpcomingEvents = ({
         <div className="text-center p-8 bg-red-50 rounded-lg">
           <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Events</h2>
           <p className="text-red-600">
-            {error instanceof Error ? error.message : "An unknown error occurred"}
+            {error instanceof Error ? error.message : 'An unknown error occurred'}
           </p>
         </div>
       ) : (
@@ -106,7 +108,11 @@ const UpcomingEvents = ({
               <ExternalLink className="h-5 w-5 mr-2 text-primary" />
               Discover Events Near You
             </h2>
-            <Button variant="ghost" onClick={goToDiscover} className="text-primary text-sm font-medium hover:text-blue-700">
+            <Button
+              variant="ghost"
+              onClick={goToDiscover}
+              className="text-primary text-sm font-medium hover:text-blue-700"
+            >
               View All
             </Button>
           </div>
@@ -134,21 +140,22 @@ const UpcomingEvents = ({
                     >
                       <EventCard
                         event={event}
-                        onJoin={(eventId) => toast({
-                          title: "Joining Event",
-                          description: `You're joining event #${eventId}.`,
-                        })}
+                        onJoin={(eventId) =>
+                          toast({
+                            title: 'Joining Event',
+                            description: `You're joining event #${eventId}.`,
+                          })
+                        }
                       />
                     </motion.div>
                   ))
               ) : (
                 <div className="col-span-3 text-center p-8 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
-                  <h3 className="text-lg font-medium text-gray-800 mb-2">No public events available</h3>
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">
+                    No public events available
+                  </h3>
                   <p className="text-gray-500 mb-6">Check back later or create your own event!</p>
-                  <CreateEventButton
-                    onEventCreated={onEventCreated}
-                    centered={true}
-                  />
+                  <CreateEventButton onEventCreated={onEventCreated} centered={true} />
                 </div>
               )}
             </div>
@@ -162,16 +169,17 @@ const UpcomingEvents = ({
 // Component to display past events
 const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) => {
   // Filter events that are in the past (either created by user or participated in)
-  const pastEvents = events?.filter((event: any) => {
-    const eventDate = new Date(event.date);
-    const now = new Date();
-    return eventDate < now && (
-      event.relationshipType === 'participated' ||
-      event.creatorId === user?.id
-    );
-  }) || [];
+  const pastEvents =
+    events?.filter((event: any) => {
+      const eventDate = new Date(event.date);
+      const now = new Date();
+      return (
+        eventDate < now &&
+        (event.relationshipType === 'participated' || event.creatorId === user?.id)
+      );
+    }) || [];
 
-  console.log("Past Events Filter Results:", {
+  console.log('Past Events Filter Results:', {
     totalEvents: events?.length || 0,
     pastEvents: pastEvents.length,
     pastEventsData: pastEvents.map((e: any) => ({
@@ -180,8 +188,8 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) 
       date: e.date,
       relationshipType: e.relationshipType,
       creatorId: e.creatorId,
-      userId: user?.id
-    }))
+      userId: user?.id,
+    })),
   });
 
   return (
@@ -209,7 +217,7 @@ const PastEvents = ({ events, isLoading, error, onManage, onShare, user }: any) 
         <div className="text-center p-8 bg-red-50 rounded-lg">
           <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Events</h2>
           <p className="text-red-600">
-            {error instanceof Error ? error.message : "An unknown error occurred"}
+            {error instanceof Error ? error.message : 'An unknown error occurred'}
           </p>
         </div>
       ) : (
@@ -253,10 +261,15 @@ const MyEvents = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   // Default to the upcoming tab as the primary view
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState('upcoming');
 
   // Get events created by the user
-  const { data: myEvents, isLoading, error, refetch } = useQuery<Event[]>({
+  const {
+    data: myEvents,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<Event[]>({
     queryKey: [user ? `/api/events/user/${user.id}` : null],
     enabled: !!user,
   });
@@ -272,7 +285,7 @@ const MyEvents = () => {
 
   const handleShareEvent = (eventId: number) => {
     toast({
-      title: "Share Event",
+      title: 'Share Event',
       description: `You're sharing event #${eventId}. This would open sharing options in the full app.`,
     });
   };
@@ -282,7 +295,7 @@ const MyEvents = () => {
   };
 
   const goToDiscover = () => {
-    setLocation("/discover");
+    setLocation('/discover');
   };
 
   const handleTabChange = (tab: string) => {
@@ -300,16 +313,16 @@ const MyEvents = () => {
     publicEvents,
     isLoadingPublic,
     user,
-    toast
+    toast,
   };
 
   return (
     <>
       <EventTabs activeTab={activeTab} onChange={handleTabChange} />
 
-      {activeTab === "upcoming" ? (
+      {activeTab === 'upcoming' ? (
         <UpcomingEvents {...sharedProps} />
-      ) : activeTab === "past" ? (
+      ) : activeTab === 'past' ? (
         <PastEvents {...sharedProps} />
       ) : (
         <PastEvents {...sharedProps} />

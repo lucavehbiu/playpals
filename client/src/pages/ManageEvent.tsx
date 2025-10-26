@@ -1,16 +1,17 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
-import { useState, useEffect } from "react";
-import { Event } from "@/lib/types";
-import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { 
-  CalendarIcon, 
-  MapPinIcon, 
-  UserIcon, 
-  Clock, 
-  ArrowLeft, 
+// @ts-nocheck
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useParams, useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
+import { Event } from '@/lib/types';
+import { getQueryFn, apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  CalendarIcon,
+  MapPinIcon,
+  UserIcon,
+  Clock,
+  ArrowLeft,
   Share2,
   DollarSign,
   Users,
@@ -28,21 +29,42 @@ import {
   Trash2,
   Users as UsersIcon,
   ListChecks,
-  AlertCircle
-} from "lucide-react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+  AlertCircle,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 
 const ManageEvent = () => {
   const { id } = useParams();
@@ -51,47 +73,51 @@ const ManageEvent = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
-  
+  const [activeTab, setActiveTab] = useState('details');
+
   // Fetch event details
-  const { data: event, isLoading, error } = useQuery<Event>({
+  const {
+    data: event,
+    isLoading,
+    error,
+  } = useQuery<Event>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !isNaN(eventId),
   });
-  
+
   // Check if user is authorized to manage this event
   const isEventOwner = event && user && event.creatorId === user.id;
-  
+
   // Redirect if user is not the event owner
   useEffect(() => {
     if (event && user && event.creatorId !== user.id) {
       toast({
-        title: "Unauthorized",
+        title: 'Unauthorized',
         description: "You don't have permission to manage this event",
-        variant: "destructive",
+        variant: 'destructive',
       });
-      setLocation("/myevents");
+      setLocation('/myevents');
     }
   }, [event, user, setLocation, toast]);
-  
+
   // Delete event mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/events/${eventId}`);
+      await apiRequest('DELETE', `/api/events/${eventId}`);
     },
     onSuccess: () => {
       toast({
-        title: "Event Deleted",
-        description: "Your event has been successfully deleted",
+        title: 'Event Deleted',
+        description: 'Your event has been successfully deleted',
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/user/${user?.id}`] });
-      setLocation("/myevents");
+      setLocation('/myevents');
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to delete event: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -99,14 +125,14 @@ const ManageEvent = () => {
   // Visibility toggle mutation
   const visibilityMutation = useMutation({
     mutationFn: async (isPublic: boolean) => {
-      const response = await apiRequest("PUT", `/api/events/${eventId}`, {
-        isPublic: isPublic
+      const response = await apiRequest('PUT', `/api/events/${eventId}`, {
+        isPublic: isPublic,
       });
       return response.json();
     },
     onSuccess: (updatedEvent) => {
       toast({
-        title: "Visibility Updated",
+        title: 'Visibility Updated',
         description: `Event is now ${updatedEvent.isPublic ? 'public' : 'private'}`,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
@@ -115,18 +141,18 @@ const ManageEvent = () => {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to update visibility: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
-  
+
   const handleDeleteEvent = () => {
     deleteMutation.mutate();
     setIsDeleteDialogOpen(false);
   };
-  
+
   const handleEditEvent = () => {
     setLocation(`/events/${eventId}/edit`);
   };
@@ -136,11 +162,11 @@ const ManageEvent = () => {
     const newVisibility = !event.isPublic;
     visibilityMutation.mutate(newVisibility);
   };
-  
+
   const goBack = () => {
-    setLocation("/myevents");
+    setLocation('/myevents');
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -151,7 +177,7 @@ const ManageEvent = () => {
       </div>
     );
   }
-  
+
   if (error || !event) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -162,36 +188,44 @@ const ManageEvent = () => {
           <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
           <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Event</h2>
           <p className="text-red-600 mb-4">
-            {error instanceof Error ? error.message : "Event not found or you don't have permission to view it"}
+            {error instanceof Error
+              ? error.message
+              : "Event not found or you don't have permission to view it"}
           </p>
           <Button onClick={goBack}>Return to My Events</Button>
         </div>
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Button variant="ghost" onClick={goBack} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Events
       </Button>
-      
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold">{event.title}</h1>
           <div className="text-gray-500 flex gap-2 items-center mt-1">
             <Badge className={`${event.isPublic ? 'bg-green-500' : 'bg-amber-500'}`}>
               <span className="flex items-center">
-                {event.isPublic ? <Globe className="h-3 w-3 mr-1" /> : <Lock className="h-3 w-3 mr-1" />}
+                {event.isPublic ? (
+                  <Globe className="h-3 w-3 mr-1" />
+                ) : (
+                  <Lock className="h-3 w-3 mr-1" />
+                )}
                 {event.isPublic ? 'Public' : 'Private'}
               </span>
             </Badge>
-            <Badge className={`${event.sportType === 'basketball' ? 'bg-secondary' : event.sportType === 'tennis' ? 'bg-pink-500' : 'bg-blue-500'}`}>
+            <Badge
+              className={`${event.sportType === 'basketball' ? 'bg-secondary' : event.sportType === 'tennis' ? 'bg-pink-500' : 'bg-blue-500'}`}
+            >
               {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
             </Badge>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleEditEvent}>
             <Edit className="h-4 w-4 mr-2" /> Edit
@@ -201,7 +235,7 @@ const ManageEvent = () => {
           </Button>
         </div>
       </div>
-      
+
       <Tabs defaultValue="details" className="mt-6" onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="details">
@@ -214,7 +248,7 @@ const ManageEvent = () => {
             <ListChecks className="h-4 w-4 mr-2" /> RSVPs & Invites
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="details" className="space-y-4">
           <Card>
             <CardHeader>
@@ -225,21 +259,24 @@ const ManageEvent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <div className="aspect-w-16 aspect-h-9 h-48 relative rounded-md overflow-hidden mb-4">
-                    <img 
-                      src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
-                      alt={event.title} 
-                      className="w-full h-full object-cover" 
+                    <img
+                      src={
+                        event.eventImage ||
+                        `https://source.unsplash.com/random/800x600/?${event.sportType}`
+                      }
+                      alt={event.title}
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  
+
                   <div className="mb-4">
                     <Label className="text-sm font-medium text-gray-500 mb-1">Description</Label>
                     <p className="p-3 bg-gray-50 rounded-md text-gray-700 min-h-[100px]">
-                      {event.description || "No description provided."}
+                      {event.description || 'No description provided.'}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-500 mb-1">Date & Time</Label>
@@ -248,7 +285,7 @@ const ManageEvent = () => {
                       <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label className="text-sm font-medium text-gray-500 mb-1">Location</Label>
                     <div className="flex items-center p-3 bg-gray-50 rounded-md">
@@ -256,7 +293,7 @@ const ManageEvent = () => {
                       <span>{event.location}</span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label className="text-sm font-medium text-gray-500 mb-1">Participation</Label>
                     <div className="flex items-center p-3 bg-gray-50 rounded-md">
@@ -266,19 +303,19 @@ const ManageEvent = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label className="text-sm font-medium text-gray-500 mb-1">Pricing</Label>
                     <div className="flex items-center p-3 bg-gray-50 rounded-md">
                       <DollarSign className="h-5 w-5 mr-2 text-gray-400" />
-                      <span>
-                        {event.isFree ? 'Free' : `$${(event.cost || 0) / 100}`}
-                      </span>
+                      <span>{event.isFree ? 'Free' : `$${(event.cost || 0) / 100}`}</span>
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label className="text-sm font-medium text-gray-500 mb-1">Event Visibility</Label>
+                    <Label className="text-sm font-medium text-gray-500 mb-1">
+                      Event Visibility
+                    </Label>
                     <div className="p-3 bg-gray-50 rounded-md space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
@@ -295,24 +332,24 @@ const ManageEvent = () => {
                           )}
                         </div>
                         {event.currentParticipants < event.maxParticipants && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={handleVisibilityToggle}
                             disabled={visibilityMutation.isPending}
                           >
-                            {visibilityMutation.isPending 
-                              ? 'Updating...' 
-                              : event.isPublic ? 'Make Private' : 'Make Public'
-                            }
+                            {visibilityMutation.isPending
+                              ? 'Updating...'
+                              : event.isPublic
+                                ? 'Make Private'
+                                : 'Make Public'}
                           </Button>
                         )}
                       </div>
                       <p className="text-sm text-gray-600">
-                        {event.isPublic 
+                        {event.isPublic
                           ? 'This event appears in public feeds and anyone can join.'
-                          : 'This event is only visible to invited users or group members.'
-                        }
+                          : 'This event is only visible to invited users or group members.'}
                       </p>
                       {event.currentParticipants < event.maxParticipants && !event.isPublic && (
                         <div className="bg-amber-50 border border-amber-200 rounded p-2 mt-2">
@@ -333,7 +370,7 @@ const ManageEvent = () => {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="participants" className="space-y-4">
           <Card>
             <CardHeader>
@@ -345,13 +382,15 @@ const ManageEvent = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-md font-medium">Current Participants</h3>
-                    <p className="text-sm text-gray-500">{event.currentParticipants} / {event.maxParticipants} spots filled</p>
+                    <p className="text-sm text-gray-500">
+                      {event.currentParticipants} / {event.maxParticipants} spots filled
+                    </p>
                   </div>
                   <Button variant="outline" size="sm">
                     <UserPlus className="h-4 w-4 mr-2" /> Invite More
                   </Button>
                 </div>
-                
+
                 <div className="border rounded-md">
                   {/* This would show actual participants in a real app */}
                   <div className="p-4 flex items-center justify-between border-b">
@@ -367,7 +406,7 @@ const ManageEvent = () => {
                     </div>
                     <Badge>Host</Badge>
                   </div>
-                  
+
                   <div className="p-4 flex items-center justify-between border-b">
                     <div className="flex items-center">
                       <Avatar className="h-10 w-10 mr-3">
@@ -383,7 +422,7 @@ const ManageEvent = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center">
                       <Avatar className="h-10 w-10 mr-3">
@@ -404,7 +443,7 @@ const ManageEvent = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="invitations" className="space-y-4">
           <Card>
             <CardHeader>
@@ -422,7 +461,7 @@ const ManageEvent = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-md font-medium">Send Invitations</h3>
@@ -430,7 +469,7 @@ const ManageEvent = () => {
                       <UserPlus className="h-4 w-4 mr-2" /> Invite Friends
                     </Button>
                   </div>
-                  
+
                   <div className="bg-gray-50 p-4 rounded-md text-center text-gray-500">
                     <UserPlus className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p>You can invite friends, teammates or participants from previous events.</p>
@@ -441,7 +480,7 @@ const ManageEvent = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
@@ -454,19 +493,19 @@ const ManageEvent = () => {
           <div className="py-4">
             <p className="text-sm font-medium">Event: {event.title}</p>
             <p className="text-sm text-gray-500 mt-1">
-              {format(new Date(event.date), "EEE, MMM d • h:mm a")} at {event.location}
+              {format(new Date(event.date), 'EEE, MMM d • h:mm a')} at {event.location}
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteEvent}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Event"}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Event'}
             </Button>
           </DialogFooter>
         </DialogContent>

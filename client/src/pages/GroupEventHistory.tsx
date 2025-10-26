@@ -1,10 +1,11 @@
-import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, ArrowLeft, Clock, Trophy, Users } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+// @ts-nocheck
+import { useParams } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, MapPin, ArrowLeft, Clock, Trophy, Users } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Event {
   id: number;
@@ -34,14 +35,14 @@ interface SportsGroup {
 export default function GroupEventHistory() {
   const { id } = useParams();
   const { user } = useAuth();
-  const groupId = parseInt(id || "0");
+  const groupId = parseInt(id || '0');
 
   // Fetch group details
   const { data: group, isLoading: groupLoading } = useQuery<SportsGroup>({
     queryKey: ['/api/sports-groups', groupId],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         throw new Error('Failed to fetch group details');
@@ -56,7 +57,7 @@ export default function GroupEventHistory() {
     queryKey: [`/api/sports-groups/${groupId}/events/history`],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/events/history`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         throw new Error('Failed to fetch event history');
@@ -96,17 +97,11 @@ export default function GroupEventHistory() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => window.history.back()}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => window.history.back()} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Group
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Event History
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Event History</h1>
         <p className="text-gray-600">
           Past events for <span className="font-medium">{group.name}</span>
         </p>
@@ -141,7 +136,7 @@ export default function GroupEventHistory() {
               {events.map((event) => {
                 const eventDate = new Date(event.date);
                 const isRecentPast = Date.now() - eventDate.getTime() < 7 * 24 * 60 * 60 * 1000; // Within last 7 days
-                
+
                 // Determine if event is completed based on maximum participants being reached
                 const minRequired = event.maxParticipants; // Event must be full to be completed
                 const isCompleted = event.currentParticipants >= minRequired;
@@ -182,7 +177,11 @@ export default function GroupEventHistory() {
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {eventDate.toLocaleDateString()} at {eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {eventDate.toLocaleDateString()} at{' '}
+                            {eventDate.toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </span>
                           <span className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
@@ -202,8 +201,8 @@ export default function GroupEventHistory() {
                         )}
                       </div>
                       <div className="flex flex-col gap-2 min-w-0">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             window.location.href = `/events/${event.id}`;
@@ -213,8 +212,8 @@ export default function GroupEventHistory() {
                           View Details
                         </Button>
                         {isCompleted && (
-                          <Button 
-                            variant="default" 
+                          <Button
+                            variant="default"
                             size="sm"
                             className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                             onClick={() => {

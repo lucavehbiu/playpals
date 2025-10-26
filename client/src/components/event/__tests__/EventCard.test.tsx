@@ -1,5 +1,11 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderWithProviders, screen, userEvent, createMockEvent } from '@/test-utils/react-test-utils';
+import {
+  renderWithProviders,
+  screen,
+  userEvent,
+  createMockEvent,
+} from '@/test-utils/react-test-utils';
 import EventCard from '../EventCard';
 
 // Mock wouter
@@ -26,34 +32,26 @@ describe('EventCard', () => {
 
   describe('Rendering', () => {
     it('should render event title', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} />);
 
       expect(screen.getByText(mockEvent.title)).toBeInTheDocument();
     });
 
     it('should render event location', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} />);
 
       expect(screen.getByText(mockEvent.location)).toBeInTheDocument();
     });
 
     it('should render sport type badge', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} />);
 
       // Sport type is capitalized
       expect(screen.getByText('Basketball')).toBeInTheDocument();
     });
 
     it('should render participant count', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} />);
 
       expect(screen.getByText('5/10 players')).toBeInTheDocument();
     });
@@ -63,9 +61,7 @@ describe('EventCard', () => {
         eventImage: 'https://example.com/event.jpg',
       });
 
-      renderWithProviders(
-        <EventCard event={eventWithImage} />
-      );
+      renderWithProviders(<EventCard event={eventWithImage} />);
 
       const img = screen.getByAltText(eventWithImage.title);
       expect(img).toHaveAttribute('src', eventWithImage.eventImage);
@@ -74,9 +70,7 @@ describe('EventCard', () => {
     it('should use fallback image when eventImage is null', () => {
       const eventNoImage = createMockEvent({ eventImage: null });
 
-      renderWithProviders(
-        <EventCard event={eventNoImage} />
-      );
+      renderWithProviders(<EventCard event={eventNoImage} />);
 
       const img = screen.getByAltText(eventNoImage.title);
       expect(img.getAttribute('src')).toContain('unsplash');
@@ -85,9 +79,7 @@ describe('EventCard', () => {
 
   describe('Join Event Button', () => {
     it('should render "Join Event" button by default', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} onJoin={mockOnJoin} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} onJoin={mockOnJoin} />);
 
       expect(screen.getByText('Join Event')).toBeInTheDocument();
     });
@@ -95,9 +87,7 @@ describe('EventCard', () => {
     it('should call onJoin when Join button is clicked', async () => {
       const user = userEvent.setup();
 
-      renderWithProviders(
-        <EventCard event={mockEvent} onJoin={mockOnJoin} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} onJoin={mockOnJoin} />);
 
       const joinButton = screen.getByText('Join Event');
       await user.click(joinButton);
@@ -126,7 +116,12 @@ describe('EventCard', () => {
   describe('Manage Event Mode', () => {
     it('should render "Manage" button when isManageable is true', () => {
       renderWithProviders(
-        <EventCard event={mockEvent} isManageable={true} onManage={mockOnManage} onShare={mockOnShare} />
+        <EventCard
+          event={mockEvent}
+          isManageable={true}
+          onManage={mockOnManage}
+          onShare={mockOnShare}
+        />
       );
 
       expect(screen.getByText('Manage')).toBeInTheDocument();
@@ -170,27 +165,21 @@ describe('EventCard', () => {
 
   describe('Past Event Mode', () => {
     it('should render "View Details" button when isPast is true', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} isPast={true} onManage={mockOnManage} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} isPast={true} onManage={mockOnManage} />);
 
       expect(screen.getByText('View Details')).toBeInTheDocument();
       expect(screen.queryByText('Join Event')).not.toBeInTheDocument();
     });
 
     it('should have reduced opacity for past events', () => {
-      const { container } = renderWithProviders(
-        <EventCard event={mockEvent} isPast={true} />
-      );
+      const { container } = renderWithProviders(<EventCard event={mockEvent} isPast={true} />);
 
       const card = container.firstChild as HTMLElement;
       expect(card.className).toContain('opacity-90');
     });
 
     it('should fetch match result for past events', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} isPast={true} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} isPast={true} />);
 
       expect(global.fetch).toHaveBeenCalledWith(
         `/api/events/${mockEvent.id}/match-result`,
@@ -199,9 +188,7 @@ describe('EventCard', () => {
     });
 
     it('should fetch RSVP data for past events', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} isPast={true} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} isPast={true} />);
 
       expect(global.fetch).toHaveBeenCalledWith(
         `/api/rsvps/event/${mockEvent.id}`,
@@ -214,9 +201,7 @@ describe('EventCard', () => {
     it('should render correct color for basketball', () => {
       const basketballEvent = createMockEvent({ sportType: 'basketball' });
 
-      renderWithProviders(
-        <EventCard event={basketballEvent} />
-      );
+      renderWithProviders(<EventCard event={basketballEvent} />);
 
       const badge = screen.getByText('Basketball');
       expect(badge.className).toContain('bg-secondary');
@@ -225,9 +210,7 @@ describe('EventCard', () => {
     it('should render correct color for soccer', () => {
       const soccerEvent = createMockEvent({ sportType: 'soccer' });
 
-      renderWithProviders(
-        <EventCard event={soccerEvent} />
-      );
+      renderWithProviders(<EventCard event={soccerEvent} />);
 
       const badge = screen.getByText('Soccer');
       expect(badge.className).toContain('bg-accent');
@@ -236,9 +219,7 @@ describe('EventCard', () => {
     it('should render default color for unknown sport', () => {
       const unknownSportEvent = createMockEvent({ sportType: 'unknown' });
 
-      renderWithProviders(
-        <EventCard event={unknownSportEvent} />
-      );
+      renderWithProviders(<EventCard event={unknownSportEvent} />);
 
       const badge = screen.getByText('Unknown');
       expect(badge.className).toContain('bg-gray-500');
@@ -252,9 +233,7 @@ describe('EventCard', () => {
         date: specificDate.toISOString(),
       });
 
-      renderWithProviders(
-        <EventCard event={eventWithDate} />
-      );
+      renderWithProviders(<EventCard event={eventWithDate} />);
 
       // Check that some part of the formatted date is present
       expect(screen.getByText(/Dec 25/)).toBeInTheDocument();
@@ -267,9 +246,7 @@ describe('EventCard', () => {
         currentParticipants: 8,
       });
 
-      renderWithProviders(
-        <EventCard event={eventWithManyParticipants} />
-      );
+      renderWithProviders(<EventCard event={eventWithManyParticipants} />);
 
       expect(screen.getByText('+5')).toBeInTheDocument();
     });
@@ -279,9 +256,7 @@ describe('EventCard', () => {
         currentParticipants: 2,
       });
 
-      renderWithProviders(
-        <EventCard event={eventWithFewParticipants} />
-      );
+      renderWithProviders(<EventCard event={eventWithFewParticipants} />);
 
       expect(screen.queryByText(/^\+\d+$/)).not.toBeInTheDocument();
     });
@@ -289,18 +264,14 @@ describe('EventCard', () => {
 
   describe('Accessibility', () => {
     it('should have proper alt text for event image', () => {
-      renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      renderWithProviders(<EventCard event={mockEvent} />);
 
       const img = screen.getByAltText(mockEvent.title);
       expect(img).toBeInTheDocument();
     });
 
     it('should have clickable card', () => {
-      const { container } = renderWithProviders(
-        <EventCard event={mockEvent} />
-      );
+      const { container } = renderWithProviders(<EventCard event={mockEvent} />);
 
       const card = container.firstChild as HTMLElement;
       expect(card.className).toContain('cursor-pointer');

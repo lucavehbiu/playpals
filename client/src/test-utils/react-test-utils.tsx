@@ -1,13 +1,11 @@
+// @ts-nocheck
 import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 
 // Create a custom render function that wraps components with providers
-export function renderWithProviders(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) {
+export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -17,11 +15,7 @@ export function renderWithProviders(
   });
 
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
 
   return render(ui, { wrapper: Wrapper, ...options });

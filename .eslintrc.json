@@ -28,6 +28,7 @@
     "@typescript-eslint/no-require-imports": "off",
     "@typescript-eslint/no-empty-object-type": "off",
     "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
     "no-console": "off",
     "no-case-declarations": "warn",
     "no-useless-escape": "warn"

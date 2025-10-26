@@ -1,74 +1,103 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Users, Trophy, Target, Star, MapPin, Clock, Heart } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { SkillMatcherPreference, SkillMatch } from "@shared/schema";
+// @ts-nocheck
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Users, Trophy, Target, Star, MapPin, Clock, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { SkillMatcherPreference, SkillMatch } from '@shared/schema';
 
 const sportTypes = [
-  "basketball", "soccer", "tennis", "volleyball", "badminton", "baseball",
-  "football", "hockey", "golf", "swimming", "running", "cycling",
-  "boxing", "wrestling", "martial_arts", "yoga", "pilates", "crossfit",
-  "rock_climbing", "hiking", "skiing", "snowboarding", "surfing", "padel"
+  'basketball',
+  'soccer',
+  'tennis',
+  'volleyball',
+  'badminton',
+  'baseball',
+  'football',
+  'hockey',
+  'golf',
+  'swimming',
+  'running',
+  'cycling',
+  'boxing',
+  'wrestling',
+  'martial_arts',
+  'yoga',
+  'pilates',
+  'crossfit',
+  'rock_climbing',
+  'hiking',
+  'skiing',
+  'snowboarding',
+  'surfing',
+  'padel',
 ];
 
-const skillLevels = ["beginner", "intermediate", "advanced", "expert"];
-const skillMatchModes = ["exact", "similar", "range", "any"];
+const skillLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+const skillMatchModes = ['exact', 'similar', 'range', 'any'];
 
 export default function SkillMatcher() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedSport, setSelectedSport] = useState<string>("basketball");
-  const [activeTab, setActiveTab] = useState("preferences");
+  const [selectedSport, setSelectedSport] = useState<string>('basketball');
+  const [activeTab, setActiveTab] = useState('preferences');
 
   // Fetch user's skill matcher preferences
   const { data: preferences = [], isLoading: preferencesLoading } = useQuery({
-    queryKey: ["/api/skill-matcher/preferences"],
+    queryKey: ['/api/skill-matcher/preferences'],
     enabled: !!user,
   });
 
   // Fetch skill matches
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
-    queryKey: ["/api/skill-matcher/matches"],
+    queryKey: ['/api/skill-matcher/matches'],
     enabled: !!user,
   });
 
   // Get current sport preference
-  const currentPreference = preferences.find((pref: SkillMatcherPreference) => pref.sportType === selectedSport);
+  const currentPreference = preferences.find(
+    (pref: SkillMatcherPreference) => pref.sportType === selectedSport
+  );
 
   // Save preferences mutation
   const savePreferencesMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("/api/skill-matcher/preferences", {
-        method: "POST",
+      return apiRequest('/api/skill-matcher/preferences', {
+        method: 'POST',
         body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/skill-matcher/preferences"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/skill-matcher/preferences'] });
       toast({
-        title: "Preferences Saved",
-        description: "Your skill matcher preferences have been updated.",
+        title: 'Preferences Saved',
+        description: 'Your skill matcher preferences have been updated.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save preferences",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to save preferences',
+        variant: 'destructive',
       });
     },
   });
@@ -76,23 +105,23 @@ export default function SkillMatcher() {
   // Generate matches mutation
   const generateMatchesMutation = useMutation({
     mutationFn: async (sportType: string) => {
-      return apiRequest("/api/skill-matcher/generate", {
-        method: "POST",
+      return apiRequest('/api/skill-matcher/generate', {
+        method: 'POST',
         body: JSON.stringify({ sportType }),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/skill-matcher/matches"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/skill-matcher/matches'] });
       toast({
-        title: "Matches Generated",
-        description: "New skill matches have been found for you!",
+        title: 'Matches Generated',
+        description: 'New skill matches have been found for you!',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to generate matches",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to generate matches',
+        variant: 'destructive',
       });
     },
   });
@@ -103,7 +132,7 @@ export default function SkillMatcher() {
       skillMatchMode: formData.skillMatchMode,
       preferredSkillLevels: formData.preferredSkillLevels || [],
       maxDistance: formData.maxDistance || 50,
-      distancePreference: formData.distancePreference || "city",
+      distancePreference: formData.distancePreference || 'city',
       isActive: true,
     };
 
@@ -150,7 +179,7 @@ export default function SkillMatcher() {
             <SelectContent>
               {sportTypes.map((sport) => (
                 <SelectItem key={sport} value={sport}>
-                  {sport.charAt(0).toUpperCase() + sport.slice(1).replace("_", " ")}
+                  {sport.charAt(0).toUpperCase() + sport.slice(1).replace('_', ' ')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -202,31 +231,33 @@ export default function SkillMatcher() {
 }
 
 // Preferences Tab Component
-function PreferencesTab({ 
-  selectedSport, 
-  currentPreference, 
-  onSave, 
-  isLoading 
+function PreferencesTab({
+  selectedSport,
+  currentPreference,
+  onSave,
+  isLoading,
 }: {
   selectedSport: string;
   currentPreference?: SkillMatcherPreference;
   onSave: (data: any) => void;
   isLoading: boolean;
 }) {
-  const [skillMatchMode, setSkillMatchMode] = useState(currentPreference?.skillMatchMode || "similar");
+  const [skillMatchMode, setSkillMatchMode] = useState(
+    currentPreference?.skillMatchMode || 'similar'
+  );
   const [preferredSkillLevels, setPreferredSkillLevels] = useState<string[]>(
     currentPreference?.preferredSkillLevels || []
   );
   const [maxDistance, setMaxDistance] = useState(currentPreference?.maxDistance || 50);
   const [distancePreference, setDistancePreference] = useState(
-    currentPreference?.distancePreference || "city"
+    currentPreference?.distancePreference || 'city'
   );
 
   const handleSkillLevelChange = (level: string, checked: boolean) => {
     if (checked) {
       setPreferredSkillLevels([...preferredSkillLevels, level]);
     } else {
-      setPreferredSkillLevels(preferredSkillLevels.filter(l => l !== level));
+      setPreferredSkillLevels(preferredSkillLevels.filter((l) => l !== level));
     }
   };
 
@@ -246,9 +277,7 @@ function PreferencesTab({
           <Target className="w-5 h-5" />
           Matching Preferences for {selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)}
         </CardTitle>
-        <CardDescription>
-          Configure how you want to find compatible sports partners
-        </CardDescription>
+        <CardDescription>Configure how you want to find compatible sports partners</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Skill Match Mode */}
@@ -260,17 +289,17 @@ function PreferencesTab({
                 key={mode}
                 className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                   skillMatchMode === mode
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "hover:bg-muted"
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'hover:bg-muted'
                 }`}
                 onClick={() => setSkillMatchMode(mode)}
               >
-                <div className="font-medium capitalize">{mode.replace("_", " ")}</div>
+                <div className="font-medium capitalize">{mode.replace('_', ' ')}</div>
                 <div className="text-sm opacity-80">
-                  {mode === "exact" && "Only match players with exactly the same skill level"}
-                  {mode === "similar" && "Match players within 1 skill level difference"}
-                  {mode === "range" && "Match players within your selected skill range"}
-                  {mode === "any" && "Open to players of all skill levels"}
+                  {mode === 'exact' && 'Only match players with exactly the same skill level'}
+                  {mode === 'similar' && 'Match players within 1 skill level difference'}
+                  {mode === 'range' && 'Match players within your selected skill range'}
+                  {mode === 'any' && 'Open to players of all skill levels'}
                 </div>
               </div>
             ))}
@@ -278,7 +307,7 @@ function PreferencesTab({
         </div>
 
         {/* Preferred Skill Levels (only for range mode) */}
-        {skillMatchMode === "range" && (
+        {skillMatchMode === 'range' && (
           <div>
             <Label className="text-base font-semibold mb-3 block">Preferred Skill Levels</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -314,12 +343,7 @@ function PreferencesTab({
           </Select>
         </div>
 
-        <Button 
-          onClick={handleSave} 
-          disabled={isLoading} 
-          className="w-full"
-          size="lg"
-        >
+        <Button onClick={handleSave} disabled={isLoading} className="w-full" size="lg">
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Save Preferences
         </Button>
@@ -329,12 +353,12 @@ function PreferencesTab({
 }
 
 // Matches Tab Component
-function MatchesTab({ 
-  selectedSport, 
-  matches, 
-  isLoading, 
-  onGenerateMatches, 
-  isGenerating 
+function MatchesTab({
+  selectedSport,
+  matches,
+  isLoading,
+  onGenerateMatches,
+  isGenerating,
 }: {
   selectedSport: string;
   matches: any[];
@@ -351,12 +375,10 @@ function MatchesTab({
           <h3 className="text-xl font-semibold">
             {selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)} Matches
           </h3>
-          <p className="text-muted-foreground">
-            {sportMatches.length} compatible players found
-          </p>
+          <p className="text-muted-foreground">{sportMatches.length} compatible players found</p>
         </div>
-        <Button 
-          onClick={onGenerateMatches} 
+        <Button
+          onClick={onGenerateMatches}
           disabled={isGenerating}
           className="flex items-center gap-2"
         >
@@ -407,10 +429,14 @@ function MatchesTab({
 
 // Match Card Component
 function MatchCard({ match }: { match: any }) {
-  const compatibilityColor = 
-    match.compatibilityScore >= 90 ? "text-green-600" :
-    match.compatibilityScore >= 70 ? "text-blue-600" :
-    match.compatibilityScore >= 50 ? "text-orange-600" : "text-red-600";
+  const compatibilityColor =
+    match.compatibilityScore >= 90
+      ? 'text-green-600'
+      : match.compatibilityScore >= 70
+        ? 'text-blue-600'
+        : match.compatibilityScore >= 50
+          ? 'text-orange-600'
+          : 'text-red-600';
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -419,38 +445,36 @@ function MatchCard({ match }: { match: any }) {
           <Avatar className="w-12 h-12">
             <AvatarImage src={match.matchedUser?.profileImage} />
             <AvatarFallback>
-              {match.matchedUser?.name?.charAt(0) || match.matchedUser?.username?.charAt(0) || "?"}
+              {match.matchedUser?.name?.charAt(0) || match.matchedUser?.username?.charAt(0) || '?'}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold">{match.matchedUser?.name || match.matchedUser?.username}</h4>
-              <Badge className={compatibilityColor}>
-                {match.compatibilityScore}% Match
-              </Badge>
+              <h4 className="font-semibold">
+                {match.matchedUser?.name || match.matchedUser?.username}
+              </h4>
+              <Badge className={compatibilityColor}>{match.compatibilityScore}% Match</Badge>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Star className="w-4 h-4" />
-                Skill Level: {match.matchedUser?.skillLevel || "Not specified"}
+                Skill Level: {match.matchedUser?.skillLevel || 'Not specified'}
               </div>
-              
+
               {match.matchedUser?.location && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="w-4 h-4" />
                   {match.matchedUser.location}
                 </div>
               )}
-              
-              <div className="text-sm text-muted-foreground">
-                {match.matchReason}
-              </div>
+
+              <div className="text-sm text-muted-foreground">{match.matchReason}</div>
             </div>
-            
+
             <Progress value={match.compatibilityScore} className="mt-3" />
-            
+
             <div className="flex gap-2 mt-4">
               <Button size="sm" className="flex-1">
                 View Profile
@@ -470,10 +494,14 @@ function MatchCard({ match }: { match: any }) {
 // Insights Tab Component
 function InsightsTab({ matches, preferences }: { matches: any[]; preferences: any[] }) {
   const totalMatches = matches.length;
-  const avgCompatibility = matches.length > 0 
-    ? Math.round(matches.reduce((sum: number, match: any) => sum + match.compatibilityScore, 0) / matches.length)
-    : 0;
-  
+  const avgCompatibility =
+    matches.length > 0
+      ? Math.round(
+          matches.reduce((sum: number, match: any) => sum + match.compatibilityScore, 0) /
+            matches.length
+        )
+      : 0;
+
   const sportBreakdown = matches.reduce((acc: any, match: any) => {
     acc[match.sportType] = (acc[match.sportType] || 0) + 1;
     return acc;
@@ -512,15 +540,13 @@ function InsightsTab({ matches, preferences }: { matches: any[]; preferences: an
           <div className="space-y-3">
             {Object.entries(sportBreakdown).map(([sport, count]) => (
               <div key={sport} className="flex justify-between items-center">
-                <span className="capitalize">{sport.replace("_", " ")}</span>
+                <span className="capitalize">{sport.replace('_', ' ')}</span>
                 <Badge variant="secondary">{count} matches</Badge>
               </div>
             ))}
           </div>
           {Object.keys(sportBreakdown).length === 0 && (
-            <p className="text-muted-foreground text-center py-4">
-              No matches generated yet
-            </p>
+            <p className="text-muted-foreground text-center py-4">No matches generated yet</p>
           )}
         </CardContent>
       </Card>

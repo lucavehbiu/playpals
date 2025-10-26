@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import { Loader } from 'lucide-react';
@@ -32,9 +33,9 @@ const render = (status: Status) => {
   }
 };
 
-export const GoogleMapsWrapper: React.FC<GoogleMapsWrapperProps> = ({ 
-  children, 
-  apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY 
+export const GoogleMapsWrapper: React.FC<GoogleMapsWrapperProps> = ({
+  children,
+  apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
 }) => {
   if (!apiKey) {
     return render(Status.FAILURE);

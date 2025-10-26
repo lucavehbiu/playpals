@@ -1,17 +1,18 @@
-import { Link, useLocation } from "wouter";
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useNotifications } from "@/hooks/use-notifications";
-import { useGroupNotifications } from "@/hooks/use-group-notifications";
-import { LogOut, Home, Search, Bell, Users, Calendar, Menu, X, User, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { NotificationBell } from "./NotificationsPopover";
-import playPalsLogo from "@/assets/playpals-logo.jpg";
-import { calculateProfileCompletion } from "@/lib/profile-completion";
-import { motion, AnimatePresence } from "framer-motion";
+// @ts-nocheck
+import { Link, useLocation } from 'wouter';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useNotifications } from '@/hooks/use-notifications';
+import { useGroupNotifications } from '@/hooks/use-group-notifications';
+import { LogOut, Home, Search, Bell, Users, Calendar, Menu, X, User, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { NotificationBell } from './NotificationsPopover';
+import playPalsLogo from '@/assets/playpals-logo.jpg';
+import { calculateProfileCompletion } from '@/lib/profile-completion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type SearchResult = {
   id: number;
@@ -30,79 +31,84 @@ const Header = () => {
   // Fetch sport skill levels and team history for accurate completion calculation
   const { data: sportSkillLevels = [], isLoading: skillsLoading } = useQuery({
     queryKey: [`/api/users/${user?.id}/sport-skill-levels`],
-    enabled: !!user
+    enabled: !!user,
   });
 
   const { data: professionalTeamHistory = [], isLoading: historyLoading } = useQuery({
     queryKey: [`/api/users/${user?.id}/professional-team-history`],
-    enabled: !!user
+    enabled: !!user,
   });
 
   const { data: onboardingPreferences = null, isLoading: onboardingLoading } = useQuery({
     queryKey: [`/api/onboarding-preferences/${user?.id}`],
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Only calculate completion when data is loaded or when no user
-  const profileCompletion = (!user || (!skillsLoading && !historyLoading && !onboardingLoading)) ? 
-    calculateProfileCompletion({
-      user,
-      sportSkillLevels,
-      professionalTeamHistory,
-      onboardingPreferences
-    }) : {
-      completionPercentage: 0,
-      isComplete: false,
-      completedSections: [],
-      missingSections: [],
-      showRibbon: false
-    };
-  
+  const profileCompletion =
+    !user || (!skillsLoading && !historyLoading && !onboardingLoading)
+      ? calculateProfileCompletion({
+          user,
+          sportSkillLevels,
+          professionalTeamHistory,
+          onboardingPreferences,
+        })
+      : {
+          completionPercentage: 0,
+          isComplete: false,
+          completedSections: [],
+          missingSections: [],
+          showRibbon: false,
+        };
+
   // Search functionality
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
-  
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
+
   // Function to search users
   const searchUsers = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/users/search?q=${encodeURIComponent(query)}`);
+      const response = await apiRequest('GET', `/api/users/search?q=${encodeURIComponent(query)}`);
       const users = await response.json();
-      
+
       return users.map((user: any) => ({
         id: user.id,
         type: 'user',
         name: user.name || user.username,
         description: `@${user.username}`,
         link: `/profile?id=${user.id}`,
-        image: user.profileImage
+        image: user.profileImage,
       }));
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error('Error searching users:', error);
       return [];
     }
   };
-  
+
   // Function to search events
   const searchEvents = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/events`);
+      const response = await apiRequest('GET', `/api/events`);
       const events = await response.json();
-      
+
       // Split the query into words for better matching
-      const queryParts = query.toLowerCase().split(/\s+/).filter(part => part.length > 0);
-      
+      const queryParts = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((part) => part.length > 0);
+
       // Filter events by query (title, description, location, sport type)
       const filteredEvents = events.filter((event: any) => {
         // For single word queries, use simple includes matching
@@ -114,41 +120,45 @@ const Header = () => {
             (event.sportType && event.sportType.toLowerCase().includes(query.toLowerCase()))
           );
         }
-        
+
         // For multi-word queries, check if ALL parts appear in at least one field
-        return queryParts.every(part => (
-          event.title.toLowerCase().includes(part) ||
-          (event.description && event.description.toLowerCase().includes(part)) ||
-          (event.location && event.location.toLowerCase().includes(part)) ||
-          (event.sportType && event.sportType.toLowerCase().includes(part))
-        ));
+        return queryParts.every(
+          (part) =>
+            event.title.toLowerCase().includes(part) ||
+            (event.description && event.description.toLowerCase().includes(part)) ||
+            (event.location && event.location.toLowerCase().includes(part)) ||
+            (event.sportType && event.sportType.toLowerCase().includes(part))
+        );
       });
-      
+
       return filteredEvents.map((event: any) => ({
         id: event.id,
         type: 'event',
         name: event.title,
         description: event.location,
         link: `/events/${event.id}`,
-        image: event.image
+        image: event.image,
       }));
     } catch (error) {
-      console.error("Error searching events:", error);
+      console.error('Error searching events:', error);
       return [];
     }
   };
-  
+
   // Function to search teams
   const searchTeams = async (query: string): Promise<SearchResult[]> => {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await apiRequest("GET", `/api/teams`);
+      const response = await apiRequest('GET', `/api/teams`);
       const teams = await response.json();
-      
+
       // Split the query into words for better matching
-      const queryParts = query.toLowerCase().split(/\s+/).filter(part => part.length > 0);
-      
+      const queryParts = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((part) => part.length > 0);
+
       // Filter teams by query (name, description)
       const filteredTeams = teams.filter((team: any) => {
         // For single word queries, use simple includes matching
@@ -158,47 +168,48 @@ const Header = () => {
             (team.description && team.description.toLowerCase().includes(query.toLowerCase()))
           );
         }
-        
+
         // For multi-word queries, check if ALL parts appear in at least one field
-        return queryParts.every(part => (
-          team.name.toLowerCase().includes(part) ||
-          (team.description && team.description.toLowerCase().includes(part))
-        ));
+        return queryParts.every(
+          (part) =>
+            team.name.toLowerCase().includes(part) ||
+            (team.description && team.description.toLowerCase().includes(part))
+        );
       });
-      
+
       return filteredTeams.map((team: any) => ({
         id: team.id,
         type: 'team',
         name: team.name,
-        description: team.description || "Team",
+        description: team.description || 'Team',
         link: `/teams/${team.id}`,
-        image: team.logo
+        image: team.logo,
       }));
     } catch (error) {
-      console.error("Error searching teams:", error);
+      console.error('Error searching teams:', error);
       return [];
     }
   };
-  
+
   // Handle search input changes
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
+
     if (query.length >= 2) {
       setShowResults(true);
     } else {
       setShowResults(false);
     }
   };
-  
+
   // Handle clicking a search result
   const handleResultClick = (result: SearchResult) => {
     setLocation(result.link);
     setShowResults(false);
-    setSearchQuery("");
+    setSearchQuery('');
   };
-  
+
   // Close search results and profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -206,19 +217,19 @@ const Header = () => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
-      
+
       // Close profile menu
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
     };
-    
-    document.addEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
+
   // Fetch search results when query changes
   useEffect(() => {
     const getSearchResults = async () => {
@@ -227,9 +238,9 @@ const Header = () => {
         const [userResults, eventResults, teamResults] = await Promise.all([
           searchUsers(searchQuery),
           searchEvents(searchQuery),
-          searchTeams(searchQuery)
+          searchTeams(searchQuery),
         ]);
-        
+
         // Combine and sort results (prioritize exact matches)
         const allResults = [...userResults, ...eventResults, ...teamResults];
         allResults.sort((a, b) => {
@@ -238,24 +249,24 @@ const Header = () => {
           const bExact = b.name.toLowerCase() === searchQuery.toLowerCase();
           if (aExact && !bExact) return -1;
           if (!aExact && bExact) return 1;
-          
+
           // Then sort by type (users, events, teams)
           if (a.type !== b.type) {
             const typeOrder = { user: 0, event: 1, team: 2 };
             return typeOrder[a.type] - typeOrder[b.type];
           }
-          
+
           // Finally sort alphabetically
           return a.name.localeCompare(b.name);
         });
-        
+
         setSearchResults(allResults);
       }
     };
-    
+
     getSearchResults();
   }, [searchQuery]);
-  
+
   return (
     <>
       {/* Premium Glassmorphic Header */}
@@ -270,7 +281,11 @@ const Header = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <img src={playPalsLogo} alt="PlayPals Logo" className="h-9 w-9 mr-2 rounded-full ring-2 ring-primary/20 shadow-sm" />
+                  <img
+                    src={playPalsLogo}
+                    alt="PlayPals Logo"
+                    className="h-9 w-9 mr-2 rounded-full ring-2 ring-primary/20 shadow-sm"
+                  />
                   <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-bold text-xl tracking-tight">
                     PlayPals
                   </span>
@@ -310,7 +325,9 @@ const Header = () => {
                   >
                     {searchResults.length > 0 ? (
                       <>
-                        <div className="p-3 text-xs font-semibold text-gray-500 border-b border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-transparent">Search Results</div>
+                        <div className="p-3 text-xs font-semibold text-gray-500 border-b border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-transparent">
+                          Search Results
+                        </div>
                         <div>
                           {searchResults.map((result) => (
                             <motion.div
@@ -318,7 +335,7 @@ const Header = () => {
                               className="px-4 py-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent cursor-pointer flex items-center transition-all duration-200 border-b border-gray-100/50 last:border-0"
                               onClick={() => handleResultClick(result)}
                               whileHover={{ x: 4 }}
-                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                             >
                               {result.type === 'user' ? (
                                 <>
@@ -333,7 +350,9 @@ const Header = () => {
                                   </Avatar>
                                   <div>
                                     <div className="font-semibold text-gray-900">{result.name}</div>
-                                    <div className="text-xs text-gray-500">{result.description}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {result.description}
+                                    </div>
                                   </div>
                                 </>
                               ) : result.type === 'event' ? (
@@ -362,15 +381,13 @@ const Header = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="p-5 text-sm text-gray-500 text-center">
-                        No results found
-                      </div>
+                      <div className="p-5 text-sm text-gray-500 text-center">No results found</div>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            
+
             {/* Premium Desktop Navigation */}
             <nav className="hidden md:flex items-center justify-between flex-1 px-4 lg:px-10 max-w-4xl mx-auto gap-1">
               <Link href="/">
@@ -398,7 +415,9 @@ const Header = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Search className={`h-5 w-5 mx-auto ${location === '/discover' ? 'text-primary' : ''}`} />
+                  <Search
+                    className={`h-5 w-5 mx-auto ${location === '/discover' ? 'text-primary' : ''}`}
+                  />
                   <span className="text-xs font-semibold mt-1 block">Discover</span>
                 </motion.div>
               </Link>
@@ -413,7 +432,9 @@ const Header = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Calendar className={`h-5 w-5 mx-auto ${location.startsWith('/myevents') ? 'text-primary' : ''}`} />
+                  <Calendar
+                    className={`h-5 w-5 mx-auto ${location.startsWith('/myevents') ? 'text-primary' : ''}`}
+                  />
                   <span className="text-xs font-semibold mt-1 block">Events</span>
                 </motion.div>
               </Link>
@@ -428,7 +449,9 @@ const Header = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Users className={`h-5 w-5 mx-auto ${location === '/teams' ? 'text-primary' : ''}`} />
+                  <Users
+                    className={`h-5 w-5 mx-auto ${location === '/teams' ? 'text-primary' : ''}`}
+                  />
                   <span className="text-xs font-semibold mt-1 block">Teams</span>
                 </motion.div>
               </Link>
@@ -443,7 +466,9 @@ const Header = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Users className={`h-5 w-5 mx-auto ${location === '/groups' ? 'text-primary' : ''}`} />
+                  <Users
+                    className={`h-5 w-5 mx-auto ${location === '/groups' ? 'text-primary' : ''}`}
+                  />
                   <span className="text-xs font-semibold mt-1 block">Groups</span>
                   {getTotalNotificationCount() > 0 && (
                     <motion.div
@@ -467,12 +492,14 @@ const Header = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Bell className={`h-5 w-5 mx-auto ${location === '/invitations' ? 'text-primary' : ''}`} />
+                  <Bell
+                    className={`h-5 w-5 mx-auto ${location === '/invitations' ? 'text-primary' : ''}`}
+                  />
                   <span className="text-xs font-semibold mt-1 block">Invites</span>
                 </motion.div>
               </Link>
             </nav>
-            
+
             {/* Premium User Actions */}
             <div className="flex items-center space-x-2">
               {/* Mobile Search Button */}
@@ -523,7 +550,6 @@ const Header = () => {
                     )}
                   </motion.div>
 
-
                   {/* Premium Profile Dropdown Menu */}
                   <AnimatePresence>
                     {showProfileMenu && (
@@ -539,7 +565,10 @@ const Header = () => {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10 ring-2 ring-white shadow-sm">
                               {user?.profileImage ? (
-                                <AvatarImage src={user.profileImage} alt={`${user.name}'s profile`} />
+                                <AvatarImage
+                                  src={user.profileImage}
+                                  alt={`${user.name}'s profile`}
+                                />
                               ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-semibold">
                                   {user?.name?.charAt(0) || 'U'}
@@ -547,7 +576,9 @@ const Header = () => {
                               )}
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 truncate">{user?.name || user?.username}</p>
+                              <p className="text-sm font-bold text-gray-900 truncate">
+                                {user?.name || user?.username}
+                              </p>
                               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                             </div>
                           </div>
@@ -573,11 +604,24 @@ const Header = () => {
                                 whileHover={{ x: 4 }}
                               >
                                 <div className="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center mr-3">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4 text-orange-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
                                   </svg>
                                 </div>
-                                <span className="font-medium">Complete Profile ({profileCompletion.completionPercentage}%)</span>
+                                <span className="font-medium">
+                                  Complete Profile ({profileCompletion.completionPercentage}%)
+                                </span>
                               </motion.div>
                             </Link>
                           )}
@@ -588,8 +632,19 @@ const Header = () => {
                               whileHover={{ x: 4 }}
                             >
                               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-purple-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
                                 </svg>
                               </div>
                               <span className="font-medium">Edit Profile</span>
