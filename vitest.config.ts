@@ -10,14 +10,27 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'tests/',
         '*.config.ts',
+        '*.config.js',
         'dist/',
         'client/src/components/ui/**', // shadcn/ui components
+        '**/*.d.ts',
+        '**/__tests__/**',
+        '**/test-utils/**',
+        'server/__tests__/**',
       ],
+      thresholds: {
+        lines: 10,
+        functions: 10,
+        branches: 10,
+        statements: 10,
+      },
+      all: true,
+      include: ['client/src/**/*.{ts,tsx}', 'server/**/*.{ts,tsx}'],
     },
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', 'dist', '.replit', 'replit.nix'],

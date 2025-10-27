@@ -54,14 +54,15 @@ jobs:
         run: npm run test:coverage
         continue-on-error: true
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         if: always()
         with:
-          file: ./coverage/coverage-final.json
+          files: ./coverage/lcov.info
           flags: unittests
-          name: codecov-umbrella
+          name: codecov-playpals
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   type-check:
     name: TypeScript Type Check
