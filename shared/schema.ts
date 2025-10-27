@@ -97,7 +97,7 @@ export const users = pgTable('users', {
   phonePrivacy: text('phone_privacy').default('private'), // "public" or "private"
   locationPrivacy: text('location_privacy').default('public'), // "public" or "private"
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Friendship table to manage user relationships
 export const friendships = pgTable(
@@ -133,7 +133,7 @@ export const teams = pgTable('teams', {
     .references(() => users.id),
   isPublic: boolean('is_public').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Team members table
 export const teamMembers = pgTable(
@@ -183,7 +183,7 @@ export const events = pgTable('events', {
   publicVisibility: text('public_visibility'), // null (private), "all" (public to all), "friends" (public to friends)
   // Removed teamId for now to match existing database schema
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // RSVPs table
 export const rsvps = pgTable(
@@ -265,7 +265,7 @@ export const professionalTeamHistory = pgTable('professional_team_history', {
   achievements: text('achievements'), // Any notable achievements or titles
   isVisible: boolean('is_visible').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Sport Skill Levels table (detailed breakdown for each sport)
 export const sportSkillLevels = pgTable(
@@ -391,7 +391,7 @@ export const teamPosts = pgTable('team_posts', {
   likes: integer('likes').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow(), // When post was last updated
-});
+} as const);
 
 // Team Post Comments table
 export const teamPostComments = pgTable('team_post_comments', {
@@ -405,7 +405,7 @@ export const teamPostComments = pgTable('team_post_comments', {
   content: text('content').notNull(),
   likes: integer('likes').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Team Schedule Events table
 export const teamSchedules = pgTable('team_schedules', {
@@ -423,7 +423,7 @@ export const teamSchedules = pgTable('team_schedules', {
   endTime: timestamp('end_time').notNull(),
   isRequired: boolean('is_required').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Team Schedule Responses table
 export const teamScheduleResponses = pgTable(
@@ -480,7 +480,7 @@ export const sportsGroups = pgTable('sports_groups', {
   maxMembers: integer('max_members').default(20),
   isPrivate: boolean('is_private').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Sports Group Members table
 export const sportsGroupMembers = pgTable(
@@ -515,7 +515,7 @@ export const sportsGroupMessages: any = pgTable('sports_group_messages', {
     onDelete: 'cascade',
   }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Sports Group Events table
 export const sportsGroupEvents = pgTable(
@@ -551,7 +551,7 @@ export const sportsGroupPolls = pgTable('sports_group_polls', {
   endDate: timestamp('end_date').notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Sports Group Poll Time Slots table
 export const sportsGroupPollTimeSlots = pgTable('sports_group_poll_time_slots', {
@@ -566,7 +566,7 @@ export const sportsGroupPollTimeSlots = pgTable('sports_group_poll_time_slots', 
     onDelete: 'set null',
   }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Sports Group Poll Responses table
 export const sportsGroupPollResponses = pgTable(
@@ -972,17 +972,17 @@ export const sportsGroupNotificationsRelations = relations(sportsGroupNotificati
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertTeamSchema = createInsertSchema(teams).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
   id: true,
   joinedAt: true,
-});
+} as const);
 
 export const insertEventSchema = createInsertSchema(events)
   .omit({
@@ -993,22 +993,22 @@ export const insertEventSchema = createInsertSchema(events)
   // Override type for date field with preprocess
   .extend({
     date: z.preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date()),
-  });
+  } as const);
 
 export const insertRSVPSchema = createInsertSchema(rsvps).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertFriendshipSchema = createInsertSchema(friendships).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertUserSportPreferenceSchema = createInsertSchema(userSportPreferences).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertUserOnboardingPreferenceSchema = createInsertSchema(
   userOnboardingPreferences
@@ -1017,35 +1017,35 @@ export const insertUserOnboardingPreferenceSchema = createInsertSchema(
   createdAt: true,
   updatedAt: true,
   onboardingCompleted: true,
-});
+} as const);
 
 export const insertPlayerRatingSchema = createInsertSchema(playerRatings).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSkillMatcherPreferenceSchema = createInsertSchema(skillMatcherPreferences).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
+} as const);
 
 export const insertSkillMatchSchema = createInsertSchema(skillMatches).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertTeamPostSchema = createInsertSchema(teamPosts).omit({
   id: true,
   createdAt: true,
   likes: true,
-});
+} as const);
 
 export const insertTeamPostCommentSchema = createInsertSchema(teamPostComments).omit({
   id: true,
   createdAt: true,
   likes: true,
-});
+} as const);
 
 export const insertTeamScheduleSchema = createInsertSchema(teamSchedules)
   .omit({
@@ -1056,7 +1056,7 @@ export const insertTeamScheduleSchema = createInsertSchema(teamSchedules)
     startTime: z.preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date()),
     endTime: z.preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date()),
     isRequired: z.boolean().optional().default(false),
-  });
+  } as const);
 
 export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleResponses)
   .omit({
@@ -1068,33 +1068,33 @@ export const insertTeamScheduleResponseSchema = createInsertSchema(teamScheduleR
       (val) => (typeof val === 'string' ? new Date(val) : val),
       z.date().optional()
     ),
-  });
+  } as const);
 
 export const insertTeamJoinRequestSchema = createInsertSchema(teamJoinRequests).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 // Sports Groups insert schemas
 export const insertSportsGroupSchema = createInsertSchema(sportsGroups).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSportsGroupMemberSchema = createInsertSchema(sportsGroupMembers).omit({
   id: true,
   joinedAt: true,
-});
+} as const);
 
 export const insertSportsGroupMessageSchema = createInsertSchema(sportsGroupMessages).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSportsGroupEventSchema = createInsertSchema(sportsGroupEvents).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSportsGroupPollSchema = createInsertSchema(sportsGroupPolls)
   .omit({
@@ -1103,26 +1103,26 @@ export const insertSportsGroupPollSchema = createInsertSchema(sportsGroupPolls)
   })
   .extend({
     endDate: z.preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date()),
-  });
+  } as const);
 
 export const insertSportsGroupPollTimeSlotSchema = createInsertSchema(
   sportsGroupPollTimeSlots
 ).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSportsGroupPollResponseSchema = createInsertSchema(
   sportsGroupPollResponses
 ).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertSportsGroupJoinRequestSchema = createInsertSchema(sportsGroupJoinRequests).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 // New schemas for profile completion features
 export const insertProfessionalTeamHistorySchema = createInsertSchema(professionalTeamHistory).omit(
@@ -1136,7 +1136,7 @@ export const insertSportSkillLevelSchema = createInsertSchema(sportSkillLevels).
   id: true,
   createdAt: true,
   updatedAt: true,
-});
+} as const);
 
 // Type definitions
 export type User = typeof users.$inferSelect;
@@ -1285,7 +1285,7 @@ export const matchResults = pgTable('match_results', {
   lastEditedBy: integer('last_edited_by'), // User who last edited the result
   lastEditedAt: timestamp('last_edited_at'), // When it was last edited
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Score history table to track all score changes
 export const scoreHistory = pgTable('score_history', {
@@ -1305,7 +1305,7 @@ export const scoreHistory = pgTable('score_history', {
     .references(() => users.id), // User who made the edit
   reason: text('reason'), // Optional reason for the edit
   editedAt: timestamp('edited_at').defaultNow().notNull(),
-});
+} as const);
 
 // Match Participants table - tracks individual performance per match
 export const matchParticipants = pgTable(
@@ -1354,23 +1354,23 @@ export const matchResultNotifications = pgTable('match_result_notifications', {
   notificationType: varchar('notification_type', { length: 50 }).notNull(), // "submit_score", "score_submitted"
   viewed: boolean('viewed').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+} as const);
 
 // Schema definitions for scoreboard tables
 export const insertMatchResultSchema = createInsertSchema(matchResults).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertMatchParticipantSchema = createInsertSchema(matchParticipants).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertScoreHistorySchema = createInsertSchema(scoreHistory).omit({
   id: true,
   editedAt: true,
-});
+} as const);
 
 // Types for score history
 export type ScoreHistory = typeof scoreHistory.$inferSelect;
@@ -1379,14 +1379,14 @@ export type InsertScoreHistory = z.infer<typeof insertScoreHistorySchema>;
 export const insertPlayerStatisticsSchema = createInsertSchema(playerStatistics).omit({
   id: true,
   updatedAt: true,
-});
+} as const);
 
 export const insertMatchResultNotificationSchema = createInsertSchema(
   matchResultNotifications
 ).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 // Types for scoreboard system
 export type MatchResult = typeof matchResults.$inferSelect;
@@ -1450,7 +1450,7 @@ export const tournaments = pgTable('tournaments', {
   isPublic: boolean('is_public').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+} as const);
 
 export const tournamentParticipants = pgTable('tournament_participants', {
   id: serial('id').primaryKey(),
@@ -1466,7 +1466,7 @@ export const tournamentParticipants = pgTable('tournament_participants', {
   seedPosition: integer('seed_position'), // For seeded tournaments
   notes: text('notes'), // Additional notes about participant
   createdAt: timestamp('created_at').defaultNow(),
-});
+} as const);
 
 export const tournamentMatches = pgTable('tournament_matches', {
   id: serial('id').primaryKey(),
@@ -1496,7 +1496,7 @@ export const tournamentMatches = pgTable('tournament_matches', {
   bracketPosition: text('bracket_position'), // For elimination tournaments
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+} as const);
 
 export const tournamentStandings = pgTable('tournament_standings', {
   id: serial('id').primaryKey(),
@@ -1518,7 +1518,7 @@ export const tournamentStandings = pgTable('tournament_standings', {
   notes: text('notes'), // Additional notes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+} as const);
 
 // Tournament invitations table
 export const tournamentInvitations = pgTable(
@@ -1636,29 +1636,29 @@ export const insertTournamentSchema = createInsertSchema(tournaments).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
+} as const);
 
 export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 export const insertTournamentMatchSchema = createInsertSchema(tournamentMatches).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
+} as const);
 
 export const insertTournamentStandingSchema = createInsertSchema(tournamentStandings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
+} as const);
 
 export const insertTournamentInvitationSchema = createInsertSchema(tournamentInvitations).omit({
   id: true,
   createdAt: true,
-});
+} as const);
 
 // Tournament types
 export type Tournament = typeof tournaments.$inferSelect;
@@ -1683,4 +1683,4 @@ export const session = pgTable('session', {
   sid: varchar('sid', { length: 255 }).primaryKey(),
   sess: jsonb('sess').notNull(),
   expire: timestamp('expire').notNull(),
-});
+} as const);

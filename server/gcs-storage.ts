@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Storage } from '@google-cloud/storage';
 import multer from 'multer';
 import { Request } from 'express';
