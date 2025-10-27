@@ -6,8 +6,10 @@ import * as schema from '@shared/schema';
 const { Pool } = pg;
 
 // Create a PostgreSQL connection pool
+// Heroku Postgres requires SSL in production
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Log database connection
