@@ -1,0 +1,43 @@
+# GitGuardian configuration
+version: 2
+
+# Paths to exclude from secret scanning
+paths-ignore:
+  - "**/__tests__/**"
+  - "**/tests/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/testConstants.ts"
+  - "**/testHelpers.ts"
+  - "**/*.bak"
+  - "**/*.backup"
+  - "**/*.old"
+  - "**/*.new"
+
+# Specific files to ignore
+  - "tests/helpers/auth.ts"
+  - "tests/helpers/testConstants.ts"
+  - "server/__tests__/*.test.ts"
+
+# Match patterns to exclude (these are test fixtures, not real secrets)
+matches-ignore:
+  - name: Generic Password
+    match: MockTestPassword123!
+  - name: Generic Password
+    match: Test123!@#
+  - name: Generic Password
+    match: LoginTest123
+  - name: Generic Password
+    match: LogoutTest123
+  - name: Generic Password
+    match: AuthTest123
+  - name: Generic Password
+    match: Password123
+  - name: Generic Password
+    match: WrongPassword123
+  - name: Generic Password
+    match: Different123
+  - name: Generic Password
+    match: Existing123!@#

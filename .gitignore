@@ -60,3 +60,10 @@ replit.nix
 # Testing
 coverage/
 .vitest/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.new
+*~
