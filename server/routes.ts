@@ -648,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events', async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100; // Default to 100 events
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000; // Default to 1000 events
 
       // Get all discoverable events
       const events = await storage.getDiscoverableEvents(userId);
@@ -3411,7 +3411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get all group notifications for history page - ONLY for groups the user is a member of
           // SECURITY: Show notifications for groups the user is a member of OR legitimate pending invitations
           const result = await db.execute(sql`
-          SELECT 
+          SELECT
             sgn.id,
             sgn.group_id as "groupId",
             sgn.type,
@@ -3424,11 +3424,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
           LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
-          WHERE sgn.user_id = ${userId} 
+          WHERE sgn.user_id = ${userId}
           AND (
             sgm.user_id IS NOT NULL OR  -- User is a member of the group
             (sgn.type = 'invitation' AND NOT EXISTS (
-              SELECT 1 FROM sports_group_members sgm2 
+              SELECT 1 FROM sports_group_members sgm2
               WHERE sgm2.group_id = sgn.group_id AND sgm2.user_id = ${userId}
             ))  -- OR it's an invitation and user is not already a member
           )
@@ -3440,7 +3440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get unread notification counts grouped by group and type
           // SECURITY: Show notifications for groups the user is a member of OR legitimate pending invitations
           const result = await db.execute(sql`
-          SELECT 
+          SELECT
             sgn.group_id as "groupId",
             sgn.type,
             COUNT(*) as count,
@@ -3448,12 +3448,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM sports_group_notifications sgn
           JOIN sports_groups sg ON sgn.group_id = sg.id
           LEFT JOIN sports_group_members sgm ON sgn.group_id = sgm.group_id AND sgm.user_id = ${userId}
-          WHERE sgn.user_id = ${userId} 
+          WHERE sgn.user_id = ${userId}
           AND sgn.viewed = false
           AND (
             sgm.user_id IS NOT NULL OR  -- User is a member of the group
             (sgn.type = 'invitation' AND NOT EXISTS (
-              SELECT 1 FROM sports_group_members sgm2 
+              SELECT 1 FROM sports_group_members sgm2
               WHERE sgm2.group_id = sgn.group_id AND sgm2.user_id = ${userId}
             ))  -- OR it's an invitation and user is not already a member
           )
@@ -3484,7 +3484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify user is a member of the group first
         const membershipCheck = await db.execute(sql`
-        SELECT 1 FROM sports_group_members 
+        SELECT 1 FROM sports_group_members
         WHERE group_id = ${groupId} AND user_id = ${userId}
       `);
 
@@ -3495,10 +3495,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get unread event notifications for this user and group
         const result = await db.execute(sql`
         SELECT reference_id as "eventId"
-        FROM sports_group_notifications 
-        WHERE user_id = ${userId} 
-        AND group_id = ${groupId} 
-        AND type = 'event' 
+        FROM sports_group_notifications
+        WHERE user_id = ${userId}
+        AND group_id = ${groupId}
+        AND type = 'event'
         AND viewed = false
       `);
 
@@ -3526,7 +3526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify user is a member of the group first
         const membershipCheck = await db.execute(sql`
-        SELECT 1 FROM sports_group_members 
+        SELECT 1 FROM sports_group_members
         WHERE group_id = ${groupId} AND user_id = ${userId}
       `);
 
@@ -3537,10 +3537,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get unread message notifications for this user and group
         const result = await db.execute(sql`
         SELECT reference_id as "messageId"
-        FROM sports_group_notifications 
-        WHERE user_id = ${userId} 
-        AND group_id = ${groupId} 
-        AND type = 'message' 
+        FROM sports_group_notifications
+        WHERE user_id = ${userId}
+        AND group_id = ${groupId}
+        AND type = 'message'
         AND viewed = false
       `);
 
@@ -3567,9 +3567,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         await db.execute(sql`
-        UPDATE sports_group_notifications 
-        SET viewed = true 
-        WHERE user_id = ${userId} 
+        UPDATE sports_group_notifications
+        SET viewed = true
+        WHERE user_id = ${userId}
         AND group_id = ${groupId}
         ${type ? sql`AND type = ${type}` : sql``}
       `);
@@ -3734,10 +3734,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get the invitation notification
         const result = await db.execute(sql`
-        SELECT * FROM sports_group_notifications 
+        SELECT * FROM sports_group_notifications
         WHERE id = ${requestId}
-        AND group_id = ${groupId} 
-        AND user_id = ${authenticatedUser.id} 
+        AND group_id = ${groupId}
+        AND user_id = ${authenticatedUser.id}
         AND type = 'invitation'
       `);
 
@@ -3761,7 +3761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Delete the invitation notification (it's no longer needed)
           await db.execute(sql`
-          DELETE FROM sports_group_notifications 
+          DELETE FROM sports_group_notifications
           WHERE id = ${requestId}
         `);
 
@@ -3780,7 +3780,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (action === 'decline') {
           // Delete the invitation notification
           await db.execute(sql`
-          DELETE FROM sports_group_notifications 
+          DELETE FROM sports_group_notifications
           WHERE id = ${requestId}
         `);
 
@@ -3845,10 +3845,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (includeHistory) {
           // Get all friend requests history - both sent and received
           const result = await db.execute(sql`
-          SELECT 
+          SELECT
             f.id,
             f.user_id as "senderId",
-            f.friend_id as "receiverId", 
+            f.friend_id as "receiverId",
             f.status,
             f.created_at as "createdAt",
             sender.name as "senderName",
@@ -5494,8 +5494,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Record the change in score history
       await db.execute(sql`
         INSERT INTO score_history (
-          match_result_id, event_id, previous_score_a, previous_score_b, 
-          new_score_a, new_score_b, previous_winning_side, new_winning_side, 
+          match_result_id, event_id, previous_score_a, previous_score_b,
+          new_score_a, new_score_b, previous_winning_side, new_winning_side,
           edited_by, reason
         ) VALUES (
           ${existingResult.id}, ${eventId}, ${existingResult.scoreA}, ${existingResult.scoreB},
@@ -5506,9 +5506,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the match result
       await db.execute(sql`
-        UPDATE match_results 
-        SET score_a = ${scoreA}, 
-            score_b = ${scoreB}, 
+        UPDATE match_results
+        SET score_a = ${scoreA},
+            score_b = ${scoreB},
             winning_side = ${winningSide},
             last_edited_by = ${userId},
             last_edited_at = NOW()
@@ -5518,17 +5518,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update match participants' winner status
       if (winningSide) {
         await db.execute(sql`
-          UPDATE match_participants 
-          SET is_winner = CASE 
-            WHEN team = ${winningSide} THEN true 
-            ELSE false 
+          UPDATE match_participants
+          SET is_winner = CASE
+            WHEN team = ${winningSide} THEN true
+            ELSE false
           END
           WHERE match_id = ${existingResult.id}
         `);
       } else {
         // It's a draw, no winners
         await db.execute(sql`
-          UPDATE match_participants 
+          UPDATE match_participants
           SET is_winner = false
           WHERE match_id = ${existingResult.id}
         `);
@@ -5631,7 +5631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get score history with editor information
         const historyRows = await db.execute(sql`
-        SELECT 
+        SELECT
           sh.id,
           sh.previous_score_a,
           sh.previous_score_b,

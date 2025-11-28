@@ -9,8 +9,10 @@
 /* PlayPals Brand Colors - Premium Extended Palette */
 :root {
   /* Brand Colors */
-  --playpals-cyan: 199 88% 51%; /* #1DB8E8 - Bright cyan from logo */
-  --playpals-teal: 200 42% 29%; /* #2A5368 - Deep teal from logo */
+  --playpals-cyan: 199 88% 51%;
+  /* #1DB8E8 - Bright cyan from logo */
+  --playpals-teal: 200 42% 29%;
+  /* #2A5368 - Deep teal from logo */
   --playpals-cyan-rgb: 29 184 232;
   --playpals-teal-rgb: 42 83 104;
 
@@ -82,30 +84,44 @@
   --radius-full: 9999px;
 
   /* Spacing System (4px grid) */
-  --spacing-1: 0.25rem; /* 4px */
-  --spacing-2: 0.5rem; /* 8px */
-  --spacing-3: 0.75rem; /* 12px */
-  --spacing-4: 1rem; /* 16px */
-  --spacing-5: 1.25rem; /* 20px */
-  --spacing-6: 1.5rem; /* 24px */
-  --spacing-8: 2rem; /* 32px */
-  --spacing-10: 2.5rem; /* 40px */
-  --spacing-12: 3rem; /* 48px */
-  --spacing-16: 4rem; /* 64px */
+  --spacing-1: 0.25rem;
+  /* 4px */
+  --spacing-2: 0.5rem;
+  /* 8px */
+  --spacing-3: 0.75rem;
+  /* 12px */
+  --spacing-4: 1rem;
+  /* 16px */
+  --spacing-5: 1.25rem;
+  /* 20px */
+  --spacing-6: 1.5rem;
+  /* 24px */
+  --spacing-8: 2rem;
+  /* 32px */
+  --spacing-10: 2.5rem;
+  /* 40px */
+  --spacing-12: 3rem;
+  /* 48px */
+  --spacing-16: 4rem;
+  /* 64px */
 
   /* Shadow System - Premium Multi-layer Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -1px rgb(0 0 0 / 0.03);
+  --shadow-md: 0 8px 12px -3px rgb(0 0 0 / 0.05), 0 4px 6px -2px rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 12px 20px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* Premium "Apple-like" Shadow */
+  --shadow-premium:
+    0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
 
   /* Glassmorphism - Apple Style */
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.25);
-  --glass-blur: 24px;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
 
   /* Animation Timings */
   --duration-fast: 150ms;
@@ -127,12 +143,15 @@
 
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* Internet Explorer and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 /* Animation for pulse with longer duration */
@@ -141,6 +160,7 @@
   100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 0.2;
   }
@@ -176,7 +196,8 @@
     @apply antialiased text-foreground;
     background:
       radial-gradient(circle at 0% 0%, rgba(29, 184, 232, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(42, 83, 104, 0.05) 0%, transparent 50%), #f8fafc; /* Fallback to slate-50 */
+      radial-gradient(circle at 100% 100%, rgba(42, 83, 104, 0.05) 0%, transparent 50%), #f8fafc;
+    /* Fallback to slate-50 */
     background-attachment: fixed;
     font-family:
       'Inter',
@@ -209,18 +230,23 @@
   h1 {
     font-size: clamp(2rem, 5vw, 3.5rem);
   }
+
   h2 {
     font-size: clamp(1.5rem, 4vw, 2.5rem);
   }
+
   h3 {
     font-size: clamp(1.25rem, 3vw, 2rem);
   }
+
   h4 {
     font-size: clamp(1.125rem, 2.5vw, 1.5rem);
   }
+
   h5 {
     font-size: clamp(1rem, 2vw, 1.25rem);
   }
+
   h6 {
     font-size: clamp(0.875rem, 1.5vw, 1.125rem);
   }
@@ -263,12 +289,14 @@
   /* Hide scrollbar on body/html but keep functionality */
   html,
   body {
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
+    display: none;
+    /* Chrome, Safari, Edge */
   }
 
   /* Add bottom spacing for mobile nav */
@@ -297,8 +325,10 @@
 
   /* Hide scrollbar for IE, Edge and Firefox */
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   /* Custom scrollbar - only visible on hover */
@@ -341,13 +371,40 @@
   /* Glassmorphism */
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     border: 1px solid var(--glass-border);
   }
 
   .glass-card {
-    @apply glass rounded-2xl shadow-xl;
+    @apply glass rounded-2xl shadow-premium transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 8px 16px rgba(0, 0, 0, 0.06),
+      0 16px 32px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Noise Texture */
+  .bg-noise {
+    position: relative;
+  }
+
+  .bg-noise::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
   }
 
   /* Premium Shadows */
@@ -405,6 +462,7 @@
     0% {
       background-position: -1000px 0;
     }
+
     100% {
       background-position: 1000px 0;
     }
@@ -426,6 +484,7 @@
     100% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-10px);
     }
@@ -440,6 +499,7 @@
     100% {
       box-shadow: 0 0 20px rgba(29, 184, 232, 0.4);
     }
+
     50% {
       box-shadow: 0 0 40px rgba(29, 184, 232, 0.6);
     }

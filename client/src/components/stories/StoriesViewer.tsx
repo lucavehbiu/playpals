@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Event } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'wouter';
 import {
@@ -135,299 +135,199 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+        className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* Premium progress bars */}
-        <div className="absolute top-6 left-6 right-6 z-10 flex space-x-2">
-          {events.map((_, index) => (
-            <div
-              key={index}
-              className="h-1 bg-white/20 flex-1 rounded-full overflow-hidden backdrop-blur-sm"
-              onClick={() => setCurrentIndex(index)}
-            >
-              {index === currentIndex && (
-                <motion.div
-                  className="h-full bg-gradient-to-r from-primary via-blue-400 to-primary rounded-full"
-                  style={{ width: `${progress}%` }}
-                  initial={{ opacity: 0.8 }}
-                  animate={{
-                    opacity: [0.8, 1, 0.8],
-                    backgroundPosition: ['0% center', '100% center'],
-                    transition: {
-                      opacity: { repeat: Infinity, duration: 1.5 },
-                      backgroundPosition: { duration: 3, repeat: Infinity, ease: 'linear' },
-                    },
-                  }}
-                />
-              )}
-              {index < currentIndex && (
-                <div className="h-full w-full bg-white rounded-full opacity-80" />
-              )}
-            </div>
-          ))}
+        {/* Premium Blurred Background */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <motion.div
+            key={currentEvent.id + '-bg'}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0"
+          >
+            <img
+              src={
+                currentEvent.eventImage ||
+                `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
+              }
+              alt=""
+              className="w-full h-full object-cover blur-3xl opacity-60 scale-110"
+            />
+            <div className="absolute inset-0 bg-black/40" />
+          </motion.div>
         </div>
 
-        {/* Premium Close button */}
-        <motion.button
-          className="absolute top-12 right-6 z-10 text-white h-10 w-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 shadow-lg"
-          onClick={onClose}
-          whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
-        >
-          <X className="h-5 w-5" />
-        </motion.button>
+        {/* Top Controls Area - High Z-Index */}
+        <div className="absolute top-0 left-0 right-0 z-[60] p-4 sm:p-6 bg-gradient-to-b from-black/60 to-transparent pt-safe-top">
+          {/* Progress Bars */}
+          <div className="flex space-x-1.5 mb-4">
+            {events.map((_, index) => (
+              <div
+                key={index}
+                className="h-1 bg-white/20 flex-1 rounded-full overflow-hidden backdrop-blur-sm cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentIndex(index);
+                }}
+              >
+                {index === currentIndex && (
+                  <motion.div
+                    className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                    style={{ width: `${progress}%` }}
+                    layoutId="progress"
+                  />
+                )}
+                {index < currentIndex && (
+                  <div className="h-full w-full bg-white rounded-full opacity-90" />
+                )}
+              </div>
+            ))}
+          </div>
 
-        {/* Premium Pause/Play button */}
-        <motion.button
-          className="absolute top-12 left-6 z-10 text-white h-10 w-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 shadow-lg"
-          onClick={() => setIsPaused((prev) => !prev)}
-          whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
-        >
-          {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
-        </motion.button>
+          {/* Header Controls */}
+          <div className="flex items-center justify-between">
+            {/* User Info */}
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full ring-2 ring-white/20 overflow-hidden">
+                <img
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentEvent.creatorId}`}
+                  alt="Creator"
+                  className="w-full h-full bg-white/10"
+                />
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm shadow-sm">
+                  {currentEvent.creator?.name || 'Event Host'}
+                </p>
+                <p className="text-white/60 text-xs font-medium">
+                  {formatDistanceToNow(new Date(currentEvent.createdAt || Date.now()), {
+                    addSuffix: true,
+                  })}
+                </p>
+              </div>
+            </div>
 
-        {/* Story content */}
-        <div className="relative w-full h-full">
-          {/* Background image */}
-          <div className="absolute inset-0 bg-black">
+            {/* Right Controls */}
+            <div className="flex items-center space-x-4">
+              <motion.button
+                className="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPaused((prev) => !prev);
+                }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
+              </motion.button>
+
+              <motion.button
+                className="text-white hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="h-6 w-6" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="relative w-full h-full max-w-md mx-auto flex flex-col justify-center px-4 z-10">
+          {/* Main Event Image Card */}
+          <motion.div
+            key={currentEvent.id}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.05, opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="relative aspect-[4/5] w-full rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10"
+          >
             <img
               src={
                 currentEvent.eventImage ||
                 `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
               }
               alt={currentEvent.title}
-              className="w-full h-full object-cover opacity-90"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
-          </div>
 
-          {/* Interaction areas for touch/click navigation */}
-          <div className="absolute inset-0 flex">
-            <div
-              className="w-1/3 h-full cursor-pointer z-10"
-              onClick={() => handleAreaClick('left')}
-            />
-            <div
-              className="w-1/3 h-full cursor-pointer z-10"
-              onClick={() => handleAreaClick('center')}
-            />
-            <div
-              className="w-1/3 h-full cursor-pointer z-10"
-              onClick={() => handleAreaClick('right')}
-            />
-          </div>
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/10" />
 
-          {/* Premium Previous/Next buttons */}
-          <motion.button
-            className={cn(
-              'absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-xl',
-              currentIndex === 0 ? 'opacity-30 pointer-events-none' : 'opacity-70 hover:opacity-100'
-            )}
-            onClick={goToPreviousStory}
-            disabled={currentIndex === 0}
-            whileHover={{ scale: 1.1, x: -5 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0, transition: { delay: 0.2 } }}
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </motion.button>
-
-          <motion.button
-            className={cn(
-              'absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-xl',
-              currentIndex === events.length - 1
-                ? 'opacity-30 pointer-events-none'
-                : 'opacity-70 hover:opacity-100'
-            )}
-            onClick={goToNextStory}
-            disabled={currentIndex === events.length - 1}
-            whileHover={{ scale: 1.1, x: 5 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0, transition: { delay: 0.2 } }}
-          >
-            <ChevronRight className="h-6 w-6" />
-          </motion.button>
-
-          {/* Premium Content overlay with animations */}
-          <motion.div
-            className="absolute inset-x-0 bottom-16 px-6 z-10 text-white max-w-xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            key={currentEvent.id} // Add key to ensure animation runs on slide change
-          >
-            <div className="mb-4">
-              <motion.h2
-                className="text-3xl font-bold mb-2"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
+            {/* Content Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
               >
-                {currentEvent.title}
-              </motion.h2>
-              <motion.p
-                className="text-white/80 line-clamp-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-              >
-                {currentEvent.description}
-              </motion.p>
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider border border-white/10">
+                    {currentEvent.sportType}
+                  </span>
+                  {currentEvent.isFree && (
+                    <span className="px-3 py-1 rounded-full bg-green-500/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-wider border border-green-500/20">
+                      Free
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-3xl font-bold leading-tight mb-2 tracking-tight">
+                  {currentEvent.title}
+                </h2>
+
+                <p className="text-white/80 line-clamp-2 text-sm mb-6 leading-relaxed">
+                  {currentEvent.description}
+                </p>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="flex items-center space-x-3 bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/5">
+                    <CalendarIcon className="h-5 w-5 text-cyan-400" />
+                    <div>
+                      <p className="text-[10px] text-white/50 uppercase font-bold">Date</p>
+                      <p className="text-xs font-semibold">{formatEventDate(currentEvent.date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/5">
+                    <MapPin className="h-5 w-5 text-cyan-400" />
+                    <div>
+                      <p className="text-[10px] text-white/50 uppercase font-bold">Location</p>
+                      <p className="text-xs font-semibold line-clamp-1">{currentEvent.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <motion.button
+                  className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-gray-100 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewEvent();
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span>View Event Details</span>
+                  <ExternalLink className="h-4 w-4" />
+                </motion.button>
+              </motion.div>
             </div>
-
-            <motion.div
-              className="grid grid-cols-2 gap-3 mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ staggerChildren: 0.1, delayChildren: 0.3 }}
-            >
-              {/* Premium detail cards with animations */}
-              <motion.div
-                className="rounded-xl p-3 flex items-center overflow-hidden relative border border-white/10 shadow-lg"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.03, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.4)' }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {/* Background image with premium blur effect */}
-                <div className="absolute inset-0">
-                  <img
-                    src={
-                      currentEvent.eventImage ||
-                      `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
-                    }
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-primary/30 backdrop-blur-md" />
-                </div>
-                <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mr-3 z-10 border border-white/20">
-                  <CalendarIcon className="h-4 w-4 text-white" />
-                </div>
-                <div className="z-10">
-                  <p className="text-xs text-white/70 font-medium">Date</p>
-                  <p className="font-medium text-white">{formatEventDate(currentEvent.date)}</p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="rounded-xl p-3 flex items-center overflow-hidden relative border border-white/10 shadow-lg"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.03, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.4)' }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {/* Background image with premium blur effect */}
-                <div className="absolute inset-0">
-                  <img
-                    src={
-                      currentEvent.eventImage ||
-                      `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
-                    }
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-primary/30 backdrop-blur-md" />
-                </div>
-                <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mr-3 z-10 border border-white/20">
-                  <Clock className="h-4 w-4 text-white" />
-                </div>
-                <div className="z-10">
-                  <p className="text-xs text-white/70 font-medium">Time</p>
-                  <p className="font-medium text-white">{formatEventTime(currentEvent.date)}</p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="rounded-xl p-3 flex items-center overflow-hidden relative border border-white/10 shadow-lg"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.03, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.4)' }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {/* Background image with premium blur effect */}
-                <div className="absolute inset-0">
-                  <img
-                    src={
-                      currentEvent.eventImage ||
-                      `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
-                    }
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-primary/30 backdrop-blur-md" />
-                </div>
-                <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mr-3 z-10 border border-white/20">
-                  <MapPin className="h-4 w-4 text-white" />
-                </div>
-                <div className="z-10">
-                  <p className="text-xs text-white/70 font-medium">Location</p>
-                  <p className="font-medium text-white line-clamp-1">{currentEvent.location}</p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="rounded-xl p-3 flex items-center overflow-hidden relative border border-white/10 shadow-lg"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.03, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.4)' }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {/* Background image with premium blur effect */}
-                <div className="absolute inset-0">
-                  <img
-                    src={
-                      currentEvent.eventImage ||
-                      `https://source.unsplash.com/featured/1200x600/?${currentEvent.sportType?.toLowerCase() || 'sport'}`
-                    }
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-primary/30 backdrop-blur-md" />
-                </div>
-                <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mr-3 z-10 border border-white/20">
-                  <Users className="h-4 w-4 text-white" />
-                </div>
-                <div className="z-10">
-                  <p className="text-xs text-white/70 font-medium">Participants</p>
-                  <p className="font-medium text-white">
-                    {currentEvent.currentParticipants} of {currentEvent.maxParticipants}
-                  </p>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <motion.button
-                className="w-full py-6 px-6 rounded-xl bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-600 text-white text-base font-semibold flex items-center justify-center relative overflow-hidden group shadow-lg shadow-primary/20 border border-white/10"
-                onClick={handleViewEvent}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {/* Animated background shine effect */}
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] translate-x-[-100%] group-hover:translate-x-[200%] transition-all duration-1000 ease-in-out" />
-
-                <span className="relative z-10 flex items-center justify-center">
-                  View Event Details{' '}
-                  <ExternalLink className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-                </span>
-              </motion.button>
-            </motion.div>
           </motion.div>
+        </div>
+
+        {/* Touch Navigation Areas */}
+        <div className="absolute inset-0 z-20 flex">
+          <div className="w-1/3 h-full" onClick={() => handleAreaClick('left')} />
+          <div className="w-1/3 h-full" onClick={() => handleAreaClick('center')} />
+          <div className="w-1/3 h-full" onClick={() => handleAreaClick('right')} />
         </div>
       </motion.div>
     </AnimatePresence>

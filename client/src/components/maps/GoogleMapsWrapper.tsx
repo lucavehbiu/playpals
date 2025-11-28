@@ -38,7 +38,14 @@ export const GoogleMapsWrapper: React.FC<GoogleMapsWrapperProps> = ({
   apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
 }) => {
   if (!apiKey) {
-    return render(Status.FAILURE);
+    return (
+      <div className="relative">
+        {children}
+        <div className="mt-2 text-xs text-orange-500 bg-orange-50 p-2 rounded border border-orange-100">
+          Map features unavailable (API key missing). Manual location entry enabled.
+        </div>
+      </div>
+    );
   }
 
   return (

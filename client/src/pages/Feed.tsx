@@ -229,7 +229,7 @@ const Feed = () => {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
-              {/* Premium Event Story Cards - Glassmorphic design */}
+              {/* Instagram-Style Story Cards */}
               {upcomingEvents.map((event: Event, index: number) => (
                 <motion.div
                   key={event.id}
@@ -244,73 +244,44 @@ const Feed = () => {
                   }}
                   whileHover={{
                     scale: 1.05,
-                    y: -8,
+                    y: -4,
                     transition: { type: 'spring', stiffness: 400, damping: 17 },
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex-shrink-0 w-[90px] sm:w-[110px] cursor-pointer snap-center group"
+                  className="flex-shrink-0 w-[80px] cursor-pointer snap-center group"
                   onClick={() => {
                     setSelectedStoryIndex(index);
                     setStoriesViewerOpen(true);
                   }}
                 >
-                  {/* Glassmorphic card container */}
-                  <div className="glass-card p-2 relative overflow-hidden shadow-premium hover:shadow-premium-lg transition-all duration-300">
-                    {/* Animated gradient background */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      animate={{
-                        backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: 'linear',
-                      }}
-                    />
-
-                    {/* Event image with premium border */}
+                  <div className="flex flex-col items-center">
+                    {/* Circular image with gradient ring (Instagram style) */}
                     <div className="relative mb-2">
-                      <div className="w-full aspect-square rounded-xl overflow-hidden relative shadow-md ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
-                        {event.eventImage ? (
-                          <img
-                            src={event.eventImage}
-                            alt={event.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-                            <CalendarIcon className="h-7 w-7 text-primary" />
-                          </div>
-                        )}
-
-                        {/* Shimmer effect on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
-                      </div>
-
-                      {/* Sport type indicator - floating badge */}
-                      <motion.div
-                        className="absolute -right-1 -bottom-1 z-20"
-                        whileHover={{ scale: 1.15 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      >
-                        <div className="glass-card p-1 shadow-lg">
-                          <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                            {event.sportType === 'basketball' ? (
-                              <Award className="h-3 w-3 text-primary drop-shadow-sm" />
-                            ) : event.sportType === 'soccer' ? (
-                              <Zap className="h-3 w-3 text-primary drop-shadow-sm" />
+                      {/* Gradient ring */}
+                      <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-primary via-secondary to-primary group-hover:from-primary/80 group-hover:via-secondary/80 group-hover:to-primary/80 transition-all duration-300 shadow-lg">
+                        {/* White padding */}
+                        <div className="p-[2.5px] rounded-full bg-white">
+                          {/* Image container */}
+                          <div className="w-[64px] h-[64px] rounded-full overflow-hidden relative">
+                            {event.eventImage ? (
+                              <img
+                                src={event.eventImage}
+                                alt={event.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                              />
                             ) : (
-                              <Star className="h-3 w-3 text-primary drop-shadow-sm" />
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+                                <CalendarIcon className="h-6 w-6 text-primary" />
+                              </div>
                             )}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
 
-                    {/* Story title with gradient on hover */}
-                    <p className="text-[11px] font-semibold text-center leading-tight line-clamp-2 text-gray-700 group-hover:text-gradient-brand transition-all duration-300">
-                      {event.title.split(' ').slice(0, 2).join(' ')}
+                    {/* Title - single line, truncated */}
+                    <p className="text-[11px] font-medium text-center leading-tight text-gray-700 w-full truncate px-1">
+                      {event.title}
                     </p>
                   </div>
                 </motion.div>
@@ -565,10 +536,10 @@ const Feed = () => {
                       <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
                     </div>
 
-                    {/* Mobile-optimized image with location overlay and quick view */}
+                    {/* Mobile-optimized immersive image with location overlay and quick view */}
                     {event.eventImage ? (
                       <div
-                        className="cursor-pointer relative overflow-hidden"
+                        className="cursor-pointer relative overflow-hidden aspect-[4/5] sm:aspect-video"
                         onClick={(e) => {
                           e.preventDefault();
                           setQuickViewEvent(event);
@@ -577,28 +548,28 @@ const Feed = () => {
                         <img
                           src={event.eventImage}
                           alt={event.title}
-                          className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px] hover:scale-105 transition-transform duration-700"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                         />
-                        {/* Gradient overlay with location and date/time */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-70 hover:opacity-90 transition-opacity duration-300">
-                          {/* Date and time in top-right */}
-                          <div className="absolute top-2 right-3 bg-black/40 rounded-lg p-2 backdrop-blur-sm">
-                            <div className="flex items-center space-x-3">
+                        {/* Premium Gradient Overlay - Cinematic */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 hover:opacity-100 transition-opacity duration-300">
+                          {/* Top Bar: Date/Time Pill */}
+                          <div className="absolute top-3 right-3">
+                            <div className="glass bg-black/30 text-white rounded-full px-3 py-1.5 flex items-center space-x-3 backdrop-blur-md border-white/10 shadow-lg">
                               <div className="flex items-center">
-                                <CalendarIcon className="h-3 w-3 mr-1 text-white" />
-                                <span className="text-xs font-medium text-white">
+                                <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-cyan-400" />
+                                <span className="text-xs font-semibold tracking-wide">
                                   {event.date
                                     ? new Date(event.date).toLocaleDateString('en-US', {
-                                        month: 'long',
+                                        month: 'short',
                                         day: 'numeric',
-                                        year: '2-digit',
                                       })
                                     : 'TBD'}
                                 </span>
                               </div>
+                              <div className="w-px h-3 bg-white/20"></div>
                               <div className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1 text-white" />
-                                <span className="text-xs font-medium text-white">
+                                <Clock className="h-3.5 w-3.5 mr-1.5 text-cyan-400" />
+                                <span className="text-xs font-semibold tracking-wide">
                                   {event.date
                                     ? new Date(event.date).toLocaleTimeString([], {
                                         hour: '2-digit',
@@ -610,24 +581,39 @@ const Feed = () => {
                             </div>
                           </div>
 
-                          {/* Location info bottom left */}
-                          <div className="absolute bottom-2 left-3 flex items-center text-white">
-                            <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <p className="text-xs font-medium line-clamp-1">{event.location}</p>
-                          </div>
+                          {/* Bottom Info Area */}
+                          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 text-white bg-gradient-to-t from-black/90 to-transparent pt-12">
+                            <div className="flex items-end justify-between">
+                              <div className="space-y-1.5 max-w-[75%]">
+                                <div className="flex items-center text-cyan-400 text-xs font-bold tracking-wider uppercase mb-1">
+                                  <MapPinIcon className="h-3 w-3 mr-1" />
+                                  <span className="line-clamp-1">{event.location}</span>
+                                </div>
+                                <h4 className="font-bold text-xl sm:text-2xl leading-tight text-white shadow-sm">
+                                  {event.title}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-gray-300 line-clamp-2 font-medium leading-relaxed">
+                                  {event.description}
+                                </p>
+                              </div>
 
-                          {/* Participants count bottom right */}
-                          <div className="absolute bottom-2 right-3 flex items-center text-white">
-                            <UserIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <span className="text-xs font-medium">
-                              {event.currentParticipants}/{event.maxParticipants}
-                            </span>
+                              {/* Participants Circle */}
+                              <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/10 shadow-lg min-w-[60px]">
+                                <UserIcon className="h-5 w-5 text-cyan-400 mb-1" />
+                                <span className="text-sm font-bold">
+                                  {event.currentParticipants}/{event.maxParticipants}
+                                </span>
+                                <span className="text-[9px] uppercase tracking-wider text-gray-400">
+                                  Going
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Quick view indicator center */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                            <div className="bg-black/40 rounded-full p-2">
-                              <Eye className="h-6 w-6 text-white" />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <div className="bg-white/20 backdrop-blur-xl rounded-full p-4 border border-white/30 shadow-2xl transform scale-90 hover:scale-100 transition-transform duration-300">
+                              <Eye className="h-8 w-8 text-white drop-shadow-lg" />
                             </div>
                           </div>
                         </div>
