@@ -44,6 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { FeedItemSkeleton } from '@/components/ui/loading-skeletons';
 import { NoActivityEmptyState } from '@/components/ui/empty-states';
+import { EventCard } from '@/components/ui/event-card';
 
 const Feed = () => {
   const { user } = useAuth();
@@ -197,7 +198,9 @@ const Feed = () => {
   const tabContent = getTabContent();
 
   return (
-    <div className="max-w-4xl mx-auto relative">
+    <div
+      className={`max-w-4xl mx-auto relative ${storiesViewerOpen || quickViewEvent ? 'pointer-events-none' : ''}`}
+    >
       {/* Premium subtle background pattern */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none"
@@ -442,274 +445,13 @@ const Feed = () => {
                   stiffness: 260,
                   damping: 20,
                 }}
-                whileHover={{
-                  y: -8,
-                  transition: { type: 'spring', stiffness: 400, damping: 17 },
-                }}
               >
-                <Card className="overflow-hidden glass-card shadow-premium hover:shadow-premium-lg border-none transition-all duration-500 group">
-                  <CardContent className="p-0 relative">
-                    {/* Premium animated gradient background */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-                      animate={{
-                        backgroundPosition: ['0% 0%', '100% 100%'],
-                      }}
-                      transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        repeatType: 'reverse',
-                        ease: 'linear',
-                      }}
-                    />
-
-                    {/* Premium header with glassmorphism */}
-                    <div className="p-3 sm:p-4 border-b border-gray-100/50 backdrop-blur-sm relative z-10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                          >
-                            <Avatar className="h-9 w-9 mr-2.5 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all duration-300">
-                              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold">
-                                {event.creator?.name?.charAt(0) || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                          </motion.div>
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900 flex items-center">
-                              {event.creator?.name?.split(' ')[0] || 'Unknown'}
-                              <Badge
-                                variant={
-                                  event.sportType === 'basketball'
-                                    ? 'default'
-                                    : event.sportType === 'soccer'
-                                      ? 'secondary'
-                                      : event.sportType === 'tennis'
-                                        ? 'outline'
-                                        : 'default'
-                                }
-                                className="ml-2 capitalize text-[10px] py-0.5 h-5 px-2 shadow-sm"
-                              >
-                                {event.sportType}
-                              </Badge>
-                            </h3>
-                            <p className="text-[10px] text-gray-500 font-medium mt-0.5">
-                              {event.createdAt
-                                ? formatDistanceToNow(new Date(event.createdAt), {
-                                    addSuffix: true,
-                                  })
-                                : 'Recently'}
-                            </p>
-                          </div>
-                        </div>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        >
-                          {event.isFree ? (
-                            <Badge
-                              variant="outline"
-                              className="glass bg-green-50/80 text-green-700 border-green-200/50 text-[10px] shadow-sm"
-                            >
-                              Free
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="glass bg-blue-50/80 text-blue-700 border-blue-200/50 text-[10px] shadow-sm"
-                            >
-                              ${event.cost ? (event.cost / 100).toFixed(2) : '0.00'}
-                            </Badge>
-                          )}
-                        </motion.div>
-                      </div>
-                    </div>
-
-                    {/* Mobile-optimized content */}
-                    <div
-                      className="p-3 sm:p-4 cursor-pointer"
-                      onClick={() => setLocation(`/events/${event.id}`)}
-                    >
-                      <h4 className="font-bold text-base text-gray-900 mb-1">{event.title}</h4>
-                      <p className="text-xs text-gray-700 mb-3 line-clamp-2">{event.description}</p>
-                    </div>
-
-                    {/* Mobile-optimized immersive image with location overlay and quick view */}
-                    {event.eventImage ? (
-                      <div
-                        className="cursor-pointer relative overflow-hidden aspect-[4/5] sm:aspect-video"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setQuickViewEvent(event);
-                        }}
-                      >
-                        <img
-                          src={event.eventImage}
-                          alt={event.title}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                        />
-                        {/* Premium Gradient Overlay - Cinematic */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 hover:opacity-100 transition-opacity duration-300">
-                          {/* Top Bar: Date/Time Pill */}
-                          <div className="absolute top-3 right-3">
-                            <div className="glass bg-black/30 text-white rounded-full px-3 py-1.5 flex items-center space-x-3 backdrop-blur-md border-white/10 shadow-lg">
-                              <div className="flex items-center">
-                                <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-cyan-400" />
-                                <span className="text-xs font-semibold tracking-wide">
-                                  {event.date
-                                    ? new Date(event.date).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                      })
-                                    : 'TBD'}
-                                </span>
-                              </div>
-                              <div className="w-px h-3 bg-white/20"></div>
-                              <div className="flex items-center">
-                                <Clock className="h-3.5 w-3.5 mr-1.5 text-cyan-400" />
-                                <span className="text-xs font-semibold tracking-wide">
-                                  {event.date
-                                    ? new Date(event.date).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : 'TBD'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Bottom Info Area */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 text-white bg-gradient-to-t from-black/90 to-transparent pt-12">
-                            <div className="flex items-end justify-between">
-                              <div className="space-y-1.5 max-w-[75%]">
-                                <div className="flex items-center text-cyan-400 text-xs font-bold tracking-wider uppercase mb-1">
-                                  <MapPinIcon className="h-3 w-3 mr-1" />
-                                  <span className="line-clamp-1">{event.location}</span>
-                                </div>
-                                <h4 className="font-bold text-xl sm:text-2xl leading-tight text-white shadow-sm">
-                                  {event.title}
-                                </h4>
-                                <p className="text-xs sm:text-sm text-gray-300 line-clamp-2 font-medium leading-relaxed">
-                                  {event.description}
-                                </p>
-                              </div>
-
-                              {/* Participants Circle */}
-                              <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/10 shadow-lg min-w-[60px]">
-                                <UserIcon className="h-5 w-5 text-cyan-400 mb-1" />
-                                <span className="text-sm font-bold">
-                                  {event.currentParticipants}/{event.maxParticipants}
-                                </span>
-                                <span className="text-[9px] uppercase tracking-wider text-gray-400">
-                                  Going
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Quick view indicator center */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                            <div className="bg-white/20 backdrop-blur-xl rounded-full p-4 border border-white/30 shadow-2xl transform scale-90 hover:scale-100 transition-transform duration-300">
-                              <Eye className="h-8 w-8 text-white drop-shadow-lg" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mb-3">
-                        <div className="bg-gray-50 rounded-lg p-2 flex items-center">
-                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                            <CalendarIcon className="h-3 w-3 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between">
-                              <div>
-                                <p className="text-[10px] text-gray-500 mb-0.5">Date</p>
-                                <p className="text-xs font-medium">
-                                  {event.date
-                                    ? new Date(event.date).toLocaleDateString('en-US', {
-                                        month: 'long',
-                                        day: 'numeric',
-                                        year: '2-digit',
-                                      })
-                                    : 'TBD'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] text-gray-500 mb-0.5">Time</p>
-                                <p className="text-xs font-medium">
-                                  {event.date
-                                    ? new Date(event.date).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : 'TBD'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Premium action buttons with enhanced micro-interactions */}
-                    <div className="border-t border-gray-100/50 backdrop-blur-sm grid grid-cols-3 divide-x divide-gray-100/50 relative z-10">
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          className="rounded-none py-3 h-auto text-gray-600 hover:text-primary text-xs sm:text-sm group relative overflow-hidden w-full"
-                        >
-                          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-400"></span>
-                          <motion.div
-                            className="relative z-10 flex items-center justify-center"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                          >
-                            <Heart className="h-4 w-4 mr-1.5 sm:mr-2 group-hover:fill-primary/20 transition-all duration-300" />
-                            <span className="hidden xs:inline font-medium">Interested</span>
-                          </motion.div>
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          className="rounded-none py-3 h-auto text-gray-600 hover:text-primary text-xs sm:text-sm group relative overflow-hidden w-full"
-                        >
-                          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-400"></span>
-                          <motion.div
-                            className="relative z-10 flex items-center justify-center"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                          >
-                            <MessageCircleIcon className="h-4 w-4 mr-1.5 sm:mr-2 transition-all duration-300" />
-                            <span className="hidden xs:inline font-medium">Comment</span>
-                          </motion.div>
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          className="rounded-none py-3 h-auto text-gray-600 hover:text-primary text-xs sm:text-sm group relative overflow-hidden w-full"
-                        >
-                          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-400"></span>
-                          <motion.div
-                            className="relative z-10 flex items-center justify-center"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                          >
-                            <Share2Icon className="h-4 w-4 mr-1.5 sm:mr-2 transition-all duration-300" />
-                            <span className="hidden xs:inline font-medium">Share</span>
-                          </motion.div>
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <EventCard
+                  event={event}
+                  onViewDetails={() => setLocation(`/events/${event.id}`)}
+                  onComment={() => setQuickViewEvent(event)}
+                  className="mb-6"
+                />
               </motion.div>
             ))}
           </motion.div>
