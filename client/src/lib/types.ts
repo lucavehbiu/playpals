@@ -26,6 +26,9 @@ export interface getUserData {
   isPhoneVerified: boolean;
   hasNoProfessionalExperience: boolean;
   profileCompletionLevel: number;
+  emailPrivacy?: string;
+  phonePrivacy?: string;
+  locationPrivacy?: string;
 }
 
 export interface PlayerRating {

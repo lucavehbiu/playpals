@@ -130,8 +130,8 @@ export function ProfileTabProfile({
       )}
 
       {/* Sports Section */}
-      <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+      <div className="mb-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 border-none">
+        <h3 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-gray-100 tracking-tight">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6 mr-3 text-green-500"
@@ -147,7 +147,7 @@ export function ProfileTabProfile({
           Sports & Performance
         </h3>
         {sportSkillLevels && sportSkillLevels.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {sportSkillLevels.map((skillData: any) => {
               const sport = skillData.sportType;
               const sportStats = (user as any).sportStatistics?.find(
@@ -157,29 +157,35 @@ export function ProfileTabProfile({
               return (
                 <div
                   key={skillData.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border-none hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer transition-all duration-200"
                   onClick={() => {
                     if (isOwnProfile) {
                       onNavigateToCompletion('sport-skills');
                     }
                   }}
                 >
-                  <div className="flex items-center space-x-2">
-                    <div className="text-gray-600 dark:text-gray-300">{getSportIcon(sport)}</div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 capitalize text-sm">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-gray-700 dark:text-gray-300 p-2 bg-white rounded-xl shadow-sm">
+                      {getSportIcon(sport)}
+                    </div>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 capitalize text-sm">
                       {sport}
                     </h4>
                   </div>
-                  <div className="flex items-center space-x-3 text-xs">
+                  <div className="flex items-center space-x-4 text-xs">
                     <div className="text-center min-w-[50px]">
-                      <div className="text-gray-500 dark:text-gray-400 text-xs">Level</div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                      <div className="text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider font-semibold">
+                        Level
+                      </div>
+                      <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">
                         {skillData.experienceLevel || 'Not set'}
                       </div>
                     </div>
                     <div className="text-center min-w-[40px]">
-                      <div className="text-gray-500 dark:text-gray-400 text-xs">Win Rate</div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                      <div className="text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider font-semibold">
+                        Win Rate
+                      </div>
+                      <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">
                         {sportStats ? `${sportStats.winRate.toFixed(1)}%` : '-'}
                       </div>
                     </div>
@@ -217,7 +223,7 @@ export function ProfileTabProfile({
             {isOwnProfile && (
               <div className="mt-3">
                 <Link href="/profile-completion#sport-skills">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="rounded-xl">
                     Add Sport Skills
                   </Button>
                 </Link>
@@ -228,8 +234,8 @@ export function ProfileTabProfile({
       </div>
 
       {/* Contact Information */}
-      <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800 dark:text-gray-200">
+      <div className="mb-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 border-none">
+        <h3 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-gray-100 tracking-tight">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6 mr-3 text-blue-500"

@@ -9,7 +9,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { calculateProfileCompletion } from '@/lib/profile-completion';
 import { EditProfile } from '@/components/profile/EditProfile';
 import RatingModal from '@/components/rating/RatingModal';
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { BentoProfileHeader } from '@/components/profile/BentoProfileHeader';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import { ProfileTabProfile } from '@/components/profile/ProfileTabProfile';
 import { ProfileTabEvents } from '@/components/profile/ProfileTabEvents';
@@ -323,8 +323,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <ProfileHeader
+    <div className="bg-gray-50 min-h-screen pb-20">
+      <BentoProfileHeader
         user={user}
         isOwnProfile={isOwnProfile}
         averageRating={averageRatingData?.average || null}

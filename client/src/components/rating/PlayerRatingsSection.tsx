@@ -70,34 +70,41 @@ export default function PlayerRatingsSection({
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            Player Ratings
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-yellow-50 rounded-xl">
+              <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">Player Ratings</span>
           </div>
           {averageRating && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {renderStars(Math.round(averageRating))}
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-1.5">
+                <span className="text-2xl font-bold text-gray-900">{averageRating.toFixed(1)}</span>
+                <div className="flex items-center gap-0.5">
+                  {renderStars(Math.round(averageRating))}
+                </div>
               </div>
-              <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
-              <span className="text-sm text-muted-foreground">
-                ({totalRatings} {totalRatings === 1 ? 'rating' : 'ratings'})
+              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                {totalRatings} {totalRatings === 1 ? 'Review' : 'Reviews'}
               </span>
             </div>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-4 mt-2">
           {ratings.map((rating) => (
-            <div key={rating.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-              <div className="flex items-start gap-3">
-                <Avatar className="h-10 w-10">
+            <div
+              key={rating.id}
+              className="group relative bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-5 transition-all hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <div className="flex items-start gap-4">
+                <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
                   <AvatarImage src={rating.rater.profileImage || undefined} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold">
                     {rating.rater.name
                       .split(' ')
                       .map((n) => n[0])
@@ -105,31 +112,28 @@ export default function PlayerRatingsSection({
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{rating.rater.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {formatSportName(rating.sportType)}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-bold text-gray-900 truncate pr-2">{rating.rater.name}</h4>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {formatDistanceToNow(new Date(rating.createdAt), { addSuffix: true })}
-                    </div>
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {renderStars(rating.rating)}
-                    <span className="text-sm font-medium">{rating.rating}/5</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-lg px-2 py-0.5 text-xs font-medium bg-white shadow-sm"
+                    >
+                      {formatSportName(rating.sportType)}
+                    </Badge>
+                    <div className="flex items-center gap-0.5">{renderStars(rating.rating)}</div>
                   </div>
 
                   {rating.comment && (
-                    <div className="flex items-start gap-2">
-                      <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        "{rating.comment}"
-                      </p>
+                    <div className="relative mt-2 p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+                      <MessageSquare className="absolute top-3 left-3 h-3 w-3 text-gray-300" />
+                      <p className="text-sm text-gray-600 pl-5 leading-relaxed">{rating.comment}</p>
                     </div>
                   )}
                 </div>
