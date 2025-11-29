@@ -10,36 +10,13 @@ import InviteFriendsModal from '@/components/event/InviteFriendsModal';
 import { MakePublicModal } from '@/components/event/MakePublicModal';
 import { SubmitScoreModal } from '@/components/groups/SubmitScoreModal';
 import { EditScoreModal } from '@/components/groups/EditScoreModal';
-import EventMap from '@/components/maps/EventMap';
-import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
 import { motion } from 'framer-motion';
-import {
-  CalendarIcon,
-  MapPinIcon,
-  Clock,
-  ArrowLeft,
-  Share2,
-  DollarSign,
-  Users,
-  MessageSquare,
-  Globe,
-  Lock,
-  UserPlus,
-  Settings,
-  ImageIcon,
-  CheckCircle,
-  ChevronRight,
-  MessageCircle,
-  X,
-  Trophy,
-  Edit,
-} from 'lucide-react';
-import { format } from 'date-fns';
+import { Trophy, Edit, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { EventHero } from '@/components/event/EventHero';
+import { EventInfoBento } from '@/components/event/EventInfoBento';
+import { EventAction } from '@/components/event/EventAction';
 
 const EventDetails = () => {
   // Get the ID from the URL params
@@ -91,9 +68,6 @@ const EventDetails = () => {
     setInviteFriendsModalOpen(true);
   };
 
-  console.log('URL Params:', params);
-  console.log('Event ID from URL:', eventId);
-
   // State for event data
   const [eventData, setEventData] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,8 +85,6 @@ const EventDetails = () => {
 
     setIsLoading(true);
     try {
-      console.log('Fetching event directly, ID:', eventId);
-
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'GET',
         headers: {
@@ -126,7 +98,6 @@ const EventDetails = () => {
       }
 
       const data = await response.json();
-      console.log('Successfully received event data:', data);
       setEventData(data);
       setCurrentVisibility(data.publicVisibility || null);
       setLoadError(null);
@@ -139,10 +110,7 @@ const EventDetails = () => {
 
         if (rsvpResponse.ok) {
           const rsvpData = await rsvpResponse.json();
-          console.log('RSVP data for event', eventId, ':', rsvpData);
           setRsvps(rsvpData);
-        } else {
-          console.error('Failed to fetch RSVPs:', rsvpResponse.status, rsvpResponse.statusText);
         }
       } catch (rsvpErr) {
         console.error('Error fetching RSVPs:', rsvpErr);
@@ -156,7 +124,6 @@ const EventDetails = () => {
 
         if (matchResultResponse.ok) {
           const matchResultData = await matchResultResponse.json();
-          console.log('Match result for event', eventId, ':', matchResultData);
           setMatchResult(matchResultData);
         }
       } catch (matchResultErr) {
@@ -178,11 +145,6 @@ const EventDetails = () => {
   // Log event data for debugging and fetch group info
   useEffect(() => {
     if (eventData) {
-      console.log('Event data received:', eventData);
-      console.log('Event creator:', eventData.creator);
-      console.log('Event image:', eventData.eventImage);
-
-      // Automatically fetch group info for this event
       fetchGroupInfo();
     }
   }, [eventData]);
@@ -200,7 +162,6 @@ const EventDetails = () => {
       return await response.json();
     },
     onSuccess: () => {
-      // Refresh our RSVPs list
       if (eventId) {
         fetchRsvps(eventId);
       }
@@ -226,7 +187,6 @@ const EventDetails = () => {
       return response;
     },
     onSuccess: () => {
-      // Refresh our RSVPs list
       if (eventId) {
         fetchRsvps(eventId);
       }
@@ -253,10 +213,7 @@ const EventDetails = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched RSVPs for event', id, ':', data);
         setRsvps(data);
-      } else {
-        console.error('Failed to fetch RSVPs:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error refreshing RSVPs:', error);
@@ -264,11 +221,29 @@ const EventDetails = () => {
   };
 
   const handleJoin = () => {
-    joinEventMutation.mutate();
+    // If pending, update to approved
+    if (userRSVP && userRSVP.status === 'pending') {
+      apiRequest('PUT', `/api/rsvps/${userRSVP.id}`, { status: 'approved' })
+        .then(() => {
+          if (eventId) fetchRsvps(eventId);
+          toast({
+            title: 'Joined Event',
+            description: 'You have successfully joined this event!',
+          });
+        })
+        .catch(() => {
+          toast({
+            title: 'Error',
+            description: 'Failed to join event',
+            variant: 'destructive',
+          });
+        });
+    } else {
+      joinEventMutation.mutate();
+    }
   };
 
   const handleShare = () => {
-    // In a real app, this would open a share dialog
     toast({
       title: 'Share',
       description: 'Sharing functionality would be implemented here',
@@ -276,46 +251,11 @@ const EventDetails = () => {
   };
 
   const handleBack = () => {
-    // Try to use browser history first
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      // Fallback: Check URL for a previous page parameter
-      const params = new URLSearchParams(window.location.search);
-      const from = params.get('from');
-      const groupId = params.get('groupId');
-
-      // Route based on where we came from
-      if (from === 'myevents') {
-        setLocation('/myevents');
-      } else if (from === 'profile') {
-        setLocation('/profile');
-      } else if (from === 'discover') {
-        setLocation('/discover');
-      } else if (from === 'teams') {
-        setLocation('/teams');
-      } else if (from === 'group' && groupId) {
-        setLocation(`/groups/${groupId}`);
-      } else if (groupInfo?.group) {
-        // If event is part of a group but no explicit 'from' param, go to group
-        setLocation(`/groups/${groupInfo.group.id}`);
-      } else {
-        // Default to discover
-        setLocation('/discover');
-      }
+      setLocation('/discover');
     }
-  };
-
-  const formatEventTime = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return format(date, 'h:mm a');
-  };
-
-  const formatEventDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return format(date, 'EEE, MMM d, yyyy');
   };
 
   // Helper function to check if event is completed (past date AND full capacity)
@@ -325,23 +265,6 @@ const EventDetails = () => {
     const isFullCapacity = actualParticipantCount >= (eventData?.maxParticipants || 0);
     return isPastDate && isFullCapacity;
   };
-
-  // State for image loading
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  // Create sport-specific image URL
-  const getEventImageUrl = (sportType: string | undefined) => {
-    return `https://source.unsplash.com/featured/1200x600/?${sportType?.toLowerCase() || 'sport'}`;
-  };
-
-  // Reset image state when event changes
-  useEffect(() => {
-    if (eventData) {
-      setImageLoaded(false);
-      setImageError(false);
-    }
-  }, [eventData?.id]);
 
   // Determine if the current user is the creator of this event
   const isCreator = user && eventData && user.id === (eventData.creatorId || eventData.creator?.id);
@@ -354,50 +277,9 @@ const EventDetails = () => {
   // Calculate actual participant count from approved RSVPs only
   const actualParticipantCount = rsvps.filter((rsvp: any) => rsvp.status === 'approved').length;
 
-  // Debug logging
-  console.log(
-    'Component state - isCreator:',
-    isCreator,
-    'hasRSVPd:',
-    hasRSVPd,
-    'userRSVP:',
-    userRSVP
-  );
-  console.log('RSVPs array:', rsvps);
-  console.log('Current user ID:', user?.id);
-  console.log('Actual participants (approved only):', actualParticipantCount);
-  console.log('RSVP Status:', rsvpStatus);
-  console.log(
-    'Should show join button:',
-    !isCreator && !hasRSVPd && !isEventCompleted(eventData?.date)
-  );
-  console.log('Should show approved status:', !isCreator && hasRSVPd && rsvpStatus === 'approved');
-
-  // Sport badge colors (same as in EventCard)
-  const getSportBadgeColor = (sport: string | undefined) => {
-    if (!sport) return 'bg-gray-500';
-
-    const sportColors: Record<string, string> = {
-      basketball: 'bg-secondary',
-      soccer: 'bg-accent',
-      tennis: 'bg-pink-500',
-      volleyball: 'bg-indigo-500',
-      cycling: 'bg-red-500',
-      yoga: 'bg-purple-500',
-      running: 'bg-blue-500',
-      swimming: 'bg-cyan-500',
-      football: 'bg-green-500',
-      baseball: 'bg-orange-500',
-      hiking: 'bg-emerald-500',
-      golf: 'bg-lime-500',
-    };
-
-    return sportColors[sport.toLowerCase()] || 'bg-gray-500';
-  };
-
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
@@ -405,766 +287,141 @@ const EventDetails = () => {
 
   if (loadError || !eventData) {
     return (
-      <div className="text-center p-8 bg-red-50 rounded-lg">
-        <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Event</h2>
-        <p className="text-red-600 mb-4">
-          {loadError instanceof Error ? loadError.message : 'Event not found'}
-        </p>
-        <Button onClick={handleBack} variant="outline">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
-        </Button>
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 p-4">
+        <div className="text-center p-8 bg-white rounded-2xl shadow-sm max-w-sm w-full">
+          <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Event</h2>
+          <p className="text-red-600 mb-6">
+            {loadError instanceof Error ? loadError.message : 'Event not found'}
+          </p>
+          <Button onClick={handleBack} variant="outline" className="w-full rounded-xl h-12">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pb-24">
-      {/* Full-Width Hero Image with Overlay */}
-      <div className="relative">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative h-[400px] bg-gradient-to-br from-gray-900 to-gray-800"
-        >
-          {/* Image loading state */}
-          {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-white"></div>
-            </div>
-          )}
+    <div className="bg-gray-50 min-h-screen pb-40">
+      {/* Premium Hero Section */}
+      <EventHero
+        event={eventData}
+        isCreator={!!isCreator}
+        onBack={handleBack}
+        onShare={handleShare}
+        onSettings={() => setLocation(`/events/manage/${eventData.id}`)}
+        actualParticipantCount={actualParticipantCount}
+      />
 
-          {/* Error state */}
-          {imageError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div
-                className={`rounded-xl h-12 w-12 flex items-center justify-center mb-2 ${getSportBadgeColor(eventData.sportType)}`}
-              >
-                <ImageIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-          )}
+      {/* Bento Grid Info Section */}
+      <EventInfoBento event={eventData} actualParticipantCount={actualParticipantCount} />
 
-          {/* Actual image */}
-          <img
-            src={eventData.eventImage || getEventImageUrl(eventData.sportType)}
-            alt={eventData.title || 'Event'}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => {
-              setImageError(true);
-              console.error('Failed to load image for event:', eventData.title);
-            }}
-          />
-
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20"></div>
-
-          {/* Header-Style Navigation Bar - Fixed at Top */}
-          <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-4 z-20 bg-gradient-to-b from-black/60 to-transparent">
-            {/* Back Button */}
-            <motion.button
-              onClick={handleBack}
-              className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </motion.button>
-
-            {/* Right Action Buttons */}
-            <div className="flex gap-2">
-              <motion.button
-                onClick={handleShare}
-                className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Share2 className="h-5 w-5" />
-              </motion.button>
-
-              {isCreator && (
-                <motion.button
-                  onClick={() => setLocation(`/events/manage/${eventData.id}`)}
-                  className="p-2 rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-all"
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Settings className="h-5 w-5" />
-                </motion.button>
-              )}
-            </div>
-          </div>
-
-          {/* Subtle Badges - Floating Top of Image */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-            {eventData.sportType && (
-              <Badge
-                className={`${getSportBadgeColor(eventData.sportType)} text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm bg-opacity-90`}
-              >
-                {eventData.sportType.charAt(0).toUpperCase() + eventData.sportType.slice(1)}
-              </Badge>
-            )}
-            <Badge className="bg-black/50 text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm border-white/20">
-              {eventData.isPublic ? (
-                <Globe className="h-2.5 w-2.5 mr-1" />
-              ) : (
-                <Lock className="h-2.5 w-2.5 mr-1" />
-              )}
-              {eventData.isPublic ? 'Public' : 'Private'}
-            </Badge>
-            <Badge className="bg-black/50 text-white px-2.5 py-0.5 text-xs font-semibold shadow-lg backdrop-blur-sm border-white/20">
-              {eventData.isFree ? (
-                'Free'
-              ) : (
-                <>
-                  <DollarSign className="h-2.5 w-2.5 mr-0.5" />
-                  {((eventData.cost || 0) / 100).toFixed(2)}
-                </>
-              )}
-            </Badge>
-          </div>
-
-          {/* Minimal Title Overlay at Bottom */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-12 bg-gradient-to-t from-black/80 to-transparent">
-            <h1 className="text-2xl font-bold text-white leading-tight mb-2">
-              {eventData.title || 'Event Title'}
-            </h1>
-
-            {/* Compact Info */}
-            <div className="flex items-center gap-3 text-white/90 text-sm mb-2">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5" />
-                <span className="font-medium">{formatEventDate(eventData.date)}</span>
-              </div>
-              <span className="text-white/50">•</span>
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
-                <span className="font-medium">
-                  {actualParticipantCount}/{eventData.maxParticipants}
-                </span>
-              </div>
-            </div>
-
-            {/* Creator */}
-            <div className="flex items-center text-xs text-white/80">
-              <Avatar className="h-5 w-5 mr-1.5 ring-1 ring-white/20">
-                {eventData.creator?.profileImage ? (
-                  <AvatarImage src={eventData.creator.profileImage} />
-                ) : (
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-[9px]">
-                    {eventData.creator?.name?.[0] || 'U'}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <span>by {eventData.creator?.name || eventData.creator?.username || 'Unknown'}</span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Content Section */}
-      <div className="px-4">
-        {/* Fixed Premium Join/Decline Buttons to Bottom */}
-        {!isCreator && !hasRSVPd && !isEventCompleted(eventData?.date) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 260, damping: 20 }}
-            className="fixed bottom-16 left-0 right-0 z-40 px-4 py-3 bg-white/98 backdrop-blur-xl border-t border-gray-200/80 shadow-premium-lg"
-          >
-            <div className="flex gap-3 max-w-4xl mx-auto">
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  className="w-full py-4 text-base font-bold rounded-xl shadow-premium hover:shadow-premium-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                  onClick={handleJoin}
-                  disabled={joinEventMutation.isPending}
-                >
-                  <Users className="mr-2 h-5 w-5" />
-                  {joinEventMutation.isPending ? 'Joining...' : 'Join Event'}
-                </Button>
-              </motion.div>
-              <motion.div
-                className="flex-1"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  variant="outline"
-                  className="w-full py-4 text-base font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-red-300 text-red-600 hover:bg-red-50 bg-white"
-                  onClick={() =>
-                    toast({ title: 'Declined', description: 'You declined to join this event.' })
-                  }
-                >
-                  <X className="mr-2 h-5 w-5" />
-                  Decline
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Join/Decline Buttons for Group Events - Pending RSVP */}
-        {!isCreator &&
-          hasRSVPd &&
-          rsvpStatus === 'pending' &&
-          !isEventCompleted(eventData?.date) && (
-            <div className="sticky top-16 z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-              <div className="flex gap-3">
-                <Button
-                  className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    // Update existing RSVP to approved status
-                    if (userRSVP) {
-                      apiRequest('PUT', `/api/rsvps/${userRSVP.id}`, { status: 'approved' })
-                        .then(() => {
-                          if (eventId) {
-                            fetchRsvps(eventId);
-                          }
-                          toast({
-                            title: 'Joined Event',
-                            description: 'You have successfully joined this event!',
-                          });
-                        })
-                        .catch((error) => {
-                          toast({
-                            title: 'Error',
-                            description: 'Failed to join event',
-                            variant: 'destructive',
-                          });
-                        });
-                    }
-                  }}
-                  disabled={joinEventMutation.isPending}
-                >
-                  <Users className="mr-2.5 h-5 w-5" />
-                  Join Event
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 py-6 text-base font-medium rounded-xl shadow-lg transition-all hover:scale-[1.02] border-red-200 text-red-600 hover:bg-red-50"
-                  onClick={() => declineEventMutation.mutate()}
-                  disabled={declineEventMutation.isPending}
-                >
-                  <X className="mr-2.5 h-5 w-5" />
-                  {declineEventMutation.isPending ? 'Declining...' : 'Decline'}
-                </Button>
-              </div>
-            </div>
-          )}
-
-        {/* RSVP Status - Already Joined */}
-        {!isCreator && hasRSVPd && rsvpStatus === 'approved' && (
-          <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-100">
+      {/* Match Results (if completed) */}
+      {matchResult && (
+        <div className="px-4 mt-4">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-3xl p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CheckCircle className="h-6 w-6 mr-3 text-green-600" />
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-100 p-2 rounded-xl">
+                  <Trophy className="h-5 w-5 text-green-600" />
+                </div>
                 <div>
-                  <p className="font-medium text-green-800">You're going to this event</p>
-                  <p className="text-sm text-green-600">You're confirmed to attend this event</p>
-                </div>
-              </div>
-              {!isEventCompleted(eventData?.date) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                  onClick={() => declineEventMutation.mutate()}
-                  disabled={declineEventMutation.isPending}
-                >
-                  {declineEventMutation.isPending ? 'Leaving...' : 'Leave Event'}
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* RSVP Status - Declined */}
-        {!isCreator && hasRSVPd && (rsvpStatus === 'declined' || rsvpStatus === 'denied') && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <X className="h-6 w-6 mr-3 text-red-600" />
-                <div>
-                  <p className="font-medium text-red-800">You declined this event</p>
-                  <p className="text-sm text-red-600">
-                    {isEventCompleted(eventData?.date)
-                      ? 'Event has ended'
-                      : 'Changed your mind? You can still join!'}
-                  </p>
-                </div>
-              </div>
-              {!isEventCompleted(eventData?.date) && (
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    // Update existing RSVP to approved status
-                    if (userRSVP) {
-                      apiRequest('PUT', `/api/rsvps/${userRSVP.id}`, { status: 'approved' })
-                        .then(() => {
-                          if (eventId) {
-                            fetchRsvps(eventId);
-                          }
-                          toast({
-                            title: 'Joined Event',
-                            description: 'You have successfully joined this event!',
-                          });
-                        })
-                        .catch((error) => {
-                          toast({
-                            title: 'Error',
-                            description: 'Failed to join event',
-                            variant: 'destructive',
-                          });
-                        });
-                    }
-                  }}
-                  disabled={joinEventMutation.isPending}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Join Event
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Organizer Actions */}
-        {isCreator && (
-          <div className="flex gap-3 mb-6">
-            <Button
-              className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg"
-              onClick={handleOpenInviteModal}
-            >
-              <UserPlus className="mr-2 h-5 w-5" />
-              Invite Friends
-            </Button>
-
-            {/* Make Public Button for Group Events */}
-            {groupInfo?.group && (
-              <Button
-                variant="outline"
-                className="flex-1 py-6 rounded-xl shadow-md transition-all hover:shadow-lg"
-                onClick={() => setMakePublicModalOpen(true)}
-              >
-                <Globe className="mr-2 h-5 w-5" />
-                Make Public
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Submit Score Section for Completed Events */}
-        {eventData &&
-          isEventCompleted(eventData.date) &&
-          hasRSVPd &&
-          rsvpStatus === 'approved' &&
-          groupInfo?.group && (
-            <div className="mb-6">
-              {matchResult ? (
-                // Show match result if it exists
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-green-100 p-2 rounded-lg">
-                        <Trophy className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">Match Result</h3>
-                        <div className="space-y-2 mt-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="text-lg font-bold text-gray-900">
-                                {matchResult.scoreA} - {matchResult.scoreB}
-                              </div>
-                              {userRSVP?.status === 'approved' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setShowEditScore(true)}
-                                  className="h-7 px-2 text-xs"
-                                >
-                                  <Edit className="h-3 w-3 mr-1" />
-                                  Edit
-                                </Button>
-                              )}
-                            </div>
-                            {matchResult.winningSide && (
-                              <Badge
-                                variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}
-                              >
-                                {matchResult.winningSide === 'A'
-                                  ? 'Team A Wins'
-                                  : matchResult.winningSide === 'B'
-                                    ? 'Team B Wins'
-                                    : 'Draw'}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-1">
-                              <div className="font-medium text-gray-700">Team A</div>
-                              <div className="text-gray-600">
-                                {matchResult.teamAPlayers
-                                  ? matchResult.teamAPlayers.map((p: any) => p.name).join(', ')
-                                  : 'Team A'}
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="font-medium text-gray-700">Team B</div>
-                              <div className="text-gray-600">
-                                {matchResult.teamBPlayers
-                                  ? matchResult.teamBPlayers.map((p: any) => p.name).join(', ')
-                                  : 'Team B'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {matchResult.submitter && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Submitted by {matchResult.submitter.name} •{' '}
-                            {format(new Date(matchResult.completedAt), 'MMM d, yyyy h:mm a')}
-                          </p>
-                        )}
-                      </div>
+                  <h3 className="font-bold text-gray-900">Match Result</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    <div className="text-xl font-bold text-gray-900">
+                      {matchResult.scoreA} - {matchResult.scoreB}
                     </div>
-                  </div>
-                </div>
-              ) : (
-                // Show submit score button if no result exists
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-yellow-100 p-2 rounded-lg">
-                        <Trophy className="h-5 w-5 text-yellow-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">Event Completed</h3>
-                        <p className="text-sm text-gray-600">
-                          Submit match results for group scoreboard
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => setShowSubmitScore(true)}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                    >
-                      <Trophy className="mr-2 h-4 w-4" />
-                      Submit Score
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-        {/* Invite Friends Modal */}
-        {eventData && (
-          <InviteFriendsModal
-            open={inviteFriendsModalOpen}
-            onOpenChange={setInviteFriendsModalOpen}
-            eventId={eventData.id}
-            groupId={groupInfo?.group?.id}
-            groupMembers={groupInfo?.members}
-          />
-        )}
-
-        {/* Make Public Modal */}
-        {eventData && (
-          <MakePublicModal
-            isOpen={makePublicModalOpen}
-            onClose={() => setMakePublicModalOpen(false)}
-            eventId={eventData.id}
-            currentVisibility={currentVisibility}
-            onVisibilityChange={setCurrentVisibility}
-          />
-        )}
-
-        {/* Submit Score Modal */}
-        {eventData && groupInfo?.group && showSubmitScore && (
-          <SubmitScoreModal
-            group={groupInfo.group}
-            preSelectedEvent={eventData}
-            onClose={() => setShowSubmitScore(false)}
-            onSuccess={() => {
-              setShowSubmitScore(false);
-              // Refetch the match result to update the display
-              fetchEventData();
-              toast({
-                title: 'Score Submitted',
-                description: 'Match result has been saved to the group scoreboard!',
-              });
-            }}
-          />
-        )}
-
-        {/* Edit Score Modal */}
-        {showEditScore && matchResult && (
-          <EditScoreModal
-            isOpen={showEditScore}
-            onClose={() => setShowEditScore(false)}
-            eventId={eventData.id}
-            matchResult={matchResult}
-          />
-        )}
-
-        {/* Tabs with Details */}
-        <Tabs defaultValue="details" className="mb-8 mt-4">
-          <TabsList className="w-full grid grid-cols-3 gap-2 bg-transparent p-0 h-auto">
-            <TabsTrigger
-              value="details"
-              className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all"
-            >
-              About
-            </TabsTrigger>
-            <TabsTrigger
-              value="participants"
-              className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all"
-            >
-              <span className="flex items-center gap-1.5">
-                <span>People</span>
-                <span className="bg-white/20 text-current text-xs px-1.5 py-0.5 rounded-full font-bold">
-                  {actualParticipantCount}
-                </span>
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="discussion"
-              className="rounded-lg py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-gray-100 data-[state=inactive]:text-gray-600 transition-all"
-            >
-              Chat
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="details">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3">About This Event</h3>
-                <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed">
-                    {eventData.description || 'No description provided.'}
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Location Section with Google Maps */}
-              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-3">Location</h3>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <div className="flex items-start mb-3">
-                      <MapPinIcon className="h-5 w-5 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium">{eventData.location}</p>
-                      </div>
-                    </div>
-                    <div className="rounded-lg overflow-hidden">
-                      <GoogleMapsWrapper>
-                        <EventMap
-                          latitude={eventData.locationCoordinates.lat}
-                          longitude={eventData.locationCoordinates.lng}
-                          address={eventData.location}
-                          showMarker={true}
-                          height="300px"
-                        />
-                      </GoogleMapsWrapper>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {eventData.locationCoordinates?.lat && eventData.locationCoordinates?.lng && (
-                <Separator />
-              )}
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3">Organizer</h3>
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <div className="flex items-start">
-                    <Avatar className="h-12 w-12">
-                      {eventData.creator?.profileImage ? (
-                        <AvatarImage src={eventData.creator.profileImage} />
-                      ) : (
-                        <AvatarFallback className="bg-primary text-white">
-                          {eventData.creator?.name?.[0] || 'U'}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div className="ml-3">
-                      <p className="font-medium">
-                        {eventData.creator?.name || eventData.creator?.username || 'Unknown'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {eventData.creator?.bio || 'Event organizer'}
-                      </p>
-                      <Button variant="ghost" size="sm" className="mt-1 h-8 px-3 text-xs">
-                        <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Follow
+                    {userRSVP?.status === 'approved' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowEditScore(true)}
+                        className="h-6 px-2 text-xs rounded-lg hover:bg-green-100 text-green-700"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
                       </Button>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="participants">
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold mb-3">Event Participants</h3>
-
-              <div className="bg-gray-50 rounded-xl p-5">
-                {rsvps.length > 0 ? (
-                  <ul className="divide-y divide-gray-100">
-                    {rsvps
-                      .filter(
-                        (rsvp: any) => rsvp.status === 'approved' || rsvp.status === 'pending'
-                      )
-                      .map((rsvp: any) => (
-                        <li key={rsvp.id} className="py-3 first:pt-0 last:pb-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <Avatar className="h-10 w-10">
-                                {rsvp.user?.profileImage ? (
-                                  <AvatarImage src={rsvp.user.profileImage} />
-                                ) : (
-                                  <AvatarFallback className="bg-primary/80 text-white">
-                                    {rsvp.user?.name?.[0] || 'U'}
-                                  </AvatarFallback>
-                                )}
-                              </Avatar>
-                              <div className="ml-3 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium text-sm">
-                                    {rsvp.user?.name || rsvp.user?.username || 'Unknown'}
-                                  </p>
-                                  {rsvp.status === 'pending' && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs px-1.5 py-0.5 bg-yellow-50 text-yellow-700 border-yellow-200"
-                                    >
-                                      Pending
-                                    </Badge>
-                                  )}
-                                  {rsvp.status === 'approved' && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200"
-                                    >
-                                      Confirmed
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                  Joined{' '}
-                                  {rsvp.createdAt
-                                    ? new Date(rsvp.createdAt).toLocaleDateString()
-                                    : ''}{' '}
-                                  at{' '}
-                                  {rsvp.createdAt
-                                    ? new Date(rsvp.createdAt).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : ''}
-                                </p>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
-                              <ChevronRight className="h-4 w-4 text-gray-400" />
-                            </Button>
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                ) : (
-                  <div className="text-center py-6">
-                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 mb-1">No participants yet</p>
-                    <p className="text-sm text-gray-400">Be the first to join this event!</p>
-                  </div>
-                )}
-              </div>
-
-              {isCreator && rsvps.some((rsvp: any) => rsvp.status === 'pending') && (
-                <div className="mt-8">
-                  <h3 className="text-xl font-semibold mb-3">Pending Requests</h3>
-                  <div className="bg-gray-50 rounded-xl p-5">
-                    <ul className="divide-y divide-gray-100">
-                      {rsvps
-                        .filter((rsvp: any) => rsvp.status === 'pending')
-                        .map((rsvp: any) => (
-                          <li key={rsvp.id} className="py-3 first:pt-0 last:pb-0">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                <Avatar className="h-10 w-10">
-                                  {rsvp.user?.profileImage ? (
-                                    <AvatarImage src={rsvp.user.profileImage} />
-                                  ) : (
-                                    <AvatarFallback className="bg-primary/80 text-white">
-                                      {rsvp.user?.name?.[0] || 'U'}
-                                    </AvatarFallback>
-                                  )}
-                                </Avatar>
-                                <div className="ml-3">
-                                  <p className="font-medium text-sm">
-                                    {rsvp.user?.name || rsvp.user?.username || 'Unknown'}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    Requested{' '}
-                                    {rsvp.createdAt
-                                      ? new Date(rsvp.createdAt).toLocaleDateString()
-                                      : ''}{' '}
-                                    at{' '}
-                                    {rsvp.createdAt
-                                      ? new Date(rsvp.createdAt).toLocaleTimeString([], {
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
-                                      : ''}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="h-8">
-                                  Decline
-                                </Button>
-                                <Button size="sm" className="h-8">
-                                  Approve
-                                </Button>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                </div>
+              {matchResult.winningSide && (
+                <Badge
+                  variant={matchResult.winningSide === 'A' ? 'default' : 'secondary'}
+                  className="rounded-lg px-3 py-1"
+                >
+                  {matchResult.winningSide === 'A' ? 'Team A Won' : 'Team B Won'}
+                </Badge>
               )}
             </div>
-          </TabsContent>
+          </div>
+        </div>
+      )}
 
-          <TabsContent value="discussion">
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold mb-3">Event Discussion</h3>
+      {/* Sticky Action Footer */}
+      <EventAction
+        isCreator={!!isCreator}
+        hasRSVPd={hasRSVPd}
+        rsvpStatus={rsvpStatus}
+        isEventCompleted={isEventCompleted(eventData.date)}
+        isPending={joinEventMutation.isPending || declineEventMutation.isPending}
+        onJoin={handleJoin}
+        onDecline={() => declineEventMutation.mutate()}
+        onInvite={handleOpenInviteModal}
+        onMakePublic={() => setMakePublicModalOpen(true)}
+        showMakePublic={!!groupInfo?.group}
+      />
 
-              <div className="bg-gray-50 rounded-xl p-5">
-                <div className="text-center py-8">
-                  <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-1">Discussion feature coming soon</p>
-                  <p className="text-sm text-gray-400">
-                    For now, use the group chat to discuss this event with other participants
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+      {/* Modals */}
+      {inviteFriendsModalOpen && (
+        <InviteFriendsModal
+          isOpen={inviteFriendsModalOpen}
+          onClose={() => setInviteFriendsModalOpen(false)}
+          eventId={Number(eventId)}
+          eventName={eventData.title}
+          existingMembers={groupInfo?.members || []}
+        />
+      )}
+
+      {makePublicModalOpen && (
+        <MakePublicModal
+          isOpen={makePublicModalOpen}
+          onClose={() => setMakePublicModalOpen(false)}
+          eventId={Number(eventId)}
+          currentVisibility={currentVisibility || 'private'}
+          onSuccess={() => {
+            fetchEventData();
+            setMakePublicModalOpen(false);
+          }}
+        />
+      )}
+
+      {showSubmitScore && (
+        <SubmitScoreModal
+          isOpen={showSubmitScore}
+          onClose={() => setShowSubmitScore(false)}
+          eventId={Number(eventId)}
+          onSuccess={() => {
+            fetchEventData();
+            setShowSubmitScore(false);
+          }}
+        />
+      )}
+
+      {showEditScore && matchResult && (
+        <EditScoreModal
+          isOpen={showEditScore}
+          onClose={() => setShowEditScore(false)}
+          matchResultId={matchResult.id}
+          initialScoreA={matchResult.scoreA}
+          initialScoreB={matchResult.scoreB}
+          initialWinningSide={matchResult.winningSide}
+          onSuccess={() => {
+            fetchEventData();
+            setShowEditScore(false);
+          }}
+        />
+      )}
     </div>
   );
 };
