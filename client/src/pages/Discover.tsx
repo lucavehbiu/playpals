@@ -6,8 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useMemo } from 'react';
 import { sportTypes, type Tournament } from '@shared/schema';
 import { format, parseISO, isAfter, isSameDay } from 'date-fns';
-import { motion } from 'framer-motion';
-import { Filter, Trophy, MapPin, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Filter, Trophy, MapPin, X, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,10 +21,13 @@ import {
 } from '@/components/ui/loading-skeletons';
 import { NoResultsEmptyState } from '@/components/ui/empty-states';
 import { DiscoverFilterSidebar } from '@/components/filters/DiscoverFilterSidebar';
+import { IOSSearchBar } from '@/components/ui/IOSSearchBar';
+import { PillFilter } from '@/components/ui/PillFilter';
 
 const Discover = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedSport, setSelectedSport] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
   const [showFreeOnly, setShowFreeOnly] = useState<boolean>(false);
@@ -118,6 +121,19 @@ const Discover = () => {
 
   // Apply basic filters to events and tournaments first
   const basicFilteredEvents = events?.filter((event) => {
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = event.title.toLowerCase().includes(query);
+      const matchesDesc = event.description?.toLowerCase().includes(query);
+      const matchesLocation = event.location?.toLowerCase().includes(query);
+      const matchesSport = event.sportType.toLowerCase().includes(query);
+
+      if (!matchesTitle && !matchesDesc && !matchesLocation && !matchesSport) {
+        return false;
+      }
+    }
+
     // Filter by content type
     if (contentType === 'tournaments') return false; // Skip events if showing tournaments only
 
@@ -168,6 +184,19 @@ const Discover = () => {
   });
 
   const basicFilteredTournaments = tournaments?.filter((tournament) => {
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = tournament.name.toLowerCase().includes(query);
+      const matchesDesc = tournament.description?.toLowerCase().includes(query);
+      const matchesLocation = tournament.location?.toLowerCase().includes(query);
+      const matchesSport = tournament.sportType.toLowerCase().includes(query);
+
+      if (!matchesTitle && !matchesDesc && !matchesLocation && !matchesSport) {
+        return false;
+      }
+    }
+
     // Filter by content type
     if (contentType === 'events') return false; // Skip tournaments if showing events only
 
@@ -273,42 +302,70 @@ const Discover = () => {
     contentType,
   ]);
 
+  const categories = [
+    { id: 'all', label: 'All' },
+    { id: 'events', label: 'Events' },
+    { id: 'tournaments', label: 'Tournaments' },
+  ];
+
   return (
-    <div className="relative">
+    <div className="relative min-h-screen pb-20">
       {/* Subtle background pattern for premium feel */}
       <div
-        className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"
+        className="fixed inset-0 opacity-[0.02] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"
         aria-hidden="true"
       ></div>
 
-      {/* Clean Minimal Header - Just Title and Filter Button */}
-      <div className="flex items-center justify-between mb-6">
-        <motion.h1
-          className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          Discover Events
-        </motion.h1>
+      {/* Sticky Header with iOS Search and Pill Filters */}
+      <div className="sticky top-0 z-30 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 pb-2 pt-4 px-4 -mx-4 mb-6">
+        <div className="flex flex-col gap-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <IOSSearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search events, tournaments, locations..."
+            />
 
-        {/* Compact Filter Toggle Button - Right Aligned */}
-        <motion.button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-            showFilters
-              ? 'bg-primary text-white shadow-md'
-              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Filter className="h-4 w-4" />
-          {activeFiltersCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shadow-md">
-              {activeFiltersCount}
-            </span>
-          )}
-        </motion.button>
+            <motion.button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+                showFilters || activeFiltersCount > 0
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Filter className="h-5 w-5" />
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm border border-white">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </motion.button>
+          </div>
+
+          {/* Horizontal Scrollable Pill Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 mask-linear-fade">
+            {categories.map((category) => (
+              <PillFilter
+                key={category.id}
+                label={category.label}
+                isActive={contentType === category.id}
+                onClick={() => setContentType(category.id)}
+              />
+            ))}
+            <div className="w-px h-6 bg-gray-200 mx-1 flex-shrink-0" />
+            {['basketball', 'soccer', 'tennis', 'volleyball'].map((sport) => (
+              <PillFilter
+                key={sport}
+                label={sport.charAt(0).toUpperCase() + sport.slice(1)}
+                isActive={selectedSport === sport}
+                onClick={() => setSelectedSport(selectedSport === sport ? 'all' : sport)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Filter Sidebar Component */}
@@ -338,12 +395,6 @@ const Discover = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="mb-5">
-            <div className="flex justify-between items-center">
-              <div className="h-8 w-48 bg-gray-200 rounded-full animate-pulse"></div>
-              <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
-            </div>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <motion.div
@@ -365,19 +416,7 @@ const Discover = () => {
           transition={{ duration: 0.4 }}
         >
           <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <svg
-              className="w-8 h-8 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <X className="w-8 h-8 text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Events</h2>
           <p className="text-red-600 max-w-md mx-auto">
@@ -387,27 +426,18 @@ const Discover = () => {
             className="mt-4 inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition-colors"
             onClick={() => location.reload()}
           >
-            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
             Reload Page
           </button>
         </motion.div>
       ) : (
         <>
-          {/* Compact Results Count & Controls - Right Aligned */}
+          {/* Results Count & Sort */}
           <motion.div
-            className="flex justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-100"
+            className="flex justify-between items-center gap-3 mb-4 pb-3"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            {/* Left side - Results count */}
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold text-gray-900">{totalResults}</span>
               <span className="text-xs text-gray-500">
@@ -419,63 +449,20 @@ const Discover = () => {
               </span>
             </div>
 
-            {/* Right side - Clear & Sort */}
-            <div className="flex items-center gap-2">
-              {/* Clear Filters Button - Only show when filters are active */}
-              {activeFiltersCount > 0 && (
-                <motion.button
-                  onClick={() => {
-                    setSelectedSport('all');
-                    clearLocationFilter();
-                    setDateFilter('');
-                    setShowFreeOnly(false);
-                    setShowPublicOnly(true);
-                    setContentType('all');
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </motion.button>
-              )}
-
-              {/* Sort Dropdown - Only show when there are results */}
-              {totalResults > 0 && (
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="pl-3 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 focus:ring-1 focus:ring-primary/30 focus:border-primary appearance-none cursor-pointer transition-all duration-200"
-                  >
-                    <option value="latest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="location">By Location</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <svg
-                      className="w-3 h-3 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              )}
-            </div>
+            {totalResults > 0 && (
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="pl-3 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 focus:ring-1 focus:ring-primary/30 focus:border-primary appearance-none cursor-pointer transition-all duration-200"
+              >
+                <option value="latest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="location">By Location</option>
+              </select>
+            )}
           </motion.div>
 
-          {/* Events and Tournaments Grid with Staggered Animation */}
+          {/* Events and Tournaments Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Render Events */}
             {filteredEvents &&
@@ -507,8 +494,7 @@ const Discover = () => {
                     delay: 0.1 + ((filteredEvents?.length || 0) + index) * 0.1,
                   }}
                 >
-                  {/* Tournament Card - inline component */}
-                  <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+                  <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 h-full">
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg font-semibold line-clamp-2 flex items-center gap-2">
@@ -554,7 +540,7 @@ const Discover = () => {
                         )}
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2 mt-auto">
                         <Link href={`/tournaments/${tournament.id}`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full">
                             View Details
@@ -580,7 +566,7 @@ const Discover = () => {
             {totalResults === 0 && (
               <div className="col-span-3">
                 <NoResultsEmptyState
-                  searchTerm={selectedSport !== 'all' ? selectedSport : undefined}
+                  searchTerm={searchQuery || (selectedSport !== 'all' ? selectedSport : undefined)}
                 />
               </div>
             )}
