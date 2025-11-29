@@ -21,6 +21,8 @@ interface BentoProfileHeaderProps {
   averageRating: number | null;
   totalMatches: number;
   mutualFriendsCount: number;
+  friendsCount?: number;
+  friends?: any[];
   friendshipStatus: 'own' | 'friends' | 'incoming' | 'outgoing' | 'none';
   buttonConfig: {
     text: string;
@@ -43,6 +45,8 @@ export function BentoProfileHeader({
   averageRating,
   totalMatches,
   mutualFriendsCount,
+  friendsCount = 0,
+  friends = [],
   friendshipStatus,
   buttonConfig,
   incomingRequest,
@@ -239,7 +243,7 @@ export function BentoProfileHeader({
             </div>
             <div className="flex flex-col text-left">
               <span className="text-lg font-bold text-gray-900">
-                {!isOwnProfile ? mutualFriendsCount : 'Friends'}
+                {!isOwnProfile ? mutualFriendsCount : friendsCount}
               </span>
               <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
                 {!isOwnProfile ? 'Mutual Friends' : 'Connections'}
@@ -247,11 +251,31 @@ export function BentoProfileHeader({
             </div>
           </div>
 
-          {/* Avatars Preview (Mock for now, or could pass in actual friends) */}
+          {/* Avatars Preview */}
           <div className="flex -space-x-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
-            ))}
+            {friends && friends.length > 0
+              ? friends.slice(0, 3).map((friend, i) => (
+                  <div
+                    key={friend.id || i}
+                    className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden"
+                  >
+                    {friend.profileImage ? (
+                      <img
+                        src={friend.profileImage}
+                        alt={friend.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
+                        {friend.name?.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                ))
+              : // Empty state placeholders if no friends
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100" />
+                ))}
           </div>
         </motion.div>
       </div>

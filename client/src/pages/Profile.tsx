@@ -97,7 +97,7 @@ const Profile = () => {
 
   const { data: targetUserFriends = [] } = useQuery({
     queryKey: [`/api/users/${userId}/friends`],
-    enabled: !!userId && !isOwnProfile,
+    enabled: !!userId,
   });
 
   const mutualFriends = !isOwnProfile
@@ -148,10 +148,9 @@ const Profile = () => {
       });
     },
     onError: (error: Error) => {
-      console.error('Friend request send error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to send friend request',
+        description: error.message,
         variant: 'destructive',
       });
     },
@@ -330,6 +329,8 @@ const Profile = () => {
         averageRating={averageRatingData?.average || null}
         totalMatches={userMatches?.totalMatches || 0}
         mutualFriendsCount={mutualFriends.length}
+        friendsCount={targetUserFriends.length}
+        friends={targetUserFriends}
         friendshipStatus={friendshipStatus}
         buttonConfig={buttonConfig}
         incomingRequest={incomingRequest}
