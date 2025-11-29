@@ -80,16 +80,18 @@ export default function PlayerRatingsSection({
             <span className="text-xl font-bold tracking-tight">Player Ratings</span>
           </div>
           {averageRating && (
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5">
-                <span className="text-2xl font-bold text-gray-900">{averageRating.toFixed(1)}</span>
+            <div className="flex items-center gap-4">
+              <span className="text-4xl font-bold text-gray-900 tracking-tighter">
+                {averageRating.toFixed(1)}
+              </span>
+              <div className="flex flex-col items-start gap-0.5">
                 <div className="flex items-center gap-0.5">
                   {renderStars(Math.round(averageRating))}
                 </div>
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  {totalRatings} {totalRatings === 1 ? 'Review' : 'Reviews'}
+                </span>
               </div>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                {totalRatings} {totalRatings === 1 ? 'Review' : 'Reviews'}
-              </span>
             </div>
           )}
         </CardTitle>
