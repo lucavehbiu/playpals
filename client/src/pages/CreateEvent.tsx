@@ -17,12 +17,10 @@ import {
   Lock,
   UserPlus,
   CheckCircle,
-  ImageIcon,
-  Camera,
-  Sparkles,
+  DollarSign,
   Upload,
+  Sparkles,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -32,26 +30,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import InviteFriendsModal from '@/components/event/InviteFriendsModal';
 import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
 import { LocationSearch } from '@/components/maps/LocationSearch';
 import EventMap from '@/components/maps/EventMap';
 import { sportTypes } from '@shared/schema';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Import our new premium components
+import { StepIndicator } from '@/components/create-event/StepIndicator';
+import { EventPreviewCard } from '@/components/create-event/EventPreviewCard';
+import { FormField } from '@/components/create-event/FormField';
+import { SportSelector } from '@/components/create-event/SportSelector';
+import { DateTimePicker } from '@/components/create-event/DateTimePicker';
+import { SuccessConfetti } from '@/components/create-event/SuccessConfetti';
 
 const STEPS = [
-  { id: 'title', label: 'Event Title', icon: '📝' },
-  { id: 'sport', label: 'Sport Type', icon: '⚽' },
-  { id: 'location', label: 'Location', icon: '📍' },
-  { id: 'date', label: 'Date', icon: '📅' },
-  { id: 'time', label: 'Start Time', icon: '⏰' },
-  { id: 'duration', label: 'Duration', icon: '⏱️' },
-  { id: 'players', label: 'Min Players', icon: '👥' },
-  { id: 'price', label: 'Price', icon: '💰' },
-  { id: 'description', label: 'Description', icon: '📄' },
-  { id: 'image', label: 'Event Image', icon: '🖼️' },
-  { id: 'visibility', label: 'Public/Private', icon: '🔒' },
+  { id: 'basics', label: 'Basics', icon: '📝' },
+  { id: 'sport', label: 'Sport', icon: '⚽' },
+  { id: 'datetime', label: 'When', icon: '📅' },
+  { id: 'location', label: 'Where', icon: '📍' },
+  { id: 'details', label: 'Details', icon: '👥' },
+  { id: 'image', label: 'Image', icon: '🖼️' },
+  { id: 'visibility', label: 'Privacy', icon: '🔒' },
 ];
 
 const CreateEvent = () => {
@@ -70,6 +72,7 @@ const CreateEvent = () => {
   // Step management
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Event form state
   const [formData, setFormData] = useState({
@@ -165,16 +168,17 @@ const CreateEvent = () => {
           console.log('Uploading image to GCS for event:', result.id);
           const gcsUrl = await uploadImageToGCS(result.id, uploadedImageFile);
           console.log('Image uploaded successfully to:', gcsUrl);
-          // Image is now in GCS and the event has the URL
         } catch (error) {
           console.error('Failed to upload image to GCS:', error);
-          // Event is still created, just without the image
         }
       }
 
       return result;
     },
     onSuccess: async (data: any) => {
+      // Show confetti!
+      setShowConfetti(true);
+
       toast({
         title: 'Success!',
         description: groupId
@@ -185,7 +189,6 @@ const CreateEvent = () => {
       // If event was created from a poll suggestion, mark the suggestion as used and invite available participants
       if (pollId && suggestionId && data?.id) {
         try {
-          // Mark the poll suggestion as used
           await fetch(
             `/api/sports-groups/${groupId}/polls/${pollId}/suggestions/${suggestionId}/mark-used`,
             {
@@ -198,7 +201,6 @@ const CreateEvent = () => {
             }
           );
 
-          // Invite all users who marked themselves as available for this time slot
           await fetch(`/api/sports-groups/${groupId}/polls/${pollId}/invite-available-users`, {
             method: 'POST',
             headers: {
@@ -224,17 +226,17 @@ const CreateEvent = () => {
         queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
       }
 
-      // If it's a group event, navigate back to group (no invite modal needed)
-      if (groupId) {
-        setLocation(`/groups/${groupId}`);
-      } else if (formData.isPrivate && data?.id) {
-        // Only show invite friends modal for non-group private events
-        setCreatedEventId(data.id);
-        setInviteFriendsModalOpen(true);
-      } else {
-        // Navigate to my events for public events
-        setLocation('/myevents');
-      }
+      // Wait for confetti, then navigate
+      setTimeout(() => {
+        if (groupId) {
+          setLocation(`/groups/${groupId}`);
+        } else if (formData.isPrivate && data?.id) {
+          setCreatedEventId(data.id);
+          setInviteFriendsModalOpen(true);
+        } else {
+          setLocation('/myevents');
+        }
+      }, 2500);
     },
     onError: (error: any) => {
       toast({
@@ -252,26 +254,18 @@ const CreateEvent = () => {
   const isStepValid = (stepIndex: number) => {
     const step = STEPS[stepIndex];
     switch (step.id) {
-      case 'title':
+      case 'basics':
         return formData.title.trim().length > 0;
       case 'sport':
         return formData.sportType.length > 0;
+      case 'datetime':
+        return formData.date.length > 0 && formData.time.length > 0;
       case 'location':
         return formData.location.trim().length > 0;
-      case 'date':
-        return formData.date.length > 0;
-      case 'time':
-        return formData.time.length > 0;
-      case 'duration':
-        return formData.duration.length > 0;
-      case 'players':
-        return parseInt(formData.maxParticipants) >= 2;
-      case 'price':
-        return parseFloat(formData.price) >= 0;
-      case 'description':
-        return true; // Optional field
+      case 'details':
+        return parseInt(formData.maxParticipants) >= 2 && parseFloat(formData.price) >= 0;
       case 'image':
-        return true; // Optional field - can skip
+        return true; // Optional
       case 'visibility':
         return true; // Always valid
       default:
@@ -311,7 +305,6 @@ const CreateEvent = () => {
 
     // If it's a private event and not from a group, navigate to invitation page
     if (formData.isPrivate && !groupId) {
-      // Store form data in session storage and navigate to invitation page
       const eventData = {
         title: formData.title,
         description: formData.description,
@@ -327,7 +320,6 @@ const CreateEvent = () => {
         maxParticipants: formData.maxParticipants,
         price: formData.price,
         isPrivate: formData.isPrivate,
-        // Only include SVG data URLs, not 'pending-upload' placeholder
         eventImage:
           formData.eventImage && formData.eventImage !== 'pending-upload'
             ? formData.eventImage
@@ -340,10 +332,7 @@ const CreateEvent = () => {
     }
 
     // For public events or group events, create directly
-    // Combine date and time
     const startDateTime = new Date(`${formData.date}T${formData.time}`);
-
-    // Calculate end time based on duration
     const endDateTime = new Date(startDateTime.getTime() + parseInt(formData.duration) * 60000);
 
     const eventData = {
@@ -360,8 +349,7 @@ const CreateEvent = () => {
       creatorId: user.id,
       isPublic: !formData.isPrivate,
       isFree: parseFloat(formData.price) === 0,
-      cost: Math.round((parseFloat(formData.price) || 0) * 100), // Convert to cents for backend
-      // Only include SVG data URLs, not 'pending-upload' placeholder (photo will be uploaded after event creation)
+      cost: Math.round((parseFloat(formData.price) || 0) * 100),
       eventImage:
         formData.eventImage && formData.eventImage !== 'pending-upload'
           ? formData.eventImage
@@ -385,69 +373,109 @@ const CreateEvent = () => {
     const step = STEPS[currentStep];
 
     switch (step.id) {
-      case 'title':
+      case 'basics':
         return (
-          <div className="space-y-4">
-            <Label htmlFor="title" className="text-lg font-medium">
-              What's the name of your event?
-            </Label>
-            <Input
-              id="title"
+          <motion.div
+            key="basics"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <FormField
+              label="What's the name of your event?"
+              icon={<CalendarIcon className="w-5 h-5" />}
               value={formData.title}
-              onChange={(e) => updateFormData('title', e.target.value)}
+              onChange={(value) => updateFormData('title', value)}
               placeholder="e.g., Weekend Basketball Pickup Game"
-              className="text-lg p-4 h-14"
+              required
+              maxLength={100}
               autoFocus
             />
-          </div>
+            <FormField
+              label="Tell people about your event (optional)"
+              type="textarea"
+              value={formData.description}
+              onChange={(value) => updateFormData('description', value)}
+              placeholder="Describe what to expect, what to bring, skill level, etc..."
+              maxLength={500}
+            />
+          </motion.div>
         );
 
       case 'sport':
         return (
-          <div className="space-y-4">
-            <Label className="text-lg font-medium">What sport will you be playing?</Label>
-            <Select
+          <motion.div
+            key="sport"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            <Label className="text-lg font-semibold text-gray-900">
+              What sport will you be playing?
+            </Label>
+            <SportSelector
               value={formData.sportType}
-              onValueChange={(value) => updateFormData('sportType', value)}
-            >
-              <SelectTrigger className="text-lg p-4 h-14">
-                <SelectValue placeholder="Select a sport" />
-              </SelectTrigger>
-              <SelectContent>
-                {sportTypes.map((sport) => {
-                  const sportEmojis: { [key: string]: string } = {
-                    basketball: '🏀',
-                    soccer: '⚽',
-                    tennis: '🎾',
-                    volleyball: '🏐',
-                    cycling: '🚴',
-                    yoga: '🧘',
-                    running: '🏃',
-                    swimming: '🏊',
-                    football: '🏈',
-                    baseball: '⚾',
-                    hiking: '🥾',
-                    golf: '⛳',
-                    padel: '🎾',
-                    other: '🎯',
-                  };
-                  const emoji = sportEmojis[sport] || '🎯';
-                  const label = sport.charAt(0).toUpperCase() + sport.slice(1);
-                  return (
-                    <SelectItem key={sport} value={sport}>
-                      {emoji} {label}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+              onChange={(value) => updateFormData('sportType', value)}
+            />
+          </motion.div>
+        );
+
+      case 'datetime':
+        return (
+          <motion.div
+            key="datetime"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <Label className="text-lg font-semibold text-gray-900">When is your event?</Label>
+            <DateTimePicker
+              date={formData.date}
+              time={formData.time}
+              onDateChange={(value) => updateFormData('date', value)}
+              onTimeChange={(value) => updateFormData('time', value)}
+            />
+
+            {/* Duration */}
+            <div>
+              <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                How long will it last?
+              </Label>
+              <Select
+                value={formData.duration}
+                onValueChange={(value) => updateFormData('duration', value)}
+              >
+                <SelectTrigger className="text-lg p-4 h-14 rounded-2xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20">
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                  <SelectItem value="120">2 hours</SelectItem>
+                  <SelectItem value="180">3 hours</SelectItem>
+                  <SelectItem value="240">4 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </motion.div>
         );
 
       case 'location':
         return (
-          <div className="space-y-6">
-            <Label className="text-lg font-medium">Where will this take place?</Label>
+          <motion.div
+            key="location"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <Label className="text-lg font-semibold text-gray-900">
+              Where will this take place?
+            </Label>
 
             <GoogleMapsWrapper>
               <LocationSearch
@@ -464,158 +492,76 @@ const CreateEvent = () => {
 
             {/* Live preview map */}
             {formData.locationLatitude !== 0 && formData.locationLongitude !== 0 && (
-              <div className="mt-4">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4"
+              >
                 <Label className="text-sm font-medium text-gray-600 mb-2 block">
                   📍 Location Preview
                 </Label>
-                <GoogleMapsWrapper>
-                  <EventMap
-                    latitude={formData.locationLatitude}
-                    longitude={formData.locationLongitude}
-                    address={formData.location}
-                    height="200px"
-                    showMarker={true}
-                  />
-                </GoogleMapsWrapper>
-              </div>
+                <div className="rounded-2xl overflow-hidden border-2 border-gray-200">
+                  <GoogleMapsWrapper>
+                    <EventMap
+                      latitude={formData.locationLatitude}
+                      longitude={formData.locationLongitude}
+                      address={formData.location}
+                      height="200px"
+                      showMarker={true}
+                    />
+                  </GoogleMapsWrapper>
+                </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         );
 
-      case 'date':
+      case 'details':
         return (
-          <div className="space-y-4">
-            <Label htmlFor="date" className="text-lg font-medium">
-              When is your event?
-            </Label>
-            <div className="relative">
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => updateFormData('date', e.target.value)}
-                className="text-lg p-4 h-14 pl-12"
-                min={format(new Date(), 'yyyy-MM-dd')}
-                autoFocus
-              />
-              <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-        );
-
-      case 'time':
-        return (
-          <div className="space-y-4">
-            <Label htmlFor="time" className="text-lg font-medium">
-              What time does it start?
-            </Label>
-            <div className="relative">
-              <Input
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => updateFormData('time', e.target.value)}
-                className="text-lg p-4 h-14 pl-12"
-                autoFocus
-              />
-              <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-        );
-
-      case 'duration':
-        return (
-          <div className="space-y-4">
-            <Label className="text-lg font-medium">How long will it last?</Label>
-            <Select
-              value={formData.duration}
-              onValueChange={(value) => updateFormData('duration', value)}
-            >
-              <SelectTrigger className="text-lg p-4 h-14">
-                <SelectValue placeholder="Select duration" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">1 hour</SelectItem>
-                <SelectItem value="90">1.5 hours</SelectItem>
-                <SelectItem value="120">2 hours</SelectItem>
-                <SelectItem value="180">3 hours</SelectItem>
-                <SelectItem value="240">4 hours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        );
-
-      case 'players':
-        return (
-          <div className="space-y-4">
-            <Label htmlFor="maxParticipants" className="text-lg font-medium">
-              How many players do you need?
-            </Label>
-            <div className="relative">
-              <Input
-                id="maxParticipants"
-                type="number"
-                value={formData.maxParticipants}
-                onChange={(e) => updateFormData('maxParticipants', e.target.value)}
-                min={2}
-                max={100}
-                className="text-lg p-4 h-14 pl-12"
-                placeholder="e.g., 10"
-                autoFocus
-              />
-              <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-        );
-
-      case 'price':
-        return (
-          <div className="space-y-4">
-            <Label htmlFor="price" className="text-lg font-medium">
-              What's the cost per person?
-            </Label>
-            <div className="relative">
-              <Input
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => updateFormData('price', e.target.value)}
-                min={0}
-                step="0.01"
-                className="text-lg p-4 h-14 pl-12"
-                placeholder="0.00"
-                autoFocus
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-                $
-              </span>
-            </div>
-            <p className="text-sm text-gray-500">Enter 0 for free events</p>
-          </div>
-        );
-
-      case 'description':
-        return (
-          <div className="space-y-4">
-            <Label htmlFor="description" className="text-lg font-medium">
-              Tell people about your event (optional)
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => updateFormData('description', e.target.value)}
-              placeholder="Describe what to expect, what to bring, skill level, etc..."
-              className="text-lg p-4 min-h-[120px] resize-none"
-              autoFocus
+          <motion.div
+            key="details"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <FormField
+              label="How many players do you need?"
+              icon={<Users className="w-5 h-5" />}
+              type="number"
+              value={formData.maxParticipants}
+              onChange={(value) => updateFormData('maxParticipants', value)}
+              placeholder="e.g., 10"
+              min={2}
+              max={100}
+              required
             />
-          </div>
+            <FormField
+              label="What's the cost per person?"
+              icon={<DollarSign className="w-5 h-5" />}
+              type="number"
+              value={formData.price}
+              onChange={(value) => updateFormData('price', value)}
+              placeholder="0.00"
+              min={0}
+              step="0.01"
+              hint="Enter 0 for free events"
+            />
+          </motion.div>
         );
 
       case 'image':
         return (
-          <div className="space-y-6">
-            <Label className="text-lg font-medium">Add an image to your event</Label>
+          <motion.div
+            key="image"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <Label className="text-lg font-semibold text-gray-900">
+              Add an image to your event
+            </Label>
             <p className="text-gray-600">Help people visualize your event with a great image</p>
 
             {imagePreview || formData.eventImage ? (
@@ -623,12 +569,12 @@ const CreateEvent = () => {
                 <img
                   src={imagePreview || formData.eventImage}
                   alt="Event preview"
-                  className="w-full h-48 object-cover rounded-lg border"
+                  className="w-full h-64 object-cover rounded-2xl border-2 border-gray-200"
                 />
                 <Button
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 bg-white"
+                  className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white"
                   onClick={() => {
                     setImagePreview('');
                     setUploadedImageFile(null);
@@ -641,18 +587,22 @@ const CreateEvent = () => {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button
-                    variant="outline"
-                    className="h-32 flex flex-col items-center justify-center space-y-2 border-2 border-dashed"
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="h-40 flex flex-col items-center justify-center space-y-3 border-2 border-dashed border-gray-300 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all"
                     onClick={() => document.getElementById('imageUpload')?.click()}
                   >
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-600">Upload Image</span>
-                  </Button>
+                    <Upload className="h-10 w-10 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-600">Upload Image</span>
+                  </motion.button>
 
-                  <Button
-                    variant="outline"
-                    className="h-32 flex flex-col items-center justify-center space-y-2 border-2 border-dashed"
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="h-40 flex flex-col items-center justify-center space-y-3 border-2 border-dashed border-gray-300 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all"
                     onClick={() =>
                       generateImageMutation.mutate({
                         sportType: formData.sportType,
@@ -663,16 +613,18 @@ const CreateEvent = () => {
                   >
                     {isGeneratingImage ? (
                       <>
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                        <span className="text-sm text-gray-600">Generating...</span>
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                        <span className="text-sm font-semibold text-gray-600">Generating...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-8 w-8 text-gray-400" />
-                        <span className="text-sm text-gray-600">Generate with AI</span>
+                        <Sparkles className="h-10 w-10 text-gray-400" />
+                        <span className="text-sm font-semibold text-gray-600">
+                          Generate with AI
+                        </span>
                       </>
                     )}
-                  </Button>
+                  </motion.button>
                 </div>
 
                 <input
@@ -683,14 +635,9 @@ const CreateEvent = () => {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // Store the file for GCS upload after event creation
                       setUploadedImageFile(file);
-
-                      // Show preview using object URL (more efficient than base64)
                       const objectUrl = URL.createObjectURL(file);
                       setImagePreview(objectUrl);
-
-                      // Mark that we have an image (will upload to GCS after event creation)
                       setFormData((prev) => ({ ...prev, eventImage: 'pending-upload' }));
                     }
                   }}
@@ -701,49 +648,65 @@ const CreateEvent = () => {
                 </p>
               </div>
             )}
-          </div>
+          </motion.div>
         );
 
       case 'visibility':
         return (
-          <div className="space-y-6">
-            <Label className="text-lg font-medium">Who can see and join your event?</Label>
+          <motion.div
+            key="visibility"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <Label className="text-lg font-semibold text-gray-900">
+              Who can see and join your event?
+            </Label>
             <div className="space-y-4">
-              <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-6 border-2 rounded-2xl cursor-pointer transition-all ${
                   !formData.isPrivate
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-500 bg-blue-50 shadow-lg'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
                 }`}
                 onClick={() => updateFormData('isPrivate', false)}
               >
-                <div className="flex items-center space-x-3">
-                  <Globe className="h-6 w-6 text-blue-500" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-6 w-6 text-blue-600" />
+                  </div>
                   <div>
-                    <h3 className="font-medium text-lg">Public Event</h3>
-                    <p className="text-gray-600">Anyone can see and join this event</p>
+                    <h3 className="font-bold text-lg text-gray-900">Public Event</h3>
+                    <p className="text-gray-600 text-sm">Anyone can see and join this event</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-6 border-2 rounded-2xl cursor-pointer transition-all ${
                   formData.isPrivate
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-orange-500 bg-orange-50 shadow-lg'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
                 }`}
                 onClick={() => updateFormData('isPrivate', true)}
               >
-                <div className="flex items-center space-x-3">
-                  <Lock className="h-6 w-6 text-orange-500" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <Lock className="h-6 w-6 text-orange-600" />
+                  </div>
                   <div>
-                    <h3 className="font-medium text-lg">Private Event</h3>
-                    <p className="text-gray-600">Only invited people can see and join</p>
+                    <h3 className="font-bold text-lg text-gray-900">Private Event</h3>
+                    <p className="text-gray-600 text-sm">Only invited people can see and join</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         );
 
       default:
@@ -752,99 +715,108 @@ const CreateEvent = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b bg-white shadow-sm">
-        <Button
-          variant="ghost"
-          className="p-2 hover:bg-gray-100"
-          onClick={currentStep === 0 ? goBack : handleBack}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6"
         >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900">Create Event</h1>
-        <div className="w-10" /> {/* Spacer */}
-      </div>
-
-      {/* Progress Bar */}
-      <div className="px-6 py-6 bg-white">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-600">
-            Step {currentStep + 1} of {STEPS.length}
-          </span>
-          <span className="text-sm font-bold text-primary">
-            {Math.round(((currentStep + 1) / STEPS.length) * 100)}%
-          </span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-          <div
-            className="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Step Indicator */}
-      <div className="px-6 py-6 bg-white border-b">
-        <div className="flex items-center gap-3">
-          <div className="text-4xl flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
-            {STEPS[currentStep].icon}
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{STEPS[currentStep].label}</h2>
-            <p className="text-sm text-gray-500 font-medium">
-              Step {currentStep + 1} of {STEPS.length}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Current Step Content */}
-      <div className="px-6 py-8 flex-1">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          {renderCurrentStep()}
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="sticky bottom-0 bg-white border-t shadow-lg p-6">
-        <div className="flex gap-4">
           <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className="flex-1 border-gray-300"
+            variant="ghost"
+            className="p-2.5 hover:bg-white/80 rounded-xl"
+            onClick={currentStep === 0 ? goBack : handleBack}
           >
-            Back
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!isStepValid(currentStep) || createEventMutation.isPending}
-            className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md"
-          >
-            {createEventMutation.isPending ? (
-              'Creating...'
-            ) : currentStep === STEPS.length - 1 ? (
-              formData.isPrivate && !groupId ? (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Choose Invitees
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Create Event
-                </>
-              )
-            ) : (
-              <>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </>
-            )}
-          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Create Event</h1>
+          <div className="w-10" /> {/* Spacer */}
+        </motion.div>
+
+        {/* Step Indicator */}
+        <StepIndicator steps={STEPS} currentStep={currentStep} completedSteps={completedSteps} />
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Form Content */}
+          <div className="lg:col-span-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200/50 shadow-xl"
+            >
+              <AnimatePresence mode="wait">{renderCurrentStep()}</AnimatePresence>
+            </motion.div>
+
+            {/* Navigation Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mt-6 flex gap-4"
+            >
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className="flex-1 h-14 text-base font-semibold rounded-2xl border-2 hover:bg-gray-50"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={!isStepValid(currentStep) || createEventMutation.isPending}
+                className="flex-1 h-14 text-base font-bold rounded-2xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all"
+              >
+                {createEventMutation.isPending ? (
+                  'Creating...'
+                ) : currentStep === STEPS.length - 1 ? (
+                  formData.isPrivate && !groupId ? (
+                    <>
+                      <UserPlus className="h-5 w-5 mr-2" />
+                      Choose Invitees
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Create Event
+                    </>
+                  )
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Live Preview Sidebar */}
+          <div className="hidden lg:block">
+            <EventPreviewCard
+              title={formData.title}
+              sportType={formData.sportType}
+              location={formData.location}
+              date={formData.date}
+              time={formData.time}
+              maxParticipants={formData.maxParticipants}
+              price={formData.price}
+              eventImage={imagePreview || formData.eventImage}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Success Confetti */}
+      <SuccessConfetti show={showConfetti} />
 
       {/* Invite Friends Modal */}
       {inviteFriendsModalOpen && createdEventId && (
