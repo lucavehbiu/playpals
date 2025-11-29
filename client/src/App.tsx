@@ -27,6 +27,8 @@ import NotificationHistory from '@/pages/NotificationHistory';
 import AuthPage from '@/pages/auth-page';
 import SportPreferencesPage from '@/pages/sports-preferences';
 import ProfileCompletion from '@/pages/ProfileCompletion';
+import Welcome from '@/pages/Welcome';
+import Onboarding from '@/pages/Onboarding';
 import Header from '@/components/layout/Header';
 import MobileNav from '@/components/layout/MobileNav';
 import { AuthProvider } from '@/hooks/use-auth';
@@ -97,7 +99,9 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col">
       <Switch>
+        <Route path="/welcome" component={Welcome} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/onboarding" component={Onboarding} />
         <Route path="/sports-preferences">
           <SportPreferencesPage />
         </Route>
