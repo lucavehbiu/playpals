@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { MapPin, Navigation } from 'lucide-react';
 import { useState } from 'react';
-import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
-import { LocationSearch } from '@/components/maps/LocationSearch';
-import EventMap from '@/components/maps/EventMap';
+import { LeafletMapWrapper } from '@/components/maps/LeafletMapWrapper';
+import { LeafletLocationSearch } from '@/components/maps/LeafletLocationSearch';
+import LeafletEventMap from '@/components/maps/LeafletEventMap';
 import { Button } from '@/components/ui/button';
 
 interface LocationSetupProps {
@@ -28,13 +28,23 @@ export function LocationSetup({
         async (position) => {
           const { latitude, longitude } = position.coords;
 
-          // Reverse geocode to get address
+          // Reverse geocode to get address using Nominatim
           try {
             const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
+              `https://nominatim.openstreetmap.org/reverse?` +
+                new URLSearchParams({
+                  lat: latitude.toString(),
+                  lon: longitude.toString(),
+                  format: 'json',
+                }),
+              {
+                headers: {
+                  Accept: 'application/json',
+                },
+              }
             );
             const data = await response.json();
-            const address = data.results[0]?.formatted_address || 'Current Location';
+            const address = data.display_name || 'Current Location';
             onLocationChange(address, latitude, longitude);
           } catch (error) {
             console.error('Error getting address:', error);
@@ -59,15 +69,15 @@ export function LocationSetup({
 
       {/* Location Search */}
       <div className="space-y-4">
-        <GoogleMapsWrapper>
-          <LocationSearch
+        <LeafletMapWrapper>
+          <LeafletLocationSearch
             placeholder="Enter your city or neighborhood"
             value={location}
             onLocationSelect={(loc) => {
               onLocationChange(loc.address, loc.lat, loc.lng);
             }}
           />
-        </GoogleMapsWrapper>
+        </LeafletMapWrapper>
 
         {/* Use Current Location Button */}
         <Button
@@ -90,15 +100,15 @@ export function LocationSetup({
             <p className="text-sm font-semibold text-gray-700">Your Location</p>
           </div>
           <div className="rounded-2xl overflow-hidden border-2 border-gray-200 h-64">
-            <GoogleMapsWrapper>
-              <EventMap
+            <LeafletMapWrapper>
+              <LeafletEventMap
                 latitude={latitude}
                 longitude={longitude}
                 address={location}
                 height="100%"
                 showMarker={true}
               />
-            </GoogleMapsWrapper>
+            </LeafletMapWrapper>
           </div>
         </motion.div>
       )}

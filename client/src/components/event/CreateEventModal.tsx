@@ -8,8 +8,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
-import LocationSearch from '@/components/maps/LocationSearch';
-import GoogleMapsWrapper from '@/components/maps/GoogleMapsWrapper';
+import LeafletLocationSearch from '@/components/maps/LeafletLocationSearch';
+import LeafletMapWrapper from '@/components/maps/LeafletMapWrapper';
 
 // Form schema based on shared schema with additional validation
 const createEventSchema = z.object({
@@ -382,13 +382,13 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  <GoogleMapsWrapper>
-                    <LocationSearch
+                  <LeafletMapWrapper>
+                    <LeafletLocationSearch
                       onLocationSelect={handleLocationSelect}
                       placeholder="Search for a venue or address"
                       value={watch('location')}
                     />
-                  </GoogleMapsWrapper>
+                  </LeafletMapWrapper>
                   {errors.location && (
                     <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
                   )}

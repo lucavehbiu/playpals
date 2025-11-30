@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { sportTypes, type Tournament } from '@shared/schema';
 import { format, parseISO, isAfter, isSameDay } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, Trophy, MapPin, X, Calendar } from 'lucide-react';
+import { Filter, Trophy, MapPin, X, Calendar, Map as MapIcon, List } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ import { NoResultsEmptyState } from '@/components/ui/empty-states';
 import { DiscoverFilterSidebar } from '@/components/filters/DiscoverFilterSidebar';
 import { IOSSearchBar } from '@/components/ui/IOSSearchBar';
 import { PillFilter } from '@/components/ui/PillFilter';
+import EventsMap from '@/components/maps/EventsMap';
+import { LeafletMapWrapper } from '@/components/maps/LeafletMapWrapper';
 
 const Discover = () => {
   const { toast } = useToast();
@@ -35,6 +37,7 @@ const Discover = () => {
   const [contentType, setContentType] = useState<string>('all'); // "all", "events", "tournaments"
   const [showFilters, setShowFilters] = useState<boolean>(false); // Filter sidebar visibility
   const [sortBy, setSortBy] = useState<string>('latest'); // "latest", "oldest", "location"
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Use the new location filter hook
   const {
@@ -343,6 +346,29 @@ const Discover = () => {
                 </span>
               )}
             </motion.button>
+
+            <div className="bg-gray-100 p-1 rounded-full flex items-center">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-full transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <List className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`p-2 rounded-full transition-all duration-200 ${
+                  viewMode === 'map'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <MapIcon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Horizontal Scrollable Pill Filters */}
@@ -462,115 +488,130 @@ const Discover = () => {
             )}
           </motion.div>
 
-          {/* Events and Tournaments Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Render Events */}
-            {filteredEvents &&
-              filteredEvents.length > 0 &&
-              filteredEvents.map((event, index) => (
-                <motion.div
-                  key={`event-${event.id}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.4,
-                    delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1),
-                  }}
-                >
-                  <EventCard event={event} onJoin={handleJoinEvent} />
-                </motion.div>
-              ))}
+          {viewMode === 'map' ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="h-[calc(100vh-220px)] w-full"
+            >
+              <LeafletMapWrapper>
+                <EventsMap events={filteredEvents || []} height="100%" className="w-full h-full" />
+              </LeafletMapWrapper>
+            </motion.div>
+          ) : (
+            /* Events and Tournaments Grid */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Render Events */}
+              {filteredEvents &&
+                filteredEvents.length > 0 &&
+                filteredEvents.map((event, index) => (
+                  <motion.div
+                    key={`event-${event.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.1 + (index * 0.1 > 0.5 ? 0.5 : index * 0.1),
+                    }}
+                  >
+                    <EventCard event={event} onJoin={handleJoinEvent} />
+                  </motion.div>
+                ))}
 
-            {/* Render Tournaments */}
-            {filteredTournaments &&
-              filteredTournaments.length > 0 &&
-              filteredTournaments.map((tournament, index) => (
-                <motion.div
-                  key={`tournament-${tournament.id}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.4,
-                    delay: 0.1 + ((filteredEvents?.length || 0) + index) * 0.1,
-                  }}
-                >
-                  <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 h-full">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-semibold line-clamp-2 flex items-center gap-2">
-                          <Trophy className="text-yellow-500" size={18} />
-                          {tournament.name}
-                        </CardTitle>
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                          Tournament
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="font-medium capitalize">{tournament.sportType}</span>
-                        <span>•</span>
-                        <span>{tournament.tournamentType?.replace('_', ' ')}</span>
-                      </div>
-                    </CardHeader>
+              {/* Render Tournaments */}
+              {filteredTournaments &&
+                filteredTournaments.length > 0 &&
+                filteredTournaments.map((tournament, index) => (
+                  <motion.div
+                    key={`tournament-${tournament.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.1 + ((filteredEvents?.length || 0) + index) * 0.1,
+                    }}
+                  >
+                    <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 h-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg font-semibold line-clamp-2 flex items-center gap-2">
+                            <Trophy className="text-yellow-500" size={18} />
+                            {tournament.name}
+                          </CardTitle>
+                          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                            Tournament
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span className="font-medium capitalize">{tournament.sportType}</span>
+                          <span>•</span>
+                          <span>{tournament.tournamentType?.replace('_', ' ')}</span>
+                        </div>
+                      </CardHeader>
 
-                    <CardContent className="space-y-4">
-                      {tournament.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {tournament.description}
-                        </p>
-                      )}
+                      <CardContent className="space-y-4">
+                        {tournament.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {tournament.description}
+                          </p>
+                        )}
 
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Trophy size={16} className="text-gray-400" />
-                          <span>0/{tournament.maxParticipants}</span>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Trophy size={16} className="text-gray-400" />
+                            <span>0/{tournament.maxParticipants}</span>
+                          </div>
+
+                          {tournament.startDate && (
+                            <div className="flex items-center gap-2">
+                              <Calendar size={16} className="text-gray-400" />
+                              <span>{new Date(tournament.startDate).toLocaleDateString()}</span>
+                            </div>
+                          )}
+
+                          {tournament.location && (
+                            <div className="flex items-center gap-2 col-span-2">
+                              <MapPin size={16} className="text-gray-400" />
+                              <span className="line-clamp-1">{tournament.location}</span>
+                            </div>
+                          )}
                         </div>
 
-                        {tournament.startDate && (
-                          <div className="flex items-center gap-2">
-                            <Calendar size={16} className="text-gray-400" />
-                            <span>{new Date(tournament.startDate).toLocaleDateString()}</span>
-                          </div>
-                        )}
+                        <div className="flex gap-2 pt-2 mt-auto">
+                          <Link href={`/tournaments/${tournament.id}`} className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full">
+                              View Details
+                            </Button>
+                          </Link>
 
-                        {tournament.location && (
-                          <div className="flex items-center gap-2 col-span-2">
-                            <MapPin size={16} className="text-gray-400" />
-                            <span className="line-clamp-1">{tournament.location}</span>
-                          </div>
-                        )}
-                      </div>
+                          {tournament.status === 'open' && (
+                            <Button
+                              size="sm"
+                              className="flex-1 bg-yellow-500 hover:bg-yellow-600"
+                              onClick={() => handleJoinTournament(tournament.id)}
+                            >
+                              Join
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
 
-                      <div className="flex gap-2 pt-2 mt-auto">
-                        <Link href={`/tournaments/${tournament.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full">
-                            View Details
-                          </Button>
-                        </Link>
-
-                        {tournament.status === 'open' && (
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-yellow-500 hover:bg-yellow-600"
-                            onClick={() => handleJoinTournament(tournament.id)}
-                          >
-                            Join
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-
-            {/* Empty State */}
-            {totalResults === 0 && (
-              <div className="col-span-3">
-                <NoResultsEmptyState
-                  searchTerm={searchQuery || (selectedSport !== 'all' ? selectedSport : undefined)}
-                />
-              </div>
-            )}
-          </div>
+              {/* Empty State */}
+              {totalResults === 0 && (
+                <div className="col-span-3">
+                  <NoResultsEmptyState
+                    searchTerm={
+                      searchQuery || (selectedSport !== 'all' ? selectedSport : undefined)
+                    }
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

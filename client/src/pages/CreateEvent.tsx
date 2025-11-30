@@ -32,9 +32,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import InviteFriendsModal from '@/components/event/InviteFriendsModal';
-import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
-import { LocationSearch } from '@/components/maps/LocationSearch';
-import EventMap from '@/components/maps/EventMap';
+import { LeafletMapWrapper } from '@/components/maps/LeafletMapWrapper';
+import { LeafletLocationSearch } from '@/components/maps/LeafletLocationSearch';
+import LeafletEventMap from '@/components/maps/LeafletEventMap';
 import { sportTypes } from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -477,8 +477,8 @@ const CreateEvent = () => {
               Where will this take place?
             </Label>
 
-            <GoogleMapsWrapper>
-              <LocationSearch
+            <LeafletMapWrapper>
+              <LeafletLocationSearch
                 placeholder="e.g., Central Park Basketball Court"
                 value={formData.location}
                 onLocationSelect={(location) => {
@@ -488,7 +488,7 @@ const CreateEvent = () => {
                 }}
                 className="mb-4"
               />
-            </GoogleMapsWrapper>
+            </LeafletMapWrapper>
 
             {/* Live preview map */}
             {formData.locationLatitude !== 0 && formData.locationLongitude !== 0 && (
@@ -501,15 +501,15 @@ const CreateEvent = () => {
                   📍 Location Preview
                 </Label>
                 <div className="rounded-2xl overflow-hidden border-2 border-gray-200">
-                  <GoogleMapsWrapper>
-                    <EventMap
+                  <LeafletMapWrapper>
+                    <LeafletEventMap
                       latitude={formData.locationLatitude}
                       longitude={formData.locationLongitude}
                       address={formData.location}
                       height="200px"
                       showMarker={true}
                     />
-                  </GoogleMapsWrapper>
+                  </LeafletMapWrapper>
                 </div>
               </motion.div>
             )}

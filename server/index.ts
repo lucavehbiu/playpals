@@ -50,7 +50,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // Heroku dynamically assigns a port, so we must use the PORT environment variable.
   // Default to 5000 for local development if PORT is not set.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || '5001', 10);
   server.listen(port, '0.0.0.0', () => {
     log(`serving on port ${port}`);
   });

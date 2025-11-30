@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { CalendarIcon, Clock, MapPinIcon, DollarSign, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/lib/types';
-import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
-import EventMap from '@/components/maps/EventMap';
+import { LeafletMapWrapper } from '@/components/maps/LeafletMapWrapper';
+import LeafletEventMap from '@/components/maps/LeafletEventMap';
 
 interface EventInfoBentoProps {
   event: Event;
@@ -87,16 +87,20 @@ export function EventInfoBento({ event, actualParticipantCount }: EventInfoBento
             <MapPinIcon className="w-5 h-5 text-red-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5">
-              {event.location}
+            <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">
+              {event.location.split(',')[0]}
             </h3>
-            <p className="text-xs text-gray-500">Tap map for directions</p>
+            <p className="text-xs text-gray-500 truncate">{event.location}</p>
           </div>
         </div>
         <div className="h-40 w-full rounded-2xl overflow-hidden mt-1 relative">
-          <GoogleMapsWrapper>
-            <EventMap location={event.location} />
-          </GoogleMapsWrapper>
+          <LeafletMapWrapper>
+            <LeafletEventMap
+              location={event.location}
+              latitude={event.locationCoordinates?.lat}
+              longitude={event.locationCoordinates?.lng}
+            />
+          </LeafletMapWrapper>
           {/* Overlay to intercept clicks if needed, or let map handle it */}
           <div className="absolute inset-0 pointer-events-none ring-1 ring-black/5 rounded-2xl"></div>
         </div>

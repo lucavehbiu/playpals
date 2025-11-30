@@ -5,9 +5,8 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Target, X, Navigation } from 'lucide-react';
-import { LocationSearch } from '@/components/maps/LocationSearch';
-import { GoogleMapsWrapper } from '@/components/maps/GoogleMapsWrapper';
-import '../../types/google-maps.d.ts';
+import { LeafletLocationSearch } from '@/components/maps/LeafletLocationSearch';
+import { LeafletMapWrapper } from '@/components/maps/LeafletMapWrapper';
 
 interface LocationResult {
   placeId: string;
@@ -84,25 +83,26 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
         });
       });
 
-      // Reverse geocode to get address
-      if (window.google?.maps?.Geocoder) {
-        const geocoder = new window.google.maps.Geocoder();
-        const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
-          geocoder.geocode(
-            { location: { lat: position.coords.latitude, lng: position.coords.longitude } },
-            (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
-              if (status === 'OK' && results && results.length > 0) {
-                resolve(results);
-              } else {
-                reject(new Error(`Reverse geocoding failed: ${status}`));
-              }
-            }
-          );
-        });
+      // Reverse geocode to get address using Nominatim
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?` +
+            new URLSearchParams({
+              lat: position.coords.latitude.toString(),
+              lon: position.coords.longitude.toString(),
+              format: 'json',
+            }),
+          {
+            headers: {
+              Accept: 'application/json',
+            },
+          }
+        );
+        const data = await response.json();
 
         const location: LocationResult = {
-          placeId: result[0]?.place_id || '',
-          address: result[0]?.formatted_address || 'Current Location',
+          placeId: data.place_id?.toString() || '',
+          address: data.display_name || 'Current Location',
           lat: position.coords.latitude,
           lng: position.coords.longitude,
           name: 'Current Location',
@@ -113,7 +113,8 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
           location,
           useCurrentLocation: true,
         });
-      } else {
+      } catch (error) {
+        console.error('Reverse geocoding error:', error);
         // Fallback without address
         const location: LocationResult = {
           placeId: '',
@@ -176,14 +177,14 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
         </div>
 
         <div className="space-y-2">
-          <GoogleMapsWrapper>
-            <LocationSearch
+          <LeafletMapWrapper>
+            <LeafletLocationSearch
               onLocationSelect={handleLocationSelect}
               placeholder={placeholder}
               value={displayValue}
               className="w-full"
             />
-          </GoogleMapsWrapper>
+          </LeafletMapWrapper>
 
           {/* Near Me Button */}
           <Button
