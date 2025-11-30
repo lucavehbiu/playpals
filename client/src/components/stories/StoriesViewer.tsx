@@ -135,7 +135,7 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+        className="fixed inset-0 z-[100] bg-black flex items-center justify-center pointer-events-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -194,9 +194,12 @@ const StoriesViewer = ({ events, initialIndex = 0, onClose }: StoriesViewerProps
             <div className="flex items-center space-x-3">
               <div className="h-10 w-10 rounded-full ring-2 ring-white/20 overflow-hidden">
                 <img
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentEvent.creatorId}`}
+                  src={
+                    currentEvent.creator?.profileImage ||
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentEvent.creatorId}`
+                  }
                   alt="Creator"
-                  className="w-full h-full bg-white/10"
+                  className="w-full h-full bg-white/10 object-cover"
                 />
               </div>
               <div>
