@@ -553,6 +553,166 @@
 }
 
 /* ============================================================================
+   LEGAL PAGES STYLING
+   ============================================================================ */
+.legal-page {
+  min-height: 100vh;
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--accent)) 0%,
+    hsl(var(--background)) 20%,
+    hsl(var(--background)) 100%
+  );
+  padding: 2.5rem 1.25rem;
+}
+
+.legal-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 3rem 2.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-premium);
+}
+
+.legal-container h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+  font-family: 'Poppins', 'Inter', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.legal-container .last-updated {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid hsl(var(--border));
+  font-weight: 500;
+}
+
+.legal-container section {
+  margin-bottom: 2.5rem;
+}
+
+.legal-container h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  color: hsl(var(--playpals-cyan));
+  font-family: 'Poppins', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.legal-container h3 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--playpals-teal));
+  font-family: 'Poppins', 'Inter', sans-serif;
+}
+
+.legal-container p {
+  margin-bottom: 1.25rem;
+  color: hsl(var(--foreground));
+  line-height: 1.75;
+  font-size: 1.0625rem;
+}
+
+.legal-container ul,
+.legal-container ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+  line-height: 1.75;
+}
+
+.legal-container li {
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+  font-size: 1.0625rem;
+}
+
+.legal-container li::marker {
+  color: hsl(var(--playpals-cyan));
+  font-weight: 600;
+}
+
+.legal-container strong {
+  color: hsl(var(--foreground));
+  font-weight: 700;
+}
+
+.legal-container a {
+  color: hsl(var(--playpals-cyan));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.legal-container a:hover {
+  color: hsl(var(--playpals-teal));
+}
+
+.legal-container .acceptance-notice {
+  background: hsl(var(--accent));
+  border-left: 4px solid hsl(var(--playpals-cyan));
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-top: 3rem;
+}
+
+.legal-container .acceptance-notice p {
+  margin-bottom: 0;
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 1.5rem 1rem;
+  }
+
+  .legal-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .legal-container h1 {
+    font-size: 1.85rem;
+  }
+
+  .legal-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .legal-container h3 {
+    font-size: 1.25rem;
+  }
+
+  .legal-container p,
+  .legal-container li {
+    font-size: 1rem;
+  }
+}
+
+/* Print styles for legal documents */
+@media print {
+  .legal-page {
+    background: white;
+    padding: 0;
+  }
+
+  .legal-container {
+    box-shadow: none;
+    padding: 1rem;
+  }
+}
+
+/* ============================================================================
    GOOGLE MAPS AUTOCOMPLETE FIX
    ============================================================================ */
 /* Fix z-index for Google Maps autocomplete dropdown */

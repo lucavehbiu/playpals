@@ -29,6 +29,8 @@ import SportPreferencesPage from '@/pages/sports-preferences';
 import ProfileCompletion from '@/pages/ProfileCompletion';
 import Welcome from '@/pages/Welcome';
 import Onboarding from '@/pages/Onboarding';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
 import Header from '@/components/layout/Header';
 import MobileNav from '@/components/layout/MobileNav';
 import { AuthProvider } from '@/hooks/use-auth';
@@ -105,6 +107,8 @@ function Router() {
         <Route path="/sports-preferences">
           <SportPreferencesPage />
         </Route>
+        <Route path="/privacy" component={PrivacyPolicy} />
+        <Route path="/terms" component={TermsOfService} />
         <Route>
           <MainLayout />
         </Route>
