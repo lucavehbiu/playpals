@@ -558,7 +558,7 @@ const Header = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-3 w-64 glass-card shadow-premium-lg border border-gray-200/80 z-50 overflow-hidden"
+                        className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-premium-lg border border-gray-200/80 z-50 overflow-hidden"
                       >
                         {/* User Info Header */}
                         <div className="px-4 py-3 bg-gradient-to-br from-primary/5 to-secondary/5 border-b border-gray-200/50">
@@ -588,6 +588,7 @@ const Header = () => {
                           <Link href="/profile">
                             <motion.div
                               className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent cursor-pointer flex items-center transition-all duration-200"
+                              onClick={() => setShowProfileMenu(false)}
                               whileHover={{ x: 4 }}
                             >
                               <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center mr-3">
@@ -601,6 +602,7 @@ const Header = () => {
                             <Link href="/profile-completion">
                               <motion.div
                                 className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent cursor-pointer flex items-center transition-all duration-200"
+                                onClick={() => setShowProfileMenu(false)}
                                 whileHover={{ x: 4 }}
                               >
                                 <div className="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center mr-3">
@@ -629,6 +631,7 @@ const Header = () => {
                           <Link href="/profile/edit">
                             <motion.div
                               className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent cursor-pointer flex items-center transition-all duration-200"
+                              onClick={() => setShowProfileMenu(false)}
                               whileHover={{ x: 4 }}
                             >
                               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
@@ -654,6 +657,7 @@ const Header = () => {
                           <Link href="/friends">
                             <motion.div
                               className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent cursor-pointer flex items-center transition-all duration-200"
+                              onClick={() => setShowProfileMenu(false)}
                               whileHover={{ x: 4 }}
                             >
                               <div className="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center mr-3">
@@ -666,6 +670,7 @@ const Header = () => {
                           <Link href="/settings">
                             <motion.div
                               className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent cursor-pointer flex items-center transition-all duration-200"
+                              onClick={() => setShowProfileMenu(false)}
                               whileHover={{ x: 4 }}
                             >
                               <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
