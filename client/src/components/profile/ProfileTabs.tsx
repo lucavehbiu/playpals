@@ -8,10 +8,10 @@ interface ProfileTabsProps {
 export function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
   return (
     <div className="border-b border-gray-200 bg-white">
-      <div className="px-6 overflow-x-auto scrollbar-hide">
-        <nav className="flex gap-8 -mb-px">
+      <div className="px-2 sm:px-6">
+        <nav className="flex -mb-px">
           <button
-            className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
+            className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
               activeTab === 'profile'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -23,7 +23,7 @@ export function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
           </button>
 
           <button
-            className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
+            className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
               activeTab === 'events'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -35,7 +35,7 @@ export function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
           </button>
 
           <button
-            className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
+            className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
               activeTab === 'teams'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -47,7 +47,7 @@ export function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
           </button>
 
           <button
-            className={`py-4 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
+            className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap transition-all duration-200 border-b-2 ${
               activeTab === 'friends'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'

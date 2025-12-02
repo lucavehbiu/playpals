@@ -48,8 +48,8 @@ const MobileNav = () => {
   const navItems = [
     { href: '/', icon: HomeIcon, label: 'Home' },
     { href: '/discover', icon: CalendarIcon, label: 'Events' },
-    { href: '/teams', icon: UsersIcon, label: 'Teams' },
-    { href: '/profile', icon: UserIcon, label: 'Profile' },
+    { href: '/groups', icon: UsersIcon, label: 'Groups' },
+    { href: '/teams', icon: AwardIcon, label: 'Teams' },
   ];
 
   // Find active index
@@ -221,80 +221,98 @@ const MobileNav = () => {
                     : 'bg-gradient-to-br from-primary to-secondary'
                 )}
               >
-                <PlusIcon className="h-6 w-6 text-white" />
+                <PlusIcon className="h-6 w-6 text-white flex-shrink-0" />
               </div>
             </motion.div>
-
-            {/* Create Menu Popup */}
-            <AnimatePresence>
-              {isCreateMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  className="absolute bottom-20 right-0 glass-card rounded-3xl shadow-premium-lg p-3 min-w-[200px] border border-white/20"
-                >
-                  <div className="space-y-1">
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setLocation('/create-event');
-                        setIsCreateMenuOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
-                        <CalendarPlusIcon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-gray-900">Create Event</p>
-                        <p className="text-xs text-gray-500">Start a new activity</p>
-                      </div>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setIsPostModalOpen(true);
-                        setIsCreateMenuOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
-                        <Edit3Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-gray-900">Create Post</p>
-                        <p className="text-xs text-gray-500">Share an update</p>
-                      </div>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setLocation('/create-team');
-                        setIsCreateMenuOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
-                        <AwardIcon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-gray-900">Create Team</p>
-                        <p className="text-xs text-gray-500">Build your squad</p>
-                      </div>
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
+
+        {/* Create Menu Popup - Fixed positioning to center on screen */}
+        <AnimatePresence>
+          {isCreateMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-premium-lg p-3 w-[200px] border border-gray-200/80 z-50"
+            >
+              <div className="space-y-1">
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/create-event');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <CalendarPlusIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Event</p>
+                    <p className="text-xs text-gray-500">Start a new activity</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setIsPostModalOpen(true);
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <Edit3Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Post</p>
+                    <p className="text-xs text-gray-500">Share an update</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/groups');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <UsersIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Group</p>
+                    <p className="text-xs text-gray-500">Start a community</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/create-team');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <AwardIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Team</p>
+                    <p className="text-xs text-gray-500">Build your squad</p>
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Right nav items (Teams, Profile) */}
         {navItems.slice(2).map((item, index) => {
