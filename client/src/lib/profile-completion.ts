@@ -1,4 +1,4 @@
-import { getUserData } from "@/lib/types";
+import { getUserData } from '@/lib/types';
 
 export interface ProfileCompletionStatus {
   completionPercentage: number;
@@ -17,14 +17,20 @@ export interface ProfileCompletionData {
 
 export function calculateProfileCompletion(data: ProfileCompletionData): ProfileCompletionStatus {
   const { user, sportSkillLevels, professionalTeamHistory, onboardingPreferences } = data;
-  
+
   if (!user) {
     return {
       completionPercentage: 0,
       isComplete: false,
       completedSections: [],
-      missingSections: ['basic-info', 'phone-verification', 'sport-skills', 'team-history', 'onboarding-preferences'],
-      showRibbon: false
+      missingSections: [
+        'basic-info',
+        'phone-verification',
+        'sport-skills',
+        'team-history',
+        'onboarding-preferences',
+      ],
+      showRibbon: false,
     };
   }
 
@@ -38,7 +44,7 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
       bio: user.bio,
       location: user.location,
       isPhoneVerified: user.isPhoneVerified,
-      hasNoProfessionalExperience: user.hasNoProfessionalExperience
+      hasNoProfessionalExperience: user.hasNoProfessionalExperience,
     },
     sportSkillLevels: sportSkillLevels?.length || 0,
     professionalTeamHistory: professionalTeamHistory?.length || 0,
@@ -46,17 +52,27 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
     professionalTeamHistoryData: professionalTeamHistory,
     onboardingCompleted: onboardingPreferences?.onboardingCompleted || false,
     completedSections: [],
-    missingSections: []
+    missingSections: [],
   });
 
-  console.log('Expected completion: Basic Info (✓), Sport Skills (' + (sportSkillLevels?.length > 0 ? '✓' : '❌') + '), Team History (' + (user.hasNoProfessionalExperience ? '✓' : '❌') + '), Phone (' + (user.isPhoneVerified ? '✓' : '❌') + '), Onboarding (' + (onboardingPreferences?.onboardingCompleted ? '✓' : '❌') + ')');
+  console.log(
+    'Expected completion: Basic Info (✓), Sport Skills (' +
+      (sportSkillLevels?.length > 0 ? '✓' : '❌') +
+      '), Team History (' +
+      (user.hasNoProfessionalExperience ? '✓' : '❌') +
+      '), Phone (' +
+      (user.isPhoneVerified ? '✓' : '❌') +
+      '), Onboarding (' +
+      (onboardingPreferences?.onboardingCompleted ? '✓' : '❌') +
+      ')'
+  );
 
   // Check basic info - user has at least name and bio
   let basicInfoScore = 0;
   if (user.name && user.name.trim() !== '') basicInfoScore++;
   if (user.bio && user.bio.trim() !== '') basicInfoScore++;
   if (user.location && user.location.trim() !== '') basicInfoScore++;
-  
+
   // Consider basic info complete if user has name and bio
   if (basicInfoScore >= 2) {
     completedSections.push('basic-info');
@@ -79,7 +95,10 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
   }
 
   // Check team history - user needs at least one entry or marked as "no professional experience"
-  if ((professionalTeamHistory && professionalTeamHistory.length > 0) || user.hasNoProfessionalExperience) {
+  if (
+    (professionalTeamHistory && professionalTeamHistory.length > 0) ||
+    user.hasNoProfessionalExperience
+  ) {
     completedSections.push('team-history');
   } else {
     missingSections.push('team-history');
@@ -96,13 +115,11 @@ export function calculateProfileCompletion(data: ProfileCompletionData): Profile
   const isComplete = completionPercentage === 100;
   const showRibbon = completionPercentage < 100 && completionPercentage > 0;
 
-
-
   return {
     completionPercentage,
     isComplete,
     completedSections,
     missingSections,
-    showRibbon
+    showRibbon,
   };
 }

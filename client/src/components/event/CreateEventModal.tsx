@@ -1,37 +1,31 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { sportTypes } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
-import LocationSearch from "@/components/maps/LocationSearch";
-import GoogleMapsWrapper from "@/components/maps/GoogleMapsWrapper";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { sportTypes } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import LeafletLocationSearch from '@/components/maps/LeafletLocationSearch';
+import LeafletMapWrapper from '@/components/maps/LeafletMapWrapper';
 
 // Form schema based on shared schema with additional validation
 const createEventSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
+  title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(),
   sportType: z.enum(sportTypes),
   date: z.string(),
   time: z.string(),
-  location: z.string().min(3, "Please provide a valid location"),
+  location: z.string().min(3, 'Please provide a valid location'),
 
   locationLatitude: z.string().optional(),
   locationLongitude: z.string().optional(),
   locationPlaceId: z.string().optional(),
-  maxParticipants: z.number().int().min(2, "Need at least 2 participants"),
-  isPublic: z.preprocess(
-    (value) => value === "true" || value === true,
-    z.boolean().default(true)
-  ),
-  isFree: z.preprocess(
-    (value) => value === "true" || value === true,
-    z.boolean().default(true)
-  ),
+  maxParticipants: z.number().int().min(2, 'Need at least 2 participants'),
+  isPublic: z.preprocess((value) => value === 'true' || value === true, z.boolean().default(true)),
+  isFree: z.preprocess((value) => value === 'true' || value === true, z.boolean().default(true)),
   cost: z.number().optional(),
   eventImage: z.string().optional(),
 });
@@ -49,9 +43,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [showCost, setShowCost] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
-  
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
+
   const [selectedLocation, setSelectedLocation] = useState<{
     placeId: string;
     address: string;
@@ -59,85 +54,122 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
     lng: number;
   } | null>(null);
 
-  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEventFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+    setValue,
+  } = useForm<CreateEventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      sportType: "basketball",
-      date: new Date().toISOString().split("T")[0],
-      time: "18:00",
-      location: "",
+      title: '',
+      description: '',
+      sportType: 'basketball',
+      date: new Date().toISOString().split('T')[0],
+      time: '18:00',
+      location: '',
 
-      locationLatitude: "",
-      locationLongitude: "",
-      locationPlaceId: "",
+      locationLatitude: '',
+      locationLongitude: '',
+      locationPlaceId: '',
       maxParticipants: 10,
       isPublic: true,
       isFree: true,
       cost: 0,
-      eventImage: "",
-    }
+      eventImage: '',
+    },
   });
-  
+
   // Watch the isFree field to show/hide cost field
-  const isFree = watch("isFree");
+  const isFree = watch('isFree');
 
   // Handle location selection from Google Maps
-  const handleLocationSelect = (locationResult: { placeId: string; address: string; lat: number; lng: number; name?: string }) => {
+  const handleLocationSelect = (locationResult: {
+    placeId: string;
+    address: string;
+    lat: number;
+    lng: number;
+    name?: string;
+  }) => {
     setSelectedLocation(locationResult);
-    setValue("location", locationResult.name || locationResult.address);
+    setValue('location', locationResult.name || locationResult.address);
 
-    setValue("locationLatitude", locationResult.lat.toString());
-    setValue("locationLongitude", locationResult.lng.toString());
-    setValue("locationPlaceId", locationResult.placeId);
+    setValue('locationLatitude', locationResult.lat.toString());
+    setValue('locationLongitude', locationResult.lng.toString());
+    setValue('locationPlaceId', locationResult.placeId);
+  };
+
+  // GCS upload function
+  const uploadImageToGCS = async (eventId: number, file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`/api/events/${eventId}/image`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image to GCS');
+    }
+
+    const data = await response.json();
+    return data.imageUrl;
   };
 
   // Image handling functions
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
         toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB",
-          variant: "destructive",
+          title: 'File too large',
+          description: 'Please select an image smaller than 5MB',
+          variant: 'destructive',
         });
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setValue("eventImage", result);
-      };
-      reader.readAsDataURL(file);
+
+      // Store the file for GCS upload after event creation
+      setUploadedImageFile(file);
+
+      // Show preview using object URL (more efficient than base64)
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+
+      // Mark that we have an image (will upload to GCS after event creation)
+      setValue('eventImage', 'pending-upload');
     }
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(false);
-    
+
     const file = event.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       if (file.size > 5 * 1024 * 1024) {
         toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB",
-          variant: "destructive",
+          title: 'File too large',
+          description: 'Please select an image smaller than 5MB',
+          variant: 'destructive',
         });
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setValue("eventImage", result);
-      };
-      reader.readAsDataURL(file);
+
+      // Store the file for GCS upload after event creation
+      setUploadedImageFile(file);
+
+      // Show preview using object URL (more efficient than base64)
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+
+      // Mark that we have an image (will upload to GCS after event creation)
+      setValue('eventImage', 'pending-upload');
     }
   };
 
@@ -152,23 +184,24 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
   };
 
   const removeImage = () => {
-    setImagePreview("");
-    setValue("eventImage", "");
+    setImagePreview('');
+    setUploadedImageFile(null);
+    setValue('eventImage', '');
   };
-  
+
   const createEventMutation = useMutation({
     mutationFn: async (data: CreateEventFormData) => {
       // Combine date and time
       const dateTime = new Date(`${data.date}T${data.time}`);
-      
+
       // Make sure boolean values are properly set
       const isPublic = data.isPublic === undefined ? true : !!data.isPublic;
       const isFree = data.isFree === undefined ? true : !!data.isFree;
-      
+
       // Format the data for the API
       const eventData = {
         title: data.title,
-        description: data.description || "",
+        description: data.description || '',
         sportType: data.sportType,
         date: dateTime.toISOString(),
         location: data.location,
@@ -180,35 +213,51 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
         isPublic: isPublic,
         isFree: isFree,
         cost: !isFree && data.cost ? Math.round(data.cost * 100) : 0, // Convert to cents
-        eventImage: data.eventImage || "",
+        // Don't send 'pending-upload' - photo will be uploaded after event creation
+        eventImage: data.eventImage && data.eventImage !== 'pending-upload' ? data.eventImage : '',
         // The creatorId will be set from the authenticated user on the server
       };
-      
-      const response = await apiRequest("POST", "/api/events", eventData);
-      return response.json();
+
+      const response = await apiRequest('POST', '/api/events', eventData);
+      const result = await response.json();
+
+      // If user uploaded a photo, upload it to GCS now
+      if (uploadedImageFile && result?.id) {
+        try {
+          console.log('Uploading image to GCS for event:', result.id);
+          const gcsUrl = await uploadImageToGCS(result.id, uploadedImageFile);
+          console.log('Image uploaded successfully to:', gcsUrl);
+        } catch (error) {
+          console.error('Failed to upload image to GCS:', error);
+          // Event is still created, just without the image
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events/user'] });
       toast({
-        title: "Success!",
-        description: "Event created successfully",
+        title: 'Success!',
+        description: 'Event created successfully',
       });
       reset();
       setSelectedLocation(null);
-      setImagePreview("");
+      setImagePreview('');
+      setUploadedImageFile(null);
       if (onEventCreated) onEventCreated();
     },
     onError: (error: any) => {
-      console.error("Event creation error:", error);
-      
+      console.error('Event creation error:', error);
+
       // Try to extract more detailed error info if available
       let errorMessage = error.message;
       try {
         if (error.response) {
           const responseData = error.response.data;
-          console.log("Error response data:", responseData);
-          
+          console.log('Error response data:', responseData);
+
           if (responseData.details) {
             errorMessage = JSON.stringify(responseData.details, null, 2);
           } else if (responseData.errors) {
@@ -218,49 +267,48 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
           }
         }
       } catch (e) {
-        console.error("Error parsing error data:", e);
+        console.error('Error parsing error data:', e);
       }
-      
+
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to create event: ${errorMessage}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
-  
+
   const onSubmit = (data: CreateEventFormData) => {
     createEventMutation.mutate(data);
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
-      
+      <div
+        className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        onClick={onClose}
+      ></div>
+
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* This element is to trick the browser into centering the modal contents. */}
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
-        
+
         {/* Modal content */}
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           {/* Modal header */}
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium leading-6 text-gray-900">Create New Event</h3>
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-500"
-                onClick={onClose}
-              >
+              <button type="button" className="text-gray-400 hover:text-gray-500" onClick={onClose}>
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             {/* Form */}
             <div className="mt-4">
               <form id="create-event-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -273,13 +321,13 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     id="title"
                     className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="e.g. Weekend Basketball Game"
-                    {...register("title")}
+                    {...register('title')}
                   />
                   {errors.title && (
                     <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
                   )}
                 </div>
-                
+
                 <div>
                   <label htmlFor="sportType" className="block text-sm font-medium text-gray-700">
                     Sport/Activity
@@ -287,10 +335,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                   <select
                     id="sportType"
                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-                    {...register("sportType")}
+                    {...register('sportType')}
                   >
                     <option value="">Select sport or activity</option>
-                    {sportTypes.map(sport => (
+                    {sportTypes.map((sport) => (
                       <option key={sport} value={sport}>
                         {sport.charAt(0).toUpperCase() + sport.slice(1)}
                       </option>
@@ -300,7 +348,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     <p className="mt-1 text-sm text-red-600">{errors.sportType.message}</p>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="date" className="block text-sm font-medium text-gray-700">
@@ -310,7 +358,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                       type="date"
                       id="date"
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      {...register("date")}
+                      {...register('date')}
                     />
                     {errors.date && (
                       <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
@@ -324,25 +372,23 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                       type="time"
                       id="time"
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      {...register("time")}
+                      {...register('time')}
                     />
                     {errors.time && (
                       <p className="mt-1 text-sm text-red-600">{errors.time.message}</p>
                     )}
                   </div>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
-                  </label>
-                  <GoogleMapsWrapper>
-                    <LocationSearch
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <LeafletMapWrapper>
+                    <LeafletLocationSearch
                       onLocationSelect={handleLocationSelect}
                       placeholder="Search for a venue or address"
-                      value={watch("location")}
+                      value={watch('location')}
                     />
-                  </GoogleMapsWrapper>
+                  </LeafletMapWrapper>
                   {errors.location && (
                     <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
                   )}
@@ -352,7 +398,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     </div>
                   )}
                 </div>
-                
+
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                     Description
@@ -362,21 +408,21 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     rows={3}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder="Provide details about your event"
-                    {...register("description")}
+                    {...register('description')}
                   ></textarea>
                 </div>
-                
+
                 {/* Image Upload Section */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Event Image (Optional)
                   </label>
-                  
+
                   {!imagePreview ? (
                     <div
                       className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                        isDragOver 
-                          ? 'border-primary bg-primary/5' 
+                        isDragOver
+                          ? 'border-primary bg-primary/5'
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
                       onDrop={handleDrop}
@@ -392,7 +438,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                       <div className="space-y-2">
                         <Upload className="mx-auto h-12 w-12 text-gray-400" />
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-primary">Click to upload</span> or drag and drop
+                          <span className="font-medium text-primary">Click to upload</span> or drag
+                          and drop
                         </div>
                         <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
                       </div>
@@ -418,9 +465,12 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     </div>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="maxParticipants" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="maxParticipants"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Maximum Participants
                   </label>
                   <input
@@ -428,13 +478,13 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     id="maxParticipants"
                     min="2"
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                    {...register("maxParticipants", { valueAsNumber: true })}
+                    {...register('maxParticipants', { valueAsNumber: true })}
                   />
                   {errors.maxParticipants && (
                     <p className="mt-1 text-sm text-red-600">{errors.maxParticipants.message}</p>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Event Visibility
@@ -445,10 +495,13 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                         id="visibility-public"
                         type="radio"
                         className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
-                        checked={watch("isPublic") === true}
-                        onChange={() => setValue("isPublic", true)}
+                        checked={watch('isPublic') === true}
+                        onChange={() => setValue('isPublic', true)}
                       />
-                      <label htmlFor="visibility-public" className="ml-3 block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="visibility-public"
+                        className="ml-3 block text-sm font-medium text-gray-700"
+                      >
                         Public (Anyone can join)
                       </label>
                     </div>
@@ -457,23 +510,26 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                         id="visibility-private"
                         type="radio"
                         className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
-                        checked={watch("isPublic") === false}
-                        onChange={() => setValue("isPublic", false)}
+                        checked={watch('isPublic') === false}
+                        onChange={() => setValue('isPublic', false)}
                       />
-                      <label htmlFor="visibility-private" className="ml-3 block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="visibility-private"
+                        className="ml-3 block text-sm font-medium text-gray-700"
+                      >
                         Private (Invite only)
                       </label>
                     </div>
                   </div>
-                  
-                  {watch("isPublic") === false && (
+
+                  {watch('isPublic') === false && (
                     <div className="mt-4 border rounded-md p-4 bg-gray-50">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Invite Friends</h4>
                       <FriendInviter />
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     id="is-free"
@@ -481,7 +537,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     className="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded"
                     checked={isFree}
                     onChange={(e) => {
-                      setValue("isFree", e.target.checked);
+                      setValue('isFree', e.target.checked);
                       setShowCost(!e.target.checked);
                     }}
                   />
@@ -489,7 +545,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     This is a free event
                   </label>
                 </div>
-                
+
                 {!isFree && (
                   <div>
                     <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
@@ -502,8 +558,8 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                       min="0"
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                       placeholder="0.00"
-                      {...register("cost", { valueAsNumber: true })}
-                      onChange={(e) => setValue("cost", parseFloat(e.target.value) || 0)}
+                      {...register('cost', { valueAsNumber: true })}
+                      onChange={(e) => setValue('cost', parseFloat(e.target.value) || 0)}
                     />
                     {errors.cost && (
                       <p className="mt-1 text-sm text-red-600">{errors.cost.message}</p>
@@ -520,16 +576,17 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
                     id="eventImage"
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder="Enter image URL"
-                    {...register("eventImage")}
+                    {...register('eventImage')}
                   />
                   <p className="mt-1 text-xs text-gray-500">
-                    Paste a URL to an image that represents your event. Leave blank for a default image based on sport type.
+                    Paste a URL to an image that represents your event. Leave blank for a default
+                    image based on sport type.
                   </p>
                 </div>
               </form>
             </div>
           </div>
-          
+
           {/* Modal footer */}
           <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
@@ -538,7 +595,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
               className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
               disabled={createEventMutation.isPending}
             >
-              {createEventMutation.isPending ? "Creating..." : "Create Event"}
+              {createEventMutation.isPending ? 'Creating...' : 'Create Event'}
             </button>
             <button
               type="button"
@@ -556,61 +613,65 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }: CreateEventModalP
 
 // Friend Inviter Component
 const FriendInviter = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<Array<{ id: number; name: string }>>([]);
   const { toast } = useToast();
-  
+
   // Friend search query - in a real app, this would call the API
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ['/api/users/search', searchQuery],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2) return [];
-      
+
       try {
-        const res = await apiRequest("GET", `/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+        const res = await apiRequest(
+          'GET',
+          `/api/users/search?q=${encodeURIComponent(searchQuery)}`
+        );
         return await res.json();
       } catch (error) {
-        console.error("Error searching users:", error);
+        console.error('Error searching users:', error);
         return [];
       }
     },
     enabled: searchQuery.length >= 2,
   });
-  
+
   const handleAddFriend = (friend: { id: number; name: string }) => {
-    if (!selectedFriends.some(f => f.id === friend.id)) {
+    if (!selectedFriends.some((f) => f.id === friend.id)) {
       setSelectedFriends([...selectedFriends, friend]);
-      setSearchQuery("");
+      setSearchQuery('');
     }
   };
-  
+
   const handleRemoveFriend = (friendId: number) => {
-    setSelectedFriends(selectedFriends.filter(f => f.id !== friendId));
+    setSelectedFriends(selectedFriends.filter((f) => f.id !== friendId));
   };
-  
+
   // For development only - using mock data until API is implemented
   const mockSearchResults = [
-    { id: 2, name: "Sarah Johnson", username: "sarahjohnson" },
-    { id: 3, name: "Mark Wilson", username: "markwilson" },
-    { id: 4, name: "Emma Davis", username: "emmadavis" },
-  ].filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    user.username.toLowerCase().includes(searchQuery.toLowerCase())
+    { id: 2, name: 'Sarah Johnson', username: 'sarahjohnson' },
+    { id: 3, name: 'Mark Wilson', username: 'markwilson' },
+    { id: 4, name: 'Emma Davis', username: 'emmadavis' },
+  ].filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Use mock data until the API is ready
   const displayResults = searchResults || (searchQuery.length >= 2 ? mockSearchResults : []);
-  
+
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-2">
-        {selectedFriends.map(friend => (
-          <div 
-            key={friend.id} 
+        {selectedFriends.map((friend) => (
+          <div
+            key={friend.id}
             className="bg-primary text-white px-2 py-1 rounded-full text-xs flex items-center"
           >
             <span>{friend.name}</span>
-            <button 
+            <button
               onClick={() => handleRemoveFriend(friend.id)}
               className="ml-1 focus:outline-none"
             >
@@ -619,22 +680,22 @@ const FriendInviter = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="relative">
         <input
           type="text"
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search friends by name or username"
           className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
         />
-        
+
         {isLoading && (
           <div className="absolute right-3 top-2.5">
             <div className="animate-spin h-4 w-4 border-2 border-primary border-opacity-50 border-t-primary rounded-full"></div>
           </div>
         )}
-        
+
         {searchQuery.length >= 2 && displayResults.length > 0 && (
           <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 max-h-60 overflow-auto">
             {displayResults.map((user: { id: number; name: string; username: string }) => (
@@ -649,14 +710,14 @@ const FriendInviter = () => {
             ))}
           </div>
         )}
-        
+
         {searchQuery.length >= 2 && displayResults.length === 0 && (
           <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-2 px-4 text-sm text-gray-500">
             No users found
           </div>
         )}
       </div>
-      
+
       <div className="mt-2 text-xs text-gray-500">
         Search for friends to invite to this private event
       </div>

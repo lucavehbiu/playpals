@@ -1,11 +1,23 @@
-import { useState } from "react";
-import { Star, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { sportTypes } from "@shared/schema";
+import { useState } from 'react';
+import { Star, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { sportTypes } from '@shared/schema';
 
 interface RatingModalProps {
   isOpen: boolean;
@@ -15,17 +27,17 @@ interface RatingModalProps {
   isLoading?: boolean;
 }
 
-export default function RatingModal({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  userName, 
-  isLoading = false 
+export default function RatingModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  userName,
+  isLoading = false,
 }: RatingModalProps) {
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [selectedSport, setSelectedSport] = useState("");
+  const [comment, setComment] = useState('');
+  const [selectedSport, setSelectedSport] = useState('');
 
   const handleSubmit = () => {
     if (selectedRating === 0 || !selectedSport) return;
@@ -33,26 +45,32 @@ export default function RatingModal({
     // Reset form
     setSelectedRating(0);
     setHoveredRating(0);
-    setComment("");
-    setSelectedSport("");
+    setComment('');
+    setSelectedSport('');
   };
 
   const handleClose = () => {
     setSelectedRating(0);
     setHoveredRating(0);
-    setComment("");
-    setSelectedSport("");
+    setComment('');
+    setSelectedSport('');
     onClose();
   };
 
   const getRatingText = (rating: number) => {
     switch (rating) {
-      case 1: return "Poor";
-      case 2: return "Fair"; 
-      case 3: return "Good";
-      case 4: return "Very Good";
-      case 5: return "Excellent";
-      default: return "Select a rating";
+      case 1:
+        return 'Poor';
+      case 2:
+        return 'Fair';
+      case 3:
+        return 'Good';
+      case 4:
+        return 'Very Good';
+      case 5:
+        return 'Excellent';
+      default:
+        return 'Select a rating';
     }
   };
 
@@ -66,7 +84,8 @@ export default function RatingModal({
         <DialogHeader>
           <DialogTitle>Rate {userName}</DialogTitle>
           <DialogDescription>
-            Share your experience playing with {userName}. Your feedback helps build trust in the community.
+            Share your experience playing with {userName}. Your feedback helps build trust in the
+            community.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,19 +154,15 @@ export default function RatingModal({
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
-          <Button 
-            variant="outline" 
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSubmit}
             disabled={selectedRating === 0 || !selectedSport || isLoading}
             className="bg-primary hover:bg-primary/90"
           >
-            {isLoading ? "Submitting..." : "Submit Rating"}
+            {isLoading ? 'Submitting...' : 'Submit Rating'}
           </Button>
         </div>
       </DialogContent>

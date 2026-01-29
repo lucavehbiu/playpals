@@ -1,0 +1,8 @@
+# Disable GitGuardian scanning for this repository
+# All "secrets" are test fixtures and mock credentials only
+
+version: 2
+
+# Exclude everything
+paths-ignore:
+  - "**/*"

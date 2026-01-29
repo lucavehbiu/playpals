@@ -1,9 +1,9 @@
-import { format } from "date-fns";
-import { Event } from "@/lib/types";
-import { CalendarIcon, MapPinIcon, ArrowUpRight, Trophy, X, CheckCircle } from "lucide-react";
-import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { format } from 'date-fns';
+import { Event } from '@/lib/types';
+import { CalendarIcon, MapPinIcon, ArrowUpRight, Trophy, X, CheckCircle } from 'lucide-react';
+import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 
 interface EventCardProps {
   event: Event;
@@ -14,49 +14,51 @@ interface EventCardProps {
   onShare?: (eventId: number) => void;
 }
 
-const EventCard = ({ 
-  event, 
+const EventCard = ({
+  event,
   isManageable = false,
   isPast = false,
-  onJoin, 
-  onManage, 
-  onShare 
+  onJoin,
+  onManage,
+  onShare,
 }: EventCardProps) => {
   const [, setLocation] = useLocation();
   const [matchResult, setMatchResult] = useState<any>(null);
   const [rsvpData, setRsvpData] = useState<any[]>([]);
-  
+
   // Fetch match result for past events
   useEffect(() => {
     if (isPast) {
       // Fetch match result if it exists
       fetch(`/api/events/${event.id}/match-result`, {
-        credentials: 'include'
+        credentials: 'include',
       })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => setMatchResult(data))
-      .catch(() => setMatchResult(null));
-      
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => setMatchResult(data))
+        .catch(() => setMatchResult(null));
+
       // Fetch RSVP data to determine if event was full
       fetch(`/api/rsvps/event/${event.id}`, {
-        credentials: 'include'
+        credentials: 'include',
       })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setRsvpData(data))
-      .catch(() => setRsvpData([]));
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setRsvpData(data))
+        .catch(() => setRsvpData([]));
     }
   }, [event.id, isPast]);
-  
+
   const navigateToEventDetails = (e: React.MouseEvent) => {
     // If the click is on a button, don't navigate
-    if ((e.target as HTMLElement).tagName === 'BUTTON' || 
-        (e.target as HTMLElement).closest('button')) {
+    if (
+      (e.target as HTMLElement).tagName === 'BUTTON' ||
+      (e.target as HTMLElement).closest('button')
+    ) {
       return;
     }
-    
+
     // Get the current page location to track where we're coming from
     const currentPath = window.location.pathname;
-    
+
     // Add the from parameter based on current location
     if (currentPath.includes('/myevents')) {
       setLocation(`/events/${event.id}?from=myevents`);
@@ -73,61 +75,63 @@ const EventCard = ({
       setLocation(`/events/${event.id}?from=discover`); // Default to discover instead of no parameter
     }
   };
-  
+
   const getSportBadgeColor = (sport: string) => {
     const sportColors: Record<string, string> = {
-      basketball: "bg-secondary",
-      soccer: "bg-accent",
-      tennis: "bg-pink-500",
-      volleyball: "bg-indigo-500",
-      cycling: "bg-red-500",
-      yoga: "bg-purple-500",
-      running: "bg-blue-500",
-      swimming: "bg-cyan-500",
-      football: "bg-green-500",
-      baseball: "bg-orange-500",
-      hiking: "bg-emerald-500",
-      golf: "bg-lime-500",
+      basketball: 'bg-secondary',
+      soccer: 'bg-accent',
+      tennis: 'bg-pink-500',
+      volleyball: 'bg-indigo-500',
+      cycling: 'bg-red-500',
+      yoga: 'bg-purple-500',
+      running: 'bg-blue-500',
+      swimming: 'bg-cyan-500',
+      football: 'bg-green-500',
+      baseball: 'bg-orange-500',
+      hiking: 'bg-emerald-500',
+      golf: 'bg-lime-500',
     };
-    
-    return sportColors[sport.toLowerCase()] || "bg-gray-500";
+
+    return sportColors[sport.toLowerCase()] || 'bg-gray-500';
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, "EEE, MMM d • h:mm a");
+    return format(date, 'EEE, MMM d • h:mm a');
   };
-  
+
   const formatParticipants = () => {
     return `${event.currentParticipants}/${event.maxParticipants} players`;
   };
-  
+
   // Determine event status for past events
   const getEventStatus = () => {
     if (!isPast) return null;
-    
+
     // Use the event's currentParticipants field which is more accurate
     const actualParticipants = event.currentParticipants;
     const wasFull = actualParticipants >= event.maxParticipants;
-    
+
     // Debug logging
-    console.log(`Event ${event.id} (${event.title}): participants=${actualParticipants}/${event.maxParticipants}, wasFull=${wasFull}, hasMatchResult=${!!matchResult}`);
-    
+    console.log(
+      `Event ${event.id} (${event.title}): participants=${actualParticipants}/${event.maxParticipants}, wasFull=${wasFull}, hasMatchResult=${!!matchResult}`
+    );
+
     if (matchResult) {
       return {
         type: 'completed',
         label: 'Completed',
         color: 'bg-green-500',
         icon: <Trophy className="h-3 w-3" />,
-        score: `${matchResult.scoreA}-${matchResult.scoreB}`
+        score: `${matchResult.scoreA}-${matchResult.scoreB}`,
       };
     } else if (wasFull) {
       return {
         type: 'played',
         label: 'Event Happened',
-        color: 'bg-blue-500', 
+        color: 'bg-blue-500',
         icon: <CheckCircle className="h-3 w-3" />,
-        score: null
+        score: null,
       };
     } else {
       return {
@@ -135,56 +139,60 @@ const EventCard = ({
         label: 'Not Enough Players',
         color: 'bg-red-500',
         icon: <X className="h-3 w-3" />,
-        score: null
+        score: null,
       };
     }
   };
-  
+
   const eventStatus = getEventStatus();
-  
+
   return (
-    <div 
+    <div
       className={`bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 relative ${isPast ? 'opacity-90' : ''} hover:opacity-100 ${isPast ? 'hover:-translate-y-1' : 'hover:-translate-y-0.5'}`}
       onClick={navigateToEventDetails}
     >
       {/* Event status indicator for past events */}
       {isPast && eventStatus && (
-        <div className={`absolute top-2 left-2 z-10 ${eventStatus.color} text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1`}>
+        <div
+          className={`absolute top-2 left-2 z-10 ${eventStatus.color} text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1`}
+        >
           {eventStatus.icon}
           {eventStatus.label}
         </div>
       )}
-      
+
       {/* Score display for completed events */}
       {isPast && eventStatus?.score && (
         <div className="absolute top-2 right-2 z-10 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">
           {eventStatus.score}
         </div>
       )}
-      
+
       {/* Arrow icon - only show if no score is displayed */}
       {(!isPast || !eventStatus?.score) && (
         <div className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1.5 shadow-sm">
           <ArrowUpRight className="h-4 w-4 text-primary" />
         </div>
       )}
-      
+
       <div className="aspect-w-16 aspect-h-9 h-48 relative">
-        <img 
-          src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`} 
-          alt={`${event.title}`} 
-          className="w-full h-full object-cover" 
+        <img
+          src={event.eventImage || `https://source.unsplash.com/random/800x600/?${event.sportType}`}
+          alt={`${event.title}`}
+          className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
           <div className="p-4 text-white">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSportBadgeColor(event.sportType)} text-white`}>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSportBadgeColor(event.sportType)} text-white`}
+            >
               {event.sportType.charAt(0).toUpperCase() + event.sportType.slice(1)}
             </span>
             <h3 className="mt-1 text-lg font-semibold">{event.title}</h3>
           </div>
         </div>
       </div>
-      
+
       <div className="p-4">
         <div className="mb-4">
           <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -198,9 +206,21 @@ const EventCard = ({
           <div className="flex items-center justify-between">
             <div className="flex -space-x-2">
               {/* This would show actual participants in a real app */}
-              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-              <img className="h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt="" />
+              <img
+                className="h-6 w-6 rounded-full ring-2 ring-white"
+                src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                alt=""
+              />
+              <img
+                className="h-6 w-6 rounded-full ring-2 ring-white"
+                src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                alt=""
+              />
+              <img
+                className="h-6 w-6 rounded-full ring-2 ring-white"
+                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80"
+                alt=""
+              />
               {event.currentParticipants > 3 && (
                 <div className="h-6 w-6 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-500">
                   +{event.currentParticipants - 3}
@@ -210,11 +230,11 @@ const EventCard = ({
             <span className="text-sm text-gray-500">{formatParticipants()}</span>
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           {isPast ? (
             <>
-              <button 
+              <button
                 className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-2 rounded-md text-sm font-medium hover:from-gray-600 hover:to-gray-700"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -223,7 +243,7 @@ const EventCard = ({
               >
                 View Details
               </button>
-              <button 
+              <button
                 className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-200"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -235,7 +255,7 @@ const EventCard = ({
             </>
           ) : isManageable ? (
             <>
-              <button 
+              <button
                 className="flex-1 bg-gradient-to-r from-primary to-blue-600 text-white py-2 rounded-md text-sm font-medium hover:from-primary/90 hover:to-blue-700"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -244,7 +264,7 @@ const EventCard = ({
               >
                 Manage
               </button>
-              <button 
+              <button
                 className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-200"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -256,7 +276,7 @@ const EventCard = ({
             </>
           ) : (
             <>
-              <button 
+              <button
                 className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white py-2 rounded-md text-sm font-medium hover:from-emerald-600 hover:to-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -265,12 +285,23 @@ const EventCard = ({
               >
                 Join Event
               </button>
-              <button 
+              <button
                 className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
+                  />
                 </svg>
               </button>
             </>

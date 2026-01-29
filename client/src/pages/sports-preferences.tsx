@@ -8,7 +8,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { sportTypes, activityFrequencies, teamSizePreferences, teamStatusOptions } from '@shared/schema';
+import {
+  sportTypes,
+  activityFrequencies,
+  teamSizePreferences,
+  teamStatusOptions,
+} from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Define our onboarding slide interfaces
@@ -24,7 +29,7 @@ const SportsPreferencesPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  
+
   // Sports preferences state
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [playFrequency, setPlayFrequency] = useState<string>('');
@@ -40,9 +45,9 @@ const SportsPreferencesPage: React.FC = () => {
   }, [currentSlideIndex]);
 
   const handleSportSelection = (sport: string) => {
-    setSelectedSports(prev => {
+    setSelectedSports((prev) => {
       if (prev.includes(sport)) {
-        return prev.filter(s => s !== sport);
+        return prev.filter((s) => s !== sport);
       } else {
         return [...prev, sport];
       }
@@ -53,42 +58,42 @@ const SportsPreferencesPage: React.FC = () => {
     // Validate the current slide
     if (currentSlideIndex === 0 && selectedSports.length === 0) {
       toast({
-        title: "Please select at least one sport",
-        description: "You need to select at least one sport to continue.",
-        variant: "destructive"
+        title: 'Please select at least one sport',
+        description: 'You need to select at least one sport to continue.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (currentSlideIndex === 1 && !playFrequency) {
       toast({
-        title: "Please select how often you play",
-        description: "You need to select a play frequency to continue.",
-        variant: "destructive"
+        title: 'Please select how often you play',
+        description: 'You need to select a play frequency to continue.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (currentSlideIndex === 2 && !teamSizePreference) {
       toast({
-        title: "Please select a team size preference",
-        description: "You need to select a team size preference to continue.",
-        variant: "destructive"
+        title: 'Please select a team size preference',
+        description: 'You need to select a team size preference to continue.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (currentSlideIndex === 3 && !teamStatus) {
       toast({
-        title: "Please select your team status",
-        description: "You need to select your current team status to continue.",
-        variant: "destructive"
+        title: 'Please select your team status',
+        description: 'You need to select your current team status to continue.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (currentSlideIndex < slides.length - 1) {
-      setCurrentSlideIndex(prev => prev + 1);
+      setCurrentSlideIndex((prev) => prev + 1);
     } else {
       handleSubmit();
     }
@@ -96,16 +101,16 @@ const SportsPreferencesPage: React.FC = () => {
 
   const handlePrevious = () => {
     if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(prev => prev - 1);
+      setCurrentSlideIndex((prev) => prev - 1);
     }
   };
 
   const handleSubmit = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "You need to be logged in to save your preferences.",
-        variant: "destructive"
+        title: 'Authentication required',
+        description: 'You need to be logged in to save your preferences.',
+        variant: 'destructive',
       });
       return;
     }
@@ -119,26 +124,19 @@ const SportsPreferencesPage: React.FC = () => {
         playFrequency,
         teamSizePreference,
         teamStatus,
-        additionalInfo: additionalInfo || null
+        additionalInfo: additionalInfo || null,
       };
 
       // Submit to API
-      await apiRequest(
-        'POST',
-        '/api/onboarding-preferences',
-        preferenceData
-      );
+      await apiRequest('POST', '/api/onboarding-preferences', preferenceData);
 
       // Mark as completed
-      await apiRequest(
-        'POST',
-        `/api/onboarding-preferences/${user.id}/complete`
-      );
+      await apiRequest('POST', `/api/onboarding-preferences/${user.id}/complete`);
 
       toast({
-        title: "Profile completed!",
-        description: "Your sports preferences have been saved.",
-        variant: "default"
+        title: 'Profile completed!',
+        description: 'Your sports preferences have been saved.',
+        variant: 'default',
       });
 
       // Navigate to the home page
@@ -146,9 +144,9 @@ const SportsPreferencesPage: React.FC = () => {
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast({
-        title: "Something went wrong",
+        title: 'Something went wrong',
         description: "We couldn't save your preferences. Please try again.",
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -162,10 +160,10 @@ const SportsPreferencesPage: React.FC = () => {
       title: 'Which sports do you play?',
       component: (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
-          {sportTypes.map(sport => (
+          {sportTypes.map((sport) => (
             <Button
               key={sport}
-              variant={selectedSports.includes(sport) ? "default" : "outline"}
+              variant={selectedSports.includes(sport) ? 'default' : 'outline'}
               className={`flex flex-col h-20 items-center justify-center text-sm ${
                 selectedSports.includes(sport) ? 'bg-primary text-primary-foreground' : ''
               }`}
@@ -178,17 +176,17 @@ const SportsPreferencesPage: React.FC = () => {
             </Button>
           ))}
         </div>
-      )
+      ),
     },
     {
       id: 'frequency',
       title: 'How often do you play sports?',
       component: (
         <div className="flex flex-col gap-3 mt-4">
-          {activityFrequencies.map(frequency => (
+          {activityFrequencies.map((frequency) => (
             <Button
               key={frequency}
-              variant={playFrequency === frequency ? "default" : "outline"}
+              variant={playFrequency === frequency ? 'default' : 'outline'}
               className="justify-start text-left h-14"
               onClick={() => setPlayFrequency(frequency)}
             >
@@ -201,17 +199,17 @@ const SportsPreferencesPage: React.FC = () => {
             </Button>
           ))}
         </div>
-      )
+      ),
     },
     {
       id: 'teamSize',
       title: 'What size team do you prefer?',
       component: (
         <div className="flex flex-col gap-3 mt-4">
-          {teamSizePreferences.map(size => (
+          {teamSizePreferences.map((size) => (
             <Button
               key={size}
-              variant={teamSizePreference === size ? "default" : "outline"}
+              variant={teamSizePreference === size ? 'default' : 'outline'}
               className="justify-start text-left h-14"
               onClick={() => setTeamSizePreference(size)}
             >
@@ -224,17 +222,17 @@ const SportsPreferencesPage: React.FC = () => {
             </Button>
           ))}
         </div>
-      )
+      ),
     },
     {
       id: 'teamStatus',
       title: 'Do you already have a team?',
       component: (
         <div className="flex flex-col gap-3 mt-4">
-          {teamStatusOptions.map(status => (
+          {teamStatusOptions.map((status) => (
             <Button
               key={status}
-              variant={teamStatus === status ? "default" : "outline"}
+              variant={teamStatus === status ? 'default' : 'outline'}
               className="justify-start text-left h-14"
               onClick={() => setTeamStatus(status)}
             >
@@ -246,7 +244,7 @@ const SportsPreferencesPage: React.FC = () => {
             </Button>
           ))}
         </div>
-      )
+      ),
     },
     {
       id: 'additionalInfo',
@@ -260,8 +258,8 @@ const SportsPreferencesPage: React.FC = () => {
             onChange={(e) => setAdditionalInfo(e.target.value)}
           />
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const currentSlide = slides[currentSlideIndex];
@@ -278,9 +276,7 @@ const SportsPreferencesPage: React.FC = () => {
               </Badge>
             </div>
             <Progress value={progress} className="h-2 mb-4" />
-            <CardTitle className="text-xl font-semibold">
-              {currentSlide.title}
-            </CardTitle>
+            <CardTitle className="text-xl font-semibold">{currentSlide.title}</CardTitle>
           </CardHeader>
           <CardContent>
             <AnimatePresence mode="wait">
@@ -296,22 +292,15 @@ const SportsPreferencesPage: React.FC = () => {
             </AnimatePresence>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSlideIndex === 0}
-            >
+            <Button variant="outline" onClick={handlePrevious} disabled={currentSlideIndex === 0}>
               <ChevronLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button
-              onClick={handleNext}
-              disabled={isSubmitting}
-            >
+            <Button onClick={handleNext} disabled={isSubmitting}>
               {isSubmitting ? (
-                "Saving..."
+                'Saving...'
               ) : isLastSlide ? (
-                "Complete Profile"
+                'Complete Profile'
               ) : (
                 <>
                   Next

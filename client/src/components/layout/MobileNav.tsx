@@ -1,10 +1,10 @@
-import { Link, useLocation } from "wouter";
-import { 
-  HomeIcon, 
-  BellIcon, 
-  UsersIcon, 
-  CalendarIcon, 
-  PlusIcon, 
+import { Link, useLocation } from 'wouter';
+import {
+  HomeIcon,
+  BellIcon,
+  UsersIcon,
+  CalendarIcon,
+  PlusIcon,
   UserIcon,
   UserCircle as User,
   Edit3Icon,
@@ -12,18 +12,26 @@ import {
   XIcon,
   MapPinIcon,
   Award as AwardIcon,
-  LogOut
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
-import { useNotifications } from "@/hooks/use-notifications";
-import { useGroupNotifications } from "@/hooks/use-group-notifications";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+  LogOut,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { useNotifications } from '@/hooks/use-notifications';
+import { useGroupNotifications } from '@/hooks/use-group-notifications';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 const MobileNav = () => {
   const [location, setLocation] = useLocation();
@@ -33,271 +41,405 @@ const MobileNav = () => {
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const createButtonRef = useRef<HTMLDivElement>(null);
-  
+  const textRefs = useRef<(HTMLElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Navigation items
+  const navItems = [
+    { href: '/', icon: HomeIcon, label: 'Home' },
+    { href: '/discover', icon: CalendarIcon, label: 'Events' },
+    { href: '/groups', icon: UsersIcon, label: 'Groups' },
+    { href: '/teams', icon: AwardIcon, label: 'Teams' },
+  ];
+
+  // Find active index
+  const activeIndex = navItems.findIndex((item) => item.href === location);
+
+  // Update line width for active item
+  useEffect(() => {
+    const setLineWidth = () => {
+      const activeItemElement = itemRefs.current[activeIndex];
+      const activeTextElement = textRefs.current[activeIndex];
+
+      if (activeItemElement && activeTextElement) {
+        const textWidth = activeTextElement.offsetWidth;
+        activeItemElement.style.setProperty('--lineWidth', `${textWidth}px`);
+      }
+    };
+
+    if (activeIndex >= 0) {
+      setLineWidth();
+      window.addEventListener('resize', setLineWidth);
+      return () => {
+        window.removeEventListener('resize', setLineWidth);
+      };
+    }
+  }, [activeIndex]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close create menu when clicking outside
-      if (isCreateMenuOpen && 
-          createButtonRef.current && 
-          !createButtonRef.current.contains(event.target as Node)) {
+      if (
+        isCreateMenuOpen &&
+        createButtonRef.current &&
+        !createButtonRef.current.contains(event.target as Node)
+      ) {
         setIsCreateMenuOpen(false);
       }
     };
-    
-    document.addEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isCreateMenuOpen]);
-  
+
   return (
     <>
-      {/* Fixed Mobile Nav at Bottom */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-between px-4 z-40 md:hidden"> 
-        {/* Nav Items - Home, Events, Create, Groups, Teams */}
-        <NavItem 
-          href="/" 
-          icon={<HomeIcon className="h-[22px] w-[22px]" />} 
-          label="Home" 
-          isActive={location === '/'} 
-        />
-        
-        <NavItem 
-          href="/discover" 
-          icon={<CalendarIcon className="h-[22px] w-[22px]" />} 
-          label="Events" 
-          isActive={location === '/discover'} 
-        />
-        
-        {/* Create Button */}
-        <div ref={createButtonRef} className="relative -top-5">
-          <div className="flex flex-col items-center">
-            <div
-              onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
-              className={`rounded-full h-12 w-12 flex items-center justify-center shadow-md transition-all duration-200 ${
-                isCreateMenuOpen 
-                  ? "bg-red-500 rotate-45" 
-                  : "bg-primary"
-              }`}
-            >
-              <PlusIcon className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-[10px] font-medium text-gray-500 mt-1">Create</span>
-          </div>
-          
-          {/* Create options popup */}
-          <AnimatePresence>
-            {isCreateMenuOpen && (
+      {/* Fixed Mobile Nav at Bottom - Premium Interactive Menu */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 h-16 bg-white/70 backdrop-blur-xl flex items-center justify-around px-2 z-[100] md:hidden safe-bottom shadow-[0_-8px_30px_rgba(0,0,0,0.04)] border-t border-white/20"
+        style={
+          {
+            '--component-active-color': 'hsl(var(--playpals-cyan))',
+          } as React.CSSProperties
+        }
+      >
+        {/* Left nav items (Home, Events) */}
+        {navItems.slice(0, 2).map((item, index) => {
+          const isActive = index === activeIndex;
+          const IconComponent = item.icon;
+
+          return (
+            <Link key={item.href} href={item.href}>
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-                className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-1 w-52 z-50 backdrop-blur-sm"
+                ref={(el) => (itemRefs.current[index] = el)}
+                className={cn(
+                  'flex flex-row items-center justify-center gap-2 py-2 px-3 relative cursor-pointer group',
+                  'transition-all duration-300'
+                )}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                style={{ '--lineWidth': '0px' } as React.CSSProperties}
               >
-                <div className="space-y-1 p-2">
-                  <button
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setIsPostModalOpen(true);
+                {/* Active background pill */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl"
+                    initial={false}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30,
                     }}
-                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-primary/5 hover:text-primary rounded-xl transition-all duration-200 group"
-                  >
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3 group-hover:bg-primary/20 transition-all duration-200">
-                      <Edit3Icon className="h-4 w-4 text-primary" /> 
-                    </div>
-                    <span>Post</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setLocation("/events/create");
+                  />
+                )}
+
+                {/* Icon */}
+                <div
+                  className={cn(
+                    'flex items-center justify-center relative z-10',
+                    'transition-all duration-300',
+                    isActive
+                      ? 'text-primary scale-110'
+                      : 'text-gray-400 hover:text-gray-600 hover:scale-105'
+                  )}
+                >
+                  <motion.div
+                    animate={
+                      isActive
+                        ? {
+                            y: [0, -3, 0],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 0.6,
+                      repeat: isActive ? Infinity : 0,
+                      repeatDelay: 3,
                     }}
-                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-blue-500/5 hover:text-blue-600 rounded-xl transition-all duration-200 group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center mr-3 group-hover:bg-blue-500/20 transition-all duration-200">
-                      <CalendarPlusIcon className="h-4 w-4 text-blue-600" /> 
-                    </div>
-                    <span>Event</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setLocation("/tournaments");
-                    }}
-                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-amber-500/5 hover:text-amber-600 rounded-xl transition-all duration-200 group"
-                  >
-                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center mr-3 group-hover:bg-amber-500/20 transition-all duration-200">
-                      <AwardIcon className="h-4 w-4 text-amber-600" /> 
-                    </div>
-                    <span>Tournament</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setLocation("/teams?create=true");
-                    }}
-                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-green-500/5 hover:text-green-600 rounded-xl transition-all duration-200 group"
-                  >
-                    <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center mr-3 group-hover:bg-green-500/20 transition-all duration-200">
-                      <UsersIcon className="h-4 w-4 text-green-600" /> 
-                    </div>
-                    <span>Team</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setIsCreateMenuOpen(false);
-                      setLocation("/groups?create=true");
-                    }}
-                    className="w-full flex items-center text-gray-700 font-semibold text-sm p-3 hover:bg-purple-500/5 hover:text-purple-600 rounded-xl transition-all duration-200 group"
-                  >
-                    <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center mr-3 group-hover:bg-purple-500/20 transition-all duration-200">
-                      <UsersIcon className="h-4 w-4 text-purple-600" /> 
-                    </div>
-                    <span>Group</span>
-                  </button>
+                    <IconComponent className="h-[22px] w-[22px]" />
+                  </motion.div>
                 </div>
-                
-                {/* Arrow at bottom */}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-100 shadow-sm"></div>
+
+                {/* Label with animated underline - hidden by default, shown on hover/active */}
+                <strong
+                  ref={(el) => (textRefs.current[index] = el)}
+                  className={cn(
+                    'text-xs font-semibold transition-all duration-300 relative z-10 whitespace-nowrap',
+                    isActive
+                      ? 'text-primary tracking-wide opacity-100 translate-x-0'
+                      : 'text-gray-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+                  )}
+                >
+                  {item.label}
+                  {/* Animated underline */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: 'var(--lineWidth)' }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 25,
+                      }}
+                    />
+                  )}
+                </strong>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </Link>
+          );
+        })}
+
+        {/* Premium Create Button with Glow Effect */}
+        <div ref={createButtonRef} className="relative -top-6">
+          <div className="flex flex-col items-center">
+            <motion.div
+              onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
+              className="relative cursor-pointer"
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
+              {/* Glow effect */}
+              <div
+                className={cn(
+                  'absolute inset-0 rounded-full blur-xl transition-all duration-300',
+                  isCreateMenuOpen ? 'bg-red-500/60' : 'bg-primary/60 animate-pulse-glow'
+                )}
+              />
+
+              {/* Button */}
+              <div
+                className={cn(
+                  'relative w-14 h-14 rounded-full flex items-center justify-center shadow-premium-lg transition-all duration-300',
+                  isCreateMenuOpen
+                    ? 'bg-gradient-to-br from-red-500 to-red-600 rotate-45'
+                    : 'bg-gradient-to-br from-primary to-secondary'
+                )}
+              >
+                <PlusIcon className="h-6 w-6 text-white flex-shrink-0" />
+              </div>
+            </motion.div>
+          </div>
         </div>
-        
-        <NavItem 
-          href="/groups" 
-          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-          label="Groups" 
-          isActive={location === '/groups'}
-          badge={getTotalNotificationCount()}
-        />
-        
-        <NavItem 
-          href="/teams" 
-          icon={<UsersIcon className="h-[22px] w-[22px]" />} 
-          label="Teams" 
-          isActive={location.startsWith('/teams')} 
-        />
+
+        {/* Create Menu Popup - Fixed positioning to center on screen */}
+        <AnimatePresence>
+          {isCreateMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-premium-lg p-3 w-[200px] border border-gray-200/80 z-50"
+            >
+              <div className="space-y-1">
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/create-event');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <CalendarPlusIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Event</p>
+                    <p className="text-xs text-gray-500">Start a new activity</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setIsPostModalOpen(true);
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <Edit3Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Post</p>
+                    <p className="text-xs text-gray-500">Share an update</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/groups');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <UsersIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Group</p>
+                    <p className="text-xs text-gray-500">Start a community</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setLocation('/create-team');
+                    setIsCreateMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-2xl hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-200">
+                    <AwardIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">Create Team</p>
+                    <p className="text-xs text-gray-500">Build your squad</p>
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Right nav items (Teams, Profile) */}
+        {navItems.slice(2).map((item, index) => {
+          const actualIndex = index + 2; // Adjust index for refs
+          const isActive = actualIndex === activeIndex;
+          const IconComponent = item.icon;
+
+          return (
+            <Link key={item.href} href={item.href}>
+              <motion.div
+                ref={(el) => (itemRefs.current[actualIndex] = el)}
+                className={cn(
+                  'flex flex-row items-center justify-center gap-2 py-2 px-3 relative cursor-pointer group',
+                  'transition-all duration-300'
+                )}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                style={{ '--lineWidth': '0px' } as React.CSSProperties}
+              >
+                {/* Active background pill */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl"
+                    initial={false}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30,
+                    }}
+                  />
+                )}
+
+                {/* Icon */}
+                <div
+                  className={cn(
+                    'flex items-center justify-center relative z-10',
+                    'transition-all duration-300',
+                    isActive
+                      ? 'text-primary scale-110'
+                      : 'text-gray-400 hover:text-gray-600 hover:scale-105'
+                  )}
+                >
+                  <motion.div
+                    animate={
+                      isActive
+                        ? {
+                            y: [0, -3, 0],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 0.6,
+                      repeat: isActive ? Infinity : 0,
+                      repeatDelay: 3,
+                    }}
+                  >
+                    <IconComponent className="h-[22px] w-[22px]" />
+                  </motion.div>
+                </div>
+
+                {/* Label with animated underline - hidden by default, shown on hover/active */}
+                <strong
+                  ref={(el) => (textRefs.current[actualIndex] = el)}
+                  className={cn(
+                    'text-xs font-semibold transition-all duration-300 relative z-10 whitespace-nowrap',
+                    isActive
+                      ? 'text-primary tracking-wide opacity-100 translate-x-0'
+                      : 'text-gray-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+                  )}
+                >
+                  {item.label}
+                  {/* Animated underline */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: 'var(--lineWidth)' }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 25,
+                      }}
+                    />
+                  )}
+                </strong>
+              </motion.div>
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Create Post Dialog - Modern & Clean UI */}
+      {/* Create Post Modal */}
       <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-        <DialogContent className="sm:max-w-[550px] p-0 border-none shadow-2xl overflow-hidden rounded-xl">
-          <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 p-5 pb-6">
-            <DialogHeader className="mb-2">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Create Post</DialogTitle>
-                <Avatar className="h-10 w-10 ring-2 ring-white/50 shadow-md">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white">
-                    {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                  {user?.profileImage && <AvatarImage src={user.profileImage} alt="User" />}
-                </Avatar>
-              </div>
-              <DialogDescription className="text-gray-600 mt-1">
-                Share a moment with your sports community
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Textarea 
-              placeholder="What's on your mind?" 
-              className="w-full resize-none min-h-[120px] mt-3 border-none bg-white/70 backdrop-blur-sm rounded-xl shadow-sm focus-visible:ring-primary"
+        <DialogContent className="sm:max-w-[500px] glass-card border-none shadow-premium-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Create a Post
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Share what's on your mind with the PlayPals community
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Textarea
+              placeholder="What's happening?"
+              className="min-h-[150px] resize-none glass border-gray-200/50 focus:border-primary/50 rounded-2xl"
             />
           </div>
-          
-          <div className="p-3 px-5 bg-white">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <div className="rounded-full bg-primary/5 px-3 py-1 text-xs font-medium text-primary flex items-center">
-                <CalendarIcon className="h-3 w-3 mr-1" /> Events
-              </div>
-              <div className="rounded-full bg-blue-500/5 px-3 py-1 text-xs font-medium text-blue-600 flex items-center">
-                <MapPinIcon className="h-3 w-3 mr-1" /> Location
-              </div>
-              <div className="rounded-full bg-indigo-500/5 px-3 py-1 text-xs font-medium text-indigo-600 flex items-center">
-                <AwardIcon className="h-3 w-3 mr-1" /> Activity
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="rounded-full border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/30"
-                  onClick={() => {
-                    setIsPostModalOpen(false);
-                    setLocation("/events/create");
-                  }}
-                >
-                  <CalendarIcon className="w-4 h-4 mr-1" />
-                  Create Event
-                </Button>
-              </div>
-              <Button 
-                type="submit" 
-                className="rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                Share Post
-              </Button>
-            </div>
-          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsPostModalOpen(false)}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setIsPostModalOpen(false)}
+              className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg"
+            >
+              Post
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  );
-};
-
-// Extracted navigation item component for cleaner code
-const NavItem = ({ 
-  href, 
-  icon, 
-  label, 
-  isActive,
-  badge 
-}: { 
-  href: string; 
-  icon: React.ReactNode; 
-  label: string; 
-  isActive: boolean;
-  badge?: number;
-}) => {
-  return (
-    <Link href={href}>
-      <div className="flex flex-col items-center justify-center py-2 px-3">
-        <div className={cn(
-          "flex items-center justify-center transition-all duration-200 mb-1 relative",
-          isActive 
-            ? "text-primary" 
-            : "text-gray-400 hover:text-gray-600"
-        )}>
-          {icon}
-          {badge && badge > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
-              {badge > 9 ? '9+' : badge}
-            </span>
-          )}
-        </div>
-        <span className={cn(
-          "text-[11px] font-medium transition-colors",
-          isActive 
-            ? "text-primary" 
-            : "text-gray-500"
-        )}>
-          {label}
-        </span>
-        
-        {/* Active indicator dot */}
-        {isActive && (
-          <div className="w-1 h-1 rounded-full bg-primary mt-1"></div>
-        )}
-      </div>
-    </Link>
   );
 };
 

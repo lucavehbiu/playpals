@@ -18,7 +18,7 @@ export default function Tournaments() {
   });
 
   const joinTournamentMutation = useMutation({
-    mutationFn: async (tournamentId: number) => 
+    mutationFn: async (tournamentId: number) =>
       apiRequest(`/api/tournaments/${tournamentId}/join`, 'POST', {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
@@ -102,10 +102,7 @@ export default function Tournaments() {
               Compete in organized tournaments and climb the leaderboards
             </p>
           </div>
-          <Button 
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2"
-          >
+          <Button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2">
             <Plus size={18} />
             Create Tournament
           </Button>
@@ -117,9 +114,7 @@ export default function Tournaments() {
             <Trophy size={64} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No tournaments yet</h3>
             <p className="text-gray-600 mb-6">Be the first to create a tournament!</p>
-            <Button onClick={() => setShowCreateModal(true)}>
-              Create First Tournament
-            </Button>
+            <Button onClick={() => setShowCreateModal(true)}>Create First Tournament</Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -130,8 +125,8 @@ export default function Tournaments() {
                     <CardTitle className="text-lg font-semibold line-clamp-2">
                       {tournament.name}
                     </CardTitle>
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className={getStatusColor(tournament.status || 'open')}
                     >
                       {getStatusLabel(tournament.status || 'open')}
@@ -140,15 +135,15 @@ export default function Tournaments() {
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <span className="font-medium capitalize">{tournament.sportType}</span>
                     <span>•</span>
-                    <span>{getTournamentTypeLabel(tournament.tournamentType || 'round_robin')}</span>
+                    <span>
+                      {getTournamentTypeLabel(tournament.tournamentType || 'round_robin')}
+                    </span>
                   </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
                   {tournament.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {tournament.description}
-                    </p>
+                    <p className="text-sm text-gray-600 line-clamp-2">{tournament.description}</p>
                   )}
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -156,7 +151,7 @@ export default function Tournaments() {
                       <Users size={16} className="text-gray-400" />
                       <span>0/{tournament.maxParticipants}</span>
                     </div>
-                    
+
                     {tournament.startDate && (
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400" />
@@ -181,17 +176,13 @@ export default function Tournaments() {
 
                   <div className="flex gap-2 pt-2">
                     <Link href={`/tournaments/${tournament.id}`}>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1 w-full"
-                      >
+                      <Button variant="outline" size="sm" className="flex-1 w-full">
                         View Details
                       </Button>
                     </Link>
-                    
+
                     {tournament.status === 'open' && (
-                      <Button 
+                      <Button
                         size="sm"
                         className="flex-1"
                         onClick={() => joinTournamentMutation.mutate(tournament.id)}
@@ -208,8 +199,8 @@ export default function Tournaments() {
         )}
 
         {/* Create Tournament Modal */}
-        <CreateTournamentModal 
-          open={showCreateModal} 
+        <CreateTournamentModal
+          open={showCreateModal}
           onOpenChange={setShowCreateModal}
           onSuccess={() => {
             setShowCreateModal(false);

@@ -1,4 +1,4 @@
-// Import required libraries 
+// Import required libraries
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as dotenv from 'dotenv';
@@ -15,8 +15,8 @@ const db = drizzle(sql);
 // Custom function to apply team schema changes
 async function pushTeamsSchema() {
   try {
-    console.log('Creating teams tables if they don\'t exist...');
-    
+    console.log("Creating teams tables if they don't exist...");
+
     // Create teams table
     await sql`
       CREATE TABLE IF NOT EXISTS teams (
@@ -30,7 +30,7 @@ async function pushTeamsSchema() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
-    
+
     // Create team_members table
     await sql`
       CREATE TABLE IF NOT EXISTS team_members (
@@ -44,7 +44,7 @@ async function pushTeamsSchema() {
         UNIQUE(team_id, user_id)
       );
     `;
-    
+
     // Create team_posts table
     await sql`
       CREATE TABLE IF NOT EXISTS team_posts (
@@ -57,7 +57,7 @@ async function pushTeamsSchema() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
-    
+
     // Create team_post_comments table
     await sql`
       CREATE TABLE IF NOT EXISTS team_post_comments (
@@ -68,7 +68,7 @@ async function pushTeamsSchema() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
-    
+
     // Create team_schedules table
     await sql`
       CREATE TABLE IF NOT EXISTS team_schedules (
@@ -84,7 +84,7 @@ async function pushTeamsSchema() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
-    
+
     // Create team_schedule_responses table
     await sql`
       CREATE TABLE IF NOT EXISTS team_schedule_responses (
@@ -98,7 +98,7 @@ async function pushTeamsSchema() {
         UNIQUE(schedule_id, user_id)
       );
     `;
-    
+
     // Create team_join_requests table
     await sql`
       CREATE TABLE IF NOT EXISTS team_join_requests (
@@ -110,10 +110,10 @@ async function pushTeamsSchema() {
         UNIQUE(team_id, user_id)
       );
     `;
-    
+
     // Add sample team data
     console.log('Adding sample team data...');
-    
+
     // Check if we already have teams
     const teamCount = await sql`SELECT COUNT(*) FROM teams`;
     if (parseInt(teamCount[0].count) === 0) {
@@ -123,19 +123,19 @@ async function pushTeamsSchema() {
         VALUES ('Neighborhood Ballers', 'A casual basketball team for weekend games', 'basketball', 1, true)
         RETURNING id
       `;
-      
+
       const [soccerTeam] = await sql`
         INSERT INTO teams (name, description, sport_type, creator_id, is_public) 
         VALUES ('City Football Club', 'Competitive soccer team looking for matches', 'soccer', 2, true)
         RETURNING id
       `;
-      
+
       const [tennisTeam] = await sql`
         INSERT INTO teams (name, description, sport_type, creator_id, is_public) 
         VALUES ('Tennis Aces', 'Tennis team for all skill levels', 'tennis', 1, true)
         RETURNING id
       `;
-      
+
       // Now add team members
       await sql`
         INSERT INTO team_members (team_id, user_id, role, position) 
@@ -150,20 +150,20 @@ async function pushTeamsSchema() {
           (${tennisTeam.id}, 3, 'member', 'Doubles'),
           (${tennisTeam.id}, 4, 'member', 'Singles/Doubles')
       `;
-      
+
       // Add team posts
       const [basketballPost] = await sql`
         INSERT INTO team_posts (team_id, user_id, content) 
         VALUES (${basketballTeam.id}, 1, 'Welcome to the Neighborhood Ballers team! Looking forward to our first practice this weekend.')
         RETURNING id
       `;
-      
+
       const [soccerPost] = await sql`
         INSERT INTO team_posts (team_id, user_id, content) 
         VALUES (${soccerTeam.id}, 2, 'City Football Club is looking for a match this Saturday. Any teams interested?')
         RETURNING id
       `;
-      
+
       // Add post comments
       await sql`
         INSERT INTO team_post_comments (post_id, user_id, content) 
@@ -172,20 +172,20 @@ async function pushTeamsSchema() {
           (${basketballPost.id}, 3, 'What time is practice?'),
           (${soccerPost.id}, 4, 'Our team might be available, I\'ll check with the captain.')
       `;
-      
+
       // Add team schedules
       const [basketballSchedule] = await sql`
         INSERT INTO team_schedules (team_id, creator_id, title, description, start_time, end_time, location) 
         VALUES (${basketballTeam.id}, 1, 'Weekly Practice', 'Regular practice session', NOW() + INTERVAL '3 days', NOW() + INTERVAL '3 days 2 hours', 'City Park Courts')
         RETURNING id
       `;
-      
+
       const [soccerSchedule] = await sql`
         INSERT INTO team_schedules (team_id, creator_id, title, description, start_time, end_time, location, is_required) 
         VALUES (${soccerTeam.id}, 2, 'Championship Game', 'Final match of the season', NOW() + INTERVAL '7 days', NOW() + INTERVAL '7 days 2 hours', 'City Stadium', true)
         RETURNING id
       `;
-      
+
       // Add schedule responses
       await sql`
         INSERT INTO team_schedule_responses (schedule_id, user_id, response, notes) 
@@ -198,7 +198,7 @@ async function pushTeamsSchema() {
           (${soccerSchedule.id}, 4, 'not_attending', 'Family commitment')
       `;
     }
-    
+
     console.log('Teams schema changes and sample data completed successfully');
   } catch (error) {
     console.error('Error applying teams schema changes:', error);

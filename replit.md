@@ -18,6 +18,7 @@ The application follows a full-stack TypeScript architecture with clear separati
 ## Key Components
 
 ### Frontend Architecture
+
 - **Component-based React structure** with reusable UI components from Shadcn
 - **Hook-based state management** using custom hooks for authentication, notifications, and WebSocket connections
 - **Responsive design** with mobile-first approach using Tailwind CSS
@@ -25,6 +26,7 @@ The application follows a full-stack TypeScript architecture with clear separati
 - **Form handling** with React Hook Form and Zod validation
 
 ### Backend Architecture
+
 - **RESTful API** with Express.js providing endpoints for all major features
 - **Type-safe database operations** using Drizzle ORM with PostgreSQL
 - **Session-based authentication** with Passport.js and session store
@@ -32,7 +34,9 @@ The application follows a full-stack TypeScript architecture with clear separati
 - **File upload handling** for user profiles and event images
 
 ### Database Schema
+
 The database includes comprehensive tables for:
+
 - **User management**: users, user_sport_preferences, user_onboarding_preferences
 - **Event system**: events, rsvps, player_ratings
 - **Social features**: friendships, posts, likes, comments
@@ -41,6 +45,7 @@ The database includes comprehensive tables for:
 - **Advanced features**: skill_matcher_preferences, skill_matches, polls
 
 ### Authentication & Authorization
+
 - **Passport.js integration** with local strategy for username/password authentication
 - **Session management** with PostgreSQL session store for persistence
 - **Protected routes** on both client and server side
@@ -57,6 +62,7 @@ The database includes comprehensive tables for:
 ## External Dependencies
 
 ### Core Dependencies
+
 - **@tanstack/react-query**: Server state management and caching
 - **@radix-ui/**: Comprehensive UI component primitives
 - **drizzle-orm**: Type-safe database toolkit
@@ -66,6 +72,7 @@ The database includes comprehensive tables for:
 - **tailwindcss**: Utility-first CSS framework
 
 ### Development Tools
+
 - **typescript**: Type safety across the entire stack
 - **vite**: Fast build tool and development server
 - **esbuild**: Fast JavaScript bundler for production builds
@@ -84,10 +91,11 @@ The application is configured for flexible deployment:
 The build process creates optimized bundles with automatic code splitting and modern JavaScript output for production deployment.
 
 ## Changelog
+
 - June 30, 2025. Initial setup
 - June 30, 2025. CRITICAL SECURITY FIX: Added membership verification to all group endpoints to prevent unauthorized access to private group content
 - July 1, 2025. Completed comprehensive friends system with Accept/Decline buttons and clickable profile navigation
-- July 1, 2025. Fixed notification history system to display complete activity with history=true parameter  
+- July 1, 2025. Fixed notification history system to display complete activity with history=true parameter
 - July 1, 2025. BUGFIX: Fixed friend request decline error in notification bell - corrected status mismatch between frontend ("declined") and backend ("rejected")
 - July 1, 2025. FEATURE: Fixed group event creation flow - group events no longer show friend invitation modal, automatically notify all group members
 - July 1, 2025. BUGFIX: Fixed price field input issue in CreateEvent - users can now clear the "0" value completely

@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "./use-auth";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from './use-auth';
 
 interface GroupNotification {
   groupId: number;
@@ -21,7 +21,14 @@ export function useGroupNotifications() {
   });
 
   // Debug logging
-  console.log('Notifications hook - user:', user?.id, 'notifications:', notifications, 'loading:', isLoading);
+  console.log(
+    'Notifications hook - user:',
+    user?.id,
+    'notifications:',
+    notifications,
+    'loading:',
+    isLoading
+  );
 
   const markNotificationsViewed = useMutation({
     mutationFn: async ({ groupId, type }: { groupId: number; type?: string }) => {
@@ -33,11 +40,11 @@ export function useGroupNotifications() {
         body: JSON.stringify({ groupId, type }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to mark notifications as viewed');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -49,24 +56,32 @@ export function useGroupNotifications() {
 
   const getNotificationCount = (groupId: number, type?: string) => {
     if (!Array.isArray(notifications)) return 0;
-    const groupNotifications = notifications.filter((n: GroupNotification) => n.groupId === groupId);
+    const groupNotifications = notifications.filter(
+      (n: GroupNotification) => n.groupId === groupId
+    );
     if (type) {
       const notification = groupNotifications.find((n: GroupNotification) => n.type === type);
       return parseInt(String(notification?.count || 0));
     }
-    return groupNotifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)), 0);
+    return groupNotifications.reduce(
+      (sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)),
+      0
+    );
   };
 
   const getTotalNotificationCount = () => {
     if (!Array.isArray(notifications)) return 0;
-    return notifications.reduce((sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)), 0);
+    return notifications.reduce(
+      (sum: number, n: GroupNotification) => sum + parseInt(String(n.count || 0)),
+      0
+    );
   };
 
   const getUnreadEventIds = async (groupId: number) => {
     if (!user?.id) return [];
     try {
       const response = await fetch(`/api/users/${user.id}/unread-events/${groupId}`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) return [];
       return response.json();

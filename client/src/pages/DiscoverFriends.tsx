@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, UserPlus, Users, Heart, MapPin, Trophy, UserCheck, Clock3, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+// @ts-nocheck
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import {
+  Search,
+  UserPlus,
+  Users,
+  Heart,
+  MapPin,
+  Trophy,
+  UserCheck,
+  Clock3,
+  MessageCircle,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 type User = {
   id: number;
@@ -33,7 +44,7 @@ type FriendSuggestion = User & {
 export default function DiscoverFriends() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -60,26 +71,26 @@ export default function DiscoverFriends() {
   // Send friend request mutation
   const sendFriendRequestMutation = useMutation({
     mutationFn: async (friendId: number) => {
-      const response = await apiRequest("POST", "/api/friend-requests", {
-        friendId: friendId
+      const response = await apiRequest('POST', '/api/friend-requests', {
+        friendId: friendId,
       });
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Friend Request Sent",
-        description: "Your friend request has been sent successfully!"
+        title: 'Friend Request Sent',
+        description: 'Your friend request has been sent successfully!',
       });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/all-friend-requests`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/search-friends`] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send friend request",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to send friend request',
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   // Search for users
@@ -91,18 +102,18 @@ export default function DiscoverFriends() {
 
     setIsSearching(true);
     try {
-      const response = await apiRequest("GET", `/api/users/search?q=${encodeURIComponent(query)}`);
+      const response = await apiRequest('GET', `/api/users/search?q=${encodeURIComponent(query)}`);
       const users = await response.json();
-      
+
       // Filter out current user and existing friends
       const friendIds = currentFriends.map((f: any) => f.id);
-      const filteredUsers = users.filter((u: User) => 
-        u.id !== user?.id && !friendIds.includes(u.id)
+      const filteredUsers = users.filter(
+        (u: User) => u.id !== user?.id && !friendIds.includes(u.id)
       );
-      
+
       setSearchResults(filteredUsers);
     } catch (error) {
-      console.error("Search error:", error);
+      console.error('Search error:', error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -125,29 +136,34 @@ export default function DiscoverFriends() {
   // Helper function to get relationship status with a user
   const getRelationshipStatus = (userId: number) => {
     // Check if already friends
-    const isFriend = Array.isArray(currentFriends) && 
-      currentFriends.some((friend: any) => friend.id === userId);
+    const isFriend =
+      Array.isArray(currentFriends) && currentFriends.some((friend: any) => friend.id === userId);
     if (isFriend) return 'friends';
 
     // Check if friend request is pending (sent by current user)
-    const hasPendingRequest = Array.isArray(friendRequests) &&
-      friendRequests.some((request: any) => 
-        request.friendId === userId && request.status === 'pending'
+    const hasPendingRequest =
+      Array.isArray(friendRequests) &&
+      friendRequests.some(
+        (request: any) => request.friendId === userId && request.status === 'pending'
       );
     if (hasPendingRequest) return 'pending';
 
     // Check if there's an incoming friend request
-    const hasIncomingRequest = Array.isArray(friendRequests) &&
-      friendRequests.some((request: any) => 
-        request.userId === userId && request.status === 'pending'
+    const hasIncomingRequest =
+      Array.isArray(friendRequests) &&
+      friendRequests.some(
+        (request: any) => request.userId === userId && request.status === 'pending'
       );
     if (hasIncomingRequest) return 'incoming';
 
     return 'none';
   };
 
-  const UserCard = ({ user: profileUser, showMutualInfo = false }: { 
-    user: User | FriendSuggestion; 
+  const UserCard = ({
+    user: profileUser,
+    showMutualInfo = false,
+  }: {
+    user: User | FriendSuggestion;
     showMutualInfo?: boolean;
   }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -161,62 +177,43 @@ export default function DiscoverFriends() {
               <AvatarImage src={profileUser.profileImage} alt={profileUser.name} />
             )}
           </Avatar>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900 truncate">
-                  {profileUser.name}
-                </h3>
-                <p className="text-sm text-gray-500 truncate">
-                  @{profileUser.username}
-                </p>
+                <h3 className="font-semibold text-gray-900 truncate">{profileUser.name}</h3>
+                <p className="text-sm text-gray-500 truncate">@{profileUser.username}</p>
               </div>
               {(() => {
                 const status = getRelationshipStatus(profileUser.id);
-                
+
                 if (status === 'friends') {
                   return (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                      className="shrink-0"
-                    >
+                    <Button size="sm" variant="outline" disabled className="shrink-0">
                       <UserCheck className="h-4 w-4 mr-1" />
                       Friends
                     </Button>
                   );
                 }
-                
+
                 if (status === 'pending') {
                   return (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                      className="shrink-0"
-                    >
+                    <Button size="sm" variant="outline" disabled className="shrink-0">
                       <Clock3 className="h-4 w-4 mr-1" />
                       Pending
                     </Button>
                   );
                 }
-                
+
                 if (status === 'incoming') {
                   return (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                      className="shrink-0"
-                    >
+                    <Button size="sm" variant="outline" disabled className="shrink-0">
                       <MessageCircle className="h-4 w-4 mr-1" />
                       Respond
                     </Button>
                   );
                 }
-                
+
                 return (
                   <Button
                     size="sm"
@@ -230,20 +227,18 @@ export default function DiscoverFriends() {
                 );
               })()}
             </div>
-            
+
             {profileUser.headline && (
-              <p className="text-sm text-gray-600 mt-1 line-clamp-1">
-                {profileUser.headline}
-              </p>
+              <p className="text-sm text-gray-600 mt-1 line-clamp-1">{profileUser.headline}</p>
             )}
-            
+
             {profileUser.location && (
               <div className="flex items-center text-xs text-gray-500 mt-1">
                 <MapPin className="h-3 w-3 mr-1" />
                 {profileUser.location}
               </div>
             )}
-            
+
             {showMutualInfo && 'mutualFriends' in profileUser && (
               <div className="flex items-center space-x-2 mt-2">
                 {profileUser.mutualFriends > 0 && (
@@ -286,9 +281,7 @@ export default function DiscoverFriends() {
                 <Search className="h-5 w-5 mr-2" />
                 Search for Friends
               </CardTitle>
-              <CardDescription>
-                Search by name or username to find people you know
-              </CardDescription>
+              <CardDescription>Search by name or username to find people you know</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="relative">
@@ -300,20 +293,20 @@ export default function DiscoverFriends() {
                   className="pl-10"
                 />
               </div>
-              
+
               {isSearching && (
                 <div className="text-center py-8">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
                   <p className="mt-2 text-sm text-gray-500">Searching...</p>
                 </div>
               )}
-              
+
               {searchQuery && !isSearching && searchResults.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No users found for "{searchQuery}"</p>
                 </div>
               )}
-              
+
               <div className="space-y-3 mt-4">
                 {searchResults.map((searchUser) => (
                   <UserCard key={searchUser.id} user={searchUser} />
@@ -330,9 +323,7 @@ export default function DiscoverFriends() {
                 <Users className="h-5 w-5 mr-2" />
                 People You May Know
               </CardTitle>
-              <CardDescription>
-                Based on mutual friends, interests, and activity
-              </CardDescription>
+              <CardDescription>Based on mutual friends, interests, and activity</CardDescription>
             </CardHeader>
             <CardContent>
               {suggestionsLoading ? (

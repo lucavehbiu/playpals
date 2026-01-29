@@ -1,4 +1,4 @@
-// Import required libraries 
+// Import required libraries
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as dotenv from 'dotenv';
@@ -15,8 +15,8 @@ const db = drizzle(sql);
 // Custom function to apply schema changes
 async function pushSchema() {
   try {
-    console.log('Creating tables if they don\'t exist...');
-    
+    console.log("Creating tables if they don't exist...");
+
     // Create users_sport_preferences table
     await sql`
       CREATE TABLE IF NOT EXISTS user_sport_preferences (
@@ -30,7 +30,7 @@ async function pushSchema() {
         UNIQUE(user_id, sport_type)
       );
     `;
-    
+
     // Create player_ratings table
     await sql`
       CREATE TABLE IF NOT EXISTS player_ratings (
@@ -45,7 +45,7 @@ async function pushSchema() {
         UNIQUE(rated_user_id, rater_user_id, sport_type, event_id)
       );
     `;
-    
+
     // Create user_onboarding_preferences table
     await sql`
       CREATE TABLE IF NOT EXISTS user_onboarding_preferences (
@@ -62,7 +62,7 @@ async function pushSchema() {
         UNIQUE(user_id)
       );
     `;
-    
+
     // Add sample sport preferences
     console.log('Adding sample sport preferences...');
     // Check if we already have preferences
@@ -82,7 +82,7 @@ async function pushSchema() {
           (4, 'swimming', 'advanced', 5, true)
       `;
     }
-    
+
     // Add sample player ratings
     console.log('Adding sample player ratings...');
     const ratingCount = await sql`SELECT COUNT(*) FROM player_ratings`;
@@ -101,7 +101,7 @@ async function pushSchema() {
           (4, 2, 6, 'yoga', 5, 'Patient and knowledgeable')
       `;
     }
-    
+
     console.log('Schema changes and sample data completed successfully');
   } catch (error) {
     console.error('Error applying schema changes:', error);

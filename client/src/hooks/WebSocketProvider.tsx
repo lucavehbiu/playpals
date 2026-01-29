@@ -14,7 +14,7 @@ const mockWebSocketContext: WebSocketContextType = {
   status: 'disconnected',
   notifications: [],
   clearNotification: () => {},
-  clearAllNotifications: () => {}
+  clearAllNotifications: () => {},
 };
 
 // Create context with the mock implementation
@@ -24,9 +24,7 @@ export const WebSocketContext = createContext<WebSocketContextType>(mockWebSocke
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use mock implementation instead of actual WebSocket
   return (
-    <WebSocketContext.Provider value={mockWebSocketContext}>
-      {children}
-    </WebSocketContext.Provider>
+    <WebSocketContext.Provider value={mockWebSocketContext}>{children}</WebSocketContext.Provider>
   );
 };
 

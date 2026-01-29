@@ -8,8 +8,24 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Clock, Users, CheckCircle, Plus, X, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 
 interface Poll {
@@ -78,22 +94,22 @@ const convertDisplayDayToDbDay = (displayDay: number): number => {
 const getPollWeekDates = (pollEndDate: string) => {
   // The poll stores the END date of the selected week
   const weekEnd = new Date(pollEndDate);
-  
+
   // Find the Monday of the week containing the end date
   const endDayOfWeek = weekEnd.getDay(); // 0 = Sunday, 1 = Monday, etc.
   const daysFromMonday = endDayOfWeek === 0 ? 6 : endDayOfWeek - 1; // Convert Sunday=0 to be 6 days from Monday
-  
+
   const mondayOfWeek = new Date(weekEnd);
   mondayOfWeek.setDate(weekEnd.getDate() - daysFromMonday);
-  
+
   return DAYS_OF_WEEK.map((dayName, dayIndex) => {
     const targetDate = new Date(mondayOfWeek);
     targetDate.setDate(mondayOfWeek.getDate() + dayIndex);
-    
+
     return {
       dayName,
       date: targetDate,
-      dateString: format(targetDate, 'MMM d')
+      dateString: format(targetDate, 'MMM d'),
     };
   });
 };
@@ -103,17 +119,17 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
-  
+
   // Get the poll's selected week dates
   const weekDates = getPollWeekDates(poll.endDate);
-  
+
   // Check if poll has expired
   const isExpired = new Date() > new Date(poll.endDate);
   const pollIsActive = poll.isActive && !isExpired;
-  
+
   // User-defined availability state
   const [userAvailability, setUserAvailability] = useState<{
-    [day: string]: { startTime: string; endTime: string; available: boolean }[]
+    [day: string]: { startTime: string; endTime: string; available: boolean }[];
   }>({});
 
   // Fetch poll analysis for event suggestions
@@ -122,7 +138,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     queryFn: async () => {
       console.log('Fetching poll analysis for poll:', poll.id);
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/analysis`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         console.log('Poll analysis fetch failed:', response.status);
@@ -139,15 +155,25 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   const { data: userResponses } = useQuery({
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'user-responses', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`, {
-        credentials: 'include'
-      });
+      const response = await fetch(
+        `/api/sports-groups/${groupId}/polls/${poll.id}/user-responses`,
+        {
+          credentials: 'include',
+        }
+      );
       if (!response.ok) {
         console.log('Failed to fetch user responses:', response.status);
         return [];
       }
       const data = await response.json();
-      console.log('User responses received for poll', poll.id, 'authenticated user ID:', user?.id, ':', data);
+      console.log(
+        'User responses received for poll',
+        poll.id,
+        'authenticated user ID:',
+        user?.id,
+        ':',
+        data
+      );
       console.log('User responses array length:', data?.length);
       return data;
     },
@@ -159,7 +185,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     queryKey: ['sports-groups', groupId, 'polls', poll.id, 'time-slots'],
     queryFn: async () => {
       const response = await fetch(`/api/sports-groups/${groupId}/polls/${poll.id}/time-slots`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         console.log('Failed to fetch time slots:', response.status);
@@ -172,13 +198,21 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
   // Load existing user responses into availability form when data changes
   useEffect(() => {
-    if (userResponses && userResponses.length > 0 && timeSlots && timeSlots.length > 0 && showAvailabilityForm) {
+    if (
+      userResponses &&
+      userResponses.length > 0 &&
+      timeSlots &&
+      timeSlots.length > 0 &&
+      showAvailabilityForm
+    ) {
       console.log('Loading existing responses into form:', userResponses);
       console.log('Available time slots:', timeSlots);
-      
+
       // Convert userResponses back to userAvailability format
-      const newAvailability: { [day: string]: { startTime: string; endTime: string; available: boolean }[] } = {};
-      
+      const newAvailability: {
+        [day: string]: { startTime: string; endTime: string; available: boolean }[];
+      } = {};
+
       // Group responses by day
       userResponses.forEach((response: any) => {
         const timeSlot = timeSlots.find((slot: any) => slot.id === response.timeSlotId);
@@ -187,15 +221,15 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
           if (!newAvailability[dayName]) {
             newAvailability[dayName] = [];
           }
-          
+
           newAvailability[dayName].push({
             startTime: timeSlot.startTime,
             endTime: timeSlot.endTime,
-            available: response.isAvailable
+            available: response.isAvailable,
           });
         }
       });
-      
+
       console.log('Converted availability for form:', newAvailability);
       setUserAvailability(newAvailability);
     } else if (showAvailabilityForm && (!userResponses || userResponses.length === 0)) {
@@ -224,8 +258,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Availability saved",
-        description: "Your availability has been recorded successfully.",
+        title: 'Availability saved',
+        description: 'Your availability has been recorded successfully.',
       });
       setShowAvailabilityForm(false);
       setUserAvailability({});
@@ -233,9 +267,9 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -257,8 +291,8 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Poll deleted",
-        description: "The poll has been deleted successfully.",
+        title: 'Poll deleted',
+        description: 'The poll has been deleted successfully.',
       });
       // Navigate back or refresh the parent component
       queryClient.invalidateQueries({ queryKey: ['sports-groups', groupId, 'polls'] });
@@ -267,9 +301,9 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error deleting poll",
+        title: 'Error deleting poll',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -280,35 +314,36 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
   // Helper functions for custom availability
   const addTimeSlot = (dayName: string) => {
-    setUserAvailability(prev => ({
+    setUserAvailability((prev) => ({
       ...prev,
       [dayName]: [
         ...(prev[dayName] || []),
-        { startTime: '09:00', endTime: '17:00', available: true }
-      ]
+        { startTime: '09:00', endTime: '17:00', available: true },
+      ],
     }));
   };
 
   const updateTimeSlot = (dayName: string, slotIndex: number, field: string, value: any) => {
-    setUserAvailability(prev => ({
+    setUserAvailability((prev) => ({
       ...prev,
-      [dayName]: prev[dayName]?.map((slot, index) => 
-        index === slotIndex ? { ...slot, [field]: value } : slot
-      ) || []
+      [dayName]:
+        prev[dayName]?.map((slot, index) =>
+          index === slotIndex ? { ...slot, [field]: value } : slot
+        ) || [],
     }));
   };
 
   const removeTimeSlot = (dayName: string, slotIndex: number) => {
-    setUserAvailability(prev => ({
+    setUserAvailability((prev) => ({
       ...prev,
-      [dayName]: prev[dayName]?.filter((_, index) => index !== slotIndex) || []
+      [dayName]: prev[dayName]?.filter((_, index) => index !== slotIndex) || [],
     }));
   };
 
   const handleCreateEvent = (suggestion: any) => {
     const timeSlot = suggestion.timeSlot;
     const suggestedDate = suggestion.suggestedDate;
-    
+
     // Calculate end time based on poll duration
     const startTime = timeSlot.startTime;
     const [hours, minutes] = startTime.split(':').map(Number);
@@ -326,7 +361,7 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
       maxParticipants: suggestion.timeSlot.availableCount || poll.minMembers || 2,
       groupId: groupId,
       pollId: poll.id,
-      suggestionId: suggestion.timeSlot.id
+      suggestionId: suggestion.timeSlot.id,
     };
 
     // Encode the data for URL parameters
@@ -343,15 +378,15 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
 
   const handleSubmitCustomAvailability = () => {
     // Check if user has any availability
-    const hasAvailability = Object.values(userAvailability).some(slots => 
-      slots.some(slot => slot.available)
+    const hasAvailability = Object.values(userAvailability).some((slots) =>
+      slots.some((slot) => slot.available)
     );
 
     if (!hasAvailability) {
       toast({
-        title: "No availability selected",
+        title: 'No availability selected',
         description: "Please select at least one time when you're available.",
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
@@ -361,324 +396,322 @@ export function PollDetails({ poll, groupId }: PollDetailsProps) {
   };
 
   return (
-    <div className="space-y-6 bg-white p-4 rounded-lg border-2 border-blue-500"
-         style={{ minHeight: '400px', zIndex: 10, position: 'relative' }}>
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">{poll.title}</h3>
-              {poll.description && (
-                <p className="text-gray-600 mt-1">{poll.description}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={pollIsActive ? "default" : "secondary"}>
-                {pollIsActive ? "Active" : "Expired"}
-              </Badge>
-              {user && user.id === poll.createdBy && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+    <div className="space-y-4">
+      {/* Poll Header */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{poll.title}</h3>
+            {poll.description && <p className="text-sm text-gray-600">{poll.description}</p>}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge
+              variant={pollIsActive ? 'default' : 'secondary'}
+              className={pollIsActive ? 'bg-blue-500' : ''}
+            >
+              {pollIsActive ? 'Active' : 'Expired'}
+            </Badge>
+            {user && user.id === poll.createdBy && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    disabled={deletePollMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Poll</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this poll? This action cannot be undone and
+                      will remove all responses from group members.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeletePoll}
+                      className="bg-red-600 hover:bg-red-700"
                       disabled={deletePollMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Poll</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this poll? This action cannot be undone and will remove all responses from group members.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeletePoll}
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={deletePollMutation.isPending}
-                      >
-                        {deletePollMutation.isPending ? "Deleting..." : "Delete Poll"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
+                      {deletePollMutation.isPending ? 'Deleting...' : 'Delete Poll'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                Min {poll.minMembers} members
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                {poll.duration} minutes
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}
-              </span>
-            </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5" />
+            <span>Min {poll.minMembers} members</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{poll.duration} minutes</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Ends {format(new Date(poll.endDate), 'MMM d, yyyy')}</span>
+          </div>
+        </div>
+      </div>
 
       {pollIsActive && user && (
-        <Card className={userResponses && userResponses.length > 0 ? "border-green-200 bg-green-50" : ""}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-semibold flex items-center gap-2">
-                  Your Availability
-                  {userResponses && userResponses.length > 0 && (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  )}
-                </h4>
-                <p className="text-gray-600">
-                  {userResponses && userResponses.length > 0 
-                    ? `Available for ${userResponses.length} time slots` 
-                    : "Set your available times"
-                  }
-                </p>
-              </div>
-              <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
-                <DialogTrigger asChild>
-                  {(() => {
-                    const hasResponses = userResponses && userResponses.length > 0;
-                    console.log('Button decision - user:', user?.name, 'hasResponses:', hasResponses, 'userResponses:', userResponses);
-                    return hasResponses ? (
-                      <Button variant="outline" size="sm">
-                        Update Availability
-                      </Button>
-                    ) : (
-                      <Button size="sm">
-                        Set Availability
-                      </Button>
-                    );
-                  })()}
-                </DialogTrigger>
-                <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-lg">Set Your Availability</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3">
-                    {weekDates.map((dayInfo, dayIndex) => {
-                      const dayAvailability = userAvailability[dayInfo.dayName] || [];
-                      
-                      return (
-                        <div key={dayIndex} className="border rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h5 className="font-semibold text-gray-900 text-sm">{dayInfo.dayName}</h5>
-                              <p className="text-xs text-gray-500">{dayInfo.dateString}</p>
-                            </div>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => addTimeSlot(dayInfo.dayName)}
-                              className="text-xs h-7 px-2"
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Add
-                            </Button>
+        <div
+          className={`bg-white border rounded-lg p-4 ${userResponses && userResponses.length > 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                Your Availability
+                {userResponses && userResponses.length > 0 && (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                )}
+              </h4>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {userResponses && userResponses.length > 0
+                  ? `Set your available times`
+                  : 'Set your available times'}
+              </p>
+            </div>
+            <Dialog open={showAvailabilityForm} onOpenChange={setShowAvailabilityForm}>
+              <DialogTrigger asChild>
+                {(() => {
+                  const hasResponses = userResponses && userResponses.length > 0;
+                  console.log(
+                    'Button decision - user:',
+                    user?.name,
+                    'hasResponses:',
+                    hasResponses,
+                    'userResponses:',
+                    userResponses
+                  );
+                  return (
+                    <Button
+                      size="sm"
+                      className={
+                        hasResponses
+                          ? 'bg-gradient-to-r from-primary to-secondary'
+                          : 'bg-gradient-to-r from-primary to-secondary'
+                      }
+                    >
+                      {hasResponses ? 'Set Availability' : 'Set Availability'}
+                    </Button>
+                  );
+                })()}
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-lg">Set Your Availability</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  {weekDates.map((dayInfo, dayIndex) => {
+                    const dayAvailability = userAvailability[dayInfo.dayName] || [];
+
+                    return (
+                      <div key={dayIndex} className="border rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h5 className="font-semibold text-gray-900 text-sm">
+                              {dayInfo.dayName}
+                            </h5>
+                            <p className="text-xs text-gray-500">{dayInfo.dateString}</p>
                           </div>
-                          
-                          {dayAvailability.length === 0 ? (
-                            <p className="text-xs text-gray-500 italic">Click "Add" to set availability</p>
-                          ) : (
-                            <div className="space-y-2">
-                              {dayAvailability.map((slot, slotIndex) => (
-                                <div key={slotIndex} className="space-y-2 p-2 bg-gray-50 rounded">
-                                  <div className="flex items-center gap-2">
-                                    <Checkbox
-                                      checked={slot.available}
-                                      onCheckedChange={(checked) => 
-                                        updateTimeSlot(dayInfo.dayName, slotIndex, 'available', checked === true)
-                                      }
-                                    />
-                                    <span className="text-xs text-gray-600">Available</span>
-                                    <div className="ml-auto">
-                                      <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => removeTimeSlot(dayInfo.dayName, slotIndex)}
-                                        className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="time"
-                                      value={slot.startTime}
-                                      onChange={(e) => updateTimeSlot(dayInfo.dayName, slotIndex, 'startTime', e.target.value)}
-                                      className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
-                                    />
-                                    <span className="text-xs text-gray-500">to</span>
-                                    <input
-                                      type="time"
-                                      value={slot.endTime}
-                                      onChange={(e) => updateTimeSlot(dayInfo.dayName, slotIndex, 'endTime', e.target.value)}
-                                      className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
-                                    />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addTimeSlot(dayInfo.dayName)}
+                            className="text-xs h-7 px-2"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+
+                        {dayAvailability.length === 0 ? (
+                          <p className="text-xs text-gray-500 italic">
+                            Click "Add" to set availability
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {dayAvailability.map((slot, slotIndex) => (
+                              <div key={slotIndex} className="space-y-2 p-2 bg-gray-50 rounded">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={slot.available}
+                                    onCheckedChange={(checked) =>
+                                      updateTimeSlot(
+                                        dayInfo.dayName,
+                                        slotIndex,
+                                        'available',
+                                        checked === true
+                                      )
+                                    }
+                                  />
+                                  <span className="text-xs text-gray-600">Available</span>
+                                  <div className="ml-auto">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => removeTimeSlot(dayInfo.dayName, slotIndex)}
+                                      className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    
-                    <div className="pt-3 flex flex-col gap-2">
-                      <Button 
-                        onClick={handleSubmitCustomAvailability}
-                        disabled={submitResponsesMutation.isPending}
-                        className="w-full text-sm"
-                        size="sm"
-                      >
-                        {submitResponsesMutation.isPending ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                            Saving...
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-3 w-3" />
-                            Save My Availability
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="time"
+                                    value={slot.startTime}
+                                    onChange={(e) =>
+                                      updateTimeSlot(
+                                        dayInfo.dayName,
+                                        slotIndex,
+                                        'startTime',
+                                        e.target.value
+                                      )
+                                    }
+                                    className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
+                                  />
+                                  <span className="text-xs text-gray-500">to</span>
+                                  <input
+                                    type="time"
+                                    value={slot.endTime}
+                                    onChange={(e) =>
+                                      updateTimeSlot(
+                                        dayInfo.dayName,
+                                        slotIndex,
+                                        'endTime',
+                                        e.target.value
+                                      )
+                                    }
+                                    className="border border-gray-300 rounded px-2 py-1 text-xs flex-1"
+                                  />
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
-                      </Button>
-                      <Button 
-                        onClick={() => setShowAvailabilityForm(false)}
-                        variant="outline"
-                        disabled={submitResponsesMutation.isPending}
-                        className="w-full text-sm"
-                        size="sm"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
+                      </div>
+                    );
+                  })}
 
-      {/* Show message for expired polls */}
-      {!pollIsActive && (
-        <Card className="border-gray-200 bg-gray-50">
-          <CardContent className="pt-6">
-            <div className="text-center text-gray-600">
-              <p className="font-medium">This poll has expired</p>
-              <p className="text-sm">Availability can no longer be set for this poll.</p>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="pt-3 flex flex-col gap-2">
+                    <Button
+                      onClick={handleSubmitCustomAvailability}
+                      disabled={submitResponsesMutation.isPending}
+                      className="w-full text-sm"
+                      size="sm"
+                    >
+                      {submitResponsesMutation.isPending ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                          Saving...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3" />
+                          Save My Availability
+                        </div>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => setShowAvailabilityForm(false)}
+                      variant="outline"
+                      disabled={submitResponsesMutation.isPending}
+                      className="w-full text-sm"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       )}
 
       {pollAnalysis?.suggestions?.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h4 className="text-lg font-semibold flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Suggested Events
-            </h4>
-            <p className="text-gray-600">Times when enough members are available to create events</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pollAnalysis.suggestions.map((suggestion: any, index: number) => (
-                <div key={index} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h5 className="font-semibold text-green-900">
-                        {DAYS_OF_WEEK[suggestion.timeSlot.dayOfWeek]} Event
-                      </h5>
-                      <p className="text-sm text-green-700">
-                        {suggestion.timeSlot.startTime} - {suggestion.timeSlot.endTime}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
-                        {suggestion.estimatedParticipants || suggestion.timeSlot.availableCount} available
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-green-700">
-                    <span>✓ Meets minimum {poll.minMembers} members</span>
-                    <span>Duration: {poll.duration} minutes</span>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs text-green-600 mb-1">
-                      {suggestion.estimatedParticipants} members available • {suggestion.confidence} confidence
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            Suggested Events
+          </h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Times when enough members are available to create events
+          </p>
+          <div className="space-y-3">
+            {pollAnalysis.suggestions.map((suggestion: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 bg-green-50 border-green-200">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h5 className="font-bold text-green-900">
+                      {DAYS_OF_WEEK[suggestion.timeSlot.dayOfWeek]} Event
+                    </h5>
+                    <p className="text-sm text-green-700">
+                      {suggestion.timeSlot.startTime} - {suggestion.timeSlot.endTime}
                     </p>
                   </div>
-                  {suggestion.timeSlot.isUsedForEvent ? (
-                    <div className="mt-3 space-y-2">
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        disabled
-                        variant="secondary"
-                      >
-                        Event Already Created
-                      </Button>
-                      <p className="text-xs text-gray-500">
-                        This time slot has already been used to create an event
-                      </p>
-                    </div>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="mt-3 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleCreateEvent(suggestion)}
-                    >
-                      Create Event
-                    </Button>
-                  )}
+                  <Badge className="bg-green-600 hover:bg-green-700">
+                    {suggestion.estimatedParticipants || suggestion.timeSlot.availableCount}{' '}
+                    available
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center gap-3 text-xs text-green-700 mb-3">
+                  <span>✓ Meets minimum {poll.minMembers} members</span>
+                  <span>Duration: {poll.duration} minutes</span>
+                </div>
+                <div className="text-xs text-green-600 mb-3">
+                  {suggestion.estimatedParticipants} members available • {suggestion.confidence}{' '}
+                  confidence
+                </div>
+                {suggestion.timeSlot.isUsedForEvent ? (
+                  <Button size="sm" className="w-full" disabled variant="secondary">
+                    Event Already Created
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => handleCreateEvent(suggestion)}
+                  >
+                    Create Event
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <h4 className="text-lg font-semibold">Poll Summary</h4>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p className="text-gray-600">
-              <span className="font-medium">{poll.responseCount}</span> members have responded
-            </p>
-            <p className="text-gray-600">
-              Created by <span className="font-medium">{poll.creator.name}</span> on {format(new Date(poll.createdAt), 'MMM d, yyyy')}
-            </p>
-            <p className="text-gray-600">
-              Minimum <span className="font-medium">{poll.minMembers}</span> members needed to create events
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <h4 className="text-lg font-bold text-gray-900 mb-3">Poll Summary</h4>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>
+            <span className="font-semibold text-gray-900">{poll.responseCount}</span> members have
+            responded
+          </p>
+          <p>
+            Created by <span className="font-medium text-gray-900">{poll.creator.name}</span> on{' '}
+            {format(new Date(poll.createdAt), 'MMM d, yyyy')}
+          </p>
+          <p>
+            Minimum <span className="font-medium text-gray-900">{poll.minMembers}</span> members
+            needed to create events
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
